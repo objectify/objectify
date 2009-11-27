@@ -1,10 +1,11 @@
 package com.googlecode.objectify;
 
-import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -12,26 +13,27 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
- * Implementation of the Objectify interface.
+ * Implementation of the Objectify interface.  Note we *always* use the DatastoreService
+ * methods that use transactions to avoid the confusion of implicit transactions.
  */
 public class ObjectifyImpl implements Objectify
 {
 	/** The google object that does the actual heavy lifting */
 	DatastoreService ds;
 	
-	/** If set, this is a transaction override.  Usually null. */
-	Transaction txnOverride;
+	/** The transaction to use.  If null, do not use transactions. */
+	Transaction txn;
 	
 	/**
 	 * Protected constructor creates a wrapper on the datastore with
-	 * the specified txn override.
+	 * the specified txn.
 	 * 
-	 * @param txnOverride can be null (and usually will be)
+	 * @param txn can be null to not use transactions. 
 	 */
-	ObjectifyImpl(DatastoreService ds, Transaction txnOverride)
+	ObjectifyImpl(DatastoreService ds, Transaction txn)
 	{
 		this.ds = ds;
-		this.txnOverride = txnOverride;
+		this.txn = txn;
 	}
 
 	/* (non-Javadoc)
@@ -40,8 +42,15 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> Map<Key, T> get(Iterable<Key> keys)
 	{
-		//TODO
-		return null;
+		Map<Key, Entity> entities = this.ds.get(this.txn, keys);
+		Map<Key, T> result = new HashMap<Key, T>(entities.size() * 2);
+		
+		for (Map.Entry<Key, Entity> entry: entities.entrySet())
+		{
+			
+		}
+		
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -80,20 +89,20 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> ObjPreparedQuery<T> prepare(Query query)
 	{
-		PreparedQuery pq = (this.txnOverride != null)
-			? this.ds.prepare(this.txnOverride, query)
+		PreparedQuery pq = (this.txn != null)
+			? this.ds.prepare(this.txn, query)
 			: this.ds.prepare(query);
 			
 		return new ObjPreparedQueryImpl<T>(pq);
 	}
-
+	
 	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#withTransaction(com.google.appengine.api.datastore.Transaction)
+	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
 	@Override
-	public Objectify withTransaction(Transaction txn)
+	public Transaction getTxn()
 	{
-		return new ObjectifyImpl(this.ds, txn);
+		return this.txn;
 	}
 
 	/* (non-Javadoc)
@@ -130,24 +139,12 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#beginTransaction()
-	 */
-	@Override
-	public Transaction beginTransaction()
-	{
-		return this.ds.beginTransaction();
-	}
-
-	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#delete(com.google.appengine.api.datastore.Key[])
 	 */
 	@Override
 	public void delete(Key... keys)
 	{
-		if (this.txnOverride != null)
-			this.ds.delete(txnOverride, keys);
-		else
-			this.ds.delete(keys);
+		this.ds.delete(txn, keys);
 	}
 
 	/* (non-Javadoc)
@@ -156,43 +153,6 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public void delete(Iterable<Key> keys)
 	{
-		if (this.txnOverride != null)
-			this.ds.delete(txnOverride, keys);
-		else
-			this.ds.delete(keys);
+		this.ds.delete(txn, keys);
 	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#getActiveTransactions()
-	 */
-	@Override
-	public Collection<Transaction> getActiveTransactions()
-	{
-		return this.ds.getActiveTransactions();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#getCurrentTransaction()
-	 */
-	@Override
-	public Transaction getCurrentTransaction()
-	{
-		if (this.txnOverride != null)
-			return this.txnOverride;
-		else
-			return this.ds.getCurrentTransaction();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#getCurrentTransaction(com.google.appengine.api.datastore.Transaction)
-	 */
-	@Override
-	public Transaction getCurrentTransaction(Transaction returnedIfNoTxn)
-	{
-		if (this.txnOverride != null)
-			return this.txnOverride;
-		else
-			return this.ds.getCurrentTransaction(returnedIfNoTxn);
-	}
-
 }

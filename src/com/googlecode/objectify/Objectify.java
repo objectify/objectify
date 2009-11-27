@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -56,11 +55,14 @@ public interface Objectify
 	<T> ObjPreparedQuery<T> prepare(Query query);
 	
 	/**
-	 * @return a new Objectify interface which will call all get(), put(),
-	 *  delete(), and prepare() methods with the specified transaction,
-	 *  overriding any current transaction.
+	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
+	 * which uses implicit transaction management.  Objectify does not use implicit (thread
+	 * local) transactions.</p>
+	 * 
+	 * @return the transaction associated with this Objectify instance,
+	 *  or null if no transaction is associated with this instance.
 	 */
-	Objectify withTransaction(Transaction txn);
+	public Transaction getTxn();
 
 	/**
 	 * @return the underlying DatastoreService implementation so you can work
@@ -81,21 +83,9 @@ public interface Objectify
 	/** @see DatastoreService#allocateIds(Key, String, long) */
 	public KeyRange allocateIds(Key parent, String kind, long num);
 
-	/** @see DatastoreService#beginTransaction() */
-	public Transaction beginTransaction();
-
 	/** @see DatastoreService#delete(Key...) */
 	public void delete(Key... keys);
 
 	/** @see DatastoreService#delete(Iterable) */
 	public void delete(Iterable<Key> keys);
-
-	/** @see DatastoreService#getActiveTransactions() */
-	public Collection<Transaction> getActiveTransactions();
-
-	/** @see DatastoreService#getCurrentTransaction() */
-	public Transaction getCurrentTransaction();
-
-	/** @see DatastoreService#getCurrentTransaction(Transaction) */
-	public Transaction getCurrentTransaction(Transaction returnedIfNoTxn);
 }
