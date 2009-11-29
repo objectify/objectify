@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -97,14 +97,28 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * Converts an Entity from the Datastore into a typed Object
+	 * @return the metadata for a kind of entity based on its key
+	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static Object toObject(Entity ent)
+	public static EntityMetadata getMetadata(Key key)
 	{
-		EntityMetadata metadata = types.get(ent.getKind());
+		EntityMetadata metadata = types.get(key.getKind());
 		if (metadata == null)
-			throw new IllegalArgumentException("No registered type for kind " + ent.getKind());
+			throw new IllegalArgumentException("No registered type for kind " + key.getKind());
 		else
-			return metadata.toObject(ent);
+			return metadata;
+	}
+	
+	/**
+	 * @return the metadata for a kind of typed object
+	 * @throws IllegalArgumentException if the kind has not been registered
+	 */
+	public static EntityMetadata getMetadata(Object obj)
+	{
+		EntityMetadata metadata = types.get(getKind(obj.getClass()));
+		if (metadata == null)
+			throw new IllegalArgumentException("No registered type for kind " + getKind(obj.getClass()));
+		else
+			return metadata;
 	}
 }

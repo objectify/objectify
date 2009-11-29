@@ -1,6 +1,8 @@
 package com.googlecode.objectify;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -49,7 +51,8 @@ public class ObjectifyImpl implements Objectify
 		
 		for (Map.Entry<Key, Entity> entry: entities.entrySet())
 		{
-			result.put(entry.getKey(), (T)ObjectifyFactory.toObject(entry.getValue()));
+			EntityMetadata metadata = ObjectifyFactory.getMetadata(entry.getKey());
+			result.put(entry.getKey(), (T)metadata.toObject(entry.getValue()));
 		}
 		
 		return result;
@@ -62,9 +65,9 @@ public class ObjectifyImpl implements Objectify
 	@SuppressWarnings("unchecked")
 	public <T> T get(Key key) throws EntityNotFoundException
 	{
-		Entity ent = this.ds.get(key);
+		Entity ent = this.ds.get(this.txn, key);
 		
-		return (T)ObjectifyFactory.toObject(ent);
+		return (T)ObjectifyFactory.getMetadata(key).toObject(ent);
 	}
 
 	/* (non-Javadoc)
@@ -73,8 +76,15 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public Key put(Object obj)
 	{
-		// TODO
-		return null;
+		EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+		
+		Entity ent = metadata.toEntity(obj);
+		
+		Key resultKey = this.ds.put(this.txn, ent);
+		
+		metadata.setKey(obj, resultKey);
+		
+		return resultKey;
 	}
 
 	/* (non-Javadoc)
@@ -83,8 +93,25 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public List<Key> put(Iterable<Object> objs)
 	{
-		//TODO
-		return null;
+		List<Entity> entityList = new ArrayList<Entity>();
+		for (Object obj: objs)
+		{
+			EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+			entityList.add(metadata.toEntity(obj));
+		}
+		
+		List<Key> keys = this.ds.put(this.txn, entityList);
+		
+		// Patch up any generated keys in the original objects
+		Iterator<Key> keysIt = keys.iterator();
+		for (Object obj: objs)
+		{
+			Key k = keysIt.next();
+			EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+			metadata.setKey(obj, k);
+		}
+		
+		return keys;
 	}
 
 	/* (non-Javadoc)

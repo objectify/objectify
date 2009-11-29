@@ -159,4 +159,21 @@ public class EntityMetadata
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
+	
+	/**
+	 * Sets the key field of the object to be key.  Object must be of the entityClass type
+	 * for this metadata.
+	 */
+	public void setKey(Object obj, Key key)
+	{
+		if (obj.getClass() != this.entityClass)
+			throw new IllegalArgumentException("Using metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
+		
+		try
+		{
+			this.keyField.set(obj, key);
+		}
+		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
 }
