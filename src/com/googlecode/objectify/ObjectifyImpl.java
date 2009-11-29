@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -40,6 +41,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#get(java.lang.Iterable)
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> Map<Key, T> get(Iterable<Key> keys)
 	{
 		Map<Key, Entity> entities = this.ds.get(this.txn, keys);
@@ -47,7 +49,7 @@ public class ObjectifyImpl implements Objectify
 		
 		for (Map.Entry<Key, Entity> entry: entities.entrySet())
 		{
-			
+			result.put(entry.getKey(), (T)ObjectifyFactory.toObject(entry.getValue()));
 		}
 		
 		return result;
@@ -57,10 +59,12 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#get(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
-	public <T> T get(Key key)
+	@SuppressWarnings("unchecked")
+	public <T> T get(Key key) throws EntityNotFoundException
 	{
-		// TODO
-		return null;
+		Entity ent = this.ds.get(key);
+		
+		return (T)ObjectifyFactory.toObject(ent);
 	}
 
 	/* (non-Javadoc)

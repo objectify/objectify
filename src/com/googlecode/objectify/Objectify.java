@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.Query;
@@ -27,7 +28,7 @@ public interface Objectify
 	 * Just like the DatastoreService method, but returns your typed object.
 	 * @see DatastoreService#get(Key) 
 	 */
-	<T> T get(Key key);
+	<T> T get(Key key) throws EntityNotFoundException;
 	
 	/**
 	 * Just like the DatastoreService method, but uses your typed object.

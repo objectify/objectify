@@ -3,10 +3,9 @@ package com.googlecode.objectify;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Entity;
-
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -36,7 +35,7 @@ import com.google.appengine.api.datastore.Transaction;
 public class ObjectifyFactory
 {
 	/** */
-	private static Map<String, Class<?>> types = new HashMap<String, Class<?>>();
+	private static Map<String, EntityMetadata> types = new HashMap<String, EntityMetadata>();
 	
 	/**
 	 * @return an Objectify from the DatastoreService which does NOT use
@@ -81,10 +80,31 @@ public class ObjectifyFactory
 	 */
 	public static void register(Class<?> clazz)
 	{
-		Entity entityAnn = (Entity)clazz.getAnnotation(Entity.class);
+		String kind = getKind(clazz);
+		types.put(kind, new EntityMetadata(clazz));
+	}
+	
+	/**
+	 * @return the kind associated with a particular entity class
+	 */
+	public static String getKind(Class<?> clazz)
+	{
+		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
 		if (entityAnn == null)
-			types.put(clazz.getSimpleName(), clazz);
+			return clazz.getSimpleName();
 		else
-			types.put(entityAnn.name(), clazz);
+			return entityAnn.name();
+	}
+	
+	/**
+	 * Converts an Entity from the Datastore into a typed Object
+	 */
+	public static Object toObject(Entity ent)
+	{
+		EntityMetadata metadata = types.get(ent.getKind());
+		if (metadata == null)
+			throw new IllegalArgumentException("No registered type for kind " + ent.getKind());
+		else
+			return metadata.toObject(ent);
 	}
 }
