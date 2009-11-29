@@ -122,6 +122,14 @@ public class EntityMetadata
 					else
 						done.add(f);
 					
+					Object value = property.getValue();
+					
+					// One quick default conversion - if the field we are setting is a String
+					// but the property value is not a string, toString() it.  All other conversions
+					// should be explicitly handled by @OldName on a setter method.
+					if (f.getType().equals(String.class) && !(value instanceof String))
+						value = value.toString();
+					
 					f.set(obj, property.getValue());
 				}
 			}
