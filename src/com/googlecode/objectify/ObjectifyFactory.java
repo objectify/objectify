@@ -31,6 +31,8 @@ import com.google.appengine.api.datastore.Transaction;
  * on top of this class that looks for @Entity annotations based on Scannotation or
  * Reflections, but this would add extra dependency jars and need a hook for
  * application startup.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ObjectifyFactory
 {

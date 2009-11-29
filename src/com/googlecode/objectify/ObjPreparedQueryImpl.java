@@ -10,6 +10,8 @@ import com.google.appengine.api.datastore.PreparedQuery;
 
 /**
  * Implementation of the ObjPreparedQuery interface.
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 {

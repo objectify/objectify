@@ -11,6 +11,8 @@ import java.lang.annotation.Target;
  * 
  * <p>The specific difference is that, if this annotation is present, fields will be stored
  * with Entity.setProperty() instead of Entity.setUnindexedProperty().</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})

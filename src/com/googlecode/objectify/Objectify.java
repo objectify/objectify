@@ -15,6 +15,8 @@ import com.google.appengine.api.datastore.Transaction;
  * Entity you work with real typed objects.  However, many of the methods
  * (allocating ids, transactions, delete) are included on this interface
  * for convenience.
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Objectify
 {

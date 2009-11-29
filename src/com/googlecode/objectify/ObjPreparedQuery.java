@@ -10,6 +10,8 @@ import com.google.appengine.api.datastore.PreparedQuery;
  * This interface mimics the GAE PreparedQuery interface, but instead of
  * iterating through Entity objects, it iterates through your typesafe
  * objects.
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface ObjPreparedQuery<T>
 {

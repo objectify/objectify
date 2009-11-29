@@ -18,6 +18,8 @@ import com.google.appengine.api.datastore.Transaction;
 /**
  * Implementation of the Objectify interface.  Note we *always* use the DatastoreService
  * methods that use transactions to avoid the confusion of implicit transactions.
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ObjectifyImpl implements Objectify
 {
