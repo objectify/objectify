@@ -120,9 +120,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> ObjPreparedQuery<T> prepare(Query query)
 	{
-		PreparedQuery pq = (this.txn != null)
-			? this.ds.prepare(this.txn, query)
-			: this.ds.prepare(query);
+		PreparedQuery pq = this.ds.prepare(this.txn, query);
 			
 		return new ObjPreparedQueryImpl<T>(pq);
 	}
