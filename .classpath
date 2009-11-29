@@ -6,5 +6,7 @@
 	<classpathentry kind="lib" path="lib/build-only/testng-5.9-jdk15.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/appengine-api-1.0-sdk-1.2.6.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/geronimo-jpa_3.0_spec-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/build-only/appengine-api-stubs.jar"/>
+	<classpathentry kind="lib" path="lib/build-only/appengine-local-runtime.jar"/>
 	<classpathentry kind="output" path="build/bin"/>
 </classpath>

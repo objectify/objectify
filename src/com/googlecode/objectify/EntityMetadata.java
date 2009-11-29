@@ -2,6 +2,7 @@ package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -32,10 +33,10 @@ public class EntityMetadata
 	private Field keyField;
 	
 	/** The fields we persist, not including the @Id key field */
-	private Set<Field> writeables;
+	private Set<Field> writeables = new HashSet<Field>();
 	
 	/** The fields that we read, keyed by name - including @OldName fields.  A superset of writeables. */
-	private Map<String, Field> readables;
+	private Map<String, Field> readables = new HashMap<String, Field>();
 	
 	/** */
 	public EntityMetadata(Class<?> clazz)
@@ -61,6 +62,8 @@ public class EntityMetadata
 		{
 			if (field.isAnnotationPresent(Transient.class) || (field.getModifiers() & BAD_MODIFIERS) != 0)
 				continue;
+			
+			field.setAccessible(true);
 			
 			if (field.isAnnotationPresent(Id.class))
 			{
