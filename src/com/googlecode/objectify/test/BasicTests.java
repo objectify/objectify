@@ -31,7 +31,6 @@ public class BasicTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		
-		// Create 
 		Trivial triv = new Trivial(null, 5, "foo");
 		Key k = ofy.put(triv);
 		
@@ -45,4 +44,24 @@ public class BasicTests extends TestBase
 		assert fetched.getSomeString().equals(triv.getSomeString());
 	}
 
+	/** */
+	@Test
+	public void testOverwriteKey() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.get();
+		
+		Trivial triv = new Trivial(null, 5, "foo");
+		Key k = ofy.put(triv);
+		
+		Trivial triv2 = new Trivial(k, 6, "bar");
+		Key k2 = ofy.put(triv2);
+		
+		assert k2 == k;
+		
+		Trivial fetched = ofy.get(k);
+		
+		assert fetched.getKey().equals(k);
+		assert fetched.getSomeNumber() == triv2.getSomeNumber();
+		assert fetched.getSomeString().equals(triv2.getSomeString());
+	}
 }

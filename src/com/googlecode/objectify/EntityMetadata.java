@@ -133,7 +133,7 @@ public class EntityMetadata
 					if (f.getType().equals(String.class) && !(value instanceof String))
 						value = value.toString();
 					
-					f.set(obj, property.getValue());
+					f.set(obj, value);
 				}
 			}
 			
