@@ -22,9 +22,9 @@ public class Child
 	public void setId(Long value) { this.id = value; }
 	
 	@Parent
-	Key parentKey;
-	public Key getParentKey() { return this.parentKey; }
-	public void setParentKey(Key value) { this.parentKey = value; }
+	Key parent;
+	public Key getParent() { return this.parent; }
+	public void setParent(Key value) { this.parent = value; }
 	
 	String childString;
 	public String getChildString() { return this.childString; }
@@ -36,7 +36,7 @@ public class Child
 	/** Constructor to use when autogenerating an id */
 	public Child(Key parent, String childString)
 	{
-		this.parentKey = parent;
+		this.parent = parent;
 		this.childString = childString;
 	}
 }

@@ -93,11 +93,13 @@ public class EntityMetadata
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
-				if (this.idField != null || this.nameField != null)
+				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 				
 				if (field.getType() != Key.class)
 					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				
+				this.parentField = field;
 			}
 			else
 			{
@@ -219,7 +221,7 @@ public class EntityMetadata
 			
 			if (this.idField != null)
 			{
-				Long id = this.idField.getLong(obj);	// possibly null
+				Long id = (Long)this.idField.get(obj);	// possibly null
 				if (id != null)
 				{
 					if (this.parentField != null)

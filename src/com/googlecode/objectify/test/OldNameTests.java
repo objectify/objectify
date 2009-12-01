@@ -13,7 +13,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.TrivialWithId;
+import com.googlecode.objectify.test.entity.WithOldNames;
 
 /**
  * Tests of using the @OldName annotation
@@ -33,14 +33,33 @@ public class OldNameTests extends TestBase
 		Objectify ofy = ObjectifyFactory.get();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(TrivialWithId.class));
-		ent.setProperty("someNumber", 1);
-		ent.setProperty("someString", 2);	// setting a number
+		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		TrivialWithId fetched = ofy.get(ent.getKey());
+		WithOldNames fetched = ofy.get(ent.getKey());
 		
-		assert fetched.getSomeNumber() == 1;
-		assert fetched.getSomeString().equals("2");	// should be a string
+		assert fetched.getStuff().equals("oldStuff");
+		assert fetched.getOtherStuff() == null;
+	}
+	
+	/** */
+	@Test
+	public void testOldNameDuplicateError() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.get();
+		DatastoreService ds = ofy.getDatastore();
+		
+		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		ent.setProperty("stuff", "stuff");
+		ent.setProperty("oldStuff", "oldStuff");
+		ds.put(ent);
+		
+		try
+		{
+			ofy.get(ent.getKey());
+			assert false: "Shouldn't be able to read data duplicated with @OldName";
+		}
+		catch (Exception ex) {}
 	}
 }

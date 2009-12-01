@@ -93,25 +93,25 @@ public class ObjectifyFactory
 	//
 	
 	/** Creates a key for the class with the specified id */
-	public Key createKey(Class<?> kind, long id)
+	public static Key createKey(Class<?> kind, long id)
 	{
 		return KeyFactory.createKey(getKind(kind), id);
 	}
 	
 	/** Creates a key for the class with the specified name */
-	public Key createKey(Class<?> kind, String name)
+	public static Key createKey(Class<?> kind, String name)
 	{
 		return KeyFactory.createKey(getKind(kind), name);
 	}
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public Key createKey(Key parent, Class<?> kind, long id)
+	public static Key createKey(Key parent, Class<?> kind, long id)
 	{
 		return KeyFactory.createKey(parent, getKind(kind), id);
 	}
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public Key createKey(Key parent, Class<?> kind, String name)
+	public static Key createKey(Key parent, Class<?> kind, String name)
 	{
 		return KeyFactory.createKey(parent, getKind(kind), name);
 	}

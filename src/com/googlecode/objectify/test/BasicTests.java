@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.TrivialWithId;
+import com.googlecode.objectify.test.entity.TrivialWithName;
 
 /**
  * Tests of basic entity manipulation.
@@ -27,7 +28,7 @@ public class BasicTests extends TestBase
 	
 	/** */
 	@Test
-	public void testGenerateKey() throws Exception
+	public void testGenerateId() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		
@@ -36,6 +37,9 @@ public class BasicTests extends TestBase
 		
 		assert k.getKind().equals(ObjectifyFactory.getKind(triv.getClass()));
 		assert k.getId() == triv.getId();
+		
+		Key created = ObjectifyFactory.createKey(TrivialWithId.class, k.getId());
+		assert k.equals(created);
 		
 		TrivialWithId fetched = ofy.get(k);
 		
@@ -46,7 +50,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testOverwriteKey() throws Exception
+	public void testOverwriteId() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		
@@ -56,12 +60,33 @@ public class BasicTests extends TestBase
 		TrivialWithId triv2 = new TrivialWithId(k.getId(), 6, "bar");
 		Key k2 = ofy.put(triv2);
 		
-		assert k2 == k;
+		assert k2.equals(k);
 		
 		TrivialWithId fetched = ofy.get(k);
 		
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
 		assert fetched.getSomeString().equals(triv2.getSomeString());
+	}
+
+	/** */
+	@Test
+	public void testNames() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.get();
+		
+		TrivialWithName triv = new TrivialWithName("first", 5, "foo");
+		Key k = ofy.put(triv);
+
+		assert k.getName().equals("first");
+		
+		Key createdKey = ObjectifyFactory.createKey(TrivialWithName.class, "first");
+		assert k.equals(createdKey);
+		
+		TrivialWithName fetched = ofy.get(k);
+		
+		assert fetched.getName().equals(k.getName());
+		assert fetched.getSomeNumber() == triv.getSomeNumber();
+		assert fetched.getSomeString().equals(triv.getSomeString());
 	}
 }
