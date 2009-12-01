@@ -38,21 +38,21 @@ public class Factory
 	/** @see ObjectifyFactory#begin() */
 	public Objectify begin()
 	{
-		return new ObjectifyImpl(DatastoreServiceFactory.getDatastoreService(), null);
+		return new ObjectifyImpl(this, DatastoreServiceFactory.getDatastoreService(), null);
 	}
 	
 	/** @see ObjectifyFactory#beginTransaction() */
 	public Objectify beginTransaction()
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return new ObjectifyImpl(ds, ds.beginTransaction());
+		return new ObjectifyImpl(this, ds, ds.beginTransaction());
 	}
 	
 	/** @see ObjectifyFactory#withTransaction(Transaction) */
 	public Objectify withTransaction(Transaction txn)
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return new ObjectifyImpl(ds, txn);
+		return new ObjectifyImpl(this, ds, txn);
 	}
 	
 	/** @see ObjectifyFactory#register(Class) */

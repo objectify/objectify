@@ -22,6 +22,9 @@ import com.google.appengine.api.datastore.Transaction;
  */
 public class ObjectifyImpl implements Objectify
 {
+	/** The factory that produced us */
+	Factory factory;
+	
 	/** The google object that does the actual heavy lifting */
 	DatastoreService ds;
 	
@@ -34,8 +37,9 @@ public class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	ObjectifyImpl(DatastoreService ds, Transaction txn)
+	ObjectifyImpl(Factory fact, DatastoreService ds, Transaction txn)
 	{
+		this.factory = fact;
 		this.ds = ds;
 		this.txn = txn;
 	}
@@ -52,7 +56,7 @@ public class ObjectifyImpl implements Objectify
 		
 		for (Map.Entry<Key, Entity> entry: entities.entrySet())
 		{
-			EntityMetadata metadata = ObjectifyFactory.getMetadata(entry.getKey());
+			EntityMetadata metadata = this.factory.getMetadata(entry.getKey());
 			result.put(entry.getKey(), (T)metadata.toObject(entry.getValue()));
 		}
 		
@@ -68,7 +72,7 @@ public class ObjectifyImpl implements Objectify
 	{
 		Entity ent = this.ds.get(this.txn, key);
 		
-		return (T)ObjectifyFactory.getMetadata(key).toObject(ent);
+		return (T)this.factory.getMetadata(key).toObject(ent);
 	}
 
 	/* (non-Javadoc)
@@ -79,7 +83,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T get(Class<T> clazz, long id) throws EntityNotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
-		return (T)this.get(ObjectifyFactory.createKey(clazz, id));
+		return (T)this.get(this.factory.createKey(clazz, id));
 	}
 
 	/* (non-Javadoc)
@@ -90,7 +94,28 @@ public class ObjectifyImpl implements Objectify
 	public <T> T get(Class<T> clazz, String name) throws EntityNotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
-		return (T)this.get(ObjectifyFactory.createKey(clazz, name));
+		return (T)this.get(this.factory.createKey(clazz, name));
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, java.lang.Iterable)
+	 */
+	@Override
+	public <T> Map<Key, T> get(Class<T> clazz, Iterable<?> ids)
+	{
+		List<Key> keys = new ArrayList<Key>();
+		
+		for (Object id: ids)
+		{
+			if (id instanceof Long)
+				keys.add(this.factory.createKey(clazz, (Long)id));
+			else if (id instanceof String)
+				keys.add(this.factory.createKey(clazz, (String)id));
+			else
+				throw new IllegalArgumentException("Only Long or String is allowed, not " + id.getClass().getName() + " (" + id + ")");
+		}
+		
+		return this.get(keys);
 	}
 	
 	/* (non-Javadoc)
@@ -99,7 +124,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public Key put(Object obj)
 	{
-		EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+		EntityMetadata metadata = this.factory.getMetadata(obj);
 		
 		Entity ent = metadata.toEntity(obj);
 		
@@ -120,7 +145,7 @@ public class ObjectifyImpl implements Objectify
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (Object obj: objs)
 		{
-			EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+			EntityMetadata metadata = this.factory.getMetadata(obj);
 			entityList.add(metadata.toEntity(obj));
 		}
 		
@@ -131,7 +156,7 @@ public class ObjectifyImpl implements Objectify
 		for (Object obj: objs)
 		{
 			Key k = keysIt.next();
-			EntityMetadata metadata = ObjectifyFactory.getMetadata(obj);
+			EntityMetadata metadata = this.factory.getMetadata(obj);
 			metadata.setKey(obj, k);
 		}
 		
@@ -151,8 +176,33 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
 	 */
 	@Override
-	public void delete(Iterable<Key> keys)
+	public void delete(Iterable<?> objs)
 	{
+		// We have to be careful here, objs could contain Keys or entity objects or both!
+		List<Key> keys = new ArrayList<Key>();
+		
+		for (Object obj: objs)
+		{
+			if (obj instanceof Key)
+				keys.add((Key)obj);
+			else
+				keys.add(this.factory.createKey(obj));
+		}
+		
+		this.ds.delete(this.txn, keys);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object[])
+	 */
+	@Override
+	public void delete(Object... entities)
+	{
+		List<Key> keys = new ArrayList<Key>();
+		
+		for (Object obj: entities)
+			keys.add(this.factory.createKey(obj));
+		
 		this.ds.delete(this.txn, keys);
 	}
 

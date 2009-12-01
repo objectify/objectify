@@ -49,6 +49,17 @@ public interface Objectify
 	<T> T get(Class<T> clazz, String name) throws EntityNotFoundException;
 	
 	/**
+	 * This is a convenience method that prevents you from having to assemble all the Keys
+	 * yourself and calling get(Iterable<Key>).  Note that unlike that method, this method
+	 * only deletes a homogeneous set of objects.
+	 * 
+	 * @param idsOrNames <b>must</b> be of type Iterable<Long> (which translates to id keys)
+	 *  or of type Iterable<String> (which translates to name keys).
+	 * @throws IllegalArgumentException if ids is not Iterable<Long> or Iterable<String>
+	 */
+	<T> Map<Key, T> get(Class<T> clazz, Iterable<?> idsOrNames);
+	
+	/**
 	 * Just like the DatastoreService method, but uses your typed object.
 	 * If the object has a null key, one will be created.  If the object
 	 * has a key, it will overwrite any value formerly stored with that key.
@@ -73,11 +84,21 @@ public interface Objectify
 	public void delete(Key... keys);
 
 	/**
-	 * Deletes the entities with the specified Keys.  Same as DatastoreService method.
+	 * Deletes the specified entities.  Note that this method only pays attention to
+	 * the key fields.
+	 */
+	public void delete(Object... entities);
+	
+	/**
+	 * Deletes the specified keys or entities.  If the parameter is an iterable of
+	 * entity objects, only their key fields are relevant.
+	 * 
+	 * @param objs can be either an iterable of Key objects or an iterable of entity
+	 *  objects.  They can even be mixed and matched. The result will be one batch delete.
 	 * 
 	 * @see DatastoreService#delete(Iterable)
 	 */
-	public void delete(Iterable<Key> keys);
+	public void delete(Iterable<?> objs);
 	
 	/**
 	 * <p>Prepares a query for execution.  The resulting ObjPreparedQuery allows the result
