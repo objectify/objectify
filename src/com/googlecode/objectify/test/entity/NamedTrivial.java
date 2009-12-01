@@ -14,26 +14,26 @@ import com.googlecode.objectify.Indexed;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TrivialWithName
+public class NamedTrivial
 {
 	@Id String name;
 	public String getName() { return this.name; }
 	public void setId(String value) { this.name = value; }
 	
-	long someNumber;
-	public long getSomeNumber() { return this.someNumber; }
-	public void setSomeNumber(long value) { this.someNumber = value; }
-
 	@Indexed
 	String someString;
 	public String getSomeString() { return this.someString; }
 	public void setSomeString(String value) { this.someString = value; }
 	
+	long someNumber;
+	public long getSomeNumber() { return this.someNumber; }
+	public void setSomeNumber(long value) { this.someNumber = value; }
+
 	/** Default constructor must always exist */
-	public TrivialWithName() {}
+	public NamedTrivial() {}
 	
 	/** You cannot autogenerate a name */
-	public TrivialWithName(String id, long someNumber, String someString)
+	public NamedTrivial(String id, String someString, long someNumber)
 	{
 		this.name = id;
 		this.someNumber = someNumber;

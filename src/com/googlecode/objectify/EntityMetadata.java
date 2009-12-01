@@ -263,7 +263,7 @@ public class EntityMetadata
 	public void setKey(Object obj, Key key)
 	{
 		if (obj.getClass() != this.entityClass)
-			throw new IllegalArgumentException("Using metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
+			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
 
 		try
 		{
@@ -288,7 +288,53 @@ public class EntityMetadata
 				if (this.parentField == null)
 					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
 				
-				this.parentField.set(obj, parentKey.getParent());
+				this.parentField.set(obj, parentKey);
+			}
+		}
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
+	/**
+	 * Gets a key composed of the relevant id and parent fields in the object.
+	 * @param obj must be of the entityClass type for this metadata.
+	 * @throws IllegalArgumentException if obj has a null id
+	 */
+	public Key getKey(Object obj)
+	{
+		if (obj.getClass() != this.entityClass)
+			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + obj.getClass().getName());
+
+		try
+		{
+			if (this.nameField != null)
+			{
+				String name = (String)this.nameField.get(obj);
+				
+				if (this.parentField != null)
+				{
+					Key parent = (Key)this.parentField.get(obj);
+					return KeyFactory.createKey(parent, this.kind, name);
+				}
+				else	// name yes parent no
+				{
+					return KeyFactory.createKey(this.kind, name);
+				}
+			}
+			else	// has id not name
+			{
+				Long id = (Long)this.idField.get(obj);
+				if (id == null)
+					throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + obj);
+				
+				if (this.parentField != null)
+				{
+					Key parent = (Key)this.parentField.get(obj);
+					return KeyFactory.createKey(parent, this.kind, id);
+				}
+				else	// id yes parent no
+				{
+					return KeyFactory.createKey(this.kind, id);
+				}
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }

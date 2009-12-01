@@ -18,8 +18,8 @@ import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
-import com.googlecode.objectify.test.entity.TrivialWithId;
-import com.googlecode.objectify.test.entity.TrivialWithName;
+import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.WithOldNames;
 
 /**
@@ -45,8 +45,8 @@ public class TestBase
 		ApiProxy.setDelegate(proxy);
 		
 		// Register all our entity types.  It's ok that we do this multiple times.
-		ObjectifyFactory.register(TrivialWithId.class);
-		ObjectifyFactory.register(TrivialWithName.class);
+		ObjectifyFactory.register(Trivial.class);
+		ObjectifyFactory.register(NamedTrivial.class);
 		ObjectifyFactory.register(WithOldNames.class);
 		ObjectifyFactory.register(Child.class);
 	}

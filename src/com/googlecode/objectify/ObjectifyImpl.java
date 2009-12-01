@@ -72,6 +72,28 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, long)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(Class<T> clazz, long id) throws EntityNotFoundException
+	{
+		// The cast gets rid of "no unique maximal instance exists" compiler error
+		return (T)this.get(ObjectifyFactory.createKey(clazz, id));
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, java.lang.String)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T get(Class<T> clazz, String name) throws EntityNotFoundException
+	{
+		// The cast gets rid of "no unique maximal instance exists" compiler error
+		return (T)this.get(ObjectifyFactory.createKey(clazz, name));
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Object)
 	 */
 	@Override
@@ -93,7 +115,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Iterable)
 	 */
 	@Override
-	public List<Key> put(Iterable<Object> objs)
+	public List<Key> put(Iterable<?> objs)
 	{
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (Object obj: objs)

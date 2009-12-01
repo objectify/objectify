@@ -22,16 +22,31 @@ import com.google.appengine.api.datastore.Transaction;
 public interface Objectify
 {
 	/**
-	 * Just like the DatastoreService method, but returns your typed objects.
+	 * Performs a batch get, returning your typed objects.
+	 * @param keys are the keys to fetch; you can mix and match the types of objects.
+	 * @return a empty map if no keys are found in the datastore.
 	 * @see DatastoreService#get(Iterable) 
 	 */
 	<T> Map<Key, T> get(Iterable<Key> keys);
 	
 	/**
-	 * Just like the DatastoreService method, but returns your typed object.
+	 * Gets one instance of your typed object.
+	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 * @see DatastoreService#get(Key) 
 	 */
 	<T> T get(Key key) throws EntityNotFoundException;
+	
+	/**
+	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
+	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 */
+	<T> T get(Class<T> clazz, long id) throws EntityNotFoundException;
+	
+	/**
+	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, name)); 
+	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 */
+	<T> T get(Class<T> clazz, String name) throws EntityNotFoundException;
 	
 	/**
 	 * Just like the DatastoreService method, but uses your typed object.
@@ -45,10 +60,10 @@ public interface Objectify
 	 * Just like the DatastoreService method, but uses your typed objects.
 	 * If any of the objects have a null key, one will be created.  If any
 	 * of the objects has a key, it will overwrite any value formerly stored
-	 * with that key.
+	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	List<Key> put(Iterable<Object> objs);
+	List<Key> put(Iterable<?> objs);
 	
 	/**
 	 * Deletes the entities with the specified Keys.  Same as DatastoreService method.
