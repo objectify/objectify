@@ -43,7 +43,7 @@ public class ObjectifyFactory
 	
 	/**
 	 * @return an Objectify from the DatastoreService which does NOT use
-	 *  transactions.
+	 *  transactions.  This is a lightweight operation and can be used freely.
 	 */
 	public static Objectify begin()
 	{
