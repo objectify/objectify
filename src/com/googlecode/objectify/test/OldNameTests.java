@@ -30,7 +30,7 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testSimpleOldName() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
 		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
@@ -47,7 +47,7 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testOldNameDuplicateError() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
 		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));

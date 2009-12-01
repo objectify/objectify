@@ -45,7 +45,7 @@ public class ObjectifyFactory
 	 * @return an Objectify from the DatastoreService which does NOT use
 	 *  transactions.
 	 */
-	public static Objectify get()
+	public static Objectify begin()
 	{
 		return new ObjectifyImpl(DatastoreServiceFactory.getDatastoreService(), null);
 	}

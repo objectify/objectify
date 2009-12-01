@@ -30,7 +30,7 @@ public class ConversionTests extends TestBase
 	@Test
 	public void testStringConversion() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
 		Entity ent = new Entity(ObjectifyFactory.getKind(TrivialWithId.class));

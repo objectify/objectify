@@ -30,7 +30,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testGenerateId() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		
 		TrivialWithId triv = new TrivialWithId(5, "foo");
 		Key k = ofy.put(triv);
@@ -52,7 +52,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testOverwriteId() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		
 		TrivialWithId triv = new TrivialWithId(5, "foo");
 		Key k = ofy.put(triv);
@@ -73,7 +73,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testNames() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.get();
+		Objectify ofy = ObjectifyFactory.begin();
 		
 		TrivialWithName triv = new TrivialWithName("first", 5, "foo");
 		Key k = ofy.put(triv);
