@@ -120,7 +120,7 @@ public class Factory
 	public String getKind(Class<?> clazz)
 	{
 		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
-		if (entityAnn == null)
+		if (entityAnn == null || entityAnn.name() == null)
 			return clazz.getSimpleName();
 		else
 			return entityAnn.name();
