@@ -13,7 +13,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.WithOldNames;
+import com.googlecode.objectify.test.entity.HasOldNames;
 
 /**
  * Tests of using the @OldName annotation
@@ -33,11 +33,11 @@ public class OldNameTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		Entity ent = new Entity(ObjectifyFactory.getKind(HasOldNames.class));
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		WithOldNames fetched = ofy.get(ent.getKey());
+		HasOldNames fetched = ofy.get(ent.getKey());
 		
 		assert fetched.getStuff().equals("oldStuff");
 		assert fetched.getOtherStuff() == null;
@@ -50,7 +50,7 @@ public class OldNameTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		Entity ent = new Entity(ObjectifyFactory.getKind(HasOldNames.class));
 		ent.setProperty("stuff", "stuff");
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
@@ -70,11 +70,11 @@ public class OldNameTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		Entity ent = new Entity(ObjectifyFactory.getKind(HasOldNames.class));
 		ent.setProperty("weirdStuff", "5");
 		ds.put(ent);
 		
-		WithOldNames fetched = ofy.get(ent.getKey());
+		HasOldNames fetched = ofy.get(ent.getKey());
 		
 		assert fetched.getWeird() == 5;
 	}

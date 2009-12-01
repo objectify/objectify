@@ -15,7 +15,7 @@ import com.googlecode.objectify.OldName;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class WithOldNames
+public class HasOldNames
 {
 	@Id Long id;
 	public Long getId() { return this.id; }
@@ -41,9 +41,9 @@ public class WithOldNames
 	}
 	
 	/** Default constructor must always exist */
-	public WithOldNames() {}
+	public HasOldNames() {}
 	
-	public WithOldNames(String stuff, String otherStuff)
+	public HasOldNames(String stuff, String otherStuff)
 	{
 		this.stuff = stuff;
 		this.otherStuff = otherStuff;

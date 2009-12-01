@@ -20,7 +20,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.entity.NamedTrivial;
-import com.googlecode.objectify.test.entity.WithOldNames;
+import com.googlecode.objectify.test.entity.HasOldNames;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -47,7 +47,7 @@ public class TestBase
 		// Register all our entity types.  It's ok that we do this multiple times.
 		ObjectifyFactory.register(Trivial.class);
 		ObjectifyFactory.register(NamedTrivial.class);
-		ObjectifyFactory.register(WithOldNames.class);
+		ObjectifyFactory.register(HasOldNames.class);
 		ObjectifyFactory.register(Child.class);
 	}
 	
