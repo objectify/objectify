@@ -163,6 +163,8 @@ public class EntityMetadata
 			{
 				if (method.getParameterTypes().length != 1)
 					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+
+				method.setAccessible(true);
 				
 				this.putReadable(oldName.value(), new MethodPopulator(method));
 			}

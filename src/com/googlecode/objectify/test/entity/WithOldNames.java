@@ -6,6 +6,7 @@
 package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import com.googlecode.objectify.OldName;
 
@@ -29,6 +30,15 @@ public class WithOldNames
 	String otherStuff;
 	public String getOtherStuff() { return this.otherStuff; }
 	public void setOtherStuff(String value) { this.otherStuff = value; }
+
+	/** Tests loading with @OldName on a method */
+	@Transient Integer weird;
+	public Integer getWeird() { return this.weird; }
+	@OldName("weirdStuff")
+	void namedAnything(String stuff)
+	{
+		this.weird = Integer.valueOf(stuff);
+	}
 	
 	/** Default constructor must always exist */
 	public WithOldNames() {}

@@ -62,4 +62,20 @@ public class OldNameTests extends TestBase
 		}
 		catch (Exception ex) {}
 	}
+
+	/** */
+	@Test
+	public void testOldNameMethods() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		Entity ent = new Entity(ObjectifyFactory.getKind(WithOldNames.class));
+		ent.setProperty("weirdStuff", "5");
+		ds.put(ent);
+		
+		WithOldNames fetched = ofy.get(ent.getKey());
+		
+		assert fetched.getWeird() == 5;
+	}
 }
