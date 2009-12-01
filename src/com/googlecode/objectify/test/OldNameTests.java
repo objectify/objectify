@@ -16,19 +16,19 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.TrivialWithID;
 
 /**
- * Tests of type conversions.  There is only one implicit conversion, toString().
+ * Tests of using the @OldName annotation
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ConversionTests extends TestBase
+public class OldNameTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ConversionTests.class);
+	private static Logger log = LoggerFactory.getLogger(OldNameTests.class);
 	
 	/** */
 	@Test
-	public void testStringConversion() throws Exception
+	public void testSimpleOldName() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		DatastoreService ds = ofy.getDatastore();

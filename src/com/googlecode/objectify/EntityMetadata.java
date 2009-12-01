@@ -12,6 +12,7 @@ import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 
 /**
@@ -29,10 +30,17 @@ public class EntityMetadata
 	private Class<?> entityClass;
 	public Class<?> getEntityClass() { return this.entityClass; }
 	
-	/** We treat the @Id key field specially */
-	private Field keyField;
+	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
+	private String kind;
 	
-	/** The fields we persist, not including the @Id key field */
+	/** We treat the @Id key field specially - it will be either Long id or String name */
+	private Field idField;
+	private Field nameField;
+	
+	/** If the entity has a @Parent field, treat it specially */
+	private Field parentField;
+	
+	/** The fields we persist, not including the @Id or @Parebnt fields */
 	private Set<Field> writeables = new HashSet<Field>();
 	
 	/** The fields that we read, keyed by name - including @OldName fields.  A superset of writeables. */
@@ -42,9 +50,14 @@ public class EntityMetadata
 	public EntityMetadata(Class<?> clazz)
 	{
 		this.entityClass = clazz;
+		this.kind = ObjectifyFactory.getKind(clazz);
 		
 		// Recursively walk up the inheritance chain looking for fields
 		this.visit(clazz);
+		
+		// There must be some field marked with @Id
+		if (this.idField == null && this.nameField == null)
+			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 	}
 	
 	/**
@@ -67,12 +80,24 @@ public class EntityMetadata
 			
 			if (field.isAnnotationPresent(Id.class))
 			{
-				if (field.getType() != Key.class)
-					throw new IllegalStateException("Only fields of type Key are allowed as @Id. Invalid type found in " + clazz.getName());
-				else if (this.keyField != null)
+				if (this.idField != null || this.nameField != null)
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
+					
+				if (field.getType() == Long.class || field.getType() == Long.TYPE)
+					this.idField = field;
+				else if (field.getType() == String.class)
+					this.nameField = field;
 				else
-					this.keyField = field;
+					throw new IllegalStateException("Only fields of type Long, long, or String are allowed as @Id. Invalid on field "
+							+ field + " in " + clazz.getName());
+			}
+			else if (field.isAnnotationPresent(Parent.class))
+			{
+				if (this.idField != null || this.nameField != null)
+					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
+				
+				if (field.getType() != Key.class)
+					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Invalid type found in " + clazz.getName());
 			}
 			else
 			{
@@ -108,7 +133,31 @@ public class EntityMetadata
 		try
 		{
 			Object obj = this.entityClass.newInstance();
-			this.keyField.set(obj, ent.getKey());
+			
+			Key entityKey = ent.getKey();
+			if (entityKey.getName() != null)
+			{
+				if (this.nameField == null)
+					throw new IllegalStateException("Loaded Entity has name but " + this.entityClass.getName() + " has no String @Id");
+				
+				this.nameField.set(obj, entityKey.getName());
+			}
+			else
+			{
+				if (this.idField == null)
+					throw new IllegalStateException("Loaded Entity has id but " + this.entityClass.getName() + " has no Long (or long) @Id");
+				
+				this.idField.set(obj, entityKey.getId());
+			}
+			
+			Key parentKey = ent.getParent();
+			if (parentKey != null)
+			{
+				if (this.parentField == null)
+					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
+				
+				this.parentField.set(obj, parentKey.getParent());
+			}
 
 			// Keep track of which fields have been done so we don't repeat any;
 			// this could happen if an Entity has data for both @OldName and the current name. 
@@ -121,7 +170,7 @@ public class EntityMetadata
 				{
 					// First make sure we haven't already done this one
 					if (done.contains(f))
-						throw new IllegalStateException("Tried to populate the field " + f + " twice; data exists for @OldName and the current name");
+						throw new IllegalStateException("Tried to populate the field " + f + " twice; check @OldName annotations");
 					else
 						done.add(f);
 					
@@ -144,17 +193,13 @@ public class EntityMetadata
 	}
 	
 	/**
-	 * Converts an object to a datastore Entity.  If the key is null, it will be created.
+	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
 	public Entity toEntity(Object obj)
 	{
 		try
 		{
-			Key key = (Key)this.keyField.get(obj);
-			
-			Entity ent = (key == null)
-				? new Entity(ObjectifyFactory.getKind(this.entityClass))
-				: new Entity(key);
+			Entity ent = this.initEntity(obj);
 
 			for (Field f: this.writeables)
 			{
@@ -169,6 +214,66 @@ public class EntityMetadata
 		}
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+	
+	/**
+	 * <p>This hides all the messiness of trying to create an Entity from an object that:</p>
+	 * <ul>
+	 * <li>Might have a long id, might have a String name</li>
+	 * <li>If it's a Long id, might be null and require autogeneration</li>
+	 * <li>Might have a parent key</li>
+	 * </ul>
+	 * <p>Gross, isn't it?</p>
+	 */
+	Entity initEntity(Object obj)
+	{
+		try
+		{
+			Key parentKey = null;
+			
+			// First thing, get the parentKey (if appropriate)
+			if (this.parentField != null)
+			{
+				parentKey = (Key)this.parentField.get(obj);
+				if (parentKey == null)
+					throw new IllegalStateException("Missing parent of " + obj);
+			}
+			
+			if (this.idField != null)
+			{
+				Long id = this.idField.getLong(obj);	// possibly null
+				if (id != null)
+				{
+					if (this.parentField != null)
+						return new Entity(KeyFactory.createKey(parentKey, this.kind, id));
+					else
+						return new Entity(KeyFactory.createKey(this.kind, id));
+				}
+				else // id is null, must autogenerate
+				{
+					if (this.parentField != null)
+						return new Entity(this.kind, parentKey);
+					else
+						return new Entity(this.kind);
+				}
+			}
+			else	// this.nameField contains id
+			{
+				String name = (String)this.nameField.get(obj);
+				if (name == null)
+					throw new IllegalStateException("Tried to persist null String @Id for " + obj);
+				
+				if (this.parentField != null)
+				{
+					return new Entity(this.kind, name, parentKey);
+				}
+				else
+				{
+					return new Entity(this.kind, name);
+				}
+			}
+		}
+		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }	
 	}
 	
 	/**

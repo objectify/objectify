@@ -9,7 +9,8 @@ import com.google.appengine.api.datastore.PreparedQuery;
 /**
  * This interface mimics the GAE PreparedQuery interface, but instead of
  * iterating through Entity objects, it iterates through your typesafe
- * objects.
+ * objects.  Note also that if the original Query was setKeysOnly(),
+ * this interface will output Key objects instead of your model objects.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -33,10 +34,10 @@ public interface ObjPreparedQuery<T>
 	/**
 	 * @see PreparedQuery#asSingleEntity() 
 	 */
-	T asSingleEntity();
+	T asSingle();
 	
 	/**
 	 * @see PreparedQuery#countEntities() 
 	 */
-	int countEntities();
+	int count();
 }

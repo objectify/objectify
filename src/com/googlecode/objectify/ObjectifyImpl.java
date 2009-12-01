@@ -124,7 +124,7 @@ public class ObjectifyImpl implements Objectify
 	{
 		PreparedQuery pq = this.ds.prepare(this.txn, query);
 			
-		return new ObjPreparedQueryImpl<T>(pq);
+		return new ObjPreparedQueryImpl<T>(pq, query.isKeysOnly());
 	}
 	
 	/* (non-Javadoc)

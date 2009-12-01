@@ -6,6 +6,7 @@ import java.util.Map;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -85,6 +86,38 @@ public class ObjectifyFactory
 		String kind = getKind(clazz);
 		types.put(kind, new EntityMetadata(clazz));
 	}
+	
+	//
+	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
+	//
+	
+	/** Creates a key for the class with the specified id */
+	public Key createKey(Class<?> kind, long id)
+	{
+		return KeyFactory.createKey(getKind(kind), id);
+	}
+	
+	/** Creates a key for the class with the specified name */
+	public Key createKey(Class<?> kind, String name)
+	{
+		return KeyFactory.createKey(getKind(kind), name);
+	}
+	
+	/** Creates a key for the class with the specified id having the specified parent */
+	public Key createKey(Key parent, Class<?> kind, long id)
+	{
+		return KeyFactory.createKey(parent, getKind(kind), id);
+	}
+	
+	/** Creates a key for the class with the specified name having the specified parent */
+	public Key createKey(Key parent, Class<?> kind, String name)
+	{
+		return KeyFactory.createKey(parent, getKind(kind), name);
+	}
+	
+	//
+	// Stuff which should only be necessary internally.
+	//
 	
 	/**
 	 * @return the kind associated with a particular entity class

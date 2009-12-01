@@ -53,6 +53,9 @@ public interface Objectify
 	 * Prepares a query for execution.  Uses the same Query object as the
 	 * native datastore.  The resulting ObjPreparedQuery allows the result
 	 * set to be iterated through in a typesafe way.
+	 * 
+	 * Note:  If Query is keysOnly, result will be ObjPreparedQuery<Key>.
+	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
 	<T> ObjPreparedQuery<T> prepare(Query query);

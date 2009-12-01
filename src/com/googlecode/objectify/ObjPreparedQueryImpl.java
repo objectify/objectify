@@ -18,10 +18,14 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	/** The backing result set */
 	PreparedQuery pq;
 	
+	/** If true, this query will produce only keys, not entity objects */
+	boolean keysOnly;
+	
 	/** Wrap the prepared query */
-	public ObjPreparedQueryImpl(PreparedQuery pq)
+	public ObjPreparedQueryImpl(PreparedQuery pq, boolean keysOnly)
 	{
 		this.pq = pq;
+		this.keysOnly = keysOnly;
 	}
 	
 	/* (non-Javadoc)
@@ -63,17 +67,25 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	 * @see com.google.code.objectify.ObjPreparedQuery#asSingleEntity()
 	 */
 	@SuppressWarnings("unchecked")
-	public T asSingleEntity()
+	public T asSingle()
 	{
 		Entity ent = this.pq.asSingleEntity();
-		EntityMetadata metadata = ObjectifyFactory.getMetadata(ent.getKey());
-		return (T)metadata.toObject(ent);
+		
+		if (this.keysOnly)
+		{
+			return (T)ent.getKey();
+		}
+		else
+		{
+			EntityMetadata metadata = ObjectifyFactory.getMetadata(ent.getKey());
+			return (T)metadata.toObject(ent);
+		}
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.google.code.objectify.ObjPreparedQuery#countEntities()
 	 */
-	public int countEntities()
+	public int count()
 	{
 		return this.pq.countEntities();
 	}
@@ -81,9 +93,10 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	/**
 	 * Iterable that translates from datastore Entity to types Objects
 	 */
-	static class ToObjectIterable implements Iterable<Object>
+	class ToObjectIterable implements Iterable<Object>
 	{
 		Iterable<Entity> source;
+		boolean keysOnly;
 		
 		public ToObjectIterable(Iterable<Entity> source)
 		{
@@ -101,7 +114,7 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	/**
 	 * Iterator that translates from datastore Entity to typed Objects
 	 */
-	static class ToObjectIterator implements Iterator<Object>
+	class ToObjectIterator implements Iterator<Object>
 	{
 		Iterator<Entity> source;
 		
@@ -120,8 +133,15 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 		public Object next()
 		{
 			Entity nextEntity = this.source.next();
-			EntityMetadata meta = ObjectifyFactory.getMetadata(nextEntity.getKey());
-			return meta.toObject(nextEntity);
+			if (keysOnly)
+			{
+				return nextEntity.getKey();
+			}
+			else
+			{
+				EntityMetadata meta = ObjectifyFactory.getMetadata(nextEntity.getKey());
+				return meta.toObject(nextEntity);
+			}
 		}
 
 		@Override

@@ -12,7 +12,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.entity.TrivialWithID;
 
 /**
  * Tests of basic entity manipulation.
@@ -27,19 +27,26 @@ public class BasicTests extends TestBase
 	
 	/** */
 	@Test
+	public void printFieldDesc() throws Exception
+	{
+		log.error("This field is " + this.getClass().getField("printFieldDesc"));
+	}
+	
+	/** */
+	@Test
 	public void testGenerateKey() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		
-		Trivial triv = new Trivial(null, 5, "foo");
+		TrivialWithID triv = new TrivialWithID(5, "foo");
 		Key k = ofy.put(triv);
 		
 		assert k.getKind().equals(ObjectifyFactory.getKind(triv.getClass()));
-		assert k == triv.getKey();
+		assert k.getId() == triv.getId();
 		
-		Trivial fetched = ofy.get(k);
+		TrivialWithID fetched = ofy.get(k);
 		
-		assert fetched.getKey().equals(k);
+		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
 		assert fetched.getSomeString().equals(triv.getSomeString());
 	}
@@ -50,17 +57,17 @@ public class BasicTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.get();
 		
-		Trivial triv = new Trivial(null, 5, "foo");
+		TrivialWithID triv = new TrivialWithID(5, "foo");
 		Key k = ofy.put(triv);
 		
-		Trivial triv2 = new Trivial(k, 6, "bar");
+		TrivialWithID triv2 = new TrivialWithID(k.getId(), 6, "bar");
 		Key k2 = ofy.put(triv2);
 		
 		assert k2 == k;
 		
-		Trivial fetched = ofy.get(k);
+		TrivialWithID fetched = ofy.get(k);
 		
-		assert fetched.getKey().equals(k);
+		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
 		assert fetched.getSomeString().equals(triv2.getSomeString());
 	}

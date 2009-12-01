@@ -7,7 +7,6 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.Indexed;
 
 /**
@@ -15,12 +14,11 @@ import com.googlecode.objectify.Indexed;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Trivial
+public class TrivialWithID
 {
-	@Id
-	Key key;
-	public Key getKey() { return this.key; }
-	public void setKey(Key value) { this.key = value; }
+	@Id Long id;
+	public Long getId() { return this.id; }
+	public void setId(Long value) { this.id = value; }
 	
 	long someNumber;
 	public long getSomeNumber() { return this.someNumber; }
@@ -32,11 +30,18 @@ public class Trivial
 	public void setSomeString(String value) { this.someString = value; }
 	
 	/** Default constructor must always exist */
-	public Trivial() {}
+	public TrivialWithID() {}
 	
-	public Trivial(Key key, long someNumber, String someString)
+	/** Constructor to use when autogenerating an id */
+	public TrivialWithID(long someNumber, String someString)
 	{
-		this.key = key;
+		this(null, someNumber, someString);
+	}
+
+	/** Constructor to use when forcing the id */
+	public TrivialWithID(Long id, long someNumber, String someString)
+	{
+		this.id = id;
 		this.someNumber = someNumber;
 		this.someString = someString;
 	}
