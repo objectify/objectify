@@ -97,7 +97,7 @@ public class EntityMetadata
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 				
 				if (field.getType() != Key.class)
-					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Invalid type found in " + clazz.getName());
+					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
 			}
 			else
 			{
@@ -133,31 +133,9 @@ public class EntityMetadata
 		try
 		{
 			Object obj = this.entityClass.newInstance();
-			
-			Key entityKey = ent.getKey();
-			if (entityKey.getName() != null)
-			{
-				if (this.nameField == null)
-					throw new IllegalStateException("Loaded Entity has name but " + this.entityClass.getName() + " has no String @Id");
-				
-				this.nameField.set(obj, entityKey.getName());
-			}
-			else
-			{
-				if (this.idField == null)
-					throw new IllegalStateException("Loaded Entity has id but " + this.entityClass.getName() + " has no Long (or long) @Id");
-				
-				this.idField.set(obj, entityKey.getId());
-			}
-			
-			Key parentKey = ent.getParent();
-			if (parentKey != null)
-			{
-				if (this.parentField == null)
-					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
-				
-				this.parentField.set(obj, parentKey.getParent());
-			}
+
+			// This will set the id and parent fields as appropriate.
+			this.setKey(obj, ent.getKey());
 
 			// Keep track of which fields have been done so we don't repeat any;
 			// this could happen if an Entity has data for both @OldName and the current name. 
@@ -170,7 +148,7 @@ public class EntityMetadata
 				{
 					// First make sure we haven't already done this one
 					if (done.contains(f))
-						throw new IllegalStateException("Tried to populate the field " + f + " twice; check @OldName annotations");
+						throw new IllegalStateException("Tried to populate the field '" + f + "' twice; check @OldName annotations");
 					else
 						done.add(f);
 					
@@ -277,19 +255,40 @@ public class EntityMetadata
 	}
 	
 	/**
-	 * Sets the key field of the object to be key.  Object must be of the entityClass type
-	 * for this metadata.
+	 * Sets the relevant id and parent fields of the object to the values stored in the key.
+	 * Object must be of the entityClass type for this metadata.
 	 */
 	public void setKey(Object obj, Key key)
 	{
 		if (obj.getClass() != this.entityClass)
 			throw new IllegalArgumentException("Using metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
-		
+
 		try
 		{
-			this.keyField.set(obj, key);
+			if (key.getName() != null)
+			{
+				if (this.nameField == null)
+					throw new IllegalStateException("Loaded Entity has name but " + this.entityClass.getName() + " has no String @Id");
+				
+				this.nameField.set(obj, key.getName());
+			}
+			else
+			{
+				if (this.idField == null)
+					throw new IllegalStateException("Loaded Entity has id but " + this.entityClass.getName() + " has no Long (or long) @Id");
+				
+				this.idField.set(obj, key.getId());
+			}
+			
+			Key parentKey = key.getParent();
+			if (parentKey != null)
+			{
+				if (this.parentField == null)
+					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
+				
+				this.parentField.set(obj, parentKey.getParent());
+			}
 		}
-		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 }

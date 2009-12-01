@@ -10,7 +10,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
@@ -84,6 +83,7 @@ public class ObjectifyImpl implements Objectify
 		
 		Key resultKey = this.ds.put(this.txn, ent);
 		
+		// Need to reset the key value in case the value was generated
 		metadata.setKey(obj, resultKey);
 		
 		return resultKey;
@@ -117,6 +117,24 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
+	 * @see com.google.code.objectify.Objectify#delete(com.google.appengine.api.datastore.Key[])
+	 */
+	@Override
+	public void delete(Key... keys)
+	{
+		this.ds.delete(this.txn, keys);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
+	 */
+	@Override
+	public void delete(Iterable<Key> keys)
+	{
+		this.ds.delete(this.txn, keys);
+	}
+
+	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#prepare(com.google.appengine.api.datastore.Query)
 	 */
 	@Override
@@ -143,47 +161,5 @@ public class ObjectifyImpl implements Objectify
 	public DatastoreService getDatastore()
 	{
 		return this.ds;
-	}
-
-	//
-	//
-	// The rest of the methods are simply pass-through to the underlying datastore
-	//
-	//
-	
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#allocateIds(java.lang.String, long)
-	 */
-	@Override
-	public KeyRange allocateIds(String kind, long num)
-	{
-		return this.ds.allocateIds(kind, num);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#allocateIds(com.google.appengine.api.datastore.Key, java.lang.String, long)
-	 */
-	@Override
-	public KeyRange allocateIds(Key parent, String kind, long num)
-	{
-		return this.ds.allocateIds(parent, kind, num);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#delete(com.google.appengine.api.datastore.Key[])
-	 */
-	@Override
-	public void delete(Key... keys)
-	{
-		this.ds.delete(txn, keys);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
-	 */
-	@Override
-	public void delete(Iterable<Key> keys)
-	{
-		this.ds.delete(txn, keys);
 	}
 }

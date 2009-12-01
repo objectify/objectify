@@ -17,7 +17,7 @@ import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.TrivialWithID;
+import com.googlecode.objectify.test.entity.TrivialWithId;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -42,7 +42,7 @@ public class TestBase
 		ApiProxy.setDelegate(proxy);
 		
 		// Register all our entity types
-		ObjectifyFactory.register(TrivialWithID.class);
+		ObjectifyFactory.register(TrivialWithId.class);
 	}
 	
 	/** */

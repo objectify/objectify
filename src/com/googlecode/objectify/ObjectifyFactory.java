@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -115,6 +116,46 @@ public class ObjectifyFactory
 		return KeyFactory.createKey(parent, getKind(kind), name);
 	}
 	
+	//
+	// Friendly query creation methods
+	//
+	
+	/**
+	 * Creates a new kind-less query that finds entities.
+	 * @see Query#Query()
+	 */
+	public static Query createQuery()
+	{
+		return new Query();
+	}
+	
+	/**
+	 * Creates a query that finds entities with the specified ancestor
+	 * @see Query#Query(Key)
+	 */
+	public static Query createQuery(Key ancestor)
+	{
+		return new Query(ancestor);
+	}
+	
+	/**
+	 * Creates a query that finds entities with the specified type
+	 * @see Query#Query(String)
+	 */
+	public static Query createQuery(Class<?> entityClazz)
+	{
+		return new Query(getKind(entityClazz));
+	}
+	
+	/**
+	 * Creates a query that finds entities with the specified type and ancestor
+	 * @see Query#Query(String, Key)
+	 */
+	public static Query createQuery(Class<?> entityClazz, Key ancestor)
+	{
+		return new Query(getKind(entityClazz), ancestor);
+	}
+
 	//
 	// Stuff which should only be necessary internally.
 	//

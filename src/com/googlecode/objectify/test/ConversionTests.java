@@ -13,7 +13,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.TrivialWithID;
+import com.googlecode.objectify.test.entity.TrivialWithId;
 
 /**
  * Tests of type conversions.  There is only one implicit conversion, toString().
@@ -33,12 +33,12 @@ public class ConversionTests extends TestBase
 		Objectify ofy = ObjectifyFactory.get();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(TrivialWithID.class));
+		Entity ent = new Entity(ObjectifyFactory.getKind(TrivialWithId.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		TrivialWithID fetched = ofy.get(ent.getKey());
+		TrivialWithId fetched = ofy.get(ent.getKey());
 		
 		assert fetched.getSomeNumber() == 1;
 		assert fetched.getSomeString().equals("2");	// should be a string

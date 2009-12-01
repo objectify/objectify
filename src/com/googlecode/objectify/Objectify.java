@@ -6,15 +6,16 @@ import java.util.Map;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
- * This interface mimics DatastoreService, except that instead of working with
- * Entity you work with real typed objects.  However, many of the methods
- * (allocating ids, transactions, delete) are included on this interface
- * for convenience.
+ * <p>This interface is similar to DatastoreService, except that instead of working with
+ * Entity you work with real typed objects.</p>
+ * 
+ * <p>Unlike DatastoreService, none of these methods take a Transaction as a parameter.
+ * Instead, a transaction (or lack thereof) is associated with a particular instance of
+ * this interface when you create it.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -50,11 +51,28 @@ public interface Objectify
 	List<Key> put(Iterable<Object> objs);
 	
 	/**
-	 * Prepares a query for execution.  Uses the same Query object as the
-	 * native datastore.  The resulting ObjPreparedQuery allows the result
-	 * set to be iterated through in a typesafe way.
+	 * Deletes the entities with the specified Keys.  Same as DatastoreService method.
 	 * 
-	 * Note:  If Query is keysOnly, result will be ObjPreparedQuery<Key>.
+	 * @see DatastoreService#delete(Key...)
+	 */
+	public void delete(Key... keys);
+
+	/**
+	 * Deletes the entities with the specified Keys.  Same as DatastoreService method.
+	 * 
+	 * @see DatastoreService#delete(Iterable)
+	 */
+	public void delete(Iterable<Key> keys);
+	
+	/**
+	 * <p>Prepares a query for execution.  The resulting ObjPreparedQuery allows the result
+	 * set to be iterated through in a typesafe way.</p>
+	 * 
+	 * <p>You should create a query by calling one of the {@code ObjectifyFactory.createQuery()}
+	 * methods.</p>
+	 * 
+	 * <p>Note:  If Query is keysOnly, result will be ObjPreparedQuery<Key>.
+	 * This behavior differs from how the underlying DatastoreService works.</p>
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
@@ -72,26 +90,9 @@ public interface Objectify
 
 	/**
 	 * @return the underlying DatastoreService implementation so you can work
-	 *  with Entity objects if you so choose.
+	 *  with Entity objects if you so choose.  Also allows you to allocateIds
+	 *  or examine thread local transactions.
 	 */
 	public DatastoreService getDatastore();
 	
-	//
-	//
-	// The remaining methods simply pass through to the underlying DatastoreService
-	// implementation, and are offered as a convenient shorthand.
-	//
-	//
-
-	/** @see DatastoreService#allocateIds(String, long) */
-	public KeyRange allocateIds(String kind, long num);
-
-	/** @see DatastoreService#allocateIds(Key, String, long) */
-	public KeyRange allocateIds(Key parent, String kind, long num);
-
-	/** @see DatastoreService#delete(Key...) */
-	public void delete(Key... keys);
-
-	/** @see DatastoreService#delete(Iterable) */
-	public void delete(Iterable<Key> keys);
 }
