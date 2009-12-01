@@ -14,7 +14,7 @@ import com.googlecode.objectify.Indexed;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TrivialWithID
+public class TrivialWithId
 {
 	@Id Long id;
 	public Long getId() { return this.id; }
@@ -30,16 +30,16 @@ public class TrivialWithID
 	public void setSomeString(String value) { this.someString = value; }
 	
 	/** Default constructor must always exist */
-	public TrivialWithID() {}
+	public TrivialWithId() {}
 	
 	/** Constructor to use when autogenerating an id */
-	public TrivialWithID(long someNumber, String someString)
+	public TrivialWithId(long someNumber, String someString)
 	{
 		this(null, someNumber, someString);
 	}
 
 	/** Constructor to use when forcing the id */
-	public TrivialWithID(Long id, long someNumber, String someString)
+	public TrivialWithId(Long id, long someNumber, String someString)
 	{
 		this.id = id;
 		this.someNumber = someNumber;
