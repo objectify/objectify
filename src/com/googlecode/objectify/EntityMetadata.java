@@ -1,6 +1,8 @@
 package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -25,7 +27,47 @@ public class EntityMetadata
 {
 	/** We do not persist fields with any of these modifiers */
 	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
-		
+	
+	/** We need to be able to populate fields and methods with @OldName */
+	static interface Populator
+	{
+		/** Actually populate the thing (field or method) */
+		void populate(Object entity, Object value);
+		/** Get the thing for hashing, string conversion, etc */
+		Object getThing();
+		/** Get the type of the thing */
+		Class<?> getType();
+	}
+	
+	/** Works with fields */
+	static class FieldPopulator implements Populator
+	{
+		Field field;
+		public FieldPopulator(Field field) { this.field = field; }
+		public Object getThing() { return this.field; }
+		public Class<?> getType() { return this.field.getType(); }
+		public void populate(Object entity, Object value)
+		{
+			try { this.field.set(entity, value); }
+			catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+		}
+	}
+	
+	/** Works with methods */
+	static class MethodPopulator implements Populator
+	{
+		Method method;
+		public MethodPopulator(Method method) { this.method = method; }
+		public Object getThing() { return this.method; }
+		public Class<?> getType() { return this.method.getParameterTypes()[0]; }
+		public void populate(Object entity, Object value)
+		{
+			try { this.method.invoke(entity, value); }
+			catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+			catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
+		}
+	}
+	
 	/** */
 	private Class<?> entityClass;
 	public Class<?> getEntityClass() { return this.entityClass; }
@@ -43,8 +85,8 @@ public class EntityMetadata
 	/** The fields we persist, not including the @Id or @Parebnt fields */
 	private Set<Field> writeables = new HashSet<Field>();
 	
-	/** The fields that we read, keyed by name - including @OldName fields.  A superset of writeables. */
-	private Map<String, Field> readables = new HashMap<String, Field>();
+	/** The things that we read, keyed by name (including @OldName fields and methods).  A superset of writeables. */
+	private Map<String, Populator> readables = new HashMap<String, Populator>();
 	
 	/** */
 	public EntityMetadata(Class<?> clazz)
@@ -63,14 +105,13 @@ public class EntityMetadata
 	/**
 	 * Recursive function adds any appropriate fields to our internal data
 	 * structures for persisting and retreiving later.
-	 * 
-	 * TODO:  look for @OldName methods
 	 */
 	private void visit(Class<?> clazz)
 	{
 		if (clazz == null || clazz == Object.class)
 			return;
 		
+		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
 			if (field.isAnnotationPresent(Transient.class) || (field.getModifiers() & BAD_MODIFIERS) != 0)
@@ -104,11 +145,26 @@ public class EntityMetadata
 			else
 			{
 				this.writeables.add(field);
-				this.putReadable(field.getName(), field);
+				
+				Populator pop = new FieldPopulator(field);
+				this.putReadable(field.getName(), pop);
 				
 				OldName old = field.getAnnotation(OldName.class);
 				if (old != null)
-					this.putReadable(old.value(), field);
+					this.putReadable(old.value(), pop);
+			}
+		}
+		
+		// Now look for methods with one param that are annotated with @OldName
+		for (Method method: clazz.getDeclaredMethods())
+		{
+			OldName oldName = method.getAnnotation(OldName.class);
+			if (oldName != null)
+			{
+				if (method.getParameterTypes().length != 1)
+					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+				
+				this.putReadable(oldName.value(), new MethodPopulator(method));
 			}
 		}
 	}
@@ -117,11 +173,11 @@ public class EntityMetadata
 	 * Adds the key/value pair to this.readables, throwing an exception if there
 	 * is a duplicate key.
 	 */
-	private void putReadable(String name, Field f)
+	private void putReadable(String name, Populator p)
 	{
-		if (this.readables.put(name, f) != null)
+		if (this.readables.put(name, p) != null)
 			throw new IllegalStateException(
-					"Field name '" + name + "' is duplicated in hierarchy of " + 
+					"Data property name '" + name + "' is duplicated in hierarchy of " + 
 					this.entityClass.getName() + ". Check for conflicting @OldNames.");
 	}
 	
@@ -139,30 +195,30 @@ public class EntityMetadata
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());
 
-			// Keep track of which fields have been done so we don't repeat any;
-			// this could happen if an Entity has data for both @OldName and the current name. 
-			Set<Field> done = new HashSet<Field>();
+			// Keep track of which fields and methods have been done so we don't repeat any;
+			// this could happen if an Entity has data for both @OldName and the current name.
+			Set<Object> done = new HashSet<Object>();
 			
 			for (Map.Entry<String, Object> property: ent.getProperties().entrySet())
 			{
-				Field f = this.readables.get(property.getKey());
-				if (f != null)
+				Populator pop = this.readables.get(property.getKey());
+				if (pop != null)
 				{
 					// First make sure we haven't already done this one
-					if (done.contains(f))
-						throw new IllegalStateException("Tried to populate the field '" + f + "' twice; check @OldName annotations");
+					if (done.contains(pop.getThing()))
+						throw new IllegalStateException("Tried to set '" + pop.getThing() + "' twice; check @OldName annotations");
 					else
-						done.add(f);
+						done.add(pop.getThing());
 					
 					Object value = property.getValue();
 					
 					// One quick default conversion - if the field we are setting is a String
 					// but the property value is not a string, toString() it.  All other conversions
 					// should be explicitly handled by @OldName on a setter method.
-					if (f.getType().equals(String.class) && !(value instanceof String))
+					if (pop.getType().equals(String.class) && !(value instanceof String))
 						value = value.toString();
 					
-					f.set(obj, value);
+					pop.populate(obj, value);
 				}
 			}
 			
