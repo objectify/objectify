@@ -8,7 +8,7 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import com.googlecode.objectify.OldName;
+import com.googlecode.objectify.annotation.OldName;
 
 /**
  * A simple entity with some @OldName annotations

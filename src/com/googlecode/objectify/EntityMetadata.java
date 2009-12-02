@@ -15,6 +15,9 @@ import javax.persistence.Transient;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.googlecode.objectify.annotation.Indexed;
+import com.googlecode.objectify.annotation.OldName;
+import com.googlecode.objectify.annotation.Parent;
 
 
 /**

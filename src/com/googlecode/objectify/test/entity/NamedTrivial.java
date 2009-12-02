@@ -7,7 +7,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.Indexed;
+import com.googlecode.objectify.annotation.Indexed;
 
 /**
  * A trivial entity with some basic data.

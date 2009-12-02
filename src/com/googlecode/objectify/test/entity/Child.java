@@ -8,7 +8,7 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 
 import com.google.appengine.api.datastore.Key;
-import com.googlecode.objectify.Parent;
+import com.googlecode.objectify.annotation.Parent;
 
 /**
  * A child entity which references a parent in the same entity group.
