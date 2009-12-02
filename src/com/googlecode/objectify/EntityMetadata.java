@@ -36,8 +36,10 @@ public class EntityMetadata
 	{
 		/** Actually populate the thing (field or method) */
 		void populate(Object entity, Object value);
+		
 		/** Get the thing for hashing, string conversion, etc */
 		Object getThing();
+		
 		/** Get the type of the thing */
 		Class<?> getType();
 	}
@@ -233,11 +235,11 @@ public class EntityMetadata
 	 */
 	Object convert(Object value, Class<?> type)
 	{
-		if (type == value.getClass())
+		if (value == null || type == value.getClass())
 		{
 			return value;
 		}
-		if (type == String.class)
+		else if (type == String.class)
 		{
 			return value.toString();
 		}
