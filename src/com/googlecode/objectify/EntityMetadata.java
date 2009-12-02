@@ -216,12 +216,7 @@ public class EntityMetadata
 						done.add(pop.getThing());
 					
 					Object value = property.getValue();
-					
-					// One quick default conversion - if the field we are setting is a String
-					// but the property value is not a string, toString() it.  All other conversions
-					// should be explicitly handled by @OldName on a setter method.
-					if (pop.getType().equals(String.class) && !(value instanceof String))
-						value = value.toString();
+					value = this.convert(value, pop.getType());
 					
 					pop.populate(obj, value);
 				}
@@ -231,6 +226,33 @@ public class EntityMetadata
 		}
 		catch (InstantiationException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
+	/**
+	 * Converts the value into an object suitable for the type (hopefully).
+	 */
+	Object convert(Object value, Class<?> type)
+	{
+		if (type == value.getClass())
+		{
+			return value;
+		}
+		if (type == String.class)
+		{
+			return value.toString();
+		}
+		else if (value instanceof Number)
+		{
+			Number number = (Number)value;
+			if (type == Byte.class || type == Byte.TYPE) return number.byteValue();
+			else if (type == Short.class || type == Short.TYPE) return number.shortValue();
+			else if (type == Integer.class || type == Integer.TYPE) return number.intValue();
+			else if (type == Long.class || type == Long.TYPE) return number.longValue();
+			else if (type == Float.class || type == Float.TYPE) return number.floatValue();
+			else if (type == Double.class || type == Double.TYPE) return number.doubleValue();
+		}
+
+		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
 	
 	/**
