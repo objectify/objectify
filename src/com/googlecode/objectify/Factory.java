@@ -113,14 +113,14 @@ public class Factory
 	}
 	
 	//
-	// Stuff which should only be necessary internally.
+	// Stuff which should only be necessary internally, but might be useful to others.
 	//
 	
 	/** @see ObjectifyFactory#getKind(Class) */
 	public String getKind(Class<?> clazz)
 	{
 		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
-		if (entityAnn == null || entityAnn.name() == null)
+		if (entityAnn == null || entityAnn.name() == null || entityAnn.name().length() == 0)
 			return clazz.getSimpleName();
 		else
 			return entityAnn.name();
