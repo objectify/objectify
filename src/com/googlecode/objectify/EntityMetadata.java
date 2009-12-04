@@ -15,9 +15,9 @@ import javax.persistence.Transient;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.annotation.Unindexed;
 
 
 /**
@@ -269,10 +269,10 @@ public class EntityMetadata
 			for (Field f: this.writeables)
 			{
 				Object value = f.get(obj);
-				if (f.isAnnotationPresent(Indexed.class))
-					ent.setProperty(f.getName(), value);
-				else
+				if (f.isAnnotationPresent(Unindexed.class))
 					ent.setUnindexedProperty(f.getName(), value);
+				else
+					ent.setProperty(f.getName(), value);
 			}
 
 			return ent;

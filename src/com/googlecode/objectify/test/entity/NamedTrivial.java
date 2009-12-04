@@ -7,7 +7,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Indexed;
+import com.googlecode.objectify.annotation.Unindexed;
 
 /**
  * A trivial entity with some basic data.
@@ -20,11 +20,11 @@ public class NamedTrivial
 	public String getName() { return this.name; }
 	public void setId(String value) { this.name = value; }
 	
-	@Indexed
 	String someString;
 	public String getSomeString() { return this.someString; }
 	public void setSomeString(String value) { this.someString = value; }
 	
+	@Unindexed
 	long someNumber;
 	public long getSomeNumber() { return this.someNumber; }
 	public void setSomeNumber(long value) { this.someNumber = value; }
