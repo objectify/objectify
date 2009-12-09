@@ -193,17 +193,12 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object[])
+	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object)
 	 */
 	@Override
-	public void delete(Object... entities)
+	public void delete(Object entity)
 	{
-		List<Key> keys = new ArrayList<Key>();
-		
-		for (Object obj: entities)
-			keys.add(this.factory.createKey(obj));
-		
-		this.ds.delete(this.txn, keys);
+		this.ds.delete(this.txn, this.factory.createKey(entity));
 	}
 
 	/* (non-Javadoc)

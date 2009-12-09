@@ -84,10 +84,10 @@ public interface Objectify
 	public void delete(Key... keys);
 
 	/**
-	 * Deletes the specified entities.  Note that this method only pays attention to
-	 * the key fields.
+	 * Deletes the specified entity.  Note that this method only pays attention to
+	 * the key field.
 	 */
-	public void delete(Object... entities);
+	public void delete(Object entity);
 	
 	/**
 	 * Deletes the specified keys or entities.  If the parameter is an iterable of
