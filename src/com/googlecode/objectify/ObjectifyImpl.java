@@ -164,24 +164,27 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#delete(com.google.appengine.api.datastore.Key[])
+	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object)
 	 */
 	@Override
-	public void delete(Key... keys)
+	public void delete(Object keyOrEntity)
 	{
-		this.ds.delete(this.txn, keys);
+		if (keyOrEntity instanceof Key)
+			this.ds.delete(this.txn, (Key)keyOrEntity);
+		else
+			this.ds.delete(this.txn, this.factory.createKey(keyOrEntity));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
 	 */
 	@Override
-	public void delete(Iterable<?> objs)
+	public void delete(Iterable<?> keysOrEntities)
 	{
 		// We have to be careful here, objs could contain Keys or entity objects or both!
 		List<Key> keys = new ArrayList<Key>();
 		
-		for (Object obj: objs)
+		for (Object obj: keysOrEntities)
 		{
 			if (obj instanceof Key)
 				keys.add((Key)obj);
@@ -190,15 +193,6 @@ public class ObjectifyImpl implements Objectify
 		}
 		
 		this.ds.delete(this.txn, keys);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object)
-	 */
-	@Override
-	public void delete(Object entity)
-	{
-		this.ds.delete(this.txn, this.factory.createKey(entity));
 	}
 
 	/* (non-Javadoc)

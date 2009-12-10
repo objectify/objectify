@@ -77,18 +77,11 @@ public interface Objectify
 	List<Key> put(Iterable<?> objs);
 	
 	/**
-	 * Deletes the entities with the specified Keys.  Same as DatastoreService method.
-	 * 
-	 * @see DatastoreService#delete(Key...)
+	 * Deletes the specified entity.  The object passed in can be either a Key
+	 * or an entity object; if an entity, only the id fields are relevant.
 	 */
-	public void delete(Key... keys);
+	public void delete(Object keyOrEntity);
 
-	/**
-	 * Deletes the specified entity.  Note that this method only pays attention to
-	 * the key field.
-	 */
-	public void delete(Object entity);
-	
 	/**
 	 * Deletes the specified keys or entities.  If the parameter is an iterable of
 	 * entity objects, only their key fields are relevant.
@@ -98,7 +91,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#delete(Iterable)
 	 */
-	public void delete(Iterable<?> objs);
+	public void delete(Iterable<?> keysOrEntities);
 	
 	/**
 	 * <p>Prepares a query for execution.  The resulting ObjPreparedQuery allows the result
