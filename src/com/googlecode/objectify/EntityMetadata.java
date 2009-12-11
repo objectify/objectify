@@ -109,7 +109,7 @@ public class EntityMetadata
 	
 	/**
 	 * Recursive function adds any appropriate fields to our internal data
-	 * structures for persisting and retreiving later.
+	 * structures for persisting and retrieving later.
 	 */
 	private void visit(Class<?> clazz)
 	{
