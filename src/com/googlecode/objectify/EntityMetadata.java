@@ -15,6 +15,7 @@ import javax.persistence.Transient;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindexed;
@@ -218,7 +219,7 @@ public class EntityMetadata
 						done.add(pop.getThing());
 					
 					Object value = property.getValue();
-					value = this.convert(value, pop.getType());
+					value = this.convertFromDatastore(value, pop.getType());
 					
 					pop.populate(obj, value);
 				}
@@ -232,8 +233,9 @@ public class EntityMetadata
 
 	/**
 	 * Converts the value into an object suitable for the type (hopefully).
+	 * For loading data out of the datastore.
 	 */
-	Object convert(Object value, Class<?> type)
+	Object convertFromDatastore(Object value, Class<?> type)
 	{
 		if (value == null || type.isAssignableFrom(value.getClass()))
 		{
@@ -241,7 +243,10 @@ public class EntityMetadata
 		}
 		else if (type == String.class)
 		{
-			return value.toString();
+			if (value instanceof Text)
+				return ((Text)value).getValue();
+			else
+				return value.toString();
 		}
 		else if (value instanceof Boolean && type == Boolean.TYPE)
 		{
@@ -262,6 +267,22 @@ public class EntityMetadata
 	}
 	
 	/**
+	 * Converts the value into an object suitable for storing in the datastore.
+	 */
+	Object convertToDatastore(Object value)
+	{
+		if (value instanceof String)
+		{
+			// Check to see if it's too long and needs to be Text instead
+			if (((String)value).length() > 500)
+				return new Text((String)value);
+		}
+		
+		// Usually we just want to return the value
+		return value;
+	}
+	
+	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
 	public Entity toEntity(Object obj)
@@ -273,6 +294,8 @@ public class EntityMetadata
 			for (Field f: this.writeables)
 			{
 				Object value = f.get(obj);
+				value = this.convertToDatastore(value);
+				
 				if (f.isAnnotationPresent(Unindexed.class))
 					ent.setUnindexedProperty(f.getName(), value);
 				else
