@@ -91,11 +91,11 @@
 			classpathref="run.classpath"
 			author="true"
 			version="true"
-			Windowtitle="Unsuck Javadoc"
+			Windowtitle="Objectify-AppEngine Javadoc"
 		>
 			<fileset dir="${src.dir}"/>
-			<doctitle><![CDATA[<h1>Friends</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer. All Rights Reserved. Build version: ${build.version}</i>]]></bottom>
+			<doctitle><![CDATA[<h1>Objectify-AppEngine</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer and a gang of pirates. All Rights Reserved. Build version: ${build.version}</i>]]></bottom>
 		</javadoc>
 	</target>
 	
