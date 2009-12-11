@@ -235,13 +235,17 @@ public class EntityMetadata
 	 */
 	Object convert(Object value, Class<?> type)
 	{
-		if (value == null || type == value.getClass())
+		if (value == null || type.isAssignableFrom(value.getClass()))
 		{
 			return value;
 		}
 		else if (type == String.class)
 		{
 			return value.toString();
+		}
+		else if (value instanceof Boolean && type == Boolean.TYPE)
+		{
+			return value;
 		}
 		else if (value instanceof Number)
 		{
