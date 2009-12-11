@@ -300,6 +300,7 @@ public class EntityMetadata
 					ent.setUnindexedProperty(f.getName(), value);
 				else
 					ent.setProperty(f.getName(), value);
+					// TODO: Add warning if the field is indexed but we have converted it to Text (which is always unindexed).
 			}
 
 			return ent;
