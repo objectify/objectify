@@ -8,5 +8,5 @@
 	<classpathentry kind="lib" path="lib/build-only/appengine-api-stubs.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/appengine-local-runtime.jar"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="output" path="target/bin"/>
+	<classpathentry kind="output" path="target/classes"/>
 </classpath>
