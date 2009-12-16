@@ -24,27 +24,27 @@ import com.googlecode.objectify.annotation.Unindexed;
 /**
  * Everything you need to know about mapping between Datastore Entity objects
  * and typed entity objects.
- *  
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EntityMetadata
 {
 	/** We do not persist fields with any of these modifiers */
 	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
-	
+
 	/** We need to be able to populate fields and methods with @OldName */
 	static interface Populator
 	{
 		/** Actually populate the thing (field or method) */
 		void populate(Object entity, Object value);
-		
+
 		/** Get the thing for hashing, string conversion, etc */
 		Object getThing();
-		
+
 		/** Get the type of the thing */
 		Class<?> getType();
 	}
-	
+
 	/** Works with fields */
 	static class FieldPopulator implements Populator
 	{
@@ -58,7 +58,7 @@ public class EntityMetadata
 			catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 		}
 	}
-	
+
 	/** Works with methods */
 	static class MethodPopulator implements Populator
 	{
@@ -73,64 +73,64 @@ public class EntityMetadata
 			catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
 		}
 	}
-	
+
 	/** */
 	private Class<?> entityClass;
 	public Class<?> getEntityClass() { return this.entityClass; }
-	
+
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
 	private String kind;
-	
+
 	/** We treat the @Id key field specially - it will be either Long id or String name */
 	private Field idField;
 	private Field nameField;
-	
+
 	/** If the entity has a @Parent field, treat it specially */
 	private Field parentField;
-	
-	/** The fields we persist, not including the @Id or @Parebnt fields */
+
+	/** The fields we persist, not including the @Id or @Parent fields */
 	private Set<Field> writeables = new HashSet<Field>();
-	
+
 	/** The things that we read, keyed by name (including @OldName fields and methods).  A superset of writeables. */
 	private Map<String, Populator> readables = new HashMap<String, Populator>();
-	
+
 	/** */
 	public EntityMetadata(Class<?> clazz)
 	{
 		this.entityClass = clazz;
 		this.kind = ObjectifyFactory.getKind(clazz);
-		
+
 		// Recursively walk up the inheritance chain looking for fields
 		this.visit(clazz);
-		
+
 		// There must be some field marked with @Id
-		if (this.idField == null && this.nameField == null)
+		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 	}
-	
+
 	/**
 	 * Recursive function adds any appropriate fields to our internal data
 	 * structures for persisting and retrieving later.
 	 */
 	private void visit(Class<?> clazz)
 	{
-		if (clazz == null || clazz == Object.class)
+		if ((clazz == null) || (clazz == Object.class))
 			return;
-		
+
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
-			if (field.isAnnotationPresent(Transient.class) || (field.getModifiers() & BAD_MODIFIERS) != 0)
+			if (field.isAnnotationPresent(Transient.class) || ((field.getModifiers() & BAD_MODIFIERS) != 0))
 				continue;
-			
+
 			field.setAccessible(true);
-			
+
 			if (field.isAnnotationPresent(Id.class))
 			{
-				if (this.idField != null || this.nameField != null)
+				if ((this.idField != null) || (this.nameField != null))
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
-					
-				if (field.getType() == Long.class || field.getType() == Long.TYPE)
+
+				if ((field.getType() == Long.class) || (field.getType() == Long.TYPE))
 					this.idField = field;
 				else if (field.getType() == String.class)
 					this.nameField = field;
@@ -142,25 +142,25 @@ public class EntityMetadata
 			{
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
-				
+
 				if (field.getType() != Key.class)
 					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
-				
+
 				this.parentField = field;
 			}
 			else
 			{
 				this.writeables.add(field);
-				
+
 				Populator pop = new FieldPopulator(field);
 				this.putReadable(field.getName(), pop);
-				
+
 				OldName old = field.getAnnotation(OldName.class);
 				if (old != null)
 					this.putReadable(old.value(), pop);
 			}
 		}
-		
+
 		// Now look for methods with one param that are annotated with @OldName
 		for (Method method: clazz.getDeclaredMethods())
 		{
@@ -171,12 +171,12 @@ public class EntityMetadata
 					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
 
 				method.setAccessible(true);
-				
+
 				this.putReadable(oldName.value(), new MethodPopulator(method));
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds the key/value pair to this.readables, throwing an exception if there
 	 * is a duplicate key.
@@ -185,10 +185,10 @@ public class EntityMetadata
 	{
 		if (this.readables.put(name, p) != null)
 			throw new IllegalStateException(
-					"Data property name '" + name + "' is duplicated in hierarchy of " + 
+					"Data property name '" + name + "' is duplicated in hierarchy of " +
 					this.entityClass.getName() + ". Check for conflicting @OldNames.");
 	}
-	
+
 	/**
 	 * Converts an entity to an object of the appropriate type for this metadata structure.
 	 * Does not check that the entity is appropriate; that should be done when choosing
@@ -206,7 +206,7 @@ public class EntityMetadata
 			// Keep track of which fields and methods have been done so we don't repeat any;
 			// this could happen if an Entity has data for both @OldName and the current name.
 			Set<Object> done = new HashSet<Object>();
-			
+
 			for (Map.Entry<String, Object> property: ent.getProperties().entrySet())
 			{
 				Populator pop = this.readables.get(property.getKey());
@@ -217,14 +217,14 @@ public class EntityMetadata
 						throw new IllegalStateException("Tried to set '" + pop.getThing() + "' twice; check @OldName annotations");
 					else
 						done.add(pop.getThing());
-					
+
 					Object value = property.getValue();
 					value = this.convertFromDatastore(value, pop.getType());
-					
+
 					pop.populate(obj, value);
 				}
 			}
-			
+
 			return obj;
 		}
 		catch (InstantiationException e) { throw new RuntimeException(e); }
@@ -237,7 +237,7 @@ public class EntityMetadata
 	 */
 	Object convertFromDatastore(Object value, Class<?> type)
 	{
-		if (value == null || type.isAssignableFrom(value.getClass()))
+		if ((value == null) || type.isAssignableFrom(value.getClass()))
 		{
 			return value;
 		}
@@ -248,24 +248,24 @@ public class EntityMetadata
 			else
 				return value.toString();
 		}
-		else if (value instanceof Boolean && type == Boolean.TYPE)
+		else if ((value instanceof Boolean) && (type == Boolean.TYPE))
 		{
 			return value;
 		}
 		else if (value instanceof Number)
 		{
 			Number number = (Number)value;
-			if (type == Byte.class || type == Byte.TYPE) return number.byteValue();
-			else if (type == Short.class || type == Short.TYPE) return number.shortValue();
-			else if (type == Integer.class || type == Integer.TYPE) return number.intValue();
-			else if (type == Long.class || type == Long.TYPE) return number.longValue();
-			else if (type == Float.class || type == Float.TYPE) return number.floatValue();
-			else if (type == Double.class || type == Double.TYPE) return number.doubleValue();
+			if ((type == Byte.class) || (type == Byte.TYPE)) return number.byteValue();
+			else if ((type == Short.class) || (type == Short.TYPE)) return number.shortValue();
+			else if ((type == Integer.class) || (type == Integer.TYPE)) return number.intValue();
+			else if ((type == Long.class) || (type == Long.TYPE)) return number.longValue();
+			else if ((type == Float.class) || (type == Float.TYPE)) return number.floatValue();
+			else if ((type == Double.class) || (type == Double.TYPE)) return number.doubleValue();
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
-	
+
 	/**
 	 * Converts the value into an object suitable for storing in the datastore.
 	 */
@@ -277,11 +277,11 @@ public class EntityMetadata
 			if (((String)value).length() > 500)
 				return new Text((String)value);
 		}
-		
+
 		// Usually we just want to return the value
 		return value;
 	}
-	
+
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
@@ -295,7 +295,7 @@ public class EntityMetadata
 			{
 				Object value = f.get(obj);
 				value = this.convertToDatastore(value);
-				
+
 				if (f.isAnnotationPresent(Unindexed.class))
 					ent.setUnindexedProperty(f.getName(), value);
 				else
@@ -308,7 +308,7 @@ public class EntityMetadata
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
-	
+
 	/**
 	 * <p>This hides all the messiness of trying to create an Entity from an object that:</p>
 	 * <ul>
@@ -323,7 +323,7 @@ public class EntityMetadata
 		try
 		{
 			Key parentKey = null;
-			
+
 			// First thing, get the parentKey (if appropriate)
 			if (this.parentField != null)
 			{
@@ -331,7 +331,7 @@ public class EntityMetadata
 				if (parentKey == null)
 					throw new IllegalStateException("Missing parent of " + obj);
 			}
-			
+
 			if (this.idField != null)
 			{
 				Long id = (Long)this.idField.get(obj);	// possibly null
@@ -355,7 +355,7 @@ public class EntityMetadata
 				String name = (String)this.nameField.get(obj);
 				if (name == null)
 					throw new IllegalStateException("Tried to persist null String @Id for " + obj);
-				
+
 				if (this.parentField != null)
 				{
 					return new Entity(this.kind, name, parentKey);
@@ -366,9 +366,9 @@ public class EntityMetadata
 				}
 			}
 		}
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }	
+		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 	}
-	
+
 	/**
 	 * Sets the relevant id and parent fields of the object to the values stored in the key.
 	 * Object must be of the entityClass type for this metadata.
@@ -384,23 +384,23 @@ public class EntityMetadata
 			{
 				if (this.nameField == null)
 					throw new IllegalStateException("Loaded Entity has name but " + this.entityClass.getName() + " has no String @Id");
-				
+
 				this.nameField.set(obj, key.getName());
 			}
 			else
 			{
 				if (this.idField == null)
 					throw new IllegalStateException("Loaded Entity has id but " + this.entityClass.getName() + " has no Long (or long) @Id");
-				
+
 				this.idField.set(obj, key.getId());
 			}
-			
+
 			Key parentKey = key.getParent();
 			if (parentKey != null)
 			{
 				if (this.parentField == null)
 					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
-				
+
 				this.parentField.set(obj, parentKey);
 			}
 		}
@@ -422,7 +422,7 @@ public class EntityMetadata
 			if (this.nameField != null)
 			{
 				String name = (String)this.nameField.get(obj);
-				
+
 				if (this.parentField != null)
 				{
 					Key parent = (Key)this.parentField.get(obj);
@@ -438,7 +438,7 @@ public class EntityMetadata
 				Long id = (Long)this.idField.get(obj);
 				if (id == null)
 					throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + obj);
-				
+
 				if (this.parentField != null)
 				{
 					Key parent = (Key)this.parentField.get(obj);
