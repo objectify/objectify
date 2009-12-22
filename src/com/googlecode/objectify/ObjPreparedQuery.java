@@ -11,33 +11,39 @@ import com.google.appengine.api.datastore.PreparedQuery;
  * iterating through Entity objects, it iterates through your typesafe
  * objects.  Note also that if the original Query was setKeysOnly(),
  * this interface will output Key objects instead of your model objects.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface ObjPreparedQuery<T>
 {
 	/**
-	 * @see PreparedQuery#asIterable() 
+	 * @see PreparedQuery#asIterable()
 	 */
 	Iterable<T> asIterable();
-	
+
 	/**
 	 * @see PreparedQuery#asIterable(FetchOptions)
 	 */
 	Iterable<T> asIterable(FetchOptions fetchOptions);
 
 	/**
-	 * @see PreparedQuery#asList(FetchOptions) 
+	 * Convenience method that calls asList(FetchOptions)
+	 * with a default of withLimit(1000).chunkSize(1000).
+	 */
+	List<T> asList();
+
+	/**
+	 * @see PreparedQuery#asList(FetchOptions)
 	 */
 	List<T> asList(FetchOptions fetchOptions);
-	
+
 	/**
-	 * @see PreparedQuery#asSingleEntity() 
+	 * @see PreparedQuery#asSingleEntity()
 	 */
 	T asSingle();
-	
+
 	/**
-	 * @see PreparedQuery#countEntities() 
+	 * @see PreparedQuery#countEntities()
 	 */
 	int count();
 }
