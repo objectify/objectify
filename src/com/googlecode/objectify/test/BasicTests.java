@@ -139,7 +139,7 @@ public class BasicTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 
-		Trivial parent = new Trivial("parent", 1);
+		Child parent = new Child(null, "1");
 		ofy.put(parent);
 
 		Key parentKey = ObjectifyFactory.createKey(parent);
