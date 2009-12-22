@@ -1,7 +1,5 @@
 package com.googlecode.objectify;
 
-import static com.google.appengine.api.datastore.FetchOptions.Builder.withLimit;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -54,9 +52,15 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	 * (non-Javadoc)
 	 * @see com.googlecode.objectify.ObjPreparedQuery#asList()
 	 */
+	@SuppressWarnings("unchecked")
 	public List<T> asList()
 	{
-		return this.asList(withLimit(1000).chunkSize(1000));
+		List<T> resultList = new ArrayList<T>();
+
+		for (T obj: (Iterable<T>)new ToObjectIterable(this.pq.asIterable()))
+			resultList.add(obj);
+
+		return resultList;
 	}
 
 	/* (non-Javadoc)

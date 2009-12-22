@@ -27,8 +27,7 @@ public interface ObjPreparedQuery<T>
 	Iterable<T> asIterable(FetchOptions fetchOptions);
 
 	/**
-	 * Convenience method that calls asList(FetchOptions)
-	 * with a default of withLimit(1000).chunkSize(1000).
+	 * Convenience method that calls asIterable() and puts the results in an ArrayList.
 	 */
 	List<T> asList();
 
