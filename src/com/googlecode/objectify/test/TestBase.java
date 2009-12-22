@@ -18,14 +18,15 @@ import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
-import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.entity.NamedTrivial;
+import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasOldNames;
+import com.googlecode.objectify.test.entity.NamedTrivial;
+import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  * All tests should extend this class to set up the GAE environment.
  * @see http://code.google.com/appengine/docs/java/howto/unittesting.html
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TestBase
@@ -33,7 +34,7 @@ public class TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(TestBase.class);
-	
+
 	/** */
 	@BeforeMethod
 	public void setUp()
@@ -43,14 +44,15 @@ public class TestBase
 		ApiProxyLocal proxy = new ApiProxyLocalImpl(new File("target")) {};
 		proxy.setProperty(LocalDatastoreService.NO_STORAGE_PROPERTY, Boolean.TRUE.toString());
 		ApiProxy.setDelegate(proxy);
-		
+
 		// Register all our entity types.  It's ok that we do this multiple times.
 		ObjectifyFactory.register(Trivial.class);
 		ObjectifyFactory.register(NamedTrivial.class);
 		ObjectifyFactory.register(HasOldNames.class);
 		ObjectifyFactory.register(Child.class);
+		ObjectifyFactory.register(Employee.class);
 	}
-	
+
 	/** */
 	@AfterMethod
 	public void tearDown()
@@ -58,7 +60,7 @@ public class TestBase
 		ApiProxyLocalImpl proxy = (ApiProxyLocalImpl)ApiProxy.getDelegate();
 		LocalDatastoreService datastoreService = (LocalDatastoreService)proxy.getService("datastore_v3");
 		datastoreService.clearProfiles();
-        
+
         // not strictly necessary to null these out but there's no harm either
 		ApiProxy.setDelegate(null);
 		ApiProxy.setEnvironmentForCurrentThread(null);

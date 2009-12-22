@@ -19,7 +19,7 @@ import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.googlecode.objectify.ObjPreparedQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.test.entity.Child;
+import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -135,35 +135,35 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testGetBig() throws Exception
+	public void testManyToOne() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 
-		Child parent = new Child(null, "1");
-		ofy.put(parent);
+		Employee fred = new Employee("fred");
+		ofy.put(fred);
 
-		Key parentKey = ObjectifyFactory.createKey(parent);
+		Key fredKey = ObjectifyFactory.createKey(fred);
 
-		List<Child> children = new ArrayList<Child>(1100);
+		List<Employee> employees = new ArrayList<Employee>(1100);
 		for (int i = 0; i < 1100; i++)
 		{
-			Child c = new Child(parentKey, "foo" + i);
-			children.add(c);
+			Employee emp = new Employee("foo" + i, fredKey);
+			employees.add(emp);
 		}
 
-		ofy.put(children);
+		ofy.put(employees);
 
-		assert children.size() == 1100;
+		assert employees.size() == 1100;
 
-		Query q = ObjectifyFactory.createQuery(Child.class);
-		q.addFilter("parent", FilterOperator.EQUAL, ObjectifyFactory.createKey(parent));
-		ObjPreparedQuery<Child> pq = ofy.prepare(q);
-		Iterable<Child> results = pq.asIterable();
+		Query q = ObjectifyFactory.createQuery(Employee.class);
+		q.addFilter("manager", FilterOperator.EQUAL, ObjectifyFactory.createKey(fred));
+		ObjPreparedQuery<Employee> pq = ofy.prepare(q);
+		Iterable<Employee> results = pq.asIterable();
 
 		int count = 0;
-		for (Child child : results)
+		for (Employee emp : results)
 		{
-			child.getId(); // Just to make eclipse happy
+			emp.getName(); // Just to make eclipse happy
 			count++;
 		}
 		assert count == 1100;
