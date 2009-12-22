@@ -25,7 +25,7 @@ import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  * All tests should extend this class to set up the GAE environment.
- * @see http://code.google.com/appengine/docs/java/howto/unittesting.html
+ * @see <a href="http://code.google.com/appengine/docs/java/howto/unittesting.html">Unit Testing in Appengine</a>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

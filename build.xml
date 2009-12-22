@@ -20,10 +20,12 @@
 
 	<property name="build.dir" location="target" />
 	<property name="build.classes.dir" location="${build.dir}/classes" />
+	<property name="build.javadoc.dir" location="${build.dir}/javadoc" />
 
 	<property name="build.jar.file" location="${build.dir}/${name}.jar" />
 	
 	<property name="docs.dir" value="${build.dir}/docs" />
+	<property name="javadoc.dir" value="javadoc" />
 
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
@@ -86,7 +88,7 @@
 
 	<target name="javadoc" depends="init-version, classes">
 		<javadoc
-			destdir="${build.dir}/javadoc"
+			destdir="${build.javadoc.dir}"
 			packagenames="*"
 			classpathref="run.classpath"
 			author="true"
@@ -97,6 +99,13 @@
 			<doctitle><![CDATA[<h1>Objectify-AppEngine</h1>]]></doctitle>
 			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer and a gang of pirates. All Rights Reserved. Build version: ${build.version}</i>]]></bottom>
 		</javadoc>
+
+		<sync todir="${javadoc.dir}">
+			<fileset dir="${build.javadoc.dir}" />
+			<preserveintarget>
+				<include name="**/.svn/**"/>
+			</preserveintarget>
+		</sync>
 	</target>
 	
 	<target name="test" depends="classes">

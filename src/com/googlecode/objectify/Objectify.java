@@ -86,7 +86,7 @@ public interface Objectify
 	 * Deletes the specified keys or entities.  If the parameter is an iterable of
 	 * entity objects, only their key fields are relevant.
 	 * 
-	 * @param objs can be either an iterable of Key objects or an iterable of entity
+	 * @param keysOrEntities can be either an iterable of Key objects or an iterable of entity
 	 *  objects.  They can even be mixed and matched. The result will be one batch delete.
 	 * 
 	 * @see DatastoreService#delete(Iterable)

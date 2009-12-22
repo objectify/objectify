@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.Transaction;
  * You either create an Objectify without a transaction (by calling {@code begin()} or you
  * create one with a transaction (by calling {@code beginTransaction()}.  If you create
  * an Objectify with a transaction, you should use it like this:</p>
- * <code>
+ * <code><pre>
  * 	Objectify data = ObjectifyFactory.beginTransaction()
  * 	try {
  * 		// do work
@@ -25,7 +25,7 @@ import com.google.appengine.api.datastore.Transaction;
  * 	finally {
  * 		if (data.getTxn().isActive()) data.getTxn().rollback();
  * 	}
- * </code>
+ * </pre></code>
  * 
  * <p>It would be fairly easy for someone to implement a ScanningObjectifyFactory
  * on top of this class that looks for @Entity annotations based on Scannotation or
