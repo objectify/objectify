@@ -53,7 +53,7 @@ public class Employee
 	/** */
 	public Iterable<Employee> getSubordinates()
  	{
-    	Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyFactory.begin();
 
 		Query q = ObjectifyFactory.createQuery(Employee.class);
 		q.addFilter("manager", FilterOperator.EQUAL, ObjectifyFactory.createKey(this));
