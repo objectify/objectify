@@ -25,8 +25,9 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	boolean keysOnly;
 
 	/** Wrap the prepared query */
-	public ObjPreparedQueryImpl(PreparedQuery pq, boolean keysOnly)
+	public ObjPreparedQueryImpl(Factory fact, PreparedQuery pq, boolean keysOnly)
 	{
+		this.factory = fact;
 		this.pq = pq;
 		this.keysOnly = keysOnly;
 	}
