@@ -35,24 +35,32 @@ public class Factory
 	/** */
 	protected Map<String, EntityMetadata> types = new HashMap<String, EntityMetadata>();
 	
+	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
+	protected int datastoreTimeoutRetryCount;
+	
 	/** @see ObjectifyFactory#begin() */
 	public Objectify begin()
 	{
-		return new ObjectifyImpl(this, DatastoreServiceFactory.getDatastoreService(), null);
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Objectify impl = new ObjectifyImpl(this, ds, null);
+
+		return this.maybeWrap(impl);
 	}
 	
 	/** @see ObjectifyFactory#beginTransaction() */
 	public Objectify beginTransaction()
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return new ObjectifyImpl(this, ds, ds.beginTransaction());
+		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
+		
+		return this.maybeWrap(impl);
 	}
 	
 	/** @see ObjectifyFactory#withTransaction(Transaction) */
 	public Objectify withTransaction(Transaction txn)
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return new ObjectifyImpl(this, ds, txn);
+		return this.maybeWrap(new ObjectifyImpl(this, ds, txn));
 	}
 	
 	/** @see ObjectifyFactory#register(Class) */
@@ -60,6 +68,30 @@ public class Factory
 	{
 		String kind = getKind(clazz);
 		this.types.put(kind, new EntityMetadata(clazz));
+	}
+	
+	/** @see ObjectifyFactory#setDatastoreTimeoutRetryCount(int) */
+	public void setDatastoreTimeoutRetryCount(int value)
+	{
+		this.datastoreTimeoutRetryCount = value;
+	}
+
+	/** @see ObjectifyFactory#getDatastoreTimeoutRetryCount() */
+	public int getDatastoreTimeoutRetryCount()
+	{
+		return this.datastoreTimeoutRetryCount;
+	}
+	
+	/**
+	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
+	 * datastoreTimeoutRetryCount > 0.
+	 */
+	private Objectify maybeWrap(Objectify impl)
+	{
+		if (this.datastoreTimeoutRetryCount > 0)
+			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);
+		else
+			return impl;
 	}
 	
 	//

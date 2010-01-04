@@ -68,6 +68,30 @@ public class ObjectifyFactory
 	 */
 	public static void register(Class<?> clazz) { Factory.instance().register(clazz); }
 	
+	/**
+	 * <p>If this value is set to something greater than zero, Objectify will
+	 * retry all calls to the Objectify interface whenever the datastore
+	 * returns a DatastoreTimeoutException.  The datastore produces a trickle
+	 * of these errors *all the time*, even in good health.  They can be
+	 * retried without ill effect.</p>
+	 * 
+	 * <p>If you want more fine grained control of retries, you can wrap
+	 * Objectify instances by calling DatastoreTimeoutRetryProxy.wrap() directly.</p>
+	 * 
+	 * <p>Beware setting this value to something large; sometimes the datastore
+	 * starts choking and returning timeout errors closer to 100% of the time
+	 * rather than the usual 0.1%-1%.</p>
+	 * 
+	 * @param value is the number of retries to attempt; ie 1 means two total tries
+	 *  before giving up and propagating the DatastoreTimeoutException.
+	 */
+	public static void setDatastoreTimeoutRetryCount(int value) { Factory.instance().setDatastoreTimeoutRetryCount(value); }
+
+	/**
+	 * @return the current setting for datastore timeout retry count
+	 */
+	public static int getDatastoreTimeoutRetryCount() { return Factory.instance().getDatastoreTimeoutRetryCount(); }
+	
 	//
 	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
 	//
