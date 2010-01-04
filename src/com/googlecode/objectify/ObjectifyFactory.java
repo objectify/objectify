@@ -70,17 +70,18 @@ public class ObjectifyFactory
 	
 	/**
 	 * <p>If this value is set to something greater than zero, Objectify will
-	 * retry all calls to the Objectify interface whenever the datastore
-	 * returns a DatastoreTimeoutException.  The datastore produces a trickle
+	 * retry all calls to the datastore whenever the it throws a
+	 * DatastoreTimeoutException.  The datastore produces a trickle
 	 * of these errors *all the time*, even in good health.  They can be
 	 * retried without ill effect.</p>
 	 * 
-	 * <p>If you want more fine grained control of retries, you can wrap
-	 * Objectify instances by calling DatastoreTimeoutRetryProxy.wrap() directly.</p>
+	 * <p>If you want more fine grained control of retries, you can leave this
+	 * value at 0 and manually wrap Objectify, ObjPreparedQuery, and Iterator
+	 * instances by calling DatastoreTimeoutRetryProxy.wrap() directly.</p>
 	 * 
 	 * <p>Beware setting this value to something large; sometimes the datastore
 	 * starts choking and returning timeout errors closer to 100% of the time
-	 * rather than the usual 0.1%-1%.</p>
+	 * rather than the usual 0.1%-1%. A low number like 2 is safe and effective.</p>
 	 * 
 	 * @param value is the number of retries to attempt; ie 1 means two total tries
 	 *  before giving up and propagating the DatastoreTimeoutException.

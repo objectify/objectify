@@ -199,11 +199,13 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#prepare(com.google.appengine.api.datastore.Query)
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <T> ObjPreparedQuery<T> prepare(Query query)
 	{
 		PreparedQuery pq = this.ds.prepare(this.txn, query);
-			
-		return new ObjPreparedQueryImpl<T>(pq, query.isKeysOnly());
+		ObjPreparedQuery<T> prepared = new ObjPreparedQueryImpl<T>(pq, query.isKeysOnly());
+
+		return (ObjPreparedQuery<T>)this.factory.maybeWrap(prepared);
 	}
 	
 	/* (non-Javadoc)

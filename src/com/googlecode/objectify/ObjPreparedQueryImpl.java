@@ -15,6 +15,9 @@ import com.google.appengine.api.datastore.PreparedQuery;
  */
 public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 {
+	/** We always need one of these */
+	Factory factory;
+	
 	/** The backing result set */
 	PreparedQuery pq;
 
@@ -92,7 +95,7 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 		}
 		else
 		{
-			EntityMetadata metadata = ObjectifyFactory.getMetadata(ent.getKey());
+			EntityMetadata metadata = this.factory.getMetadata(ent.getKey());
 			return (T)metadata.toObject(ent);
 		}
 	}
@@ -133,9 +136,10 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 	{
 		Iterator<Entity> source;
 
+		@SuppressWarnings("unchecked")
 		public ToObjectIterator(Iterator<Entity> source)
 		{
-			this.source = source;
+			this.source = (Iterator<Entity>)factory.maybeWrap(source);
 		}
 
 		@Override
@@ -148,13 +152,13 @@ public class ObjPreparedQueryImpl<T> implements ObjPreparedQuery<T>
 		public Object next()
 		{
 			Entity nextEntity = this.source.next();
-			if (ObjPreparedQueryImpl.this.keysOnly)
+			if (keysOnly)
 			{
 				return nextEntity.getKey();
 			}
 			else
 			{
-				EntityMetadata meta = ObjectifyFactory.getMetadata(nextEntity.getKey());
+				EntityMetadata meta = factory.getMetadata(nextEntity.getKey());
 				return meta.toObject(nextEntity);
 			}
 		}

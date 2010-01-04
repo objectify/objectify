@@ -44,7 +44,7 @@ public class Factory
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, null);
 
-		return this.maybeWrap(impl);
+		return (Objectify)this.maybeWrap(impl);
 	}
 	
 	/** @see ObjectifyFactory#beginTransaction() */
@@ -53,14 +53,14 @@ public class Factory
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
 		
-		return this.maybeWrap(impl);
+		return (Objectify)this.maybeWrap(impl);
 	}
 	
 	/** @see ObjectifyFactory#withTransaction(Transaction) */
 	public Objectify withTransaction(Transaction txn)
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return this.maybeWrap(new ObjectifyImpl(this, ds, txn));
+		return (Objectify)this.maybeWrap(new ObjectifyImpl(this, ds, txn));
 	}
 	
 	/** @see ObjectifyFactory#register(Class) */
@@ -86,7 +86,7 @@ public class Factory
 	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
 	 * datastoreTimeoutRetryCount > 0.
 	 */
-	private Objectify maybeWrap(Objectify impl)
+	protected Object maybeWrap(Object impl)
 	{
 		if (this.datastoreTimeoutRetryCount > 0)
 			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);

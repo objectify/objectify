@@ -4,36 +4,38 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Iterator;
 
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
 
 /**
  * A dynamic proxy that catches DatastoreTimeoutException and retries
- * the action up to a specified number of times.
+ * the action up to a specified number of times.  Works with objects
+ * of type Objectify, ObjPreparedQuery, and Iterator.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class DatastoreTimeoutRetryProxy implements InvocationHandler
 {
 	/** The actual implementation of Objectify */
-	Objectify base;
+	Object wrapped;
 	
 	/** The number of times we should retry.  1 means two possible tries. */
 	int retries;
 	
 	/** */
-	public static Objectify wrap(Objectify impl, int retries)
+	public static Objectify wrap(Object impl, int retries)
 	{
 		return (Objectify)Proxy.newProxyInstance(
 				impl.getClass().getClassLoader(),
-				new Class<?>[] { Objectify.class },
+				new Class<?>[] { Objectify.class, ObjPreparedQuery.class, Iterator.class },
 				new DatastoreTimeoutRetryProxy(impl, retries));
 	}
 	
 	/** */
-	protected DatastoreTimeoutRetryProxy(Objectify base, int retries)
+	protected DatastoreTimeoutRetryProxy(Object wrapped, int retries)
 	{
-		this.base = base;
+		this.wrapped = wrapped;
 		this.retries = retries;
 	}
 	
@@ -48,7 +50,7 @@ public class DatastoreTimeoutRetryProxy implements InvocationHandler
 		{
 			try
 			{
-				return method.invoke(this.base, args);
+				return method.invoke(this.wrapped, args);
 			}
 			catch (InvocationTargetException ex)
 			{
