@@ -1,11 +1,14 @@
 package com.googlecode.objectify;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -254,16 +257,49 @@ public class EntityMetadata
 		}
 		else if (value instanceof Number)
 		{
-			Number number = (Number)value;
-			if ((type == Byte.class) || (type == Byte.TYPE)) return number.byteValue();
-			else if ((type == Short.class) || (type == Short.TYPE)) return number.shortValue();
-			else if ((type == Integer.class) || (type == Integer.TYPE)) return number.intValue();
-			else if ((type == Long.class) || (type == Long.TYPE)) return number.longValue();
-			else if ((type == Float.class) || (type == Float.TYPE)) return number.floatValue();
-			else if ((type == Double.class) || (type == Double.TYPE)) return number.doubleValue();
+			return this.coerceNumber((Number)value, type);
+		}
+		else if (value instanceof List<?> && type.isArray())
+		{
+			// This won't necessarily work - the objects in the List must be of correct type for the array
+			List<?> list = (List<?>)value;
+			Class<?> componentType = type.getComponentType();
+			
+			Object array = Array.newInstance(componentType, list.size());
+			
+			for (int i=0; i<list.size(); i++)
+			{
+				// All numbers come back as Longs, which won't make arrays happy
+				Object componentValue = list.get(i);
+				if (componentValue instanceof Number)
+					componentValue = this.coerceNumber((Number)componentValue, componentType);
+				
+				//System.out.println("componentType is " + componentType + ", componentValue class is " + componentValue.getClass());
+				Array.set(array, i, componentValue);
+			}
+			
+			return array;
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
+	}
+	
+	/**
+	 * Coerces the value to be a number of the specified type; needed because
+	 * all numbers come back from the datastore as Long and this screws up
+	 * any type that expects something smaller.  Also does toString just for the
+	 * hell of it.
+	 */
+	Object coerceNumber(Number value, Class<?> type)
+	{
+		if ((type == Byte.class) || (type == Byte.TYPE)) return value.byteValue();
+		else if ((type == Short.class) || (type == Short.TYPE)) return value.shortValue();
+		else if ((type == Integer.class) || (type == Integer.TYPE)) return value.intValue();
+		else if ((type == Long.class) || (type == Long.TYPE)) return value.longValue();
+		else if ((type == Float.class) || (type == Float.TYPE)) return value.floatValue();
+		else if ((type == Double.class) || (type == Double.TYPE)) return value.doubleValue();
+		else if (type == String.class) return value.toString();
+		else throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
 
 	/**
@@ -276,6 +312,17 @@ public class EntityMetadata
 			// Check to see if it's too long and needs to be Text instead
 			if (((String)value).length() > 500)
 				return new Text((String)value);
+		}
+		else if (value != null && value.getClass().isArray())
+		{
+			// The datastore cannot persist arrays, but it can persist ArrayList
+			int length = Array.getLength(value);
+			ArrayList<Object> list = new ArrayList<Object>(length);
+			
+			for (int i=0; i<length; i++)
+				list.add(Array.get(value, i));
+			
+			return list;
 		}
 
 		// Usually we just want to return the value

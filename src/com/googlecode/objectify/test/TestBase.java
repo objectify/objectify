@@ -19,6 +19,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
+import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasOldNames;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -51,6 +52,7 @@ public class TestBase
 		ObjectifyFactory.register(HasOldNames.class);
 		ObjectifyFactory.register(Child.class);
 		ObjectifyFactory.register(Employee.class);
+		ObjectifyFactory.register(HasArrays.class);
 	}
 
 	/** */
