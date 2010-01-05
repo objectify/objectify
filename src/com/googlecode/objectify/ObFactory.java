@@ -13,7 +13,7 @@ import com.google.appengine.api.datastore.Transaction;
  * <p>This is the underlying implementation of the ObjectifyFactory static methods, available
  * as a singleton.  If you wish to override factory behavior, you can inject a subclass of
  * this object in your code.  You can also make calls to these methods by calling
- * {@code ObjectifyFact.instance().begin()} etc if you think static methods are fugly.</p>
+ * {@code ObFactory.instance()} or by dependency injection if you think static methods are fugly.</p>
  * 
  * <p>In general, however, you probably want to use the ObjectifyFactory methods.</p>
  * 
