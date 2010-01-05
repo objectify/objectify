@@ -169,7 +169,7 @@ public class ObFactory
 		return this.getMetadata(obj.getClass());
 	}
 	
-	/** @see ObjectifyFactory#getMetadata(Class<?>) */
+	/** @see ObjectifyFactory#getMetadata(Class) */
 	public EntityMetadata getMetadata(Class<?> clazz)
 	{
 		return this.getMetadata(this.getKind(clazz));

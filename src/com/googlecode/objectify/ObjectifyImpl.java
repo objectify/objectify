@@ -118,6 +118,37 @@ public class ObjectifyImpl implements Objectify
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#find(com.google.appengine.api.datastore.Key)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <T> T find(Key key)
+	{
+		try { return (T)this.get(key); }
+		catch (EntityNotFoundException e) { return null; }
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#find(java.lang.Class, long)
+	 */
+	@Override
+	public <T> T find(Class<T> clazz, long id)
+	{
+		try { return this.get(clazz, id); }
+		catch (EntityNotFoundException e) { return null; }
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#find(java.lang.Class, java.lang.String)
+	 */
+	@Override
+	public <T> T find(Class<T> clazz, String name)
+	{
+		try { return this.get(clazz, name); }
+		catch (EntityNotFoundException e) { return null; }
+	}
+
+	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Object)
 	 */
 	@Override
@@ -224,4 +255,5 @@ public class ObjectifyImpl implements Objectify
 	{
 		return this.ds;
 	}
+
 }

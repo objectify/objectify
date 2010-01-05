@@ -59,6 +59,15 @@ public interface Objectify
 	 */
 	<T> Map<Key, T> get(Class<T> clazz, Iterable<?> idsOrNames);
 	
+	/** Identical to get(Key) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(Key key);
+	
+	/** Identical to get(Class, long) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(Class<T> clazz, long id);
+	
+	/** Identical to get(Class, name) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(Class<T> clazz, String name);
+
 	/**
 	 * Just like the DatastoreService method, but uses your typed object.
 	 * If the object has a null key, one will be created.  If the object
