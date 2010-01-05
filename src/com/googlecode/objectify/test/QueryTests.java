@@ -166,7 +166,7 @@ public class QueryTests extends TestBase
 	}
 
 	/** */
-	@Test
+	@Test(groups={"now"})
 	public void testIdFiltering() throws Exception
 	{
 		Objectify ofy = ObjectifyFactory.begin();
