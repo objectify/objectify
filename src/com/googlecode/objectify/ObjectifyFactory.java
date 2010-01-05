@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.Transaction;
  * Just call {@code ObjectifyFactory.begin()}.</p>
  * 
  * <p>This class exposes a full set of static methods, but the actual implementations are
- * located on a singleton called {@code Factory}.  For further control, you can subclass
+ * located on a class called {@code ObFactory}.  For further control, you can subclass
  * and inject that class - but for most use, these static methods suffice..</p>
  * 
  * <p>Note that unlike the DatastoreService, there is no implicit transaction management.
