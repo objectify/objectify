@@ -10,9 +10,8 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.googlecode.objectify.ObjPreparedQuery;
+import com.googlecode.objectify.ObPreparedQuery;
+import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 
@@ -55,9 +54,9 @@ public class Employee
  	{
 		Objectify ofy = ObjectifyFactory.begin();
 
-		Query q = ObjectifyFactory.createQuery(Employee.class);
-		q.addFilter("manager", FilterOperator.EQUAL, ObjectifyFactory.createKey(this));
-		ObjPreparedQuery<Employee> pq = ofy.prepare(q);
+		ObQuery q = ObjectifyFactory.createQuery(Employee.class);
+		q.filter("manager", ObjectifyFactory.createKey(this));
+		ObPreparedQuery<Employee> pq = ofy.prepare(q);
 		return pq.asIterable();
 	}
 }

@@ -40,13 +40,13 @@ public class ObjectifyFactory
 	 * @return an Objectify from the DatastoreService which does NOT use
 	 *  transactions.  This is a lightweight operation and can be used freely.
 	 */
-	public static Objectify begin() { return Factory.instance().begin(); }
+	public static Objectify begin() { return ObFactory.instance().begin(); }
 	
 	/**
 	 * @return an Objectify which uses a transaction.  Be careful, you cannot
 	 *  access entities across differing entity groups. 
 	 */
-	public static Objectify beginTransaction() { return Factory.instance().beginTransaction(); }
+	public static Objectify beginTransaction() { return ObFactory.instance().beginTransaction(); }
 	
 	/**
 	 * Use this method when you already have a Transaction object, say one
@@ -55,7 +55,7 @@ public class ObjectifyFactory
 	 * 
 	 * @return an Objectify which uses the specified transaction.
 	 */
-	public static Objectify withTransaction(Transaction txn) { return Factory.instance().withTransaction(txn); }
+	public static Objectify withTransaction(Transaction txn) { return ObFactory.instance().withTransaction(txn); }
 	
 	/**
 	 * <p>Registers a class with the system so that we can recompose an
@@ -66,7 +66,7 @@ public class ObjectifyFactory
 	 * time of app initialization.  After all types are registered, the
 	 * get() method can be called.</p>
 	 */
-	public static void register(Class<?> clazz) { Factory.instance().register(clazz); }
+	public static void register(Class<?> clazz) { ObFactory.instance().register(clazz); }
 	
 	/**
 	 * <p>If this value is set to something greater than zero, Objectify will
@@ -86,28 +86,28 @@ public class ObjectifyFactory
 	 * @param value is the number of retries to attempt; ie 1 means two total tries
 	 *  before giving up and propagating the DatastoreTimeoutException.
 	 */
-	public static void setDatastoreTimeoutRetryCount(int value) { Factory.instance().setDatastoreTimeoutRetryCount(value); }
+	public static void setDatastoreTimeoutRetryCount(int value) { ObFactory.instance().setDatastoreTimeoutRetryCount(value); }
 
 	/**
 	 * @return the current setting for datastore timeout retry count
 	 */
-	public static int getDatastoreTimeoutRetryCount() { return Factory.instance().getDatastoreTimeoutRetryCount(); }
+	public static int getDatastoreTimeoutRetryCount() { return ObFactory.instance().getDatastoreTimeoutRetryCount(); }
 	
 	//
 	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
 	//
 	
 	/** Creates a key for the class with the specified id */
-	public static Key createKey(Class<?> kind, long id) { return Factory.instance().createKey(kind, id); }
+	public static Key createKey(Class<?> kind, long id) { return ObFactory.instance().createKey(kind, id); }
 	
 	/** Creates a key for the class with the specified name */
-	public static Key createKey(Class<?> kind, String name) { return Factory.instance().createKey(kind, name); }
+	public static Key createKey(Class<?> kind, String name) { return ObFactory.instance().createKey(kind, name); }
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public static Key createKey(Key parent, Class<?> kind, long id) { return Factory.instance().createKey(parent, kind, id); }
+	public static Key createKey(Key parent, Class<?> kind, long id) { return ObFactory.instance().createKey(parent, kind, id); }
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public static Key createKey(Key parent, Class<?> kind, String name) { return Factory.instance().createKey(parent, kind, name); }
+	public static Key createKey(Key parent, Class<?> kind, String name) { return ObFactory.instance().createKey(parent, kind, name); }
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have
@@ -115,7 +115,7 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public static Key createKey(Object entity) { return Factory.instance().createKey(entity); }
+	public static Key createKey(Object entity) { return ObFactory.instance().createKey(entity); }
 	
 	//
 	// Friendly query creation methods
@@ -125,13 +125,13 @@ public class ObjectifyFactory
 	 * Creates a new kind-less query that finds entities.
 	 * @see Query#Query()
 	 */
-	public static Query createQuery() { return Factory.instance().createQuery(); }
+	public static ObQuery createQuery() { return ObFactory.instance().createQuery(); }
 	
 	/**
 	 * Creates a query that finds entities with the specified type
 	 * @see Query#Query(String)
 	 */
-	public static Query createQuery(Class<?> entityClazz) { return Factory.instance().createQuery(entityClazz); }
+	public static ObQuery createQuery(Class<?> entityClazz) { return ObFactory.instance().createQuery(entityClazz); }
 	
 	//
 	// Stuff which should only be necessary internally.
@@ -140,17 +140,23 @@ public class ObjectifyFactory
 	/**
 	 * @return the kind associated with a particular entity class
 	 */
-	public static String getKind(Class<?> clazz) { return Factory.instance().getKind(clazz); }
+	public static String getKind(Class<?> clazz) { return ObFactory.instance().getKind(clazz); }
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Key key) { return Factory.instance().getMetadata(key); }
+	public static EntityMetadata getMetadata(Key key) { return ObFactory.instance().getMetadata(key); }
 	
 	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Object obj) { return Factory.instance().getMetadata(obj); }
+	public static EntityMetadata getMetadata(Object obj) { return ObFactory.instance().getMetadata(obj); }
+
+	/**
+	 * @return the metadata for a kind of typed object
+	 * @throws IllegalArgumentException if the kind has not been registered
+	 */
+	public static EntityMetadata getMetadata(Class<?> clazz) { return ObFactory.instance().getMetadata(clazz); }
 }

@@ -15,8 +15,8 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.googlecode.objectify.ObjPreparedQuery;
+import com.googlecode.objectify.ObPreparedQuery;
+import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -46,10 +46,10 @@ public class QueryTests extends TestBase
 		
 		List<Key> keys = ofy.put(trivs);
 
-		Query q = ObjectifyFactory.createQuery(Trivial.class);
-		q.setKeysOnly();
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.keysOnly();
 		
-		ObjPreparedQuery<Key> pq = ofy.prepare(q);
+		ObPreparedQuery<Key> pq = ofy.prepare(q);
 		
 		int count = 0;
 		for (Key k: pq.asIterable())

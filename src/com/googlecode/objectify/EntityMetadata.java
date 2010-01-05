@@ -110,6 +110,12 @@ public class EntityMetadata
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 	}
+	
+	/** @return the kind associated with this metadata */
+	public String getKind()
+	{
+		return this.kind;
+	}
 
 	/**
 	 * Recursive function adds any appropriate fields to our internal data
@@ -498,5 +504,31 @@ public class EntityMetadata
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+	
+	/**
+	 * @return true if the property name corresponds to a Long/long @Id
+	 *  field.  If the entity has a String name @Id, this will return false.
+	 */
+	public boolean isIdField(String propertyName)
+	{
+		return this.idField != null && this.idField.getName().equals(propertyName);
+	}
+
+	/**
+	 * @return true if the property name corresponds to a String @Id
+	 *  field.  If the entity has a Long/long @Id, this will return false.
+	 */
+	public boolean isNameField(String propertyName)
+	{
+		return this.nameField != null && this.nameField.getName().equals(propertyName);
+	}
+	
+	/**
+	 * @return true if the entity has a parent field
+	 */
+	public boolean hasParentField()
+	{
+		return this.parentField != null;
 	}
 }

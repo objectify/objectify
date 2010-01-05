@@ -11,7 +11,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -23,7 +22,7 @@ import com.google.appengine.api.datastore.Transaction;
 public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
-	Factory factory;
+	ObFactory factory;
 	
 	/** The google object that does the actual heavy lifting */
 	DatastoreService ds;
@@ -37,7 +36,7 @@ public class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	ObjectifyImpl(Factory fact, DatastoreService ds, Transaction txn)
+	ObjectifyImpl(ObFactory fact, DatastoreService ds, Transaction txn)
 	{
 		this.factory = fact;
 		this.ds = ds;
@@ -200,12 +199,12 @@ public class ObjectifyImpl implements Objectify
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> ObjPreparedQuery<T> prepare(Query query)
+	public <T> ObPreparedQuery<T> prepare(ObQuery query)
 	{
-		PreparedQuery pq = this.ds.prepare(this.txn, query);
-		ObjPreparedQuery<T> prepared = new ObjPreparedQueryImpl<T>(this.factory, pq, query.isKeysOnly());
+		PreparedQuery pq = this.ds.prepare(this.txn, query.getActual());
+		ObPreparedQuery<T> prepared = new ObPreparedQueryImpl<T>(this.factory, pq, query.getActual().isKeysOnly());
 
-		return (ObjPreparedQuery<T>)this.factory.maybeWrap(prepared);
+		return (ObPreparedQuery<T>)this.factory.maybeWrap(prepared);
 	}
 	
 	/* (non-Javadoc)

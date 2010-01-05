@@ -105,7 +105,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> ObjPreparedQuery<T> prepare(Query query);
+	<T> ObPreparedQuery<T> prepare(ObQuery query);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},

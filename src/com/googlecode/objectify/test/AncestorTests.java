@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query;
-import com.googlecode.objectify.ObjPreparedQuery;
+import com.googlecode.objectify.ObPreparedQuery;
+import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
@@ -48,8 +48,8 @@ public class AncestorTests extends TestBase
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		Query q = ObjectifyFactory.createQuery(Child.class).setAncestor(parentKey);
-		ObjPreparedQuery<Child> pq = ofy.prepare(q);
+		ObQuery q = ObjectifyFactory.createQuery(Child.class).ancestor(parentKey);
+		ObPreparedQuery<Child> pq = ofy.prepare(q);
 		Child queried = pq.asSingle();
 		
 		assert queried.getParent().equals(child.getParent());

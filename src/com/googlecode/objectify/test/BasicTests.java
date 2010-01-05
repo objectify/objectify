@@ -14,9 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.googlecode.objectify.ObjPreparedQuery;
+import com.googlecode.objectify.ObPreparedQuery;
+import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Employee;
@@ -155,9 +154,9 @@ public class BasicTests extends TestBase
 
 		assert employees.size() == 1100;
 
-		Query q = ObjectifyFactory.createQuery(Employee.class);
-		q.addFilter("manager", FilterOperator.EQUAL, ObjectifyFactory.createKey(fred));
-		ObjPreparedQuery<Employee> pq = ofy.prepare(q);
+		ObQuery q = ObjectifyFactory.createQuery(Employee.class);
+		q.filter("manager", ObjectifyFactory.createKey(fred));
+		ObPreparedQuery<Employee> pq = ofy.prepare(q);
 		Iterable<Employee> results = pq.asIterable();
 
 		int count = 0;
