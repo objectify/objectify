@@ -6,10 +6,12 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.FetchOptions;
@@ -31,6 +33,28 @@ public class QueryTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(QueryTests.class);
+
+	/** */
+	Trivial triv1;
+	Trivial triv2;
+	List<Key> keys;
+	
+	/** */
+	@BeforeMethod
+	public void setUp()
+	{
+		super.setUp();
+		
+		this.triv1 = new Trivial("foo1", 1);
+		this.triv2 = new Trivial("foo2", 2);
+		
+		List<Trivial> trivs = new ArrayList<Trivial>();
+		trivs.add(this.triv1);
+		trivs.add(this.triv2);
+		
+		Objectify ofy = ObjectifyFactory.begin();
+		this.keys = ofy.put(trivs);
+	}	
 	
 	/** */
 	@Test
@@ -38,14 +62,6 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		Trivial triv1 = new Trivial("foo1", 1);
-		Trivial triv2 = new Trivial("foo2", 2);
-		List<Trivial> trivs = new ArrayList<Trivial>();
-		trivs.add(triv1);
-		trivs.add(triv2);
-		
-		List<Key> keys = ofy.put(trivs);
-
 		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.keysOnly();
 		
@@ -58,13 +74,13 @@ public class QueryTests extends TestBase
 			count++;
 		}
 		
-		assert count == trivs.size();
+		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
 		for (Key k: pq.asList(FetchOptions.Builder.withLimit(1000)))
 			assert keys.contains(k);
 		
-		assert pq.count() == trivs.size();
+		assert pq.count() == keys.size();
 		
 		try
 		{
@@ -74,4 +90,95 @@ public class QueryTests extends TestBase
 		catch (PreparedQuery.TooManyResultsException ex) {}
 	}
 
+	/** */
+	@Test
+	public void testNormalSorting() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.sort("someString");
+		
+		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		Iterator<Trivial> it = pq.asIterable().iterator();
+		
+		Trivial t1 = it.next();
+		Trivial t2 = it.next();
+		
+		assert t1.getId().equals(triv1.getId()); 
+		assert t2.getId().equals(triv2.getId()); 
+	}
+	
+	/** */
+	@Test
+	public void testNormalReverseSorting() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.sort("-someString");
+		
+		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		Iterator<Trivial> it = pq.asIterable().iterator();
+		
+		// t2 first
+		Trivial t2 = it.next();
+		Trivial t1 = it.next();
+		
+		assert t1.getId().equals(triv1.getId()); 
+		assert t2.getId().equals(triv2.getId()); 
+	}
+	
+	/** Unfortunately we can only test one way without custom index file */
+	@Test
+	public void testIdSorting() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.sort("id");
+		
+		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		Iterator<Trivial> it = pq.asIterable().iterator();
+		
+		Trivial t1 = it.next();
+		Trivial t2 = it.next();
+		
+		assert t1.getId().equals(triv1.getId()); 
+		assert t2.getId().equals(triv2.getId()); 
+	}
+
+	/** */
+	@Test
+	public void testFiltering() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.filter("someString >", triv1.getSomeString());
+		
+		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		Iterator<Trivial> it = pq.asIterable().iterator();
+		
+		Trivial t2 = it.next();
+		assert !it.hasNext();
+		assert t2.getId().equals(triv2.getId()); 
+	}
+
+	/** */
+	@Test
+	public void testIdFiltering() throws Exception
+	{
+		Objectify ofy = ObjectifyFactory.begin();
+		
+		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		q.filter("id >", triv1.getId());
+		
+		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		Iterator<Trivial> it = pq.asIterable().iterator();
+		
+		Trivial t2 = it.next();
+		assert !it.hasNext();
+		assert t2.getId().equals(triv2.getId()); 
+	}
 }

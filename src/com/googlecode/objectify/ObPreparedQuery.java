@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 /**
  * This interface mimics the GAE PreparedQuery interface, but instead of
  * iterating through Entity objects, it iterates through your typesafe
- * objects.  Note also that if the original Query was setKeysOnly(),
+ * objects.  Note also that if the original ObQuery was keysOnly(),
  * this interface will output Key objects instead of your model objects.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
@@ -28,6 +28,8 @@ public interface ObPreparedQuery<T>
 
 	/**
 	 * Convenience method that calls asIterable() and puts the results in an ArrayList.
+	 * This will iterate through *all* the values available, limited only by memory and
+	 * a deadline exception.  Chose your queries wisely.
 	 */
 	List<T> asList();
 

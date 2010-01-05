@@ -36,7 +36,7 @@ public class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	ObjectifyImpl(ObFactory fact, DatastoreService ds, Transaction txn)
+	protected ObjectifyImpl(ObFactory fact, DatastoreService ds, Transaction txn)
 	{
 		this.factory = fact;
 		this.ds = ds;
