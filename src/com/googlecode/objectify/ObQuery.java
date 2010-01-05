@@ -96,12 +96,12 @@ public class ObQuery
 				if (meta.hasParentField())
 					throw new IllegalStateException("Cannot (yet) filter by @Id fields on entities which have @Parent fields. Tried '" + prop + "' on " + this.classRestriction.getName() + ".");
 				
-				prop = "__key__";
-				
 				if (meta.isIdField(prop))
 					value = KeyFactory.createKey(meta.getKind(), ((Number)value).longValue());
 				else
 					value = KeyFactory.createKey(meta.getKind(), value.toString());
+				
+				prop = "__key__";
 			}
 		}
 
