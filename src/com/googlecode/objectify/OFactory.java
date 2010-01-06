@@ -121,7 +121,7 @@ public class OFactory
 		return this.rawKeyToOKey(KeyFactory.createKey(parent, getKind(kind), name));
 	}
 	
-	/** @see ObjectifyFactory#createKey(T) */
+	/** @see ObjectifyFactory#createKey(Object) */
 	public <T> OKey<T> createKey(T entity)
 	{
 		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
