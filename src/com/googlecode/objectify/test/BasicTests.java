@@ -154,7 +154,7 @@ public class BasicTests extends TestBase
 
 		assert employees.size() == 1100;
 
-		OQuery q = ObjectifyFactory.createQuery(Employee.class);
+		OQuery<Employee> q = ObjectifyFactory.createQuery(Employee.class);
 		q.filter("manager", ObjectifyFactory.createKey(fred));
 		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		Iterable<Employee> results = pq.asIterable();

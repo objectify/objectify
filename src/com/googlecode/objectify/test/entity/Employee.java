@@ -54,7 +54,7 @@ public class Employee
  	{
 		Objectify ofy = ObjectifyFactory.begin();
 
-		OQuery q = ObjectifyFactory.createQuery(Employee.class);
+		OQuery<Employee> q = ObjectifyFactory.createQuery(Employee.class);
 		q.filter("manager", ObjectifyFactory.createKey(this));
 		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		return pq.asIterable();

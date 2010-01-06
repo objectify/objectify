@@ -125,13 +125,13 @@ public class ObjectifyFactory
 	 * Creates a new kind-less query that finds entities.
 	 * @see Query#Query()
 	 */
-	public static OQuery createQuery() { return OFactory.instance().createQuery(); }
+	public static <T> OQuery<T> createQuery() { return OFactory.instance().createQuery(); }
 	
 	/**
 	 * Creates a query that finds entities with the specified type
 	 * @see Query#Query(String)
 	 */
-	public static OQuery createQuery(Class<?> entityClazz) { return OFactory.instance().createQuery(entityClazz); }
+	public static <T> OQuery<T> createQuery(Class<T> entityClazz) { return OFactory.instance().createQuery(entityClazz); }
 	
 	//
 	// Stuff which should only be necessary internally.

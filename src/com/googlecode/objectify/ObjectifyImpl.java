@@ -242,7 +242,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#prepare(com.google.appengine.api.datastore.Query)
 	 */
 	@Override
-	public <T> OPreparedQuery<T> prepare(OQuery query)
+	public <T> OPreparedQuery<T> prepare(OQuery<T> query)
 	{
 		PreparedQuery pq = this.ds.prepare(this.txn, query.getActual());
 		OPreparedQuery<T> prepared = new OPreparedQueryImpl<T>(this.factory, pq, false);
@@ -254,7 +254,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#prepareKeysOnly(com.googlecode.objectify.ObQuery)
 	 */
 	@Override
-	public <T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery query)
+	public <T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery<T> query)
 	{
 		// Make sure we don't mangle the original query object, it might get used again
 		Query actual = this.cloneRawQuery(query.getActual());

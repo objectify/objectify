@@ -62,7 +62,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		
 		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
 		
@@ -95,7 +95,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("someString");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -114,7 +114,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("-someString");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -134,7 +134,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("id");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -153,7 +153,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		q.filter("someString >", triv1.getSomeString());
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -170,7 +170,7 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
 		q.filter("id >", triv1.getId());
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);

@@ -48,7 +48,7 @@ public class AncestorTests extends TestBase
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		OQuery q = ObjectifyFactory.createQuery(Child.class).ancestor(parentKey);
+		OQuery<Child> q = ObjectifyFactory.createQuery(Child.class).ancestor(parentKey);
 		OPreparedQuery<Child> pq = ofy.prepare(q);
 		Child queried = pq.asSingle();
 		

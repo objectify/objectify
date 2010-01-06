@@ -132,15 +132,15 @@ public class OFactory
 	//
 	
 	/** @see ObjectifyFactory#createQuery() */
-	public OQuery createQuery()
+	public <T> OQuery<T> createQuery()
 	{
-		return new OQuery(this);
+		return new OQuery<T>(this);
 	}
 	
 	/** @see ObjectifyFactory#createQuery(Class) */
-	public OQuery createQuery(Class<?> entityClazz)
+	public <T> OQuery<T> createQuery(Class<T> entityClazz)
 	{
-		return new OQuery(this, entityClazz);
+		return new OQuery<T>(this, entityClazz);
 	}
 	
 	//

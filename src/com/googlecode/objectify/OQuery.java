@@ -19,12 +19,10 @@ import com.google.appengine.api.datastore.Query.SortDirection;
  * humans.  You will appreciate the improvement.</p>
  * 
  * <p>Construct this class by calling {@code ObjectifyFactory.createQuery()}</p>
- * 
- * <p>This class is ripe for generification now that keysOnly() is excluded.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class OQuery
+public class OQuery<T>
 {
 	/** We need this for lookups */
 	OFactory factory;
@@ -43,7 +41,7 @@ public class OQuery
 	}
 	
 	/** */
-	protected OQuery(OFactory fact, Class<?> clazz)
+	protected OQuery(OFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
 		this.actual = new Query(this.factory.getKind(clazz));
@@ -70,13 +68,13 @@ public class OQuery
 	 * </ul>
 	 * 
 	 * <p>You can filter on id properties <strong>if</strong> this query is
-	 * restricted to a Class<?> and the entity has no @Parent.  If you are
+	 * restricted to a Class<T> and the entity has no @Parent.  If you are
 	 * having trouble working around this limitation, please consult the
 	 * objectify-appengine google group.</p>
 	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
 	 * the {@code ancestor()} method instead.</p>
 	 */
-	public OQuery filter(String condition, Object value)
+	public OQuery<T> filter(String condition, Object value)
 	{
 		String[] parts = condition.trim().split(" ");
 		if (parts.length < 1 || parts.length > 2)
@@ -146,11 +144,11 @@ public class OQuery
 	 * </ul>
 	 * 
 	 * <p>You can sort on id properties <strong>if</strong> this query is
-	 * restricted to a Class<?>.  Note that this is only important for
+	 * restricted to a Class<T>.  Note that this is only important for
 	 * descending sorting; default iteration is key-ascending.</p>
 	 * <p>You can <strong>not</strong> sort on @Parent properties.</p>
 	 */
-	public OQuery sort(String condition)
+	public OQuery<T> sort(String condition)
 	{
 		condition = condition.trim();
 		SortDirection dir = SortDirection.ASCENDING;
@@ -178,9 +176,9 @@ public class OQuery
 	 * Restricts result set only to objects which have the given ancestor
 	 * somewhere in the chain.  Doesn't need to be the immediate parent.
 	 * 
-	 * @param keyOrEntity can be either a Key or an Objectify entity object.
+	 * @param keyOrEntity can be an OKey, a Key, or an Objectify entity object.
 	 */
-	public OQuery ancestor(Object keyOrEntity)
+	public OQuery<T> ancestor(Object keyOrEntity)
 	{
 		if (keyOrEntity instanceof Key)
 			this.actual.setAncestor((Key)keyOrEntity);

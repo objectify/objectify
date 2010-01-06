@@ -113,7 +113,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> OPreparedQuery<T> prepare(OQuery query);
+	<T> OPreparedQuery<T> prepare(OQuery<T> query);
 	
 	/**
 	 * <p>Prepares a keys-only query for execution.  The resulting ObjPreparedQuery allows the result
@@ -124,7 +124,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery query);
+	<T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery<T> query);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
