@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.Transaction;
  * Just call {@code ObjectifyFactory.begin()}.</p>
  * 
  * <p>This class exposes a full set of static methods, but the actual implementations are
- * located on a class called {@code ObFactory}.  For further control, you can subclass
+ * located on a class called {@code OFactory}.  For further control, you can subclass
  * and inject that class - but for most use, these static methods suffice..</p>
  * 
  * <p>Note that unlike the DatastoreService, there is no implicit transaction management.
@@ -40,13 +40,13 @@ public class ObjectifyFactory
 	 * @return an Objectify from the DatastoreService which does NOT use
 	 *  transactions.  This is a lightweight operation and can be used freely.
 	 */
-	public static Objectify begin() { return ObFactory.instance().begin(); }
+	public static Objectify begin() { return OFactory.instance().begin(); }
 	
 	/**
 	 * @return an Objectify which uses a transaction.  Be careful, you cannot
 	 *  access entities across differing entity groups. 
 	 */
-	public static Objectify beginTransaction() { return ObFactory.instance().beginTransaction(); }
+	public static Objectify beginTransaction() { return OFactory.instance().beginTransaction(); }
 	
 	/**
 	 * Use this method when you already have a Transaction object, say one
@@ -55,7 +55,7 @@ public class ObjectifyFactory
 	 * 
 	 * @return an Objectify which uses the specified transaction.
 	 */
-	public static Objectify withTransaction(Transaction txn) { return ObFactory.instance().withTransaction(txn); }
+	public static Objectify withTransaction(Transaction txn) { return OFactory.instance().withTransaction(txn); }
 	
 	/**
 	 * <p>Registers a class with the system so that we can recompose an
@@ -66,7 +66,7 @@ public class ObjectifyFactory
 	 * time of app initialization.  After all types are registered, the
 	 * get() method can be called.</p>
 	 */
-	public static void register(Class<?> clazz) { ObFactory.instance().register(clazz); }
+	public static void register(Class<?> clazz) { OFactory.instance().register(clazz); }
 	
 	/**
 	 * <p>If this value is set to something greater than zero, Objectify will
@@ -86,28 +86,28 @@ public class ObjectifyFactory
 	 * @param value is the number of retries to attempt; ie 1 means two total tries
 	 *  before giving up and propagating the DatastoreTimeoutException.
 	 */
-	public static void setDatastoreTimeoutRetryCount(int value) { ObFactory.instance().setDatastoreTimeoutRetryCount(value); }
+	public static void setDatastoreTimeoutRetryCount(int value) { OFactory.instance().setDatastoreTimeoutRetryCount(value); }
 
 	/**
 	 * @return the current setting for datastore timeout retry count
 	 */
-	public static int getDatastoreTimeoutRetryCount() { return ObFactory.instance().getDatastoreTimeoutRetryCount(); }
+	public static int getDatastoreTimeoutRetryCount() { return OFactory.instance().getDatastoreTimeoutRetryCount(); }
 	
 	//
 	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
 	//
 	
 	/** Creates a key for the class with the specified id */
-	public static <T> ObKey<T> createKey(Class<T> kind, long id) { return ObFactory.instance().createKey(kind, id); }
+	public static <T> OKey<T> createKey(Class<T> kind, long id) { return OFactory.instance().createKey(kind, id); }
 	
 	/** Creates a key for the class with the specified name */
-	public static <T> ObKey<T> createKey(Class<T> kind, String name) { return ObFactory.instance().createKey(kind, name); }
+	public static <T> OKey<T> createKey(Class<T> kind, String name) { return OFactory.instance().createKey(kind, name); }
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public static <T> ObKey<T> createKey(Key parent, Class<T> kind, long id) { return ObFactory.instance().createKey(parent, kind, id); }
+	public static <T> OKey<T> createKey(Key parent, Class<T> kind, long id) { return OFactory.instance().createKey(parent, kind, id); }
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public static <T> ObKey<T> createKey(Key parent, Class<T> kind, String name) { return ObFactory.instance().createKey(parent, kind, name); }
+	public static <T> OKey<T> createKey(Key parent, Class<T> kind, String name) { return OFactory.instance().createKey(parent, kind, name); }
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have
@@ -115,7 +115,7 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public static <T> ObKey<T> createKey(T entity) { return ObFactory.instance().createKey(entity); }
+	public static <T> OKey<T> createKey(T entity) { return OFactory.instance().createKey(entity); }
 	
 	//
 	// Friendly query creation methods
@@ -125,13 +125,13 @@ public class ObjectifyFactory
 	 * Creates a new kind-less query that finds entities.
 	 * @see Query#Query()
 	 */
-	public static ObQuery createQuery() { return ObFactory.instance().createQuery(); }
+	public static OQuery createQuery() { return OFactory.instance().createQuery(); }
 	
 	/**
 	 * Creates a query that finds entities with the specified type
 	 * @see Query#Query(String)
 	 */
-	public static ObQuery createQuery(Class<?> entityClazz) { return ObFactory.instance().createQuery(entityClazz); }
+	public static OQuery createQuery(Class<?> entityClazz) { return OFactory.instance().createQuery(entityClazz); }
 	
 	//
 	// Stuff which should only be necessary internally.
@@ -140,30 +140,30 @@ public class ObjectifyFactory
 	/**
 	 * @return the kind associated with a particular entity class
 	 */
-	public static String getKind(Class<?> clazz) { return ObFactory.instance().getKind(clazz); }
+	public static String getKind(Class<?> clazz) { return OFactory.instance().getKind(clazz); }
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Key key) { return ObFactory.instance().getMetadata(key); }
+	public static EntityMetadata getMetadata(Key key) { return OFactory.instance().getMetadata(key); }
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(ObKey<?> key) { return ObFactory.instance().getMetadata(key); }
+	public static EntityMetadata getMetadata(OKey<?> key) { return OFactory.instance().getMetadata(key); }
 	
 	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Class<?> clazz) { return ObFactory.instance().getMetadata(clazz); }
+	public static EntityMetadata getMetadata(Class<?> clazz) { return OFactory.instance().getMetadata(clazz); }
 	
 	/**
 	 * Named differently so you don't accidentally use the Object form
 	 * @return the metadata for a kind of typed object.
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadataForEntity(Object obj) { return ObFactory.instance().getMetadataForEntity(obj); }
+	public static EntityMetadata getMetadataForEntity(Object obj) { return OFactory.instance().getMetadataForEntity(obj); }
 }

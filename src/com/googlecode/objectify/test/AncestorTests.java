@@ -9,9 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.ObKey;
-import com.googlecode.objectify.ObPreparedQuery;
-import com.googlecode.objectify.ObQuery;
+import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.OPreparedQuery;
+import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Child;
@@ -35,10 +35,10 @@ public class AncestorTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
-		ObKey<Trivial> parentKey = ofy.put(triv);
+		OKey<Trivial> parentKey = ofy.put(triv);
 
 		Child child = new Child(parentKey, "cry");
-		ObKey<Child> childKey = ofy.put(child);
+		OKey<Child> childKey = ofy.put(child);
 		
 		assert childKey.getParent().equals(parentKey);
 		
@@ -48,8 +48,8 @@ public class AncestorTests extends TestBase
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		ObQuery q = ObjectifyFactory.createQuery(Child.class).ancestor(parentKey);
-		ObPreparedQuery<Child> pq = ofy.prepare(q);
+		OQuery q = ObjectifyFactory.createQuery(Child.class).ancestor(parentKey);
+		OPreparedQuery<Child> pq = ofy.prepare(q);
 		Child queried = pq.asSingle();
 		
 		assert queried.getParent().equals(child.getParent());

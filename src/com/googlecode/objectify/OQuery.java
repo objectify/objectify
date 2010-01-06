@@ -24,10 +24,10 @@ import com.google.appengine.api.datastore.Query.SortDirection;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObQuery
+public class OQuery
 {
 	/** We need this for lookups */
-	ObFactory factory;
+	OFactory factory;
 	
 	/** We need to track this because it enables the ability to filter/sort by id */
 	Class<?> classRestriction;
@@ -36,14 +36,14 @@ public class ObQuery
 	protected Query actual;
 	
 	/** */
-	protected ObQuery(ObFactory fact) 
+	protected OQuery(OFactory fact) 
 	{
 		this.factory = fact;
 		this.actual = new Query();
 	}
 	
 	/** */
-	protected ObQuery(ObFactory fact, Class<?> clazz)
+	protected OQuery(OFactory fact, Class<?> clazz)
 	{
 		this.factory = fact;
 		this.actual = new Query(this.factory.getKind(clazz));
@@ -76,7 +76,7 @@ public class ObQuery
 	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
 	 * the {@code ancestor()} method instead.</p>
 	 */
-	public ObQuery filter(String condition, Object value)
+	public OQuery filter(String condition, Object value)
 	{
 		String[] parts = condition.trim().split(" ");
 		if (parts.length < 1 || parts.length > 2)
@@ -103,8 +103,8 @@ public class ObQuery
 			}
 		}
 
-		if (value instanceof ObKey<?>)
-			value = this.factory.obKeyToRawKey((ObKey<?>)value);
+		if (value instanceof OKey<?>)
+			value = this.factory.oKeyToRawKey((OKey<?>)value);
 		
 		this.actual.addFilter(prop, op, value);
 		
@@ -150,7 +150,7 @@ public class ObQuery
 	 * descending sorting; default iteration is key-ascending.</p>
 	 * <p>You can <strong>not</strong> sort on @Parent properties.</p>
 	 */
-	public ObQuery sort(String condition)
+	public OQuery sort(String condition)
 	{
 		condition = condition.trim();
 		SortDirection dir = SortDirection.ASCENDING;
@@ -180,12 +180,12 @@ public class ObQuery
 	 * 
 	 * @param keyOrEntity can be either a Key or an Objectify entity object.
 	 */
-	public ObQuery ancestor(Object keyOrEntity)
+	public OQuery ancestor(Object keyOrEntity)
 	{
 		if (keyOrEntity instanceof Key)
 			this.actual.setAncestor((Key)keyOrEntity);
-		else if (keyOrEntity instanceof ObKey<?>)
-			this.actual.setAncestor(this.factory.obKeyToRawKey((ObKey<?>)keyOrEntity));
+		else if (keyOrEntity instanceof OKey<?>)
+			this.actual.setAncestor(this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
 		else
 			this.actual.setAncestor(this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
 		

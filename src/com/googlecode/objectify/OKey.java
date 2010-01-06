@@ -11,13 +11,13 @@ import java.io.Serializable;
  * desire neither type safety nor GWTability.</p>
  * 
  * <p>Note that this class is deliberately not final and can be extended
- * easily.  We recommend you derive a new ObFactory and override the createKey()
+ * easily.  We recommend you derive a new OFactory and override the createKey()
  * methods if you choose to go this route.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez
  */
-public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
+public class OKey<T> implements Serializable, Comparable<OKey<?>>
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -25,12 +25,12 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	 * The name of the class which represents the kind.  As much as
 	 * we'd like to use the normal String kind value here, translating
 	 * back to a Class for getKind() would then require a link to the
-	 * ObFactory, making this object non-serializable.
+	 * OFactory, making this object non-serializable.
 	 */
 	protected String kindClassName;
 	
 	/** Null if there is no parent */
-	protected ObKey<?> parent;
+	protected OKey<?> parent;
 	
 	/** Either id or name will be valid */
 	protected long id;
@@ -39,7 +39,7 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	protected String name;
 	
 	/** Construct a key with a long id */
-	protected ObKey(ObKey<?> parent, Class<?> kind, long id)
+	protected OKey(OKey<?> parent, Class<?> kind, long id)
 	{
 		this.parent = parent;
 		this.kindClassName = kind.getName();
@@ -47,7 +47,7 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	}
 	
 	/** Construct a key with a String name */
-	protected ObKey(ObKey<?> parent, Class<?> kind, String name)
+	protected OKey(OKey<?> parent, Class<?> kind, String name)
 	{
 		this.parent = parent;
 		this.kindClassName = kind.getName();
@@ -87,9 +87,9 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	 *  the parent could potentially have any type. 
 	 */
 	@SuppressWarnings("unchecked")
-	public <V> ObKey<V> getParent()
+	public <V> OKey<V> getParent()
 	{
-		return (ObKey<V>)this.parent;
+		return (OKey<V>)this.parent;
 	}
 
 	/**
@@ -101,7 +101,7 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	 * </ol>
 	 */
 	@Override
-	public int compareTo(ObKey<?> other)
+	public int compareTo(OKey<?> other)
 	{
 		// First kind
 		int cmp = this.kindClassName.compareTo(other.kindClassName);
@@ -133,10 +133,10 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 		if (obj == null)
 			return false;
 		
-		if (!(obj instanceof ObKey<?>))
+		if (!(obj instanceof OKey<?>))
 			return false;
 		
-		return this.compareTo((ObKey<?>)obj) == 0;
+		return this.compareTo((OKey<?>)obj) == 0;
 	}
 
 	/** */
@@ -154,7 +154,7 @@ public class ObKey<T> implements Serializable, Comparable<ObKey<?>>
 	public String toString()
 	{
 		StringBuilder bld = new StringBuilder();
-		bld.append("ObKey{kind=");
+		bld.append("OKey{kind=");
 		bld.append(this.kindClassName);
 		bld.append(", parent=");
 		bld.append(this.parent);

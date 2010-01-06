@@ -25,7 +25,7 @@ import com.google.appengine.api.datastore.Query.SortPredicate;
 public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
-	ObFactory factory;
+	OFactory factory;
 	
 	/** The google object that does the actual heavy lifting */
 	DatastoreService ds;
@@ -39,7 +39,7 @@ public class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	protected ObjectifyImpl(ObFactory fact, DatastoreService ds, Transaction txn)
+	protected ObjectifyImpl(OFactory fact, DatastoreService ds, Transaction txn)
 	{
 		this.factory = fact;
 		this.ds = ds;
@@ -51,20 +51,20 @@ public class ObjectifyImpl implements Objectify
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> Map<ObKey<T>, T> get(Iterable<? extends ObKey<? extends T>> keys)
+	public <T> Map<OKey<T>, T> get(Iterable<? extends OKey<? extends T>> keys)
 	{
 		// First we need to turn the keys into raw keys
 		List<Key> rawKeys = new ArrayList<Key>();
-		for (ObKey<? extends T> obKey: keys)
-			rawKeys.add(this.factory.obKeyToRawKey(obKey));
+		for (OKey<? extends T> obKey: keys)
+			rawKeys.add(this.factory.oKeyToRawKey(obKey));
 			
 		Map<Key, Entity> entities = this.ds.get(this.txn, rawKeys);
-		Map<ObKey<T>, T> result = new HashMap<ObKey<T>, T>(entities.size() * 2);
+		Map<OKey<T>, T> result = new HashMap<OKey<T>, T>(entities.size() * 2);
 		
 		for (Map.Entry<Key, Entity> entry: entities.entrySet())
 		{
 			EntityMetadata metadata = this.factory.getMetadata(entry.getKey());
-			ObKey<T> obKey = this.factory.rawKeyToObKey(entry.getKey());
+			OKey<T> obKey = this.factory.rawKeyToOKey(entry.getKey());
 			result.put(obKey, (T)metadata.toObject(entry.getValue()));
 		}
 		
@@ -76,9 +76,9 @@ public class ObjectifyImpl implements Objectify
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T> T get(ObKey<? extends T> key) throws EntityNotFoundException
+	public <T> T get(OKey<? extends T> key) throws EntityNotFoundException
 	{
-		Entity ent = this.ds.get(this.txn, this.factory.obKeyToRawKey(key));
+		Entity ent = this.ds.get(this.txn, this.factory.oKeyToRawKey(key));
 		
 		return (T)this.factory.getMetadata(key).toObject(ent);
 	}
@@ -107,9 +107,9 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, java.lang.Iterable)
 	 */
 	@Override
-	public <T> Map<ObKey<T>, T> get(Class<? extends T> clazz, Iterable<?> ids)
+	public <T> Map<OKey<T>, T> get(Class<? extends T> clazz, Iterable<?> ids)
 	{
-		List<ObKey<? extends T>> keys = new ArrayList<ObKey<? extends T>>();
+		List<OKey<? extends T>> keys = new ArrayList<OKey<? extends T>>();
 		
 		for (Object id: ids)
 		{
@@ -128,7 +128,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#find(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
-	public <T> T find(ObKey<? extends T> key)
+	public <T> T find(OKey<? extends T> key)
 	{
 		try { return (T)this.get(key); }
 		catch (EntityNotFoundException e) { return null; }
@@ -158,7 +158,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Object)
 	 */
 	@Override
-	public <T> ObKey<T> put(T obj)
+	public <T> OKey<T> put(T obj)
 	{
 		EntityMetadata metadata = this.factory.getMetadataForEntity(obj);
 		
@@ -169,14 +169,14 @@ public class ObjectifyImpl implements Objectify
 		// Need to reset the key value in case the value was generated
 		metadata.setKey(obj, rawKey);
 		
-		return this.factory.rawKeyToObKey(rawKey);
+		return this.factory.rawKeyToOKey(rawKey);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Iterable)
 	 */
 	@Override
-	public <T> List<ObKey<T>> put(Iterable<?> objs)
+	public <T> List<OKey<T>> put(Iterable<?> objs)
 	{
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (Object obj: objs)
@@ -187,7 +187,7 @@ public class ObjectifyImpl implements Objectify
 		
 		List<Key> rawKeys = this.ds.put(this.txn, entityList);
 		
-		List<ObKey<T>> obKeys = new ArrayList<ObKey<T>>(rawKeys.size());
+		List<OKey<T>> obKeys = new ArrayList<OKey<T>>(rawKeys.size());
 		
 		// Patch up any generated keys in the original objects while building new key list
 		Iterator<Key> keysIt = rawKeys.iterator();
@@ -197,7 +197,7 @@ public class ObjectifyImpl implements Objectify
 			EntityMetadata metadata = this.factory.getMetadataForEntity(obj);
 			metadata.setKey(obj, k);
 			
-			ObKey<T> obKey = this.factory.rawKeyToObKey(k);
+			OKey<T> obKey = this.factory.rawKeyToOKey(k);
 			obKeys.add(obKey);
 		}
 		
@@ -212,8 +212,8 @@ public class ObjectifyImpl implements Objectify
 	{
 		if (keyOrEntity instanceof Key)
 			this.ds.delete(this.txn, (Key)keyOrEntity);
-		if (keyOrEntity instanceof ObKey<?>)
-			this.ds.delete(this.txn, this.factory.obKeyToRawKey((ObKey<?>)keyOrEntity));
+		if (keyOrEntity instanceof OKey<?>)
+			this.ds.delete(this.txn, this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
 		else
 			this.ds.delete(this.txn, this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
 	}
@@ -242,10 +242,10 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#prepare(com.google.appengine.api.datastore.Query)
 	 */
 	@Override
-	public <T> ObPreparedQuery<T> prepare(ObQuery query)
+	public <T> OPreparedQuery<T> prepare(OQuery query)
 	{
 		PreparedQuery pq = this.ds.prepare(this.txn, query.getActual());
-		ObPreparedQuery<T> prepared = new ObPreparedQueryImpl<T>(this.factory, pq, false);
+		OPreparedQuery<T> prepared = new OPreparedQueryImpl<T>(this.factory, pq, false);
 
 		return this.factory.maybeWrap(prepared);
 	}
@@ -254,14 +254,14 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#prepareKeysOnly(com.googlecode.objectify.ObQuery)
 	 */
 	@Override
-	public <T> ObPreparedQuery<ObKey<T>> prepareKeysOnly(ObQuery query)
+	public <T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery query)
 	{
 		// Make sure we don't mangle the original query object, it might get used again
 		Query actual = this.cloneRawQuery(query.getActual());
 		actual.setKeysOnly();
 		
 		PreparedQuery pq = this.ds.prepare(this.txn, actual);
-		ObPreparedQuery<ObKey<T>> prepared = new ObPreparedQueryImpl<ObKey<T>>(this.factory, pq, true);
+		OPreparedQuery<OKey<T>> prepared = new OPreparedQueryImpl<OKey<T>>(this.factory, pq, true);
 
 		return this.factory.maybeWrap(prepared);
 	}

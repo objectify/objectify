@@ -13,10 +13,10 @@ import com.google.appengine.api.datastore.PreparedQuery;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
+public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 {
 	/** We always need one of these */
-	ObFactory factory;
+	OFactory factory;
 	
 	/** The backing result set */
 	PreparedQuery pq;
@@ -25,7 +25,7 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 	boolean keysOnly;
 
 	/** Wrap the prepared query */
-	protected ObPreparedQueryImpl(ObFactory fact, PreparedQuery pq, boolean keysOnly)
+	protected OPreparedQueryImpl(OFactory fact, PreparedQuery pq, boolean keysOnly)
 	{
 		this.factory = fact;
 		this.pq = pq;
@@ -92,7 +92,7 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 
 		if (this.keysOnly)
 		{
-			return (T)this.factory.rawKeyToObKey(ent.getKey());
+			return (T)this.factory.rawKeyToOKey(ent.getKey());
 		}
 		else
 		{
@@ -154,7 +154,7 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 			Entity nextEntity = this.source.next();
 			if (keysOnly)
 			{
-				return factory.rawKeyToObKey(nextEntity.getKey());
+				return factory.rawKeyToOKey(nextEntity.getKey());
 			}
 			else
 			{

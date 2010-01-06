@@ -9,9 +9,9 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.ObKey;
-import com.googlecode.objectify.ObPreparedQuery;
-import com.googlecode.objectify.ObQuery;
+import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.OPreparedQuery;
+import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 
@@ -25,7 +25,7 @@ public class Employee
 {
 	@Id
 	public String name;
-	public ObKey<Employee> manager;
+	public OKey<Employee> manager;
 
 	/** Default constructor must always exist */
 	public Employee() {}
@@ -37,7 +37,7 @@ public class Employee
 	}
 
 	/** set a name and manager */
-	public Employee(String name, ObKey<Employee> manager)
+	public Employee(String name, OKey<Employee> manager)
 	{
 		this.name = name;
 		this.manager = manager;
@@ -54,9 +54,9 @@ public class Employee
  	{
 		Objectify ofy = ObjectifyFactory.begin();
 
-		ObQuery q = ObjectifyFactory.createQuery(Employee.class);
+		OQuery q = ObjectifyFactory.createQuery(Employee.class);
 		q.filter("manager", ObjectifyFactory.createKey(this));
-		ObPreparedQuery<Employee> pq = ofy.prepare(q);
+		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		return pq.asIterable();
 	}
 }

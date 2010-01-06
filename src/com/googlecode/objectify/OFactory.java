@@ -13,7 +13,7 @@ import com.google.appengine.api.datastore.Transaction;
  * <p>This is the underlying implementation of the ObjectifyFactory static methods, available
  * as a singleton.  If you wish to override factory behavior, you can inject a subclass of
  * this object in your code.  You can also make calls to these methods by calling
- * {@code ObFactory.instance()} or by dependency injection if you think static methods are fugly.</p>
+ * {@code OFactory.instance()} or by dependency injection if you think static methods are fugly.</p>
  * 
  * <p>In general, however, you probably want to use the ObjectifyFactory methods.</p>
  * 
@@ -23,13 +23,13 @@ import com.google.appengine.api.datastore.Transaction;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObFactory
+public class OFactory
 {
 	/** */
-	protected static ObFactory instance = new ObFactory();
+	protected static OFactory instance = new OFactory();
 	
 	/** Obtain the singleton as an alternative to using the static methods */
-	public static ObFactory instance() { return instance; }
+	public static OFactory instance() { return instance; }
 	
 	/** */
 	protected Map<String, EntityMetadata> types = new HashMap<String, EntityMetadata>();
@@ -98,33 +98,33 @@ public class ObFactory
 	//
 	
 	/** @see ObjectifyFactory#createKey(Class, long) */
-	public <T> ObKey<T> createKey(Class<T> kind, long id)
+	public <T> OKey<T> createKey(Class<T> kind, long id)
 	{
-		return this.rawKeyToObKey(KeyFactory.createKey(getKind(kind), id));
+		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), id));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Class, String) */
-	public <T> ObKey<T> createKey(Class<T> kind, String name)
+	public <T> OKey<T> createKey(Class<T> kind, String name)
 	{
-		return this.rawKeyToObKey(KeyFactory.createKey(getKind(kind), name));
+		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), name));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Key, Class, long) */
-	public <T> ObKey<T> createKey(Key parent, Class<T> kind, long id)
+	public <T> OKey<T> createKey(Key parent, Class<T> kind, long id)
 	{
-		return this.rawKeyToObKey(KeyFactory.createKey(parent, getKind(kind), id));
+		return this.rawKeyToOKey(KeyFactory.createKey(parent, getKind(kind), id));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Key, Class, String) */
-	public <T> ObKey<T> createKey(Key parent, Class<T> kind, String name)
+	public <T> OKey<T> createKey(Key parent, Class<T> kind, String name)
 	{
-		return this.rawKeyToObKey(KeyFactory.createKey(parent, getKind(kind), name));
+		return this.rawKeyToOKey(KeyFactory.createKey(parent, getKind(kind), name));
 	}
 	
 	/** @see ObjectifyFactory#createKey(T) */
-	public <T> ObKey<T> createKey(T entity)
+	public <T> OKey<T> createKey(T entity)
 	{
-		return this.rawKeyToObKey(this.getMetadataForEntity(entity).getKey(entity));
+		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
 	}
 	
 	//
@@ -132,15 +132,15 @@ public class ObFactory
 	//
 	
 	/** @see ObjectifyFactory#createQuery() */
-	public ObQuery createQuery()
+	public OQuery createQuery()
 	{
-		return new ObQuery(this);
+		return new OQuery(this);
 	}
 	
 	/** @see ObjectifyFactory#createQuery(Class) */
-	public ObQuery createQuery(Class<?> entityClazz)
+	public OQuery createQuery(Class<?> entityClazz)
 	{
-		return new ObQuery(this, entityClazz);
+		return new OQuery(this, entityClazz);
 	}
 	
 	//
@@ -163,8 +163,8 @@ public class ObFactory
 		return this.getMetadata(key.getKind());
 	}
 	
-	/** @see ObjectifyFactory#getMetadata(ObKey) */
-	public EntityMetadata getMetadata(ObKey<?> key)
+	/** @see ObjectifyFactory#getMetadata(OKey) */
+	public EntityMetadata getMetadata(OKey<?> key)
 	{
 		return this.getMetadata(key.getKind());
 	}
@@ -192,32 +192,32 @@ public class ObFactory
 	}
 
 	/** 
-	 * Converts an obKey into a raw Key.
+	 * Converts an OKey into a raw Key.
 	 * @param obKey can be null, resulting in a null Key
 	 */
-	public Key obKeyToRawKey(ObKey<?> obKey)
+	public Key oKeyToRawKey(OKey<?> obKey)
 	{
 		if (obKey == null)
 			return null;
 		
 		if (obKey.getName() != null)
-			return KeyFactory.createKey(this.obKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getName());
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getName());
 		else
-			return KeyFactory.createKey(this.obKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getId());
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getId());
 	}
 	
 	/** 
-	 * Converts a raw Key into an ObKey.
-	 * @param rawKey can be null, resulting in a null ObKey
+	 * Converts a raw Key into an OKey.
+	 * @param rawKey can be null, resulting in a null OKey
 	 */
-	public <T> ObKey<T> rawKeyToObKey(Key rawKey)
+	public <T> OKey<T> rawKeyToOKey(Key rawKey)
 	{
 		if (rawKey == null)
 			return null;
 		
 		if (rawKey.getName() != null)
-			return new ObKey<T>(this.rawKeyToObKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getName());
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getName());
 		else
-			return new ObKey<T>(this.rawKeyToObKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getId());
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getId());
 	}
 }

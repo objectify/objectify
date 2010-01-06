@@ -78,7 +78,7 @@ public class EntityMetadata
 	}
 	
 	/** Needed for key translation */
-	private ObFactory factory;
+	private OFactory factory;
 
 	/** */
 	private Class<?> entityClass;
@@ -101,7 +101,7 @@ public class EntityMetadata
 	private Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
-	public EntityMetadata(ObFactory fact, Class<?> clazz)
+	public EntityMetadata(OFactory fact, Class<?> clazz)
 	{
 		this.factory = fact;
 		this.entityClass = clazz;
@@ -156,8 +156,8 @@ public class EntityMetadata
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
-				if (field.getType() != Key.class && field.getType() != ObKey.class)
-					throw new IllegalStateException("Only fields of type ObKey<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				if (field.getType() != Key.class && field.getType() != OKey.class)
+					throw new IllegalStateException("Only fields of type OKey<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
 
 				this.parentField = field;
 			}
@@ -290,9 +290,9 @@ public class EntityMetadata
 			
 			return array;
 		}
-		else if (value instanceof Key && ObKey.class.isAssignableFrom(type))
+		else if (value instanceof Key && OKey.class.isAssignableFrom(type))
 		{
-			return this.factory.rawKeyToObKey((Key)value);
+			return this.factory.rawKeyToOKey((Key)value);
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
@@ -342,9 +342,9 @@ public class EntityMetadata
 			
 			return list;
 		}
-		else if (value instanceof ObKey<?>)
+		else if (value instanceof OKey<?>)
 		{
-			return this.factory.obKeyToRawKey((ObKey<?>)value);
+			return this.factory.oKeyToRawKey((OKey<?>)value);
 		}
 
 		// Usually we just want to return the value
@@ -469,7 +469,7 @@ public class EntityMetadata
 				if (this.parentField.getType() == Key.class)
 					this.parentField.set(obj, parentKey);
 				else
-					this.parentField.set(obj, this.factory.rawKeyToObKey(parentKey));
+					this.parentField.set(obj, this.factory.rawKeyToOKey(parentKey));
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
@@ -521,13 +521,13 @@ public class EntityMetadata
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 	
-	/** @return the raw key even if the field is an ObKey */
+	/** @return the raw key even if the field is an OKey */
 	private Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
 	{
 		if (keyField.getType() == Key.class)
 			return (Key)keyField.get(obj);
 		else
-			return this.factory.obKeyToRawKey((ObKey<?>)keyField.get(obj));
+			return this.factory.oKeyToRawKey((OKey<?>)keyField.get(obj));
 	}
 	
 	/**

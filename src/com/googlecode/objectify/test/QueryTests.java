@@ -16,9 +16,9 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.googlecode.objectify.ObKey;
-import com.googlecode.objectify.ObPreparedQuery;
-import com.googlecode.objectify.ObQuery;
+import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.OPreparedQuery;
+import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -37,7 +37,7 @@ public class QueryTests extends TestBase
 	/** */
 	Trivial triv1;
 	Trivial triv2;
-	List<ObKey<Trivial>> keys;
+	List<OKey<Trivial>> keys;
 	
 	/** */
 	@BeforeMethod
@@ -62,12 +62,12 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		
-		ObPreparedQuery<ObKey<Trivial>> pq = ofy.prepareKeysOnly(q);
+		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
 		
 		int count = 0;
-		for (ObKey<Trivial> k: pq.asIterable())
+		for (OKey<Trivial> k: pq.asIterable())
 		{
 			assert keys.contains(k);
 			count++;
@@ -76,7 +76,7 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		for (ObKey<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
+		for (OKey<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
 			assert keys.contains(k);
 		
 		assert pq.count() == keys.size();
@@ -95,10 +95,10 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("someString");
 		
-		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		Iterator<Trivial> it = pq.asIterable().iterator();
 		
 		Trivial t1 = it.next();
@@ -114,10 +114,10 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("-someString");
 		
-		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		Iterator<Trivial> it = pq.asIterable().iterator();
 		
 		// t2 first
@@ -134,10 +134,10 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.sort("id");
 		
-		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		Iterator<Trivial> it = pq.asIterable().iterator();
 		
 		Trivial t1 = it.next();
@@ -153,10 +153,10 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.filter("someString >", triv1.getSomeString());
 		
-		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		Iterator<Trivial> it = pq.asIterable().iterator();
 		
 		Trivial t2 = it.next();
@@ -170,10 +170,10 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = ObjectifyFactory.begin();
 		
-		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery q = ObjectifyFactory.createQuery(Trivial.class);
 		q.filter("id >", triv1.getId());
 		
-		ObPreparedQuery<Trivial> pq = ofy.prepare(q);
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		Iterator<Trivial> it = pq.asIterable().iterator();
 		
 		Trivial t2 = it.next();

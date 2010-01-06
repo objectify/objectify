@@ -29,7 +29,7 @@ public class DatastoreTimeoutRetryProxy implements InvocationHandler
 	{
 		return (T)Proxy.newProxyInstance(
 				impl.getClass().getClassLoader(),
-				new Class<?>[] { Objectify.class, ObPreparedQuery.class, Iterator.class },
+				new Class<?>[] { Objectify.class, OPreparedQuery.class, Iterator.class },
 				new DatastoreTimeoutRetryProxy(impl, retries));
 	}
 	

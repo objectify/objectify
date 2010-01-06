@@ -23,20 +23,20 @@ public interface Objectify
 {
 	/**
 	 * Performs a batch get, returning your typed objects.  Yes, the generic
-	 * syntax is crazy, but it means you can pass in a list of ObKeys.
+	 * syntax is crazy, but it means you can pass in a list of OKeys.
 	 * 
 	 * @param keys are the keys to fetch; you can mix and match the types of objects.
 	 * @return a empty map if no keys are found in the datastore.
 	 * @see DatastoreService#get(Iterable)
 	 */
-	<T> Map<ObKey<T>, T> get(Iterable<? extends ObKey<? extends T>> keys);
+	<T> Map<OKey<T>, T> get(Iterable<? extends OKey<? extends T>> keys);
 	
 	/**
 	 * Gets one instance of your typed object.
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 * @see DatastoreService#get(Key) 
 	 */
-	<T> T get(ObKey<? extends T> key) throws EntityNotFoundException;
+	<T> T get(OKey<? extends T> key) throws EntityNotFoundException;
 	
 	/**
 	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
@@ -59,10 +59,10 @@ public interface Objectify
 	 *  or of type Iterable<String> (which translates to name keys).
 	 * @throws IllegalArgumentException if ids is not Iterable<Long> or Iterable<String>
 	 */
-	<T> Map<ObKey<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
+	<T> Map<OKey<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
 	
-	/** Identical to get(ObKey) but returns null instead of throwing EntityNotFoundException */ 
-	<T> T find(ObKey<? extends T> key);
+	/** Identical to get(OKey) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(OKey<? extends T> key);
 	
 	/** Identical to get(Class, long) but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Class<? extends T> clazz, long id);
@@ -76,7 +76,7 @@ public interface Objectify
 	 * has a key, it will overwrite any value formerly stored with that key.
 	 * @see DatastoreService#put(com.google.appengine.api.datastore.Entity) 
 	 */
-	<T> ObKey<T> put(T obj);
+	<T> OKey<T> put(T obj);
 	
 	/**
 	 * Just like the DatastoreService method, but uses your typed objects.
@@ -85,7 +85,7 @@ public interface Objectify
 	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	<T> List<ObKey<T>> put(Iterable<?> objs);
+	<T> List<OKey<T>> put(Iterable<?> objs);
 	
 	/**
 	 * Deletes the specified entity.  The object passed in can be either a Key
@@ -113,7 +113,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> ObPreparedQuery<T> prepare(ObQuery query);
+	<T> OPreparedQuery<T> prepare(OQuery query);
 	
 	/**
 	 * <p>Prepares a keys-only query for execution.  The resulting ObjPreparedQuery allows the result
@@ -124,7 +124,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> ObPreparedQuery<ObKey<T>> prepareKeysOnly(ObQuery query);
+	<T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery query);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},

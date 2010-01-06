@@ -14,7 +14,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface ObPreparedQuery<T>
+public interface OPreparedQuery<T>
 {
 	/**
 	 * @see PreparedQuery#asIterable()
