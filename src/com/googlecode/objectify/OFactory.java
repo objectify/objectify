@@ -109,13 +109,13 @@ public class OFactory
 		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), name));
 	}
 	
-	/** @see ObjectifyFactory#createKey(Key, Class, long) */
+	/** @see ObjectifyFactory#createKey(OKey, Class, long) */
 	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id)
 	{
 		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), id));
 	}
 	
-	/** @see ObjectifyFactory#createKey(Key, Class, String) */
+	/** @see ObjectifyFactory#createKey(OKey, Class, String) */
 	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name)
 	{
 		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), name));
