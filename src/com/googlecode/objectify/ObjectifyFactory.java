@@ -104,10 +104,10 @@ public class ObjectifyFactory
 	public static <T> OKey<T> createKey(Class<T> kind, String name) { return OFactory.instance().createKey(kind, name); }
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public static <T> OKey<T> createKey(Key parent, Class<T> kind, long id) { return OFactory.instance().createKey(parent, kind, id); }
+	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id) { return OFactory.instance().createKey(parent, kind, id); }
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public static <T> OKey<T> createKey(Key parent, Class<T> kind, String name) { return OFactory.instance().createKey(parent, kind, name); }
+	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name) { return OFactory.instance().createKey(parent, kind, name); }
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have
