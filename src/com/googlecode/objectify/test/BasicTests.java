@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.Key;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.ObPreparedQuery;
 import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
@@ -41,12 +41,12 @@ public class BasicTests extends TestBase
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
-		Key k = ofy.put(triv);
+		ObKey<Trivial> k = ofy.put(triv);
 
-		assert k.getKind().equals(ObjectifyFactory.getKind(triv.getClass()));
+		assert k.getKind().equals(triv.getClass());
 		assert k.getId() == triv.getId();
 
-		Key created = ObjectifyFactory.createKey(Trivial.class, k.getId());
+		ObKey<Trivial> created = ObjectifyFactory.createKey(Trivial.class, k.getId());
 		assert k.equals(created);
 
 		Trivial fetched = ofy.get(k);
@@ -63,10 +63,10 @@ public class BasicTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 
 		Trivial triv = new Trivial("foo", 5);
-		Key k = ofy.put(triv);
+		ObKey<Trivial> k = ofy.put(triv);
 
 		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		Key k2 = ofy.put(triv2);
+		ObKey<Trivial> k2 = ofy.put(triv2);
 
 		assert k2.equals(k);
 
@@ -84,11 +84,11 @@ public class BasicTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		Key k = ofy.put(triv);
+		ObKey<NamedTrivial> k = ofy.put(triv);
 
 		assert k.getName().equals("first");
 
-		Key createdKey = ObjectifyFactory.createKey(NamedTrivial.class, "first");
+		ObKey<NamedTrivial> createdKey = ObjectifyFactory.createKey(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
 		NamedTrivial fetched = ofy.get(k);
@@ -111,7 +111,7 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		List<Key> keys = ofy.put(objs);
+		List<ObKey<Trivial>> keys = ofy.put(objs);
 
 		// Verify the put keys
 		assert keys.size() == objs.size();
@@ -121,7 +121,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key, Trivial> fetched = ofy.get(keys);
+		Map<ObKey<Trivial>, Trivial> fetched = ofy.get(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
@@ -141,7 +141,7 @@ public class BasicTests extends TestBase
 		Employee fred = new Employee("fred");
 		ofy.put(fred);
 
-		Key fredKey = ObjectifyFactory.createKey(fred);
+		ObKey<Employee> fredKey = ObjectifyFactory.createKey(fred);
 
 		List<Employee> employees = new ArrayList<Employee>(1100);
 		for (int i = 0; i < 1100; i++)

@@ -7,7 +7,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.google.appengine.api.datastore.Key;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.annotation.Parent;
 
 /**
@@ -22,9 +22,9 @@ public class Child
 	public void setId(Long value) { this.id = value; }
 	
 	@Parent
-	Key parent;
-	public Key getParent() { return this.parent; }
-	public void setParent(Key value) { this.parent = value; }
+	ObKey<Trivial> parent;
+	public ObKey<Trivial> getParent() { return this.parent; }
+	public void setParent(ObKey<Trivial> value) { this.parent = value; }
 	
 	String childString;
 	public String getChildString() { return this.childString; }
@@ -34,7 +34,7 @@ public class Child
 	public Child() {}
 	
 	/** Constructor to use when autogenerating an id */
-	public Child(Key parent, String childString)
+	public Child(ObKey<Trivial> parent, String childString)
 	{
 		this.parent = parent;
 		this.childString = childString;

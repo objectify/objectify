@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.Key;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.ObPreparedQuery;
 import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
@@ -35,10 +35,10 @@ public class AncestorTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
-		Key parentKey = ofy.put(triv);
+		ObKey<Trivial> parentKey = ofy.put(triv);
 
 		Child child = new Child(parentKey, "cry");
-		Key childKey = ofy.put(child);
+		ObKey<Child> childKey = ofy.put(child);
 		
 		assert childKey.getParent().equals(parentKey);
 		

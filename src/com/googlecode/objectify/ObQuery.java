@@ -20,9 +20,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
  * 
  * <p>Construct this class by calling {@code ObjectifyFactory.createQuery()}</p>
  * 
- * <p>Note that this class is not generified because it doesn't really help
- * and actually causes some confusion.  Queries can return a variety of different
- * objects and if you call keysOnly(), will even return Key objects.</p>
+ * <p>This class is ripe for generification now that keysOnly() is excluded.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -105,6 +103,9 @@ public class ObQuery
 			}
 		}
 
+		if (value instanceof ObKey<?>)
+			value = this.factory.obKeyToRawKey((ObKey<?>)value);
+		
 		this.actual.addFilter(prop, op, value);
 		
 		return this;
@@ -183,19 +184,11 @@ public class ObQuery
 	{
 		if (keyOrEntity instanceof Key)
 			this.actual.setAncestor((Key)keyOrEntity);
+		else if (keyOrEntity instanceof ObKey<?>)
+			this.actual.setAncestor(this.factory.obKeyToRawKey((ObKey<?>)keyOrEntity));
 		else
-			this.actual.setAncestor(this.factory.createKey(keyOrEntity));
+			this.actual.setAncestor(this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
 		
-		return this;
-	}
-	
-	/**
-	 * Makes this ObQuery a keys only query.  The resulting ObPreparedQuery
-	 * will only return Key objects.
-	 */
-	public ObQuery keysOnly()
-	{
-		this.actual.setKeysOnly();
 		return this;
 	}
 }

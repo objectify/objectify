@@ -76,6 +76,9 @@ public class EntityMetadata
 			catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
 		}
 	}
+	
+	/** Needed for key translation */
+	private ObFactory factory;
 
 	/** */
 	private Class<?> entityClass;
@@ -98,10 +101,11 @@ public class EntityMetadata
 	private Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
-	public EntityMetadata(Class<?> clazz)
+	public EntityMetadata(ObFactory fact, Class<?> clazz)
 	{
+		this.factory = fact;
 		this.entityClass = clazz;
-		this.kind = ObjectifyFactory.getKind(clazz);
+		this.kind = this.factory.getKind(clazz);
 
 		// Recursively walk up the inheritance chain looking for fields
 		this.visit(clazz);
@@ -152,8 +156,8 @@ public class EntityMetadata
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
-				if (field.getType() != Key.class)
-					throw new IllegalStateException("Only fields of type Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				if (field.getType() != Key.class && field.getType() != ObKey.class)
+					throw new IllegalStateException("Only fields of type ObKey<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
 
 				this.parentField = field;
 			}
@@ -286,6 +290,10 @@ public class EntityMetadata
 			
 			return array;
 		}
+		else if (value instanceof Key && ObKey.class.isAssignableFrom(type))
+		{
+			return this.factory.rawKeyToObKey((Key)value);
+		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
@@ -313,7 +321,11 @@ public class EntityMetadata
 	 */
 	Object convertToDatastore(Object value)
 	{
-		if (value instanceof String)
+		if (value == null)
+		{
+			return null;
+		}
+		else if (value instanceof String)
 		{
 			// Check to see if it's too long and needs to be Text instead
 			if (((String)value).length() > 500)
@@ -329,6 +341,10 @@ public class EntityMetadata
 				list.add(Array.get(value, i));
 			
 			return list;
+		}
+		else if (value instanceof ObKey<?>)
+		{
+			return this.factory.obKeyToRawKey((ObKey<?>)value);
 		}
 
 		// Usually we just want to return the value
@@ -380,7 +396,7 @@ public class EntityMetadata
 			// First thing, get the parentKey (if appropriate)
 			if (this.parentField != null)
 			{
-				parentKey = (Key)this.parentField.get(obj);
+				parentKey = this.getRawKey(this.parentField, obj);
 				if (parentKey == null)
 					throw new IllegalStateException("Missing parent of " + obj);
 			}
@@ -390,14 +406,14 @@ public class EntityMetadata
 				Long id = (Long)this.idField.get(obj);	// possibly null
 				if (id != null)
 				{
-					if (this.parentField != null)
+					if (parentKey != null)
 						return new Entity(KeyFactory.createKey(parentKey, this.kind, id));
 					else
 						return new Entity(KeyFactory.createKey(this.kind, id));
 				}
 				else // id is null, must autogenerate
 				{
-					if (this.parentField != null)
+					if (parentKey != null)
 						return new Entity(this.kind, parentKey);
 					else
 						return new Entity(this.kind);
@@ -409,14 +425,10 @@ public class EntityMetadata
 				if (name == null)
 					throw new IllegalStateException("Tried to persist null String @Id for " + obj);
 
-				if (this.parentField != null)
-				{
+				if (parentKey != null)
 					return new Entity(this.kind, name, parentKey);
-				}
 				else
-				{
 					return new Entity(this.kind, name);
-				}
 			}
 		}
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
@@ -454,7 +466,10 @@ public class EntityMetadata
 				if (this.parentField == null)
 					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
 
-				this.parentField.set(obj, parentKey);
+				if (this.parentField.getType() == Key.class)
+					this.parentField.set(obj, parentKey);
+				else
+					this.parentField.set(obj, this.factory.rawKeyToObKey(parentKey));
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
@@ -478,7 +493,7 @@ public class EntityMetadata
 
 				if (this.parentField != null)
 				{
-					Key parent = (Key)this.parentField.get(obj);
+					Key parent = this.getRawKey(this.parentField, obj);
 					return KeyFactory.createKey(parent, this.kind, name);
 				}
 				else	// name yes parent no
@@ -494,7 +509,7 @@ public class EntityMetadata
 
 				if (this.parentField != null)
 				{
-					Key parent = (Key)this.parentField.get(obj);
+					Key parent = this.getRawKey(this.parentField, obj);
 					return KeyFactory.createKey(parent, this.kind, id);
 				}
 				else	// id yes parent no
@@ -504,6 +519,15 @@ public class EntityMetadata
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+	
+	/** @return the raw key even if the field is an ObKey */
+	private Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
+	{
+		if (keyField.getType() == Key.class)
+			return (Key)keyField.get(obj);
+		else
+			return this.factory.obKeyToRawKey((ObKey<?>)keyField.get(obj));
 	}
 	
 	/**

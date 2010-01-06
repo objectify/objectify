@@ -66,7 +66,7 @@ public class ObFactory
 	public void register(Class<?> clazz)
 	{
 		String kind = getKind(clazz);
-		this.types.put(kind, new EntityMetadata(clazz));
+		this.types.put(kind, new EntityMetadata(this, clazz));
 	}
 	
 	/** @see ObjectifyFactory#setDatastoreTimeoutRetryCount(int) */
@@ -85,7 +85,7 @@ public class ObFactory
 	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
 	 * datastoreTimeoutRetryCount > 0.
 	 */
-	protected Object maybeWrap(Object impl)
+	protected <T> T maybeWrap(T impl)
 	{
 		if (this.datastoreTimeoutRetryCount > 0)
 			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);
@@ -98,33 +98,33 @@ public class ObFactory
 	//
 	
 	/** @see ObjectifyFactory#createKey(Class, long) */
-	public Key createKey(Class<?> kind, long id)
+	public <T> ObKey<T> createKey(Class<T> kind, long id)
 	{
-		return KeyFactory.createKey(getKind(kind), id);
+		return this.rawKeyToObKey(KeyFactory.createKey(getKind(kind), id));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Class, String) */
-	public Key createKey(Class<?> kind, String name)
+	public <T> ObKey<T> createKey(Class<T> kind, String name)
 	{
-		return KeyFactory.createKey(getKind(kind), name);
+		return this.rawKeyToObKey(KeyFactory.createKey(getKind(kind), name));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Key, Class, long) */
-	public Key createKey(Key parent, Class<?> kind, long id)
+	public <T> ObKey<T> createKey(Key parent, Class<T> kind, long id)
 	{
-		return KeyFactory.createKey(parent, getKind(kind), id);
+		return this.rawKeyToObKey(KeyFactory.createKey(parent, getKind(kind), id));
 	}
 	
 	/** @see ObjectifyFactory#createKey(Key, Class, String) */
-	public Key createKey(Key parent, Class<?> kind, String name)
+	public <T> ObKey<T> createKey(Key parent, Class<T> kind, String name)
 	{
-		return KeyFactory.createKey(parent, getKind(kind), name);
+		return this.rawKeyToObKey(KeyFactory.createKey(parent, getKind(kind), name));
 	}
 	
-	/** @see ObjectifyFactory#createKey(Object) */
-	public Key createKey(Object entity)
+	/** @see ObjectifyFactory#createKey(T) */
+	public <T> ObKey<T> createKey(T entity)
 	{
-		return getMetadata(entity).getKey(entity);
+		return this.rawKeyToObKey(this.getMetadataForEntity(entity).getKey(entity));
 	}
 	
 	//
@@ -163,16 +163,22 @@ public class ObFactory
 		return this.getMetadata(key.getKind());
 	}
 	
-	/** @see ObjectifyFactory#getMetadata(Object) */
-	public EntityMetadata getMetadata(Object obj)
+	/** @see ObjectifyFactory#getMetadata(ObKey) */
+	public EntityMetadata getMetadata(ObKey<?> key)
 	{
-		return this.getMetadata(obj.getClass());
+		return this.getMetadata(key.getKind());
 	}
 	
 	/** @see ObjectifyFactory#getMetadata(Class) */
 	public EntityMetadata getMetadata(Class<?> clazz)
 	{
 		return this.getMetadata(this.getKind(clazz));
+	}
+	
+	/** @see ObjectifyFactory#getMetadataForEntity(Object) */
+	public EntityMetadata getMetadataForEntity(Object obj)
+	{
+		return this.getMetadata(obj.getClass());
 	}
 	
 	/** */
@@ -183,5 +189,35 @@ public class ObFactory
 			throw new IllegalArgumentException("No registered type for kind " + kind);
 		else
 			return metadata;
+	}
+
+	/** 
+	 * Converts an obKey into a raw Key.
+	 * @param obKey can be null, resulting in a null Key
+	 */
+	public Key obKeyToRawKey(ObKey<?> obKey)
+	{
+		if (obKey == null)
+			return null;
+		
+		if (obKey.getName() != null)
+			return KeyFactory.createKey(this.obKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getName());
+		else
+			return KeyFactory.createKey(this.obKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getId());
+	}
+	
+	/** 
+	 * Converts a raw Key into an ObKey.
+	 * @param rawKey can be null, resulting in a null ObKey
+	 */
+	public <T> ObKey<T> rawKeyToObKey(Key rawKey)
+	{
+		if (rawKey == null)
+			return null;
+		
+		if (rawKey.getName() != null)
+			return new ObKey<T>(this.rawKeyToObKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getName());
+		else
+			return new ObKey<T>(this.rawKeyToObKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getId());
 	}
 }

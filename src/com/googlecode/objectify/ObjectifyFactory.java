@@ -98,16 +98,16 @@ public class ObjectifyFactory
 	//
 	
 	/** Creates a key for the class with the specified id */
-	public static Key createKey(Class<?> kind, long id) { return ObFactory.instance().createKey(kind, id); }
+	public static <T> ObKey<T> createKey(Class<T> kind, long id) { return ObFactory.instance().createKey(kind, id); }
 	
 	/** Creates a key for the class with the specified name */
-	public static Key createKey(Class<?> kind, String name) { return ObFactory.instance().createKey(kind, name); }
+	public static <T> ObKey<T> createKey(Class<T> kind, String name) { return ObFactory.instance().createKey(kind, name); }
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public static Key createKey(Key parent, Class<?> kind, long id) { return ObFactory.instance().createKey(parent, kind, id); }
+	public static <T> ObKey<T> createKey(Key parent, Class<T> kind, long id) { return ObFactory.instance().createKey(parent, kind, id); }
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public static Key createKey(Key parent, Class<?> kind, String name) { return ObFactory.instance().createKey(parent, kind, name); }
+	public static <T> ObKey<T> createKey(Key parent, Class<T> kind, String name) { return ObFactory.instance().createKey(parent, kind, name); }
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have
@@ -115,7 +115,7 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public static Key createKey(Object entity) { return ObFactory.instance().createKey(entity); }
+	public static <T> ObKey<T> createKey(T entity) { return ObFactory.instance().createKey(entity); }
 	
 	//
 	// Friendly query creation methods
@@ -149,14 +149,21 @@ public class ObjectifyFactory
 	public static EntityMetadata getMetadata(Key key) { return ObFactory.instance().getMetadata(key); }
 	
 	/**
-	 * @return the metadata for a kind of typed object
+	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Object obj) { return ObFactory.instance().getMetadata(obj); }
-
+	public static EntityMetadata getMetadata(ObKey<?> key) { return ObFactory.instance().getMetadata(key); }
+	
 	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	public static EntityMetadata getMetadata(Class<?> clazz) { return ObFactory.instance().getMetadata(clazz); }
+	
+	/**
+	 * Named differently so you don't accidentally use the Object form
+	 * @return the metadata for a kind of typed object.
+	 * @throws IllegalArgumentException if the kind has not been registered
+	 */
+	public static EntityMetadata getMetadataForEntity(Object obj) { return ObFactory.instance().getMetadataForEntity(obj); }
 }

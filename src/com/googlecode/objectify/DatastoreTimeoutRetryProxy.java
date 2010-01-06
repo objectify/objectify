@@ -23,10 +23,11 @@ public class DatastoreTimeoutRetryProxy implements InvocationHandler
 	/** The number of times we should retry.  1 means two possible tries. */
 	int retries;
 	
-	/** */
-	public static Objectify wrap(Object impl, int retries)
+	/** Only works on Objectify, ObPreparedQuery, and Iterator */
+	@SuppressWarnings("unchecked")
+	public static <T> T wrap(T impl, int retries)
 	{
-		return (Objectify)Proxy.newProxyInstance(
+		return (T)Proxy.newProxyInstance(
 				impl.getClass().getClassLoader(),
 				new Class<?>[] { Objectify.class, ObPreparedQuery.class, Iterator.class },
 				new DatastoreTimeoutRetryProxy(impl, retries));

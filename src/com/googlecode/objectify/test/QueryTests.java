@@ -15,8 +15,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.ObPreparedQuery;
 import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
@@ -37,7 +37,7 @@ public class QueryTests extends TestBase
 	/** */
 	Trivial triv1;
 	Trivial triv2;
-	List<Key> keys;
+	List<ObKey<Trivial>> keys;
 	
 	/** */
 	@BeforeMethod
@@ -63,12 +63,11 @@ public class QueryTests extends TestBase
 		Objectify ofy = ObjectifyFactory.begin();
 		
 		ObQuery q = ObjectifyFactory.createQuery(Trivial.class);
-		q.keysOnly();
 		
-		ObPreparedQuery<Key> pq = ofy.prepare(q);
+		ObPreparedQuery<ObKey<Trivial>> pq = ofy.prepareKeysOnly(q);
 		
 		int count = 0;
-		for (Key k: pq.asIterable())
+		for (ObKey<Trivial> k: pq.asIterable())
 		{
 			assert keys.contains(k);
 			count++;
@@ -77,7 +76,7 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		for (Key k: pq.asList(FetchOptions.Builder.withLimit(1000)))
+		for (ObKey<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
 			assert keys.contains(k);
 		
 		assert pq.count() == keys.size();

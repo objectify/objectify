@@ -9,7 +9,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.google.appengine.api.datastore.Key;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.ObPreparedQuery;
 import com.googlecode.objectify.ObQuery;
 import com.googlecode.objectify.Objectify;
@@ -25,7 +25,7 @@ public class Employee
 {
 	@Id
 	public String name;
-	public Key manager;
+	public ObKey<Employee> manager;
 
 	/** Default constructor must always exist */
 	public Employee() {}
@@ -37,7 +37,7 @@ public class Employee
 	}
 
 	/** set a name and manager */
-	public Employee(String name, Key manager)
+	public Employee(String name, ObKey<Employee> manager)
 	{
 		this.name = name;
 		this.manager = manager;

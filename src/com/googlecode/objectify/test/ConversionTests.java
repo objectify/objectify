@@ -11,6 +11,8 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.ObFactory;
+import com.googlecode.objectify.ObKey;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -38,7 +40,8 @@ public class ConversionTests extends TestBase
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		Trivial fetched = ofy.get(ent.getKey());
+		ObKey<Trivial> key = ObFactory.instance().rawKeyToObKey(ent.getKey());
+		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;
 		assert fetched.getSomeString().equals("2");	// should be a string

@@ -92,7 +92,7 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 
 		if (this.keysOnly)
 		{
-			return (T)ent.getKey();
+			return (T)this.factory.rawKeyToObKey(ent.getKey());
 		}
 		else
 		{
@@ -137,10 +137,9 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 	{
 		Iterator<Entity> source;
 
-		@SuppressWarnings("unchecked")
 		public ToObjectIterator(Iterator<Entity> source)
 		{
-			this.source = (Iterator<Entity>)factory.maybeWrap(source);
+			this.source = factory.maybeWrap(source);
 		}
 
 		@Override
@@ -155,7 +154,7 @@ public class ObPreparedQueryImpl<T> implements ObPreparedQuery<T>
 			Entity nextEntity = this.source.next();
 			if (keysOnly)
 			{
-				return nextEntity.getKey();
+				return factory.rawKeyToObKey(nextEntity.getKey());
 			}
 			else
 			{
