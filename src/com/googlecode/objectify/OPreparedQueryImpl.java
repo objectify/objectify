@@ -119,7 +119,7 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 
 		public ToObjectIterable(Iterable<Entity> source)
 		{
-			this.source = source;
+			this.source = factory.maybeWrap(source);
 		}
 
 		@Override
