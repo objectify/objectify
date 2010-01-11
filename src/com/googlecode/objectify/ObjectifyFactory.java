@@ -1,16 +1,18 @@
 package com.googlecode.objectify;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
- * Just call {@code ObjectifyFactory.begin()}.</p>
- * 
- * <p>This class exposes a full set of static methods, but the actual implementations are
- * located on a class called {@code OFactory}.  For further control, you can subclass
- * and inject that class - but for most use, these static methods suffice..</p>
+ * Just call {@code begin()}.</p>
  * 
  * <p>Note that unlike the DatastoreService, there is no implicit transaction management.
  * You either create an Objectify without a transaction (by calling {@code begin()} or you
@@ -36,17 +38,35 @@ import com.google.appengine.api.datastore.Transaction;
  */
 public class ObjectifyFactory
 {
+	/** */
+	protected Map<String, EntityMetadata> types = new HashMap<String, EntityMetadata>();
+	
+	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
+	protected int datastoreTimeoutRetryCount;
+	
 	/**
 	 * @return an Objectify from the DatastoreService which does NOT use
 	 *  transactions.  This is a lightweight operation and can be used freely.
 	 */
-	public static Objectify begin() { return OFactory.instance().begin(); }
+	public Objectify begin()
+	{
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Objectify impl = new ObjectifyImpl(this, ds, null);
+
+		return (Objectify)this.maybeWrap(impl);
+	}
 	
 	/**
 	 * @return an Objectify which uses a transaction.  Be careful, you cannot
 	 *  access entities across differing entity groups. 
 	 */
-	public static Objectify beginTransaction() { return OFactory.instance().beginTransaction(); }
+	public Objectify beginTransaction()
+	{
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
+		
+		return (Objectify)this.maybeWrap(impl);
+	}
 	
 	/**
 	 * Use this method when you already have a Transaction object, say one
@@ -55,7 +75,11 @@ public class ObjectifyFactory
 	 * 
 	 * @return an Objectify which uses the specified transaction.
 	 */
-	public static Objectify withTransaction(Transaction txn) { return OFactory.instance().withTransaction(txn); }
+	public Objectify withTransaction(Transaction txn)
+	{
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		return (Objectify)this.maybeWrap(new ObjectifyImpl(this, ds, txn));
+	}
 	
 	/**
 	 * <p>Registers a class with the system so that we can recompose an
@@ -66,7 +90,11 @@ public class ObjectifyFactory
 	 * time of app initialization.  After all types are registered, the
 	 * get() method can be called.</p>
 	 */
-	public static void register(Class<?> clazz) { OFactory.instance().register(clazz); }
+	public void register(Class<?> clazz)
+	{
+		String kind = getKind(clazz);
+		this.types.put(kind, new EntityMetadata(this, clazz));
+	}
 	
 	/**
 	 * <p>If this value is set to something greater than zero, Objectify will
@@ -86,28 +114,58 @@ public class ObjectifyFactory
 	 * @param value is the number of retries to attempt; ie 1 means two total tries
 	 *  before giving up and propagating the DatastoreTimeoutException.
 	 */
-	public static void setDatastoreTimeoutRetryCount(int value) { OFactory.instance().setDatastoreTimeoutRetryCount(value); }
+	public void setDatastoreTimeoutRetryCount(int value)
+	{
+		this.datastoreTimeoutRetryCount = value;
+	}
 
 	/**
 	 * @return the current setting for datastore timeout retry count
 	 */
-	public static int getDatastoreTimeoutRetryCount() { return OFactory.instance().getDatastoreTimeoutRetryCount(); }
+	public int getDatastoreTimeoutRetryCount()
+	{
+		return this.datastoreTimeoutRetryCount;
+	}
+	
+	/**
+	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
+	 * datastoreTimeoutRetryCount > 0.
+	 */
+	protected <T> T maybeWrap(T impl)
+	{
+		if (this.datastoreTimeoutRetryCount > 0)
+			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);
+		else
+			return impl;
+	}
 	
 	//
 	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
 	//
 	
 	/** Creates a key for the class with the specified id */
-	public static <T> OKey<T> createKey(Class<T> kind, long id) { return OFactory.instance().createKey(kind, id); }
+	public <T> OKey<T> createKey(Class<T> kind, long id)
+	{
+		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), id));
+	}
 	
 	/** Creates a key for the class with the specified name */
-	public static <T> OKey<T> createKey(Class<T> kind, String name) { return OFactory.instance().createKey(kind, name); }
+	public <T> OKey<T> createKey(Class<T> kind, String name)
+	{
+		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), name));
+	}
 	
 	/** Creates a key for the class with the specified id having the specified parent */
-	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id) { return OFactory.instance().createKey(parent, kind, id); }
+	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id)
+	{
+		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), id));
+	}
 	
 	/** Creates a key for the class with the specified name having the specified parent */
-	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name) { return OFactory.instance().createKey(parent, kind, name); }
+	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name)
+	{
+		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), name));
+	}
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have
@@ -115,7 +173,10 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public static <T> OKey<T> createKey(T entity) { return OFactory.instance().createKey(entity); }
+	public <T> OKey<T> createKey(T entity)
+	{
+		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
+	}
 	
 	//
 	// Friendly query creation methods
@@ -125,45 +186,110 @@ public class ObjectifyFactory
 	 * Creates a new kind-less query that finds entities.
 	 * @see Query#Query()
 	 */
-	public static <T> OQuery<T> createQuery() { return OFactory.instance().createQuery(); }
+	public <T> OQuery<T> createQuery()
+	{
+		return new OQuery<T>(this);
+	}
 	
 	/**
 	 * Creates a query that finds entities with the specified type
 	 * @see Query#Query(String)
 	 */
-	public static <T> OQuery<T> createQuery(Class<T> entityClazz) { return OFactory.instance().createQuery(entityClazz); }
+	public <T> OQuery<T> createQuery(Class<T> entityClazz)
+	{
+		return new OQuery<T>(this, entityClazz);
+	}
 	
 	//
-	// Stuff which should only be necessary internally.
+	// Stuff which should only be necessary internally, but might be useful to others.
 	//
 	
 	/**
 	 * @return the kind associated with a particular entity class
 	 */
-	public static String getKind(Class<?> clazz) { return OFactory.instance().getKind(clazz); }
+	public String getKind(Class<?> clazz)
+	{
+		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
+		if (entityAnn == null || entityAnn.name() == null || entityAnn.name().length() == 0)
+			return clazz.getSimpleName();
+		else
+			return entityAnn.name();
+	}
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Key key) { return OFactory.instance().getMetadata(key); }
+	public EntityMetadata getMetadata(Key key)
+	{
+		return this.getMetadata(key.getKind());
+	}
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(OKey<?> key) { return OFactory.instance().getMetadata(key); }
+	public EntityMetadata getMetadata(OKey<?> key)
+	{
+		return this.getMetadata(key.getKind());
+	}
 	
 	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadata(Class<?> clazz) { return OFactory.instance().getMetadata(clazz); }
+	public EntityMetadata getMetadata(Class<?> clazz)
+	{
+		return this.getMetadata(this.getKind(clazz));
+	}
 	
 	/**
 	 * Named differently so you don't accidentally use the Object form
 	 * @return the metadata for a kind of typed object.
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public static EntityMetadata getMetadataForEntity(Object obj) { return OFactory.instance().getMetadataForEntity(obj); }
+	public EntityMetadata getMetadataForEntity(Object obj)
+	{
+		return this.getMetadata(obj.getClass());
+	}
+	
+	/** */
+	protected EntityMetadata getMetadata(String kind)
+	{
+		EntityMetadata metadata = types.get(kind);
+		if (metadata == null)
+			throw new IllegalArgumentException("No registered type for kind " + kind);
+		else
+			return metadata;
+	}
+
+	/** 
+	 * Converts an OKey into a raw Key.
+	 * @param obKey can be null, resulting in a null Key
+	 */
+	public Key oKeyToRawKey(OKey<?> obKey)
+	{
+		if (obKey == null)
+			return null;
+		
+		if (obKey.getName() != null)
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getName());
+		else
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getId());
+	}
+	
+	/** 
+	 * Converts a raw Key into an OKey.
+	 * @param rawKey can be null, resulting in a null OKey
+	 */
+	public <T> OKey<T> rawKeyToOKey(Key rawKey)
+	{
+		if (rawKey == null)
+			return null;
+		
+		if (rawKey.getName() != null)
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getName());
+		else
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getId());
+	}
 }

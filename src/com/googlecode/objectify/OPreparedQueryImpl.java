@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 {
 	/** We always need one of these */
-	OFactory factory;
+	ObjectifyFactory factory;
 	
 	/** The backing result set */
 	PreparedQuery pq;
@@ -25,7 +25,7 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 	boolean keysOnly;
 
 	/** Wrap the prepared query */
-	protected OPreparedQueryImpl(OFactory fact, PreparedQuery pq, boolean keysOnly)
+	protected OPreparedQueryImpl(ObjectifyFactory fact, PreparedQuery pq, boolean keysOnly)
 	{
 		this.factory = fact;
 		this.pq = pq;

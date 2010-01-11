@@ -25,7 +25,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 public class OQuery<T>
 {
 	/** We need this for lookups */
-	OFactory factory;
+	ObjectifyFactory factory;
 	
 	/** We need to track this because it enables the ability to filter/sort by id */
 	Class<?> classRestriction;
@@ -34,14 +34,14 @@ public class OQuery<T>
 	protected Query actual;
 	
 	/** */
-	protected OQuery(OFactory fact) 
+	protected OQuery(ObjectifyFactory fact) 
 	{
 		this.factory = fact;
 		this.actual = new Query();
 	}
 	
 	/** */
-	protected OQuery(OFactory fact, Class<T> clazz)
+	protected OQuery(ObjectifyFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
 		this.actual = new Query(this.factory.getKind(clazz));

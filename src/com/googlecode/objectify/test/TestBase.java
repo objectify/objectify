@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
-import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasArrays;
@@ -47,12 +47,12 @@ public class TestBase
 		ApiProxy.setDelegate(proxy);
 
 		// Register all our entity types.  It's ok that we do this multiple times.
-		ObjectifyFactory.register(Trivial.class);
-		ObjectifyFactory.register(NamedTrivial.class);
-		ObjectifyFactory.register(HasOldNames.class);
-		ObjectifyFactory.register(Child.class);
-		ObjectifyFactory.register(Employee.class);
-		ObjectifyFactory.register(HasArrays.class);
+		ObjectifyService.fact().register(Trivial.class);
+		ObjectifyService.fact().register(NamedTrivial.class);
+		ObjectifyService.fact().register(HasOldNames.class);
+		ObjectifyService.fact().register(Child.class);
+		ObjectifyService.fact().register(Employee.class);
+		ObjectifyService.fact().register(HasArrays.class);
 	}
 
 	/** */

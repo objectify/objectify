@@ -25,7 +25,7 @@ import com.google.appengine.api.datastore.Query.SortPredicate;
 public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
-	OFactory factory;
+	ObjectifyFactory factory;
 	
 	/** The google object that does the actual heavy lifting */
 	DatastoreService ds;
@@ -39,7 +39,7 @@ public class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	protected ObjectifyImpl(OFactory fact, DatastoreService ds, Transaction txn)
+	protected ObjectifyImpl(ObjectifyFactory fact, DatastoreService ds, Transaction txn)
 	{
 		this.factory = fact;
 		this.ds = ds;

@@ -20,7 +20,7 @@ import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -52,7 +52,7 @@ public class QueryTests extends TestBase
 		trivs.add(this.triv1);
 		trivs.add(this.triv2);
 		
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		this.keys = ofy.put(trivs);
 	}	
 	
@@ -60,9 +60,9 @@ public class QueryTests extends TestBase
 	@Test
 	public void testKeysOnly() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		
 		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
 		
@@ -93,9 +93,9 @@ public class QueryTests extends TestBase
 	@Test
 	public void testNormalSorting() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		q.sort("someString");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -112,9 +112,9 @@ public class QueryTests extends TestBase
 	@Test
 	public void testNormalReverseSorting() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		q.sort("-someString");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -132,9 +132,9 @@ public class QueryTests extends TestBase
 	@Test
 	public void testIdSorting() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		q.sort("id");
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -151,9 +151,9 @@ public class QueryTests extends TestBase
 	@Test
 	public void testFiltering() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		q.filter("someString >", triv1.getSomeString());
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
@@ -168,9 +168,9 @@ public class QueryTests extends TestBase
 	@Test(groups={"now"})
 	public void testIdFiltering() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		
-		OQuery<Trivial> q = ObjectifyFactory.createQuery(Trivial.class);
+		OQuery<Trivial> q = ObjectifyService.fact().createQuery(Trivial.class);
 		q.filter("id >", triv1.getId());
 		
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);

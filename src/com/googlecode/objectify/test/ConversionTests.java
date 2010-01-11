@@ -11,10 +11,9 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.OFactory;
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -32,15 +31,15 @@ public class ConversionTests extends TestBase
 	@Test
 	public void testStringConversion() throws Exception
 	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyFactory.getKind(Trivial.class));
+		Entity ent = new Entity(ObjectifyService.fact().getKind(Trivial.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		OKey<Trivial> key = OFactory.instance().rawKeyToOKey(ent.getKey());
+		OKey<Trivial> key = ObjectifyService.fact().rawKeyToOKey(ent.getKey());
 		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;

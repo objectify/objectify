@@ -13,7 +13,7 @@ import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -52,10 +52,10 @@ public class Employee
 	/** */
 	public Iterable<Employee> getSubordinates()
  	{
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 
-		OQuery<Employee> q = ObjectifyFactory.createQuery(Employee.class);
-		q.filter("manager", ObjectifyFactory.createKey(this));
+		OQuery<Employee> q = ObjectifyService.fact().createQuery(Employee.class);
+		q.filter("manager", ObjectifyService.fact().createKey(this));
 		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		return pq.asIterable();
 	}

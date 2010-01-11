@@ -78,7 +78,7 @@ public class EntityMetadata
 	}
 	
 	/** Needed for key translation */
-	private OFactory factory;
+	private ObjectifyFactory factory;
 
 	/** */
 	private Class<?> entityClass;
@@ -101,7 +101,7 @@ public class EntityMetadata
 	private Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
-	public EntityMetadata(OFactory fact, Class<?> clazz)
+	public EntityMetadata(ObjectifyFactory fact, Class<?> clazz)
 	{
 		this.factory = fact;
 		this.entityClass = clazz;

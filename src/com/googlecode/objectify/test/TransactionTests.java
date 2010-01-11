@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -34,7 +34,7 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		OKey<Trivial> k = null;
 		
-		Objectify tOfy = ObjectifyFactory.beginTransaction();
+		Objectify tOfy = ObjectifyService.fact().beginTransaction();
 		try
 		{
 			k = tOfy.put(triv);
@@ -46,7 +46,7 @@ public class TransactionTests extends TestBase
 				tOfy.getTxn().rollback();
 		}
 		
-		Objectify ofy = ObjectifyFactory.begin();
+		Objectify ofy = ObjectifyService.fact().begin();
 		Trivial fetched = ofy.get(k);
 		
 		assert fetched.getId().equals(k.getId());
