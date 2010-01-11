@@ -31,14 +31,14 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testSimpleOldName() throws Exception
 	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.fact().getKind(HasOldNames.class));
+		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = ObjectifyService.fact().rawKeyToOKey(ent.getKey());
+		OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getStuff().equals("oldStuff");
@@ -49,17 +49,17 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testOldNameDuplicateError() throws Exception
 	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.fact().getKind(HasOldNames.class));
+		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
 		ent.setProperty("stuff", "stuff");
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
 		try
 		{
-			OKey<HasOldNames> key = ObjectifyService.fact().rawKeyToOKey(ent.getKey());
+			OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
 			ofy.get(key);
 			assert false: "Shouldn't be able to read data duplicated with @OldName";
 		}
@@ -70,14 +70,14 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testOldNameMethods() throws Exception
 	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.fact().getKind(HasOldNames.class));
+		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
 		ent.setProperty("weirdStuff", "5");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = ObjectifyService.fact().rawKeyToOKey(ent.getKey());
+		OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getWeird() == 5;

@@ -52,10 +52,10 @@ public class Employee
 	/** */
 	public Iterable<Employee> getSubordinates()
  	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 
-		OQuery<Employee> q = ObjectifyService.fact().createQuery(Employee.class);
-		q.filter("manager", ObjectifyService.fact().createKey(this));
+		OQuery<Employee> q = ObjectifyService.factory().createQuery(Employee.class);
+		q.filter("manager", ObjectifyService.factory().createKey(this));
 		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		return pq.asIterable();
 	}

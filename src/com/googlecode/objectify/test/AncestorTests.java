@@ -32,7 +32,7 @@ public class AncestorTests extends TestBase
 	@Test
 	public void testSimpleParentChild() throws Exception
 	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		
 		Trivial triv = new Trivial("foo", 5);
 		OKey<Trivial> parentKey = ofy.put(triv);
@@ -48,7 +48,7 @@ public class AncestorTests extends TestBase
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		OQuery<Child> q = ObjectifyService.fact().createQuery(Child.class).ancestor(parentKey);
+		OQuery<Child> q = ObjectifyService.factory().createQuery(Child.class).ancestor(parentKey);
 		OPreparedQuery<Child> pq = ofy.prepare(q);
 		Child queried = pq.asSingle();
 		

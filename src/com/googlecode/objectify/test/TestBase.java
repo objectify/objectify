@@ -47,12 +47,12 @@ public class TestBase
 		ApiProxy.setDelegate(proxy);
 
 		// Register all our entity types.  It's ok that we do this multiple times.
-		ObjectifyService.fact().register(Trivial.class);
-		ObjectifyService.fact().register(NamedTrivial.class);
-		ObjectifyService.fact().register(HasOldNames.class);
-		ObjectifyService.fact().register(Child.class);
-		ObjectifyService.fact().register(Employee.class);
-		ObjectifyService.fact().register(HasArrays.class);
+		ObjectifyService.factory().register(Trivial.class);
+		ObjectifyService.factory().register(NamedTrivial.class);
+		ObjectifyService.factory().register(HasOldNames.class);
+		ObjectifyService.factory().register(Child.class);
+		ObjectifyService.factory().register(Employee.class);
+		ObjectifyService.factory().register(HasArrays.class);
 	}
 
 	/** */

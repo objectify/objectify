@@ -31,15 +31,15 @@ public class ConversionTests extends TestBase
 	@Test
 	public void testStringConversion() throws Exception
 	{
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.fact().getKind(Trivial.class));
+		Entity ent = new Entity(ObjectifyService.factory().getKind(Trivial.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		OKey<Trivial> key = ObjectifyService.fact().rawKeyToOKey(ent.getKey());
+		OKey<Trivial> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
 		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;

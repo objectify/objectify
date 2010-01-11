@@ -34,7 +34,7 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		OKey<Trivial> k = null;
 		
-		Objectify tOfy = ObjectifyService.fact().beginTransaction();
+		Objectify tOfy = ObjectifyService.factory().beginTransaction();
 		try
 		{
 			k = tOfy.put(triv);
@@ -46,7 +46,7 @@ public class TransactionTests extends TestBase
 				tOfy.getTxn().rollback();
 		}
 		
-		Objectify ofy = ObjectifyService.fact().begin();
+		Objectify ofy = ObjectifyService.factory().begin();
 		Trivial fetched = ofy.get(k);
 		
 		assert fetched.getId().equals(k.getId());
