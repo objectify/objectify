@@ -17,6 +17,9 @@ import com.googlecode.objectify.ObjectifyService;
  * <p>As you can see from the implementation, there isn't much to it.  You can easily
  * make your own DAO class without DAOBase if you so choose.</p>
  * 
+ * <p>See <a href="http://code.google.com/p/objectify-appengine/wiki/BestPractices">BestPractices</a>.
+ * for more guidance.</p>
+ * 
  * @author Jeff Schnitzer
  */
 public class DAOBase
