@@ -112,7 +112,7 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 	/**
 	 * Iterable that translates from datastore Entity to types Objects
 	 */
-	class ToObjectIterable implements Iterable<Object>
+	class ToObjectIterable<S> implements Iterable<S>
 	{
 		Iterable<Entity> source;
 		boolean keysOnly;
@@ -123,9 +123,9 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 		}
 
 		@Override
-		public Iterator<Object> iterator()
+		public Iterator<S> iterator()
 		{
-			return new ToObjectIterator(this.source.iterator());
+			return new ToObjectIterator<S>(this.source.iterator());
 		}
 
 	}
@@ -133,7 +133,7 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 	/**
 	 * Iterator that translates from datastore Entity to typed Objects
 	 */
-	class ToObjectIterator implements Iterator<Object>
+	class ToObjectIterator<S> implements Iterator<S>
 	{
 		Iterator<Entity> source;
 
@@ -149,16 +149,18 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 		}
 
 		@Override
-		public Object next()
+		@SuppressWarnings("unchecked")
+		public S next()
 		{
 			Entity nextEntity = this.source.next();
 			if (keysOnly)
 			{
-				return factory.rawKeyToOKey(nextEntity.getKey());
+				// This will be a ToObjectIterator<OKey<T>>
+				return (S)factory.rawKeyToOKey(nextEntity.getKey());
 			}
 			else
 			{
-				EntityMetadata meta = factory.getMetadata(nextEntity.getKey());
+				EntityMetadata<S> meta = factory.getMetadata(nextEntity.getKey());
 				return meta.toObject(nextEntity);
 			}
 		}

@@ -27,7 +27,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	 * back to a Class for getKind() would then require a link to the
 	 * OFactory, making this object non-serializable.
 	 */
-	protected String kindClassName;
+	protected Class<T> kindClass;
 	
 	/** Null if there is no parent */
 	protected OKey<?> parent;
@@ -39,18 +39,18 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	protected String name;
 	
 	/** Construct a key with a long id */
-	protected OKey(OKey<?> parent, Class<?> kind, long id)
+	protected OKey(OKey<?> parent, Class<T> kind, long id)
 	{
 		this.parent = parent;
-		this.kindClassName = kind.getName();
+		this.kindClass = kind;
 		this.id = id;
 	}
 	
 	/** Construct a key with a String name */
-	protected OKey(OKey<?> parent, Class<?> kind, String name)
+	protected OKey(OKey<?> parent, Class<T> kind, String name)
 	{
 		this.parent = parent;
-		this.kindClassName = kind.getName();
+		this.kindClass = kind;
 		this.name = name;
 	}
 
@@ -75,11 +75,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	 */
 	public Class<?> getKind()
 	{
-		try
-		{
-			return Class.forName(this.kindClassName);
-		}
-		catch (ClassNotFoundException e) { throw new RuntimeException(e); }
+		return this.kindClass;
 	}
 	
 	/**
@@ -104,7 +100,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public int compareTo(OKey<?> other)
 	{
 		// First kind
-		int cmp = this.kindClassName.compareTo(other.kindClassName);
+		int cmp = this.kindClass.getName().compareTo(other.kindClass.getName());
 		if (cmp != 0)
 			return cmp;
 
@@ -155,7 +151,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	{
 		StringBuilder bld = new StringBuilder();
 		bld.append("OKey{kind=");
-		bld.append(this.kindClassName);
+		bld.append(this.kindClass.getName());
 		bld.append(", parent=");
 		bld.append(this.parent);
 		if (this.name != null)

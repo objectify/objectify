@@ -30,7 +30,7 @@ import com.googlecode.objectify.annotation.Unindexed;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EntityMetadata
+public class EntityMetadata<T>
 {
 	/** We do not persist fields with any of these modifiers */
 	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
@@ -81,8 +81,8 @@ public class EntityMetadata
 	private ObjectifyFactory factory;
 
 	/** */
-	private Class<?> entityClass;
-	public Class<?> getEntityClass() { return this.entityClass; }
+	private Class<T> entityClass;
+	public Class<T> getEntityClass() { return this.entityClass; }
 
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
 	private String kind;
@@ -101,7 +101,7 @@ public class EntityMetadata
 	private Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
-	public EntityMetadata(ObjectifyFactory fact, Class<?> clazz)
+	public EntityMetadata(ObjectifyFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
 		this.entityClass = clazz;
@@ -207,11 +207,11 @@ public class EntityMetadata
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
-	public Object toObject(Entity ent)
+	public T toObject(Entity ent)
 	{
 		try
 		{
-			Object obj = this.entityClass.newInstance();
+			T obj = this.entityClass.newInstance();
 
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());

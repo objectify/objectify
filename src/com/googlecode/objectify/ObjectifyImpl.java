@@ -75,12 +75,11 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#get(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> T get(OKey<? extends T> key) throws EntityNotFoundException
 	{
 		Entity ent = this.ds.get(this.txn, this.factory.oKeyToRawKey(key));
 		
-		return (T)this.factory.getMetadata(key).toObject(ent);
+		return this.factory.getMetadata(key).toObject(ent);
 	}
 
 	/* (non-Javadoc)
@@ -160,7 +159,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> OKey<T> put(T obj)
 	{
-		EntityMetadata metadata = this.factory.getMetadataForEntity(obj);
+		EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
 		
 		Entity ent = metadata.toEntity(obj);
 		
@@ -176,12 +175,12 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Iterable)
 	 */
 	@Override
-	public <T> List<OKey<T>> put(Iterable<?> objs)
+	public <T> List<OKey<T>> put(Iterable<? extends T> objs)
 	{
 		List<Entity> entityList = new ArrayList<Entity>();
-		for (Object obj: objs)
+		for (T obj: objs)
 		{
-			EntityMetadata metadata = this.factory.getMetadataForEntity(obj);
+			EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
 			entityList.add(metadata.toEntity(obj));
 		}
 		
@@ -194,7 +193,7 @@ public class ObjectifyImpl implements Objectify
 		for (Object obj: objs)
 		{
 			Key k = keysIt.next();
-			EntityMetadata metadata = this.factory.getMetadataForEntity(obj);
+			EntityMetadata<?> metadata = this.factory.getMetadataForEntity(obj);
 			metadata.setKey(obj, k);
 			
 			OKey<T> obKey = this.factory.rawKeyToOKey(k);

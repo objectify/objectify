@@ -66,13 +66,19 @@
 	<target name="jar" depends="classes">
 		<property name="build.jar.file" location="${build.dir}/${name}-${build.version}.jar" />
 
-		<jar destfile="${build.jar.file}" basedir="${build.classes.dir}">
+		<jar destfile="${build.jar.file}">
 			<manifest>
 				<attribute name="Specification-Version" value="${build.version}" />
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
 			
-			<exclude name="**/test/**"/>
+			<fileset dir="${build.classes.dir}">			
+				<exclude name="**/test/**"/>
+			</fileset>
+			<fileset dir="${src.dir}">			
+				<include name="**/*.gwt.xml"/>
+				<include name="**/OKey.java"/>
+			</fileset>
 		</jar>
 	</target>
 	

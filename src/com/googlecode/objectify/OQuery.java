@@ -28,7 +28,7 @@ public class OQuery<T>
 	ObjectifyFactory factory;
 	
 	/** We need to track this because it enables the ability to filter/sort by id */
-	Class<?> classRestriction;
+	Class<T> classRestriction;
 	
 	/** The actual datastore query constructed by this object */
 	protected Query actual;
@@ -86,7 +86,7 @@ public class OQuery<T>
 		// If we have a class restriction, check to see if the property is the @Id
 		if (this.classRestriction != null)
 		{
-			EntityMetadata meta = this.factory.getMetadata(this.classRestriction);
+			EntityMetadata<?> meta = this.factory.getMetadata(this.classRestriction);
 			if (meta.isIdField(prop) || meta.isNameField(prop))
 			{
 				if (meta.hasParentField())
@@ -162,7 +162,7 @@ public class OQuery<T>
 		// Check for @Id field
 		if (this.classRestriction != null)
 		{
-			EntityMetadata meta = this.factory.getMetadata(this.classRestriction);
+			EntityMetadata<?> meta = this.factory.getMetadata(this.classRestriction);
 			if (meta.isIdField(condition) || meta.isNameField(condition))
 				condition = "__key__";
 		}

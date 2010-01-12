@@ -85,7 +85,7 @@ public interface Objectify
 	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	<T> List<OKey<T>> put(Iterable<?> objs);
+	<T> List<OKey<T>> put(Iterable<? extends T> objs);
 	
 	/**
 	 * Deletes the specified entity.  The object passed in can be either a Key

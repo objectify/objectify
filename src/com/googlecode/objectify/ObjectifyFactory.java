@@ -39,7 +39,7 @@ import com.google.appengine.api.datastore.Transaction;
 public class ObjectifyFactory
 {
 	/** */
-	protected Map<String, EntityMetadata> types = new HashMap<String, EntityMetadata>();
+	protected Map<String, EntityMetadata<?>> types = new HashMap<String, EntityMetadata<?>>();
 	
 	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
 	protected int datastoreTimeoutRetryCount;
@@ -53,7 +53,7 @@ public class ObjectifyFactory
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, null);
 
-		return (Objectify)this.maybeWrap(impl);
+		return this.maybeWrap(impl);
 	}
 	
 	/**
@@ -65,7 +65,7 @@ public class ObjectifyFactory
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
 		
-		return (Objectify)this.maybeWrap(impl);
+		return this.maybeWrap(impl);
 	}
 	
 	/**
@@ -78,7 +78,7 @@ public class ObjectifyFactory
 	public Objectify withTransaction(Transaction txn)
 	{
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		return (Objectify)this.maybeWrap(new ObjectifyImpl(this, ds, txn));
+		return this.maybeWrap(new ObjectifyImpl(this, ds, txn));
 	}
 	
 	/**
@@ -90,10 +90,10 @@ public class ObjectifyFactory
 	 * time of app initialization.  After all types are registered, the
 	 * get() method can be called.</p>
 	 */
-	public void register(Class<?> clazz)
+	public <T> void register(Class<T> clazz)
 	{
 		String kind = getKind(clazz);
-		this.types.put(kind, new EntityMetadata(this, clazz));
+		this.types.put(kind, new EntityMetadata<T>(this, clazz));
 	}
 	
 	/**
@@ -220,7 +220,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public EntityMetadata getMetadata(Key key)
+	public <T> EntityMetadata<T> getMetadata(Key key)
 	{
 		return this.getMetadata(key.getKind());
 	}
@@ -229,16 +229,18 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public EntityMetadata getMetadata(OKey<?> key)
+	@SuppressWarnings("unchecked")
+	public <T> EntityMetadata<T> getMetadata(OKey<T> key)
 	{
-		return this.getMetadata(key.getKind());
+		// I would love to know why this produces a warning
+		return (EntityMetadata<T>)this.getMetadata(key.getKind());
 	}
 	
 	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public EntityMetadata getMetadata(Class<?> clazz)
+	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz)
 	{
 		return this.getMetadata(this.getKind(clazz));
 	}
@@ -248,15 +250,18 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of typed object.
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public EntityMetadata getMetadataForEntity(Object obj)
+	@SuppressWarnings("unchecked")
+	public <T> EntityMetadata<T> getMetadataForEntity(T obj)
 	{
-		return this.getMetadata(obj.getClass());
+		// Type erasure sucks ass
+		return (EntityMetadata<T>)this.getMetadata(obj.getClass());
 	}
 	
 	/** */
-	protected EntityMetadata getMetadata(String kind)
+	@SuppressWarnings("unchecked")
+	protected <T> EntityMetadata<T> getMetadata(String kind)
 	{
-		EntityMetadata metadata = types.get(kind);
+		EntityMetadata<T> metadata = (EntityMetadata<T>)types.get(kind);
 		if (metadata == null)
 			throw new IllegalArgumentException("No registered type for kind " + kind);
 		else
@@ -287,9 +292,12 @@ public class ObjectifyFactory
 		if (rawKey == null)
 			return null;
 		
+		EntityMetadata<T> meta = this.getMetadata(rawKey);
+		Class<T> entityClass = meta.getEntityClass();
+		
 		if (rawKey.getName() != null)
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getName());
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
 		else
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), this.getMetadata(rawKey).getEntityClass(), rawKey.getId());
+			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
 	}
 }
