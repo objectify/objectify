@@ -46,7 +46,7 @@ public class BasicTests extends TestBase
 		assert k.getKind().equals(triv.getClass());
 		assert k.getId() == triv.getId();
 
-		OKey<Trivial> created = ObjectifyService.factory().createKey(Trivial.class, k.getId());
+		OKey<Trivial> created = new OKey<Trivial>(Trivial.class, k.getId());
 		assert k.equals(created);
 
 		Trivial fetched = ofy.get(k);
@@ -88,7 +88,7 @@ public class BasicTests extends TestBase
 
 		assert k.getName().equals("first");
 
-		OKey<NamedTrivial> createdKey = ObjectifyService.factory().createKey(NamedTrivial.class, "first");
+		OKey<NamedTrivial> createdKey = new OKey<NamedTrivial>(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
 		NamedTrivial fetched = ofy.get(k);

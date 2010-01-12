@@ -89,7 +89,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
-		return (T)this.get(this.factory.createKey(clazz, id));
+		return (T)this.get(new OKey<T>(clazz, id));
 	}
 
 	/* (non-Javadoc)
@@ -99,7 +99,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
-		return (T)this.get(this.factory.createKey(clazz, name));
+		return (T)this.get(new OKey<T>(clazz, name));
 	}
 
 	/* (non-Javadoc)
@@ -113,9 +113,9 @@ public class ObjectifyImpl implements Objectify
 		for (Object id: ids)
 		{
 			if (id instanceof Long)
-				keys.add(this.factory.createKey(clazz, (Long)id));
+				keys.add(new OKey<T>(clazz, (Long)id));
 			else if (id instanceof String)
-				keys.add(this.factory.createKey(clazz, (String)id));
+				keys.add(new OKey<T>(clazz, (String)id));
 			else
 				throw new IllegalArgumentException("Only Long or String is allowed, not " + id.getClass().getName() + " (" + id + ")");
 		}

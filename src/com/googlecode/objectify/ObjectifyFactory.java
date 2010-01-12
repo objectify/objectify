@@ -140,32 +140,8 @@ public class ObjectifyFactory
 	}
 	
 	//
-	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
+	// Sometimes convenient instead of constructing the key by hand
 	//
-	
-	/** Creates a key for the class with the specified id */
-	public <T> OKey<T> createKey(Class<T> kind, long id)
-	{
-		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), id));
-	}
-	
-	/** Creates a key for the class with the specified name */
-	public <T> OKey<T> createKey(Class<T> kind, String name)
-	{
-		return this.rawKeyToOKey(KeyFactory.createKey(getKind(kind), name));
-	}
-	
-	/** Creates a key for the class with the specified id having the specified parent */
-	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id)
-	{
-		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), id));
-	}
-	
-	/** Creates a key for the class with the specified name having the specified parent */
-	public <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name)
-	{
-		return this.rawKeyToOKey(KeyFactory.createKey(oKeyToRawKey(parent), getKind(kind), name));
-	}
 	
 	/**
 	 * <p>Creates a key from a registered entity object that does *NOT* have

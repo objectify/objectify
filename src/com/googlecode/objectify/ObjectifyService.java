@@ -45,20 +45,8 @@ public class ObjectifyService
 	public static int getDatastoreTimeoutRetryCount() { return factory().getDatastoreTimeoutRetryCount(); }
 	
 	//
-	// Methods equivalent to those on KeyFactory, but which use typed Classes instead of kind.
+	// Sometimes convenient instead of constructing the key by hand
 	//
-	
-	/** @see ObjectifyFactory#createKey(Class, long) */
-	public static <T> OKey<T> createKey(Class<T> kind, long id) { return factory().createKey(kind, id); }
-	
-	/** @see ObjectifyFactory#createKey(Class, String) */
-	public static <T> OKey<T> createKey(Class<T> kind, String name) { return factory().createKey(kind, name); }
-	
-	/** @see ObjectifyFactory#createKey(OKey, Class, long) */
-	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, long id) { return factory().createKey(parent, kind, id); }
-	
-	/** @see ObjectifyFactory#createKey(OKey, Class, String) */
-	public static <T> OKey<T> createKey(OKey<?> parent, Class<T> kind, String name) { return factory().createKey(parent, kind, name); }
 	
 	/** @see ObjectifyFactory#createKey(Object) */
 	public static <T> OKey<T> createKey(T entity) { return factory().createKey(entity); }
