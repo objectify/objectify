@@ -22,19 +22,12 @@
 	<property name="build.classes.dir" location="${build.dir}/classes" />
 	<property name="build.javadoc.dir" location="${build.dir}/javadoc" />
 
-	<property name="build.jar.file" location="${build.dir}/${name}.jar" />
-	
 	<property name="docs.dir" value="${build.dir}/docs" />
 	<property name="javadoc.dir" value="javadoc" />
 
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
 	
-	<tstamp/>
-	<tstamp>
-		<format property="YEAR" pattern="yyyy" />
-	</tstamp>
-
 	<path id="master.classpath">		
 		<fileset dir="${lib.dir}">
 			<include name="**/*.jar" />
@@ -47,20 +40,12 @@
 	</path>
 
 	<target name="init">
-		<typedef resource="com/googlecode/svntask/svntask.xml">
-			<classpath>
-				<fileset dir="${lib.dir}">
-					<include name="**/svnkit.jar"/>
-					<include name="**/svntask.jar"/>
-				</fileset>
-			</classpath>
-		</typedef>
-
-		<svn><info path="${basedir}" revisionProperty="revisionVersion" /></svn>
-
-		<!--  A hack because svnant does not respect Ant's properties can't be overwritten rule. -->
-		<property name="version" value="${revisionVersion}" />
+		<tstamp>
+			<format property="YEAR" pattern="yyyy" />
+		</tstamp>
+		<property name="build.version" value="UNVERSIONED"/>
 	</target>
+
 
 	<target name="clean">
 		<delete dir="${build.dir}" />
@@ -79,7 +64,16 @@
 	</target>
 
 	<target name="jar" depends="classes">
-		<jar destfile="${build.jar.file}" basedir="${build.classes.dir}" />
+		<property name="build.jar.file" location="${build.dir}/${name}-${build.version}.jar" />
+
+		<jar destfile="${build.jar.file}" basedir="${build.classes.dir}">
+			<manifest>
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Version" value="${TODAY}" />
+			</manifest>
+			
+			<exclude name="**/test/**"/>
+		</jar>
 	</target>
 	
 	<target name="init-version">
@@ -116,8 +110,7 @@
 		</testng>
 	</target>
 	
-	<target name="deploy" depends="jar">
-		<copy file="${build.jar.file}" todir="../Mobcasting/server/war/WEB-INF/lib" />
+	<target name="dist" depends="clean, init-version, jar">
 	</target>
 	
 </project>
