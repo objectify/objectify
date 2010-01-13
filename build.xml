@@ -42,10 +42,13 @@
 	</path>
 
 	<target name="init">
+		<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
 		<tstamp>
 			<format property="YEAR" pattern="yyyy" />
 		</tstamp>
-		<property name="build.version" value="UNVERSIONED"/>
+
+        <svn><info path="${basedir}" revisionProperty="revisionVersion" /></svn>
+        <property name="build.version" value="${revisionVersion}" />
 	</target>
 
 
@@ -118,7 +121,31 @@
 		</testng>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar">
+	<target name="dist" depends="clean, init-version, jar, build-docs">
+		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
+        <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
+
+		<copy todir="${build.dist.dir}">
+	        <fileset dir=".">
+	        	<include name="**/**"/>
+	        	<exclude name="target/**"/>
+	        </fileset>
+        </copy>
+
+		<copy todir="${build.dist.dir}">
+            <fileset dir="${build.dir}">
+        		<include name="docs/**" />
+        		<include name="*.jar" />
+            </fileset>
+        </copy>
+
+        <dirname property="build.dist.dir.dirname" file="${build.dist.dir}" />
+        <basename property="build.dist.dir.basename" file="${build.dist.dir}" />
+
+        <zip zipfile="${build.dist.zip}" basedir="${build.dist.dir.dirname}">
+                <include name="${build.dist.dir.basename}/**" />
+        </zip>
+
 	</target>
 
 	<target name="build-docs" description="downloads docs from wiki and processes them into the build/docs dir">
