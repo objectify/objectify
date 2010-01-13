@@ -102,6 +102,7 @@
 		>
 			<fileset dir="${src.dir}">
 				<exclude name="**/test/**" />
+				<exclude name="**/*.xml" />
 			</fileset>
 			
 			<doctitle><![CDATA[<h1>Objectify-AppEngine</h1>]]></doctitle>
