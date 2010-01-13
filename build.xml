@@ -100,7 +100,10 @@
 			version="true"
 			Windowtitle="Objectify-AppEngine Javadoc"
 		>
-			<fileset dir="${src.dir}"/>
+			<fileset dir="${src.dir}">
+				<exclude name="**/test/**" />
+			</fileset>
+			
 			<doctitle><![CDATA[<h1>Objectify-AppEngine</h1>]]></doctitle>
 			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer and a gang of pirates. All Rights Reserved. Build version: ${build.version}</i>]]></bottom>
 		</javadoc>
