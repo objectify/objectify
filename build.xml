@@ -25,9 +25,11 @@
 	<property name="docs.dir" value="${build.dir}/docs" />
 	<property name="javadoc.dir" value="javadoc" />
 
+	<property name="googlecode.projectname" value="objectify-appengine"/>
+
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
-	
+
 	<path id="master.classpath">		
 		<fileset dir="${lib.dir}">
 			<include name="**/*.jar" />
@@ -117,6 +119,38 @@
 	</target>
 	
 	<target name="dist" depends="clean, init-version, jar">
+	</target>
+
+	<target name="build-docs" description="downloads docs from wiki and processes them into the build/docs dir">
+		<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>
+		<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
+				
+		<property name="wiki.baseurl" value="http://code.google.com/p/${googlecode.projectname}/wiki"/>
+				
+		<mkdir dir="${docs.dir}"/>
+		
+		<svn><ls repository="http://${googlecode.projectname}.googlecode.com/svn" path="wiki" filterType="file" filterContains=".wiki"/></svn>
+		<propertyregex property="wiki.pages" input="${svn.ls}" regexp="\.wiki" replace=""/> 
+		<echo message="Getting wiki pages: ${wiki.pages}"/>
+		
+		<!-- Get files from wiki-->
+		<for list="${wiki.pages}" param="wiki.page" parallel="yes">
+		  <sequential>
+			<get dest="${docs.dir}/@{wiki.page}.html" src="${wiki.baseurl}/@{wiki.page}?show=content"/>
+		  </sequential>
+		</for>
+		
+		<!-- Replace links in files -->
+		<for list="${wiki.pages}" param="wiki.page">
+		  <sequential>
+		  	<echo message="replacing /p/${googlecode.projectname}/wiki/@{wiki.page} with @{wiki.page}.html in ${docs.dir}"/>
+			<replace dir="${docs.dir}" token="/p/${googlecode.projectname}/wiki/@{wiki.page}" value="@{wiki.page}.html"/>
+		  </sequential>
+		</for>
+		
+		<!-- link back to the wiki, if we haven't downloaded the content -->
+		<replace dir="${docs.dir}" token="/p/${googlecode.projectname}/wiki" value="${wiki.baseurl}"/>
+		
 	</target>
 	
 </project>
