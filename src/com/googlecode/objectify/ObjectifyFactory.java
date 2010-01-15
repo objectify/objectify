@@ -1,7 +1,7 @@
 package com.googlecode.objectify;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -39,7 +39,7 @@ import com.google.appengine.api.datastore.Transaction;
 public class ObjectifyFactory
 {
 	/** */
-	protected Map<String, EntityMetadata<?>> types = new HashMap<String, EntityMetadata<?>>();
+	protected Map<String, EntityMetadata<?>> types = new ConcurrentHashMap<String, EntityMetadata<?>>();
 	
 	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
 	protected int datastoreTimeoutRetryCount;
