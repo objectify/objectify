@@ -198,4 +198,18 @@ public class QueryTests extends TestBase
 		assert !q1.toString().equals(q2.toString());
 		assert !q1.toString().equals(q3.toString());
 	}
+
+	/** */
+	@Test
+	public void testEmptySingleResult() throws Exception
+	{
+		Objectify ofy = ObjectifyService.factory().begin();
+		
+		OQuery<Trivial> q = ObjectifyService.factory().createQuery(Trivial.class);
+		q.filter("id", 999999);	// no such entity
+		
+		OPreparedQuery<Trivial> pq = ofy.prepare(q);
+		assert pq.asSingle() == null;
+	}
+	
 }

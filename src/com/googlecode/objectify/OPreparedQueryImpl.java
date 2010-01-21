@@ -89,6 +89,8 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 	public T asSingle()
 	{
 		Entity ent = this.pq.asSingleEntity();
+		if (ent == null)
+			return null;
 
 		if (this.keysOnly)
 		{
