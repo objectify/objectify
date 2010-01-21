@@ -165,7 +165,7 @@ public class QueryTests extends TestBase
 	}
 
 	/** */
-	@Test(groups={"now"})
+	@Test
 	public void testIdFiltering() throws Exception
 	{
 		Objectify ofy = ObjectifyService.factory().begin();
@@ -179,5 +179,23 @@ public class QueryTests extends TestBase
 		Trivial t2 = it.next();
 		assert !it.hasNext();
 		assert t2.getId().equals(triv2.getId()); 
+	}
+	
+	/** */
+	@Test(groups={"now"})
+	public void testQueryToString() throws Exception
+	{
+		OQuery<Trivial> q1 = ObjectifyService.factory().createQuery(Trivial.class);
+		q1.filter("id >", triv1.getId());
+
+		OQuery<Trivial> q2 = ObjectifyService.factory().createQuery(Trivial.class);
+		q2.filter("id <", triv1.getId());
+
+		OQuery<Trivial> q3 = ObjectifyService.factory().createQuery(Trivial.class);
+		q3.filter("id >", triv1.getId());
+		q3.sort("-id");
+
+		assert !q1.toString().equals(q2.toString());
+		assert !q1.toString().equals(q3.toString());
 	}
 }

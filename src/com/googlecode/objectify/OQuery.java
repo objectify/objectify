@@ -1,10 +1,15 @@
 package com.googlecode.objectify;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
+import com.google.appengine.api.datastore.Query.SortPredicate;
 
 
 
@@ -188,5 +193,78 @@ public class OQuery<T>
 			this.actual.setAncestor(this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
 		
 		return this;
+	}
+	
+	/**
+	 * <p>Generates a string that consistently and uniquely specifies this query.  There
+	 * is no way to convert this string back into a query and there is no guarantee that
+	 * the string will be consistent across versions of Objectify.</p>
+	 * 
+	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p> 
+	 */
+	public String toString()
+	{
+		StringBuilder bld = new StringBuilder(this.getClass().getName());
+		bld.append("{kind=");
+		bld.append(this.actual.getKind());
+		
+		bld.append(",ancestor=");
+		if (this.actual.getAncestor() != null)
+			bld.append(KeyFactory.keyToString(this.actual.getAncestor()));
+
+		// We need to sort filters to make a stable string value
+		FilterPredicate[] filters = this.actual.getFilterPredicates().toArray(new FilterPredicate[this.actual.getFilterPredicates().size()]);
+		Arrays.sort(filters, new Comparator<FilterPredicate>() {
+			@Override
+			public int compare(FilterPredicate o1, FilterPredicate o2)
+			{
+				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
+				if (result != 0)
+					return result;
+				
+				result = o1.getOperator().compareTo(o2.getOperator());
+				if (result != 0)
+					return result;
+				
+				if (o1.getValue() == null)
+					return o2.getValue() == null ? 0 : -1;
+				else if (o2.getValue() == null)
+					return 1;
+				else
+					return o1.getValue().toString().compareTo(o2.getValue().toString());	// not perfect, but probably as good as we can do
+			}
+		});
+		for (FilterPredicate filter: filters)
+		{
+			bld.append(",filter=");
+			bld.append(filter.getPropertyName());
+			bld.append(filter.getOperator().name());
+			bld.append(filter.getValue());
+		}
+		
+		// We need to sort sorts to make a stable string value
+		SortPredicate[] sorts = this.actual.getSortPredicates().toArray(new SortPredicate[this.actual.getSortPredicates().size()]);
+		Arrays.sort(sorts, new Comparator<SortPredicate>() {
+			@Override
+			public int compare(SortPredicate o1, SortPredicate o2)
+			{
+				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
+				if (result != 0)
+					return result;
+
+				// Actually, it should be impossible to have the same prop with multiple directions
+				return o1.getDirection().compareTo(o2.getDirection());
+			}
+		});
+		for (Query.SortPredicate sort: this.actual.getSortPredicates())
+		{
+			bld.append(",sort=");
+			bld.append(sort.getPropertyName());
+			bld.append(sort.getDirection().name());
+		}
+		
+		bld.append('}');
+		
+		return bld.toString();
 	}
 }
