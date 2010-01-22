@@ -182,7 +182,7 @@ public class QueryTests extends TestBase
 	}
 	
 	/** */
-	@Test(groups={"now"})
+	@Test
 	public void testQueryToString() throws Exception
 	{
 		OQuery<Trivial> q1 = ObjectifyService.factory().createQuery(Trivial.class);

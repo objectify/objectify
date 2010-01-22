@@ -5,12 +5,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.Id;
 import javax.persistence.Transient;
@@ -36,25 +41,44 @@ public class EntityMetadata<T>
 	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
 
 	/** We need to be able to populate fields and methods with @OldName */
-	static interface Populator
+	static abstract class Populator
 	{
 		/** Actually populate the thing (field or method) */
-		void populate(Object entity, Object value);
+		abstract void populate(Object entity, Object value);
 
 		/** Get the thing for hashing, string conversion, etc */
-		Object getThing();
+		abstract Object getThing();
 
 		/** Get the type of the thing */
-		Class<?> getType();
+		abstract Class<?> getType();
+		
+		/** Get the "generictype", which can be a ParameterizedType */
+		abstract Type getGenericType();
+		
+		/** If getType() is an array or Collection, returns the component type - otherwise null */
+		Class<?> getComponentType()
+		{
+			if (this.getType().isArray())
+				return this.getType().getComponentType();
+			else
+			{
+				Type pType = this.getGenericType();
+				if (pType instanceof ParameterizedType)
+					return (Class<?>)((ParameterizedType)pType).getActualTypeArguments()[0];
+				else
+					return null;
+			}
+		}
 	}
 
 	/** Works with fields */
-	static class FieldPopulator implements Populator
+	static class FieldPopulator extends Populator
 	{
 		Field field;
 		public FieldPopulator(Field field) { this.field = field; }
 		public Object getThing() { return this.field; }
 		public Class<?> getType() { return this.field.getType(); }
+		public Type getGenericType() { return this.field.getGenericType(); }
 		public void populate(Object entity, Object value)
 		{
 			try { this.field.set(entity, value); }
@@ -63,12 +87,13 @@ public class EntityMetadata<T>
 	}
 
 	/** Works with methods */
-	static class MethodPopulator implements Populator
+	static class MethodPopulator extends Populator
 	{
 		Method method;
 		public MethodPopulator(Method method) { this.method = method; }
 		public Object getThing() { return this.method; }
 		public Class<?> getType() { return this.method.getParameterTypes()[0]; }
+		public Type getGenericType() { return this.method.getGenericParameterTypes()[0]; }
 		public void populate(Object entity, Object value)
 		{
 			try { this.method.invoke(entity, value); }
@@ -232,7 +257,7 @@ public class EntityMetadata<T>
 						done.add(pop.getThing());
 
 					Object value = property.getValue();
-					value = this.convertFromDatastore(value, pop.getType());
+					value = this.convertFromDatastore(value, pop.getType(), pop.getComponentType());
 
 					pop.populate(obj, value);
 				}
@@ -246,11 +271,77 @@ public class EntityMetadata<T>
 
 	/**
 	 * Converts the value into an object suitable for the type (hopefully).
-	 * For loading data out of the datastore.
+	 * For loading data out of the datastore.  Note that collections are
+	 * quite complicated since they are always written as List<?>.
+	 * 
+	 * @param value is the property value that came out of the datastore Entity
+	 * @param type is the type of the field or method param we are populating
+	 * @param componentType is the type of a component of 'type' when 'type' is
+	 *  an array or collection.  null if 'type' is not an array or collection.
 	 */
-	Object convertFromDatastore(Object value, Class<?> type)
+	@SuppressWarnings("unchecked")
+	Object convertFromDatastore(Object value, Class<?> type, Class<?> componentType)
 	{
-		if ((value == null) || type.isAssignableFrom(value.getClass()))
+		if (value == null)
+		{
+			return null;
+		}
+		else if (value instanceof Collection<?>)
+		{
+			Collection<?> collValue = (Collection<?>)value;
+			
+			if (type.isArray())
+			{
+				// The objects in the Collection are assumed to be of correct type for the array
+				Object array = Array.newInstance(componentType, collValue.size());
+				
+				int index = 0;
+				for (Object componentValue: collValue)
+				{
+					componentValue = this.convertFromDatastore(componentValue, componentType, null);
+					
+					//System.out.println("componentType is " + componentType + ", componentValue class is " + componentValue.getClass());
+					Array.set(array, index++, componentValue);
+				}
+				
+				return array;
+			}
+			else if (Collection.class.isAssignableFrom(type)) // Check for collection early!
+			{
+				// We're making some sort of collection.  If it's a concrete class, just
+				// instantiate it.  Otherwise it's an interface and we need to pick the
+				// concrete class ourselves.
+				Collection<Object> target = null;
+				
+				if (!type.isInterface())
+				{
+					try
+					{
+						target = (Collection<Object>)type.newInstance();
+					}
+					catch (InstantiationException e) { throw new RuntimeException(e); }
+					catch (IllegalAccessException e) { throw new RuntimeException(e); }
+				}
+				else if (SortedSet.class.isAssignableFrom(type))
+				{
+					target = new TreeSet<Object>();
+				}
+				else if (Set.class.isAssignableFrom(type))
+				{
+					target = new HashSet<Object>();
+				}
+				else if (List.class.isAssignableFrom(type) || type.isAssignableFrom(ArrayList.class))
+				{
+					target = new ArrayList<Object>();
+				}
+				
+				for (Object obj: collValue)
+					target.add(this.convertFromDatastore(obj, componentType, null));
+				
+				return target;
+			}
+		}
+		else if (type.isAssignableFrom(value.getClass()))
 		{
 			return value;
 		}
@@ -261,6 +352,11 @@ public class EntityMetadata<T>
 			else
 				return value.toString();
 		}
+		else if (Enum.class.isAssignableFrom(type))
+		{
+			// Anyone have any idea how to avoid this generics warning?
+			return Enum.valueOf((Class<Enum>)type, value.toString());
+		}
 		else if ((value instanceof Boolean) && (type == Boolean.TYPE))
 		{
 			return value;
@@ -268,27 +364,6 @@ public class EntityMetadata<T>
 		else if (value instanceof Number)
 		{
 			return this.coerceNumber((Number)value, type);
-		}
-		else if (value instanceof List<?> && type.isArray())
-		{
-			// This won't necessarily work - the objects in the List must be of correct type for the array
-			List<?> list = (List<?>)value;
-			Class<?> componentType = type.getComponentType();
-			
-			Object array = Array.newInstance(componentType, list.size());
-			
-			for (int i=0; i<list.size(); i++)
-			{
-				// All numbers come back as Longs, which won't make arrays happy
-				Object componentValue = list.get(i);
-				if (componentValue instanceof Number)
-					componentValue = this.coerceNumber((Number)componentValue, componentType);
-				
-				//System.out.println("componentType is " + componentType + ", componentValue class is " + componentValue.getClass());
-				Array.set(array, i, componentValue);
-			}
-			
-			return array;
 		}
 		else if (value instanceof Key && OKey.class.isAssignableFrom(type))
 		{
@@ -331,14 +406,29 @@ public class EntityMetadata<T>
 			if (((String)value).length() > 500)
 				return new Text((String)value);
 		}
-		else if (value != null && value.getClass().isArray())
+		else if (value instanceof Enum<?>)
+		{
+			return value.toString();
+		}
+		else if (value.getClass().isArray())
 		{
 			// The datastore cannot persist arrays, but it can persist ArrayList
 			int length = Array.getLength(value);
 			ArrayList<Object> list = new ArrayList<Object>(length);
 			
 			for (int i=0; i<length; i++)
-				list.add(Array.get(value, i));
+				list.add(this.convertToDatastore(Array.get(value, i)));
+			
+			return list;
+		}
+		else if (value instanceof Collection<?>)
+		{
+			// All collections get turned into a List that preserves the order.  We must
+			// also be sure to convert anything contained in the collection
+			ArrayList<Object> list = new ArrayList<Object>(((Collection<?>)value).size());
+
+			for (Object obj: (Collection<?>)value)
+				list.add(this.convertToDatastore(obj));
 			
 			return list;
 		}

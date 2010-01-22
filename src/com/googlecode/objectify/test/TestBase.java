@@ -20,6 +20,7 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasArrays;
+import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HasOldNames;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -53,6 +54,7 @@ public class TestBase
 		ObjectifyService.factory().register(Child.class);
 		ObjectifyService.factory().register(Employee.class);
 		ObjectifyService.factory().register(HasArrays.class);
+		ObjectifyService.factory().register(HasEnums.class);
 	}
 
 	/** */
