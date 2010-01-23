@@ -139,10 +139,10 @@ public class EntityMetadata<T>
 	private Field parentField;
 
 	/** The fields we persist, not including the @Id or @Parent fields */
-	private Set<Field> writeables = new HashSet<Field>();
+	protected Set<Field> writeables = new HashSet<Field>();
 
 	/** The things that we read, keyed by name (including @OldName fields and methods).  A superset of writeables. */
-	private Map<String, Populator> readables = new HashMap<String, Populator>();
+	protected Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
 	public EntityMetadata(ObjectifyFactory fact, Class<T> clazz)
