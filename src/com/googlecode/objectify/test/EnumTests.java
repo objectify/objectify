@@ -18,7 +18,7 @@ import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HasEnums.Color;
 
 /**
- * Tests of using the @OldName annotation
+ * Tests of Enums, including Enums in arrays and lists
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

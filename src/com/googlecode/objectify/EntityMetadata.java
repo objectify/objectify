@@ -59,14 +59,33 @@ public class EntityMetadata<T>
 		Class<?> getComponentType()
 		{
 			if (this.getType().isArray())
-				return this.getType().getComponentType();
-			else
 			{
-				Type pType = this.getGenericType();
-				if (pType instanceof ParameterizedType)
-					return (Class<?>)((ParameterizedType)pType).getActualTypeArguments()[0];
+				return this.getType().getComponentType();
+			}
+			else if (Collection.class.isAssignableFrom(this.getType()))
+			{
+				Type aType = this.getGenericType();
+				while (aType instanceof Class<?>)
+					aType = ((Class<?>)aType).getGenericSuperclass();
+				
+				if (aType instanceof ParameterizedType)
+				{
+					Type actualTypeArgument = ((ParameterizedType)aType).getActualTypeArguments()[0];
+					if (actualTypeArgument instanceof Class<?>)
+						return (Class<?>)actualTypeArgument;
+					else if (actualTypeArgument instanceof ParameterizedType)
+						return (Class<?>)((ParameterizedType)actualTypeArgument).getRawType();
+					else
+						return null;
+				}
 				else
+				{
 					return null;
+				}
+			}
+			else	// not array or collection
+			{
+				return null;
 			}
 		}
 	}
