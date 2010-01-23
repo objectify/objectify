@@ -122,21 +122,21 @@ public class EntityMetadata<T>
 	}
 	
 	/** Needed for key translation */
-	private ObjectifyFactory factory;
+	protected ObjectifyFactory factory;
 
 	/** */
-	private Class<T> entityClass;
+	protected Class<T> entityClass;
 	public Class<T> getEntityClass() { return this.entityClass; }
 
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
-	private String kind;
+	protected String kind;
 
 	/** We treat the @Id key field specially - it will be either Long id or String name */
-	private Field idField;
-	private Field nameField;
+	protected Field idField;
+	protected Field nameField;
 
 	/** If the entity has a @Parent field, treat it specially */
-	private Field parentField;
+	protected Field parentField;
 
 	/** The fields we persist, not including the @Id or @Parent fields */
 	protected Set<Field> writeables = new HashSet<Field>();
