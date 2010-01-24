@@ -17,12 +17,16 @@ import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.test.entity.Apple;
+import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HasOldNames;
+import com.googlecode.objectify.test.entity.HolderOfString;
+import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -57,7 +61,11 @@ public class TestBase
 		ObjectifyService.factory().register(HasArrays.class);
 		ObjectifyService.factory().register(HasEnums.class);
 		ObjectifyService.factory().register(HasCollections.class);
-	}
+		ObjectifyService.factory().register(Apple.class);
+		ObjectifyService.factory().register(Banana.class);
+		ObjectifyService.factory().register(HolderOfString.class);
+		ObjectifyService.factory().register(HolderOfStringAndLong.class);
+		}
 
 	/** */
 	@AfterMethod

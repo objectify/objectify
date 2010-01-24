@@ -173,7 +173,9 @@ public class EntityMetadata<T>
 	{
 		if ((clazz == null) || (clazz == Object.class))
 			return;
-
+		
+		this.visit(clazz.getSuperclass());
+		
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
