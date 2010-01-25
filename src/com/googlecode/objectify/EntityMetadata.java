@@ -157,7 +157,16 @@ public class EntityMetadata<T>
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
-	}
+
+		try
+		{
+			clazz.getConstructor(new Class[0]);
+		}
+		catch (NoSuchMethodException e)
+		{
+			throw new IllegalStateException("There must be a public no-arg constructor for " + this.entityClass.getName(), e);
+		}
+    }
 	
 	/** @return the kind associated with this metadata */
 	public String getKind()
