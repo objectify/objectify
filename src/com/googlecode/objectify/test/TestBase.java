@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
-import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
@@ -41,6 +41,9 @@ public class TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(TestBase.class);
+	
+	/** */
+	protected ObjectifyFactory fact;
 
 	/** */
 	@BeforeMethod
@@ -52,20 +55,20 @@ public class TestBase
 		proxy.setProperty(LocalDatastoreService.NO_STORAGE_PROPERTY, Boolean.TRUE.toString());
 		ApiProxy.setDelegate(proxy);
 
-		// Register all our entity types.  It's ok that we do this multiple times.
-		ObjectifyService.factory().register(Trivial.class);
-		ObjectifyService.factory().register(NamedTrivial.class);
-		ObjectifyService.factory().register(HasOldNames.class);
-		ObjectifyService.factory().register(Child.class);
-		ObjectifyService.factory().register(Employee.class);
-		ObjectifyService.factory().register(HasArrays.class);
-		ObjectifyService.factory().register(HasEnums.class);
-		ObjectifyService.factory().register(HasCollections.class);
-		ObjectifyService.factory().register(Apple.class);
-		ObjectifyService.factory().register(Banana.class);
-		ObjectifyService.factory().register(HolderOfString.class);
-		ObjectifyService.factory().register(HolderOfStringAndLong.class);
-		}
+		this.fact = new ObjectifyFactory();
+		this.fact.register(Trivial.class);
+		this.fact.register(NamedTrivial.class);
+		this.fact.register(HasOldNames.class);
+		this.fact.register(Child.class);
+		this.fact.register(Employee.class);
+		this.fact.register(HasArrays.class);
+		this.fact.register(HasEnums.class);
+		this.fact.register(HasCollections.class);
+		this.fact.register(Apple.class);
+		this.fact.register(Banana.class);
+		this.fact.register(HolderOfString.class);
+		this.fact.register(HolderOfStringAndLong.class);
+	}
 
 	/** */
 	@AfterMethod

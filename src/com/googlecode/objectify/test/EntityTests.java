@@ -11,7 +11,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.HolderOfString;
@@ -32,7 +31,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testApple() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		Apple a = new Apple(Apple.COLOR, Apple.TASTE);
 		OKey<Apple> aKey = ofy.put(a);
 		Apple a2 = ofy.get(aKey);
@@ -44,7 +43,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testBanana() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		Banana b = new Banana(Banana.COLOR, Banana.TASTE);
 		OKey<Banana> bKey = ofy.put(b);
 		Banana b2 = ofy.get(bKey);
@@ -57,7 +56,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testStringHolder() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfString hos = new HolderOfString(s);
 		OKey<HolderOfString> hosKey = ofy.put(hos);
@@ -71,7 +70,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testStringHolderWithALong() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfStringAndLong hosal = new HolderOfStringAndLong(s,2L);
 		OKey<HolderOfStringAndLong> hosKey = ofy.put(hosal);

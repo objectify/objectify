@@ -1,10 +1,9 @@
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import org.testng.annotations.Test;
-
 import javax.persistence.Entity;
 import javax.persistence.Id;
+
+import org.testng.annotations.Test;
 
 /**
  * Basic tests for registering entities
@@ -41,12 +40,11 @@ public class RegisterTests extends TestBase
 		assertRegisterFails(NoNoargConstructors.class, IllegalStateException.class);
 	}
 
-	private static void assertRegisterFails(Class<?> entity, Class<? extends Exception> expectedException)
+	private void assertRegisterFails(Class<?> entity, Class<? extends Exception> expectedException)
 	{
-		ObjectifyFactory factory = new ObjectifyFactory();
 		try
 		{
-			factory.register(entity);
+			this.fact.register(entity);
 			assert false : "Shouldn't be register " + entity.getName();
 		}
 		catch (Exception e)

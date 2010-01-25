@@ -13,7 +13,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.HasOldNames;
 
 /**
@@ -31,14 +30,14 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testSimpleOldName() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
+		Entity ent = new Entity(this.fact.getKind(HasOldNames.class));
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
+		OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getStuff().equals("oldStuff");
@@ -49,17 +48,17 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testOldNameDuplicateError() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
+		Entity ent = new Entity(this.fact.getKind(HasOldNames.class));
 		ent.setProperty("stuff", "stuff");
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
 		try
 		{
-			OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
+			OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 			ofy.get(key);
 			assert false: "Shouldn't be able to read data duplicated with @OldName";
 		}
@@ -70,14 +69,14 @@ public class OldNameTests extends TestBase
 	@Test
 	public void testOldNameMethods() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(ObjectifyService.factory().getKind(HasOldNames.class));
+		Entity ent = new Entity(this.fact.getKind(HasOldNames.class));
 		ent.setProperty("weirdStuff", "5");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = ObjectifyService.factory().rawKeyToOKey(ent.getKey());
+		OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getWeird() == 5;

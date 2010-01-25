@@ -13,7 +13,6 @@ import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -32,7 +31,7 @@ public class AncestorTests extends TestBase
 	@Test
 	public void testSimpleParentChild() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
 		OKey<Trivial> parentKey = ofy.put(triv);
@@ -48,7 +47,7 @@ public class AncestorTests extends TestBase
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		OQuery<Child> q = ObjectifyService.factory().createQuery(Child.class).ancestor(parentKey);
+		OQuery<Child> q = this.fact.createQuery(Child.class).ancestor(parentKey);
 		OPreparedQuery<Child> pq = ofy.prepare(q);
 		Child queried = pq.asSingle();
 		

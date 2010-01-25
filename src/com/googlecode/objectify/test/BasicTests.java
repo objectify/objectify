@@ -17,7 +17,6 @@ import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -37,7 +36,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testGenerateId() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
@@ -60,7 +59,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testOverwriteId() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
 		OKey<Trivial> k = ofy.put(triv);
@@ -81,7 +80,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testNames() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
 		OKey<NamedTrivial> k = ofy.put(triv);
@@ -102,7 +101,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testBatchOperations() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 
 		Trivial triv1 = new Trivial("foo", 5);
 		Trivial triv2 = new Trivial("foo2", 6);
@@ -126,7 +125,7 @@ public class BasicTests extends TestBase
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
 		{
-			Trivial fetchedTriv = fetched.get(ObjectifyService.factory().createKey(triv));
+			Trivial fetchedTriv = fetched.get(this.fact.createKey(triv));
 			assert triv.getSomeNumber() == fetchedTriv.getSomeNumber();
 			assert triv.getSomeString().equals(fetchedTriv.getSomeString());
 		}
@@ -136,12 +135,12 @@ public class BasicTests extends TestBase
 	@Test
 	public void testManyToOne() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 
 		Employee fred = new Employee("fred");
 		ofy.put(fred);
 
-		OKey<Employee> fredKey = ObjectifyService.factory().createKey(fred);
+		OKey<Employee> fredKey = this.fact.createKey(fred);
 
 		List<Employee> employees = new ArrayList<Employee>(1100);
 		for (int i = 0; i < 1100; i++)
@@ -154,8 +153,8 @@ public class BasicTests extends TestBase
 
 		assert employees.size() == 1100;
 
-		OQuery<Employee> q = ObjectifyService.factory().createQuery(Employee.class);
-		q.filter("manager", ObjectifyService.factory().createKey(fred));
+		OQuery<Employee> q = this.fact.createQuery(Employee.class);
+		q.filter("manager", this.fact.createKey(fred));
 		OPreparedQuery<Employee> pq = ofy.prepare(q);
 		Iterable<Employee> results = pq.asIterable();
 

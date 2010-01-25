@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.HasArrays;
 
 /**
@@ -31,7 +30,7 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testStringArrays() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.strings = new String[] { "red", "green" };
@@ -47,7 +46,7 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testIntArrays() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.ints = new int[] { 5, 6 };
@@ -63,7 +62,7 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testIntegerArrays() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.integers = new Integer[] { 5, 6 };
@@ -79,7 +78,7 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testLongArrays() throws Exception
 	{
-		Objectify ofy = ObjectifyService.factory().begin();
+		Objectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.longs = new long[] { 5, 6 };

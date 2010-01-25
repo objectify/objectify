@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HasEnums.Color;
 
@@ -32,7 +31,7 @@ public class EnumTests extends TestBase
 	@Test
 	public void testSimpleEnum() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.color = Color.RED;
@@ -46,7 +45,7 @@ public class EnumTests extends TestBase
 	@Test(groups={"now"})
 	public void testEnumsList() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.colors = Arrays.asList(Color.RED, Color.GREEN);
@@ -61,7 +60,7 @@ public class EnumTests extends TestBase
 	@Test
 	public void testEnumsArray() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.colorsArray = new Color[] { Color.RED, Color.GREEN };

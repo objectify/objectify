@@ -20,7 +20,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.OKey;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.entity.HasCollections.CustomSet;
@@ -52,7 +51,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicLists() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList(1, 2, 3);
@@ -72,7 +71,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicSets() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerSet = new HashSet<Integer>();
@@ -99,7 +98,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCustomSet() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.customSet = new CustomSet();
@@ -117,7 +116,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testOKeySet() throws Exception
 	{
-		Objectify ofy = ObjectifyService.begin();
+		Objectify ofy = this.fact.begin();
 		
 		OKey<Trivial> key7 = new OKey<Trivial>(Trivial.class, 7);
 		OKey<Trivial> key8 = new OKey<Trivial>(Trivial.class, 8);
