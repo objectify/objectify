@@ -210,5 +210,24 @@ public class QueryTests extends TestBase
 		OPreparedQuery<Trivial> pq = ofy.prepare(q);
 		assert pq.asSingle() == null;
 	}
-	
+
+	/**
+	 * Tests issue #3:  http://code.google.com/p/objectify-appengine/issues/detail?id=3 
+	 */
+	@Test
+	public void testFetchOptionsWithTimeoutRetries() throws Exception
+	{
+		this.fact.setDatastoreTimeoutRetryCount(1);
+		Objectify ofy = this.fact.begin();
+		
+		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
+		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
+		FetchOptions opts = FetchOptions.Builder.withLimit(10);
+		
+		// This used to throw an exception when wrapping the ArrayList in the retry wrapper
+		// because we used the wrong classloader to produce the proxy.  Fixed.
+    	List<OKey<Trivial>> keys = pq.asList(opts);
+    	
+    	assert keys != null;
+	}
 }
