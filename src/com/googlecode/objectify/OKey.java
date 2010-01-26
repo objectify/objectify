@@ -38,6 +38,9 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	/** Either id or name will be valid */
 	protected String name;
 	
+	/** For GWT serialization */
+	protected OKey() {}
+	
 	/** Create a key with a long id */
 	public OKey(Class<? extends T> kind, long id)
 	{
