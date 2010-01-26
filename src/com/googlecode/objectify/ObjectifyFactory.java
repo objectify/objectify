@@ -193,6 +193,19 @@ public class ObjectifyFactory
 	}
 	
 	/**
+	 * @return the kind associated with a particular entity class
+	 */
+	public String getKind(String className)
+	{
+		try
+		{
+			Class<?> clazz = Class.forName(className);
+			return this.getKind(clazz);
+		}
+		catch (ClassNotFoundException e) { throw new RuntimeException(e); }
+	}
+	
+	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
@@ -209,7 +222,7 @@ public class ObjectifyFactory
 	public <T> EntityMetadata<T> getMetadata(OKey<T> key)
 	{
 		// I would love to know why this produces a warning
-		return (EntityMetadata<T>)this.getMetadata(key.getKind());
+		return (EntityMetadata<T>)this.getMetadata(this.getKind(key.getKindClassName()));
 	}
 	
 	/**
@@ -254,9 +267,9 @@ public class ObjectifyFactory
 			return null;
 		
 		if (obKey.getName() != null)
-			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getName());
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKindClassName()), obKey.getName());
 		else
-			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKind()), obKey.getId());
+			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKindClassName()), obKey.getId());
 	}
 	
 	/** 

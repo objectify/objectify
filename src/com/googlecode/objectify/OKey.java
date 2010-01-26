@@ -10,10 +10,6 @@ import java.io.Serializable;
  * <p>You may use normal Key objects as relationships in your entities if you
  * desire neither type safety nor GWTability.</p>
  * 
- * <p>Note that this class is deliberately not final and can be extended
- * easily.  We recommend you derive a new OFactory and override the createKey()
- * methods if you choose to go this route.</p>
- * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez
  */
@@ -27,7 +23,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	 * back to a Class for getKind() would then require a link to the
 	 * OFactory, making this object non-serializable.
 	 */
-	protected Class<? extends T> kindClass;
+	protected String kindClassName;
 	
 	/** Null if there is no parent */
 	protected OKey<?> parent;
@@ -57,7 +53,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public OKey(OKey<?> parent, Class<? extends T> kind, long id)
 	{
 		this.parent = parent;
-		this.kindClass = kind;
+		this.kindClassName = kind.getName();
 		this.id = id;
 	}
 	
@@ -65,7 +61,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public OKey(OKey<?> parent, Class<? extends T> kind, String name)
 	{
 		this.parent = parent;
-		this.kindClass = kind;
+		this.kindClassName = kind.getName();
 		this.name = name;
 	}
 
@@ -86,11 +82,11 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	}
 	
 	/**
-	 * @return the Class associated with this key.
+	 * @return the name of the Class associated with this key.
 	 */
-	public Class<? extends T> getKind()
+	public String getKindClassName()
 	{
-		return this.kindClass;
+		return this.kindClassName;
 	}
 	
 	/**
@@ -115,7 +111,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public int compareTo(OKey<?> other)
 	{
 		// First kind
-		int cmp = this.kindClass.getName().compareTo(other.kindClass.getName());
+		int cmp = this.kindClassName.compareTo(other.kindClassName);
 		if (cmp != 0)
 			return cmp;
 
@@ -165,8 +161,8 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public String toString()
 	{
 		StringBuilder bld = new StringBuilder();
-		bld.append("OKey{kind=");
-		bld.append(this.kindClass.getName());
+		bld.append("OKey{kindClassName=");
+		bld.append(this.kindClassName);
 		bld.append(", parent=");
 		bld.append(this.parent);
 		if (this.name != null)
