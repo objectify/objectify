@@ -140,6 +140,22 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
+	public void testFilteringByNull() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Trivial triv3 = new Trivial(null, 3);
+		ofy.put(triv3);
+		
+		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString", null).iterator();
+			
+		Trivial t3 = it.next();
+		assert !it.hasNext();
+		assert t3.getId().equals(triv3.getId()); 
+	}
+
+	/** */
+	@Test
 	public void testIdFiltering() throws Exception
 	{
 		Objectify ofy = this.fact.begin();

@@ -287,13 +287,17 @@ public class ObjectifyFactory
 
 	/**
 	 * Translate Key<?> or Entity objects into something that can be used in a filter clause.
-	 * Anything unknown is simply returned as-is and we hope that the filter works.
+	 * Anything unknown (including null) is simply returned as-is and we hope that the filter works.
 	 * 
 	 * @return whatever can be put into a filter clause.
 	 */
 	public Object makeFilterable(Object keyOrEntityOrOther)
 	{
-		if (keyOrEntityOrOther instanceof Key<?>)
+		if (keyOrEntityOrOther == null)
+		{
+			return null;
+		}
+		else if (keyOrEntityOrOther instanceof Key<?>)
 		{
 			return this.oKeyToRawKey((Key<?>)keyOrEntityOrOther);
 		}
