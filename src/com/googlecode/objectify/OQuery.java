@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -35,26 +34,26 @@ public class OQuery<T>
 	Class<T> classRestriction;
 	
 	/** The actual datastore query constructed by this object */
-	protected Query actual;
+	protected com.google.appengine.api.datastore.Query actual;
 	
 	/** */
 	protected OQuery(ObjectifyFactory fact) 
 	{
 		this.factory = fact;
-		this.actual = new Query();
+		this.actual = new com.google.appengine.api.datastore.Query();
 	}
 	
 	/** */
 	protected OQuery(ObjectifyFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
-		this.actual = new Query(this.factory.getKind(clazz));
+		this.actual = new com.google.appengine.api.datastore.Query(this.factory.getKind(clazz));
 		
 		this.classRestriction = clazz;
 	}
 	
 	/** @return the underlying datastore query object */
-	protected Query getActual()
+	protected com.google.appengine.api.datastore.Query getActual()
 	{
 		return this.actual;
 	}
@@ -249,7 +248,7 @@ public class OQuery<T>
 				return o1.getDirection().compareTo(o2.getDirection());
 			}
 		});
-		for (Query.SortPredicate sort: this.actual.getSortPredicates())
+		for (SortPredicate sort: this.actual.getSortPredicates())
 		{
 			bld.append(",sort=");
 			bld.append(sort.getPropertyName());

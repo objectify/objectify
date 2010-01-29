@@ -10,7 +10,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
@@ -245,7 +244,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> OPreparedQuery<Key<T>> prepareKeysOnly(OQuery<T> query)
 	{
 		// Make sure we don't mangle the original query object, it might get used again
-		Query actual = this.cloneRawQuery(query.getActual());
+		com.google.appengine.api.datastore.Query actual = this.cloneRawQuery(query.getActual());
 		actual.setKeysOnly();
 		
 		PreparedQuery pq = this.ds.prepare(this.txn, actual);
@@ -257,9 +256,9 @@ public class ObjectifyImpl implements Objectify
 	/**
 	 * Make a new Query object that is exactly like the old.  Too bad Query isn't Cloneable. 
 	 */
-	protected Query cloneRawQuery(Query orig)
+	protected com.google.appengine.api.datastore.Query cloneRawQuery(com.google.appengine.api.datastore.Query orig)
 	{
-		Query copy = new Query(orig.getKind(), orig.getAncestor());
+		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
 		
 		for (FilterPredicate filter: orig.getFilterPredicates())
 			copy.addFilter(filter.getPropertyName(), filter.getOperator(), filter.getValue());
