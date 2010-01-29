@@ -9,10 +9,7 @@ import java.util.Map;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
-import com.google.appengine.api.datastore.Query.SortPredicate;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the DatastoreService
@@ -226,51 +223,23 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
-	 * @see com.google.code.objectify.Objectify#prepare(com.google.appengine.api.datastore.Query)
+	 * @see com.googlecode.objectify.Objectify#query()
 	 */
 	@Override
-	public <T> OPreparedQuery<T> prepare(OQuery<T> query)
+	public <T> Query<T> query()
 	{
-		PreparedQuery pq = this.ds.prepare(this.txn, query.getActual());
-		OPreparedQuery<T> prepared = new OPreparedQueryImpl<T>(this.factory, pq, false);
-
-		return this.factory.maybeWrap(prepared);
+		Query<T> query = new QueryImpl<T>(this.factory, this);
+		return this.factory.maybeWrap(query);
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#prepareKeysOnly(com.googlecode.objectify.ObQuery)
+	 * @see com.googlecode.objectify.Objectify#query(java.lang.Class)
 	 */
 	@Override
-	public <T> OPreparedQuery<Key<T>> prepareKeysOnly(OQuery<T> query)
+	public <T> Query<T> query(Class<T> clazz)
 	{
-		// Make sure we don't mangle the original query object, it might get used again
-		com.google.appengine.api.datastore.Query actual = this.cloneRawQuery(query.getActual());
-		actual.setKeysOnly();
-		
-		PreparedQuery pq = this.ds.prepare(this.txn, actual);
-		OPreparedQuery<Key<T>> prepared = new OPreparedQueryImpl<Key<T>>(this.factory, pq, true);
-
-		return this.factory.maybeWrap(prepared);
-	}
-	
-	/**
-	 * Make a new Query object that is exactly like the old.  Too bad Query isn't Cloneable. 
-	 */
-	protected com.google.appengine.api.datastore.Query cloneRawQuery(com.google.appengine.api.datastore.Query orig)
-	{
-		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
-		
-		for (FilterPredicate filter: orig.getFilterPredicates())
-			copy.addFilter(filter.getPropertyName(), filter.getOperator(), filter.getValue());
-		
-		for (SortPredicate sort: orig.getSortPredicates())
-			copy.addSort(sort.getPropertyName(), sort.getDirection());
-		
-		// This should be impossible but who knows what might happen in the future
-		if (orig.isKeysOnly())
-			copy.setKeysOnly();
-		
-		return copy;
+		Query<T> query = new QueryImpl<T>(this.factory, this, clazz);
+		return this.factory.maybeWrap(query);
 	}
 	
 	/* (non-Javadoc)

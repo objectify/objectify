@@ -14,8 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.OPreparedQuery;
-import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
@@ -153,13 +151,8 @@ public class BasicTests extends TestBase
 
 		assert employees.size() == 1100;
 
-		OQuery<Employee> q = this.fact.createQuery(Employee.class);
-		q.filter("manager", this.fact.createKey(fred));
-		OPreparedQuery<Employee> pq = ofy.prepare(q);
-		Iterable<Employee> results = pq.asIterable();
-
 		int count = 0;
-		for (Employee emp : results)
+		for (Employee emp: ofy.query(Employee.class).filter("manager", fred))
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;

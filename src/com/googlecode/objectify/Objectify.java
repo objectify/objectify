@@ -103,26 +103,14 @@ public interface Objectify
 	void delete(Iterable<?> keysOrEntities);
 	
 	/**
-	 * <p>Prepares a query for execution.  The resulting ObjPreparedQuery allows the result
-	 * set to be iterated through in a typesafe way.</p>
-	 * 
-	 * <p>You should create a query by calling one of the {@code ObjectifyFactory.createQuery()}
-	 * methods.</p>
-	 * 
-	 * @see DatastoreService#prepare(Query)
+	 * <p>Create a typesafe query across all kinds of entities.</p>
 	 */
-	<T> OPreparedQuery<T> prepare(OQuery<T> query);
+	<T> Query<T> query();
 	
 	/**
-	 * <p>Prepares a keys-only query for execution.  The resulting ObjPreparedQuery allows the result
-	 * set to be iterated through in a typesafe way, efficiently returning only keys.</p>
-	 * 
-	 * <p>You should create a query by calling one of the {@code ObjectifyFactory.createQuery()}
-	 * methods.</p>
-	 * 
-	 * @see DatastoreService#prepare(Query)
+	 * <p>Create a typesafe query across one specific kind of entity.</p>
 	 */
-	<T> OPreparedQuery<Key<T>> prepareKeysOnly(OQuery<T> query);
+	<T> Query<T> query(Class<T> clazz);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},

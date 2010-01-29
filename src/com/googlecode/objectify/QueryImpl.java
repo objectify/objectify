@@ -2,33 +2,27 @@ package com.googlecode.objectify;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 
-
-
 /**
- * <p>This is similar to the datastore Query object, but better understands
- * real class objects - it allows you to filter and sort by the key field
- * normally.</p>
- * 
- * <p>The methods of this class follow the GAE/Python Query class rather than
- * the GAE/Java Query class because the Python version is much more convenient
- * to use.  The Java version seems to have been designed for machines, not
- * humans.  You will appreciate the improvement.</p>
- * 
- * <p>Construct this class by calling {@code ObjectifyFactory.createQuery()}</p>
+ * Implementation of Query.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class OQuery<T>
+class QueryImpl<T> implements Query<T>
 {
-	/** We need this for lookups */
+	/** */
 	ObjectifyFactory factory;
+	Objectify ofy;
 	
 	/** We need to track this because it enables the ability to filter/sort by id */
 	Class<T> classRestriction;
@@ -37,16 +31,18 @@ public class OQuery<T>
 	protected com.google.appengine.api.datastore.Query actual;
 	
 	/** */
-	protected OQuery(ObjectifyFactory fact) 
+	protected QueryImpl(ObjectifyFactory fact, Objectify objectify) 
 	{
 		this.factory = fact;
+		this.ofy = objectify;
 		this.actual = new com.google.appengine.api.datastore.Query();
 	}
 	
 	/** */
-	protected OQuery(ObjectifyFactory fact, Class<T> clazz)
+	protected QueryImpl(ObjectifyFactory fact, Objectify objectify, Class<T> clazz)
 	{
 		this.factory = fact;
+		this.ofy = objectify;
 		this.actual = new com.google.appengine.api.datastore.Query(this.factory.getKind(clazz));
 		
 		this.classRestriction = clazz;
@@ -58,26 +54,10 @@ public class OQuery<T>
 		return this.actual;
 	}
 	
-	/**
-	 * <p>Create a filter based on the specified condition and value, using
-	 * the same syntax as the Python query class. Examples:</p>
-	 * 
-	 * <ul>
-	 * <li>{@code filter("age >=", age)}</li>
-	 * <li>{@code filter("age =", age)}</li>
-	 * <li>{@code filter("age", age)} (if no operator, = is assumed)</li>
-	 * <li>{@code filter("age !=", age)}</li>
-	 * <li>{@code filter("age in", ageList)}</li>
-	 * </ul>
-	 * 
-	 * <p>You can filter on id properties <strong>if</strong> this query is
-	 * restricted to a Class<T> and the entity has no @Parent.  If you are
-	 * having trouble working around this limitation, please consult the
-	 * objectify-appengine google group.</p>
-	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
-	 * the {@code ancestor()} method instead.</p>
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#filter(java.lang.String, java.lang.Object)
 	 */
-	public OQuery<T> filter(String condition, Object value)
+	public QueryImpl<T> filter(String condition, Object value)
 	{
 		String[] parts = condition.trim().split(" ");
 		if (parts.length < 1 || parts.length > 2)
@@ -104,8 +84,8 @@ public class OQuery<T>
 			}
 		}
 
-		if (value instanceof Key<?>)
-			value = this.factory.oKeyToRawKey((Key<?>)value);
+		// Convert to something filterable, possibly extracting/converting keys
+		value = this.factory.makeFilterable(value);
 		
 		this.actual.addFilter(prop, op, value);
 		
@@ -138,20 +118,10 @@ public class OQuery<T>
 			throw new IllegalArgumentException("Unknown operator '" + operator + "'");
 	}
 	
-	/**
-	 * <p>Sorts based on a property.  Examples:</p>
-	 * 
-	 * <ul>
-	 * <li>{@code sort("age")}</li>
-	 * <li>{@code sort("-age")} (descending sort)</li>
-	 * </ul>
-	 * 
-	 * <p>You can sort on id properties <strong>if</strong> this query is
-	 * restricted to a Class<T>.  Note that this is only important for
-	 * descending sorting; default iteration is key-ascending.</p>
-	 * <p>You can <strong>not</strong> sort on @Parent properties.</p>
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#order(java.lang.String)
 	 */
-	public OQuery<T> sort(String condition)
+	public Query<T> order(String condition)
 	{
 		condition = condition.trim();
 		SortDirection dir = SortDirection.ASCENDING;
@@ -175,24 +145,17 @@ public class OQuery<T>
 		return this;
 	}
 	
-	/**
-	 * Restricts result set only to objects which have the given ancestor
-	 * somewhere in the chain.  Doesn't need to be the immediate parent.
-	 * 
-	 * @param keyOrEntity can be an Key, a Key, or an Objectify entity object.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#ancestor(java.lang.Object)
 	 */
-	public OQuery<T> ancestor(Object keyOrEntity)
+	public QueryImpl<T> ancestor(Object keyOrEntity)
 	{
 		this.actual.setAncestor(this.factory.getRawKey(keyOrEntity));
 		return this;
 	}
 	
-	/**
-	 * <p>Generates a string that consistently and uniquely specifies this query.  There
-	 * is no way to convert this string back into a query and there is no guarantee that
-	 * the string will be consistent across versions of Objectify.</p>
-	 * 
-	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p> 
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
 	 */
 	public String toString()
 	{
@@ -258,5 +221,194 @@ public class OQuery<T>
 		bld.append('}');
 		
 		return bld.toString();
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Iterable#iterator()
+	 */
+	@Override
+	public Iterator<T> iterator()
+	{
+		return new ToObjectIterator<T>(this.prepare().asIterator(), false);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#get()
+	 */
+	@Override
+	public T get()
+	{
+		Entity ent = this.prepare().asSingleEntity();
+		if (ent == null)
+			return null;
+
+		EntityMetadata<T> metadata = this.factory.getMetadata(ent.getKey());
+		return metadata.toObject(ent);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#getKey()
+	 */
+	@Override
+	public Key<T> getKey()
+	{
+		Entity ent = this.prepareKeysOnly().asSingleEntity();
+		if (ent == null)
+			return null;
+
+		return this.factory.rawKeyToOKey(ent.getKey());
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#count()
+	 */
+	@Override
+	public int count()
+	{
+		return this.prepare().countEntities();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetch()
+	 */
+	@Override
+	public Iterable<T> fetch()
+	{
+		// We are already iterable
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetch(int, int)
+	 */
+	@Override
+	public Iterable<T> fetch(int limit, int offset)
+	{
+		FetchOptions opts = FetchOptions.Builder.withLimit(limit).offset(offset);
+		return new ToObjectIterable<T>(this.prepare().asIterable(opts), false);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetchKeys()
+	 */
+	@Override
+	public Iterable<Key<T>> fetchKeys()
+	{
+		return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(), true);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetchKeys(int, int)
+	 */
+	@Override
+	public Iterable<Key<T>> fetchKeys(int limit, int offset)
+	{
+		FetchOptions opts = FetchOptions.Builder.withLimit(limit).offset(offset);
+		return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(opts), true);
+	}
+	
+	/**
+	 * Create a PreparedQuery relevant to our current state.
+	 */
+	private PreparedQuery prepare()
+	{
+		return this.ofy.getDatastore().prepare(this.ofy.getTxn(), this.actual);
+	}
+
+	/**
+	 * Create a PreparedQuery that fetches keys only, relevant to our current state.
+	 */
+	private PreparedQuery prepareKeysOnly()
+	{
+		// Can't modify the query, we might need to use it again
+		com.google.appengine.api.datastore.Query cloned = this.cloneRawQuery(this.actual);
+		cloned.setKeysOnly();
+		
+		return this.ofy.getDatastore().prepare(this.ofy.getTxn(), cloned);
+	}
+	
+	/**
+	 * Make a new Query object that is exactly like the old.  Too bad Query isn't Cloneable. 
+	 */
+	protected com.google.appengine.api.datastore.Query cloneRawQuery(com.google.appengine.api.datastore.Query orig)
+	{
+		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
+		
+		for (FilterPredicate filter: orig.getFilterPredicates())
+			copy.addFilter(filter.getPropertyName(), filter.getOperator(), filter.getValue());
+		
+		for (SortPredicate sort: orig.getSortPredicates())
+			copy.addSort(sort.getPropertyName(), sort.getDirection());
+		
+		// This should be impossible but who knows what might happen in the future
+		if (orig.isKeysOnly())
+			copy.setKeysOnly();
+		
+		return copy;
+	}
+	
+	/**
+	 * Iterable that translates from datastore Entity to types Objects
+	 */
+	class ToObjectIterable<S> implements Iterable<S>
+	{
+		Iterable<Entity> source;
+		boolean keysOnly;
+
+		public ToObjectIterable(Iterable<Entity> source, boolean keysOnly)
+		{
+			this.source = factory.maybeWrap(source);
+			this.keysOnly = keysOnly;
+		}
+
+		@Override
+		public Iterator<S> iterator()
+		{
+			return new ToObjectIterator<S>(this.source.iterator(), this.keysOnly);
+		}
+	}
+
+	/**
+	 * Iterator that translates from datastore Entity to typed Objects
+	 */
+	class ToObjectIterator<S> implements Iterator<S>
+	{
+		Iterator<Entity> source;
+		boolean keysOnly;
+
+		public ToObjectIterator(Iterator<Entity> source, boolean keysOnly)
+		{
+			this.source = factory.maybeWrap(source);
+			this.keysOnly = keysOnly;
+		}
+
+		@Override
+		public boolean hasNext()
+		{
+			return this.source.hasNext();
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		public S next()
+		{
+			Entity nextEntity = this.source.next();
+			if (keysOnly)
+			{
+				// This will be a ToObjectIterator<Key<T>>
+				return (S)factory.rawKeyToOKey(nextEntity.getKey());
+			}
+			else
+			{
+				EntityMetadata<S> meta = factory.getMetadata(nextEntity.getKey());
+				return meta.toObject(nextEntity);
+			}
+		}
+
+		@Override
+		public void remove()
+		{
+			this.source.remove();
+		}
 	}
 }

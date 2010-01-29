@@ -153,28 +153,6 @@ public class ObjectifyFactory
 	}
 	
 	//
-	// Friendly query creation methods
-	//
-	
-	/**
-	 * Creates a new kind-less query that finds entities.
-	 * @see Query#Query()
-	 */
-	public <T> OQuery<T> createQuery()
-	{
-		return new OQuery<T>(this);
-	}
-	
-	/**
-	 * Creates a query that finds entities with the specified type
-	 * @see Query#Query(String)
-	 */
-	public <T> OQuery<T> createQuery(Class<T> entityClazz)
-	{
-		return new OQuery<T>(this, entityClazz);
-	}
-	
-	//
 	// Stuff which should only be necessary internally, but might be useful to others.
 	//
 	
@@ -299,6 +277,30 @@ public class ObjectifyFactory
 		else if (keyOrEntity instanceof Key<?>)
 			return this.oKeyToRawKey((Key<?>)keyOrEntity);
 		else
-			 return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
+			return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
+	}
+
+	/**
+	 * Translate Key<?> or Entity objects into something that can be used in a filter clause.
+	 * Anything unknown is simply returned as-is and we hope that the filter works.
+	 * 
+	 * @return whatever can be put into a filter clause.
+	 */
+	public Object makeFilterable(Object keyOrEntityOrOther)
+	{
+		if (keyOrEntityOrOther instanceof Key<?>)
+		{
+			return this.oKeyToRawKey((Key<?>)keyOrEntityOrOther);
+		}
+		else
+		{
+			// Unfortunately we can't use getRawKey() because it throws IllegalArgumentException
+			String kind = this.getKind(keyOrEntityOrOther.getClass());
+			EntityMetadata<?> meta = this.types.get(kind);
+			if (meta == null)
+				return keyOrEntityOrOther;
+			else
+				return meta.getKey(keyOrEntityOrOther);
+		}
 	}
 }
