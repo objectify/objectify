@@ -9,7 +9,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -21,7 +21,7 @@ public class Employee
 {
 	@Id
 	public String name;
-	public OKey<Employee> manager;
+	public Key<Employee> manager;
 
 	/** Default constructor must always exist */
 	public Employee() {}
@@ -33,7 +33,7 @@ public class Employee
 	}
 
 	/** set a name and manager */
-	public Employee(String name, OKey<Employee> manager)
+	public Employee(String name, Key<Employee> manager)
 	{
 		this.name = name;
 		this.manager = manager;

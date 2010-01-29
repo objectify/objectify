@@ -16,7 +16,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
@@ -36,7 +36,7 @@ public class QueryTests extends TestBase
 	/** */
 	Trivial triv1;
 	Trivial triv2;
-	List<OKey<Trivial>> keys;
+	List<Key<Trivial>> keys;
 	
 	/** */
 	@BeforeMethod
@@ -63,10 +63,10 @@ public class QueryTests extends TestBase
 		
 		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
 		
-		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
+		OPreparedQuery<Key<Trivial>> pq = ofy.prepareKeysOnly(q);
 		
 		int count = 0;
-		for (OKey<Trivial> k: pq.asIterable())
+		for (Key<Trivial> k: pq.asIterable())
 		{
 			assert keys.contains(k);
 			count++;
@@ -75,7 +75,7 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		for (OKey<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
+		for (Key<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
 			assert keys.contains(k);
 		
 		assert pq.count() == keys.size();
@@ -221,12 +221,12 @@ public class QueryTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		
 		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
+		OPreparedQuery<Key<Trivial>> pq = ofy.prepareKeysOnly(q);
 		FetchOptions opts = FetchOptions.Builder.withLimit(10);
 		
 		// This used to throw an exception when wrapping the ArrayList in the retry wrapper
 		// because we used the wrong classloader to produce the proxy.  Fixed.
-    	List<OKey<Trivial>> keys = pq.asList(opts);
+    	List<Key<Trivial>> keys = pq.asList(opts);
     	
     	assert keys != null;
 	}

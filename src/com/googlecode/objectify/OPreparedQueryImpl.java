@@ -157,7 +157,7 @@ public class OPreparedQueryImpl<T> implements OPreparedQuery<T>
 			Entity nextEntity = this.source.next();
 			if (keysOnly)
 			{
-				// This will be a ToObjectIterator<OKey<T>>
+				// This will be a ToObjectIterator<Key<T>>
 				return (S)factory.rawKeyToOKey(nextEntity.getKey());
 			}
 			else

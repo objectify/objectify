@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -59,7 +59,7 @@ public class CollectionTests extends TestBase
 		hc.integerArrayList = new ArrayList<Integer>(hc.integerList);
 		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
 		
-		OKey<HasCollections> key = ofy.put(hc);
+		Key<HasCollections> key = ofy.put(hc);
 		hc = ofy.get(key);
 		
 		assertContains123(hc.integerList, ArrayList.class);;
@@ -84,7 +84,7 @@ public class CollectionTests extends TestBase
 		hc.integerTreeSet = new TreeSet<Integer>(hc.integerSet);
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 		
-		OKey<HasCollections> key = ofy.put(hc);
+		Key<HasCollections> key = ofy.put(hc);
 		hc = ofy.get(key);
 		
 		assertContains123(hc.integerSet, HashSet.class);;
@@ -106,7 +106,7 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(2);
 		hc.customSet.add(3);
 		
-		OKey<HasCollections> key = ofy.put(hc);
+		Key<HasCollections> key = ofy.put(hc);
 		hc = ofy.get(key);
 		
 		assertContains123(hc.customSet, CustomSet.class);;
@@ -118,23 +118,23 @@ public class CollectionTests extends TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		
-		OKey<Trivial> key7 = new OKey<Trivial>(Trivial.class, 7);
-		OKey<Trivial> key8 = new OKey<Trivial>(Trivial.class, 8);
-		OKey<Trivial> key9 = new OKey<Trivial>(Trivial.class, 9);
+		Key<Trivial> key7 = new Key<Trivial>(Trivial.class, 7);
+		Key<Trivial> key8 = new Key<Trivial>(Trivial.class, 8);
+		Key<Trivial> key9 = new Key<Trivial>(Trivial.class, 9);
 
 		HasCollections hc = new HasCollections();
-		hc.oKeySet = new HashSet<OKey<Trivial>>();
+		hc.oKeySet = new HashSet<Key<Trivial>>();
 		hc.oKeySet.add(key7);
 		hc.oKeySet.add(key8);
 		hc.oKeySet.add(key9);
 		
-		OKey<HasCollections> key = ofy.put(hc);
+		Key<HasCollections> key = ofy.put(hc);
 		hc = ofy.get(key);
 		
 		assert hc.oKeySet instanceof HashSet<?>;
 		assert hc.oKeySet.size() == 3;
 		
-		Iterator<OKey<Trivial>> it = hc.oKeySet.iterator();
+		Iterator<Key<Trivial>> it = hc.oKeySet.iterator();
 		assert it.next().equals(key7);
 		assert it.next().equals(key8);
 		assert it.next().equals(key9);

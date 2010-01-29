@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.OPreparedQuery;
 import com.googlecode.objectify.OQuery;
 import com.googlecode.objectify.Objectify;
@@ -34,10 +34,10 @@ public class AncestorTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
-		OKey<Trivial> parentKey = ofy.put(triv);
+		Key<Trivial> parentKey = ofy.put(triv);
 
 		Child child = new Child(parentKey, "cry");
-		OKey<Child> childKey = ofy.put(child);
+		Key<Child> childKey = ofy.put(child);
 		
 		assert childKey.getParent().equals(parentKey);
 		

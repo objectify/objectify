@@ -210,8 +210,8 @@ public class EntityMetadata<T>
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
-				if (field.getType() != com.google.appengine.api.datastore.Key.class && field.getType() != OKey.class)
-					throw new IllegalStateException("Only fields of type OKey<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				if (field.getType() != com.google.appengine.api.datastore.Key.class && field.getType() != Key.class)
+					throw new IllegalStateException("Only fields of type Key<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
 
 				this.parentField = field;
 			}
@@ -394,7 +394,7 @@ public class EntityMetadata<T>
 		{
 			return this.coerceNumber((Number)value, type);
 		}
-		else if (value instanceof com.google.appengine.api.datastore.Key && OKey.class.isAssignableFrom(type))
+		else if (value instanceof com.google.appengine.api.datastore.Key && Key.class.isAssignableFrom(type))
 		{
 			return this.factory.rawKeyToOKey((com.google.appengine.api.datastore.Key)value);
 		}
@@ -461,9 +461,9 @@ public class EntityMetadata<T>
 			
 			return list;
 		}
-		else if (value instanceof OKey<?>)
+		else if (value instanceof Key<?>)
 		{
-			return this.factory.oKeyToRawKey((OKey<?>)value);
+			return this.factory.oKeyToRawKey((Key<?>)value);
 		}
 
 		// Usually we just want to return the value
@@ -640,13 +640,13 @@ public class EntityMetadata<T>
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 	
-	/** @return the raw key even if the field is an OKey */
+	/** @return the raw key even if the field is an Key */
 	private com.google.appengine.api.datastore.Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
 	{
 		if (keyField.getType() == com.google.appengine.api.datastore.Key.class)
 			return (com.google.appengine.api.datastore.Key)keyField.get(obj);
 		else
-			return this.factory.oKeyToRawKey((OKey<?>)keyField.get(obj));
+			return this.factory.oKeyToRawKey((Key<?>)keyField.get(obj));
 	}
 	
 	/**

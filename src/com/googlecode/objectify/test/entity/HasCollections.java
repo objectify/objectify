@@ -16,7 +16,7 @@ import java.util.TreeSet;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 
 /**
  * An entity that has a variety of collection types.
@@ -47,5 +47,5 @@ public class HasCollections
 	public CustomSet customSet;
 	
 	/** This should give the system a workout */
-	public Set<OKey<Trivial>> oKeySet;
+	public Set<Key<Trivial>> oKeySet;
 }

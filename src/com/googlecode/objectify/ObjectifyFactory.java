@@ -147,7 +147,7 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public <T> OKey<T> createKey(T entity)
+	public <T> Key<T> createKey(T entity)
 	{
 		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
 	}
@@ -217,7 +217,7 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadata(OKey<T> key)
+	public <T> EntityMetadata<T> getMetadata(Key<T> key)
 	{
 		// I would love to know why this produces a warning
 		return (EntityMetadata<T>)this.getMetadata(this.getKind(key.getKindClassName()));
@@ -256,10 +256,10 @@ public class ObjectifyFactory
 	}
 
 	/** 
-	 * Converts an OKey into a raw Key.
+	 * Converts an Key into a raw Key.
 	 * @param obKey can be null, resulting in a null Key
 	 */
-	public com.google.appengine.api.datastore.Key oKeyToRawKey(OKey<?> obKey)
+	public com.google.appengine.api.datastore.Key oKeyToRawKey(Key<?> obKey)
 	{
 		if (obKey == null)
 			return null;
@@ -271,10 +271,10 @@ public class ObjectifyFactory
 	}
 	
 	/** 
-	 * Converts a raw Key into an OKey.
-	 * @param rawKey can be null, resulting in a null OKey
+	 * Converts a raw Key into an Key.
+	 * @param rawKey can be null, resulting in a null Key
 	 */
-	public <T> OKey<T> rawKeyToOKey(com.google.appengine.api.datastore.Key rawKey)
+	public <T> Key<T> rawKeyToOKey(com.google.appengine.api.datastore.Key rawKey)
 	{
 		if (rawKey == null)
 			return null;
@@ -283,9 +283,9 @@ public class ObjectifyFactory
 		Class<T> entityClass = meta.getEntityClass();
 		
 		if (rawKey.getName() != null)
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
+			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
 		else
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
+			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
 	}
 	
 	/**
@@ -296,8 +296,8 @@ public class ObjectifyFactory
 	{
 		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return (com.google.appengine.api.datastore.Key)keyOrEntity;
-		else if (keyOrEntity instanceof OKey<?>)
-			return this.oKeyToRawKey((OKey<?>)keyOrEntity);
+		else if (keyOrEntity instanceof Key<?>)
+			return this.oKeyToRawKey((Key<?>)keyOrEntity);
 		else
 			 return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
 	}

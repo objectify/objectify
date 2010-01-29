@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
@@ -33,7 +33,7 @@ public class EntityTests extends TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		Apple a = new Apple(Apple.COLOR, Apple.TASTE);
-		OKey<Apple> aKey = ofy.put(a);
+		Key<Apple> aKey = ofy.put(a);
 		Apple a2 = ofy.get(aKey);
 		assert a2.getColor().equals(a.getColor()) : "Colors were different after stored/retrieved";
 		assert a2.getSize().equals(a.getSize()) : "Sizes were different after stored/retrieved";
@@ -45,7 +45,7 @@ public class EntityTests extends TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		Banana b = new Banana(Banana.COLOR, Banana.TASTE);
-		OKey<Banana> bKey = ofy.put(b);
+		Key<Banana> bKey = ofy.put(b);
 		Banana b2 = ofy.get(bKey);
 		assert b2.getColor().equals(b.getColor()) : "Colors were different after stored/retrieved";
 		assert b2.getShape().equals(b.getShape()) : "Shapes were different after stored/retrieved";
@@ -59,7 +59,7 @@ public class EntityTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfString hos = new HolderOfString(s);
-		OKey<HolderOfString> hosKey = ofy.put(hos);
+		Key<HolderOfString> hosKey = ofy.put(hos);
 		HolderOfString hos2 = ofy.get(hosKey);
 		
 		assert hos.getThing().equals(hos2.getMyThing()) : "Strings were different after stored/retrieved";
@@ -73,7 +73,7 @@ public class EntityTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfStringAndLong hosal = new HolderOfStringAndLong(s,2L);
-		OKey<HolderOfStringAndLong> hosKey = ofy.put(hosal);
+		Key<HolderOfStringAndLong> hosKey = ofy.put(hosal);
 		HolderOfStringAndLong hosal2 = ofy.get(hosKey);
 		
 		assert hosal.getMyPrecious().equals(hosal2.getMyPrecious()) : "Longs were different after stored/retrieved";

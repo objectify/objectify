@@ -13,7 +13,7 @@ import java.io.Serializable;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez
  */
-public class OKey<T> implements Serializable, Comparable<OKey<?>>
+public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = 1L;
 	
@@ -26,7 +26,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	protected String kindClassName;
 	
 	/** Null if there is no parent */
-	protected OKey<?> parent;
+	protected Key<?> parent;
 	
 	/** Either id or name will be valid */
 	protected long id;
@@ -35,22 +35,22 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	protected String name;
 	
 	/** For GWT serialization */
-	protected OKey() {}
+	protected Key() {}
 	
 	/** Create a key with a long id */
-	public OKey(Class<? extends T> kind, long id)
+	public Key(Class<? extends T> kind, long id)
 	{
 		this(null, kind, id);
 	}
 	
 	/** Create a key with a String name */
-	public OKey(Class<? extends T> kind, String name)
+	public Key(Class<? extends T> kind, String name)
 	{
 		this(null, kind, name);
 	}
 	
 	/** Create a key with a parent and a long id */
-	public OKey(OKey<?> parent, Class<? extends T> kind, long id)
+	public Key(Key<?> parent, Class<? extends T> kind, long id)
 	{
 		this.parent = parent;
 		this.kindClassName = kind.getName();
@@ -58,7 +58,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	}
 	
 	/** Create a key with a parent and a String name */
-	public OKey(OKey<?> parent, Class<? extends T> kind, String name)
+	public Key(Key<?> parent, Class<? extends T> kind, String name)
 	{
 		this.parent = parent;
 		this.kindClassName = kind.getName();
@@ -94,9 +94,9 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	 *  the parent could potentially have any type. 
 	 */
 	@SuppressWarnings("unchecked")
-	public <V> OKey<V> getParent()
+	public <V> Key<V> getParent()
 	{
-		return (OKey<V>)this.parent;
+		return (Key<V>)this.parent;
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	 * </ol>
 	 */
 	@Override
-	public int compareTo(OKey<?> other)
+	public int compareTo(Key<?> other)
 	{
 		// First kind
 		int cmp = this.kindClassName.compareTo(other.kindClassName);
@@ -140,10 +140,10 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 		if (obj == null)
 			return false;
 		
-		if (!(obj instanceof OKey<?>))
+		if (!(obj instanceof Key<?>))
 			return false;
 		
-		return this.compareTo((OKey<?>)obj) == 0;
+		return this.compareTo((Key<?>)obj) == 0;
 	}
 
 	/** */
@@ -161,7 +161,7 @@ public class OKey<T> implements Serializable, Comparable<OKey<?>>
 	public String toString()
 	{
 		StringBuilder bld = new StringBuilder();
-		bld.append("OKey{kindClassName=");
+		bld.append("Key{kindClassName=");
 		bld.append(this.kindClassName);
 		bld.append(", parent=");
 		bld.append(this.parent);

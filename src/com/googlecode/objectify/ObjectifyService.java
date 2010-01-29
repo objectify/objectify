@@ -49,7 +49,7 @@ public class ObjectifyService
 	//
 	
 	/** @see ObjectifyFactory#createKey(Object) */
-	public static <T> OKey<T> createKey(T entity) { return factory().createKey(entity); }
+	public static <T> Key<T> createKey(T entity) { return factory().createKey(entity); }
 	
 	//
 	// Friendly query creation methods

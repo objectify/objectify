@@ -27,14 +27,14 @@ public interface Objectify
 	 * @return a empty map if no keys are found in the datastore.
 	 * @see DatastoreService#get(Iterable)
 	 */
-	<T> Map<OKey<T>, T> get(Iterable<? extends OKey<? extends T>> keys);
+	<T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys);
 	
 	/**
 	 * Gets one instance of your typed object.
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 * @see DatastoreService#get(Key) 
 	 */
-	<T> T get(OKey<? extends T> key) throws EntityNotFoundException;
+	<T> T get(Key<? extends T> key) throws EntityNotFoundException;
 	
 	/**
 	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
@@ -57,10 +57,10 @@ public interface Objectify
 	 *  or of type Iterable<String> (which translates to name keys).
 	 * @throws IllegalArgumentException if ids is not Iterable<Long> or Iterable<String>
 	 */
-	<T> Map<OKey<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
+	<T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
 	
-	/** Identical to get(OKey) but returns null instead of throwing EntityNotFoundException */ 
-	<T> T find(OKey<? extends T> key);
+	/** Identical to get(Key) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(Key<? extends T> key);
 	
 	/** Identical to get(Class, long) but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Class<? extends T> clazz, long id);
@@ -74,7 +74,7 @@ public interface Objectify
 	 * has a key, it will overwrite any value formerly stored with that key.
 	 * @see DatastoreService#put(com.google.appengine.api.datastore.Entity) 
 	 */
-	<T> OKey<T> put(T obj);
+	<T> Key<T> put(T obj);
 	
 	/**
 	 * Just like the DatastoreService method, but uses your typed objects.
@@ -83,7 +83,7 @@ public interface Objectify
 	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	<T> List<OKey<T>> put(Iterable<? extends T> objs);
+	<T> List<Key<T>> put(Iterable<? extends T> objs);
 	
 	/**
 	 * Deletes the specified entity.  The object passed in can be either a Key
@@ -122,7 +122,7 @@ public interface Objectify
 	 * 
 	 * @see DatastoreService#prepare(Query)
 	 */
-	<T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery<T> query);
+	<T> OPreparedQuery<Key<T>> prepareKeysOnly(OQuery<T> query);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},

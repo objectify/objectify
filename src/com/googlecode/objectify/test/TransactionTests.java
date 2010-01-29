@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -31,7 +31,7 @@ public class TransactionTests extends TestBase
 	public void testSimpleTransaction() throws Exception
 	{
 		Trivial triv = new Trivial("foo", 5);
-		OKey<Trivial> k = null;
+		Key<Trivial> k = null;
 		
 		Objectify tOfy = this.fact.beginTransaction();
 		try

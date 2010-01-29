@@ -105,8 +105,8 @@ public class OQuery<T>
 			}
 		}
 
-		if (value instanceof OKey<?>)
-			value = this.factory.oKeyToRawKey((OKey<?>)value);
+		if (value instanceof Key<?>)
+			value = this.factory.oKeyToRawKey((Key<?>)value);
 		
 		this.actual.addFilter(prop, op, value);
 		
@@ -180,7 +180,7 @@ public class OQuery<T>
 	 * Restricts result set only to objects which have the given ancestor
 	 * somewhere in the chain.  Doesn't need to be the immediate parent.
 	 * 
-	 * @param keyOrEntity can be an OKey, a Key, or an Objectify entity object.
+	 * @param keyOrEntity can be an Key, a Key, or an Objectify entity object.
 	 */
 	public OQuery<T> ancestor(Object keyOrEntity)
 	{
