@@ -9,7 +9,6 @@ import java.util.Map;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
@@ -54,14 +53,14 @@ public class ObjectifyImpl implements Objectify
 	public <T> Map<OKey<T>, T> get(Iterable<? extends OKey<? extends T>> keys)
 	{
 		// First we need to turn the keys into raw keys
-		List<Key> rawKeys = new ArrayList<Key>();
+		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (OKey<? extends T> obKey: keys)
 			rawKeys.add(this.factory.oKeyToRawKey(obKey));
 			
-		Map<Key, Entity> entities = this.ds.get(this.txn, rawKeys);
+		Map<com.google.appengine.api.datastore.Key, Entity> entities = this.ds.get(this.txn, rawKeys);
 		Map<OKey<T>, T> result = new HashMap<OKey<T>, T>(entities.size() * 2);
 		
-		for (Map.Entry<Key, Entity> entry: entities.entrySet())
+		for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: entities.entrySet())
 		{
 			EntityMetadata metadata = this.factory.getMetadata(entry.getKey());
 			OKey<T> obKey = this.factory.rawKeyToOKey(entry.getKey());
@@ -163,7 +162,7 @@ public class ObjectifyImpl implements Objectify
 		
 		Entity ent = metadata.toEntity(obj);
 		
-		Key rawKey = this.ds.put(this.txn, ent);
+		com.google.appengine.api.datastore.Key rawKey = this.ds.put(this.txn, ent);
 
 		// Need to reset the key value in case the value was generated
 		metadata.setKey(obj, rawKey);
@@ -184,15 +183,15 @@ public class ObjectifyImpl implements Objectify
 			entityList.add(metadata.toEntity(obj));
 		}
 		
-		List<Key> rawKeys = this.ds.put(this.txn, entityList);
+		List<com.google.appengine.api.datastore.Key> rawKeys = this.ds.put(this.txn, entityList);
 		
 		List<OKey<T>> obKeys = new ArrayList<OKey<T>>(rawKeys.size());
 		
 		// Patch up any generated keys in the original objects while building new key list
-		Iterator<Key> keysIt = rawKeys.iterator();
+		Iterator<com.google.appengine.api.datastore.Key> keysIt = rawKeys.iterator();
 		for (Object obj: objs)
 		{
-			Key k = keysIt.next();
+			com.google.appengine.api.datastore.Key k = keysIt.next();
 			EntityMetadata<?> metadata = this.factory.getMetadataForEntity(obj);
 			metadata.setKey(obj, k);
 			
@@ -209,9 +208,9 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public void delete(Object keyOrEntity)
 	{
-		if (keyOrEntity instanceof Key)
-			this.ds.delete(this.txn, (Key)keyOrEntity);
-		if (keyOrEntity instanceof OKey<?>)
+		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			this.ds.delete(this.txn, (com.google.appengine.api.datastore.Key)keyOrEntity);
+		else if (keyOrEntity instanceof OKey<?>)
 			this.ds.delete(this.txn, this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
 		else
 			this.ds.delete(this.txn, this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
@@ -223,13 +222,15 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public void delete(Iterable<?> keysOrEntities)
 	{
-		// We have to be careful here, objs could contain Keys or entity objects or both!
-		List<Key> keys = new ArrayList<Key>();
+		// We have to be careful here, objs could contain raw Keys or Keys or entity objects or both!
+		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		
 		for (Object obj: keysOrEntities)
 		{
-			if (obj instanceof Key)
-				keys.add((Key)obj);
+			if (obj instanceof com.google.appengine.api.datastore.Key)
+				keys.add((com.google.appengine.api.datastore.Key)obj);
+			else if (obj instanceof OKey<?>)
+				keys.add(this.factory.oKeyToRawKey((OKey<?>)obj));
 			else
 				keys.add(this.factory.getMetadataForEntity(obj).getKey(obj));
 		}

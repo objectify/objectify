@@ -3,7 +3,6 @@ package com.googlecode.objectify;
 import java.util.Arrays;
 import java.util.Comparator;
 
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -185,8 +184,8 @@ public class OQuery<T>
 	 */
 	public OQuery<T> ancestor(Object keyOrEntity)
 	{
-		if (keyOrEntity instanceof Key)
-			this.actual.setAncestor((Key)keyOrEntity);
+		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			this.actual.setAncestor((com.google.appengine.api.datastore.Key)keyOrEntity);
 		else if (keyOrEntity instanceof OKey<?>)
 			this.actual.setAncestor(this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
 		else

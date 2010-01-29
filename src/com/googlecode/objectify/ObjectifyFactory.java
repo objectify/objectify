@@ -5,9 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -209,7 +207,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Key key)
+	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key)
 	{
 		return this.getMetadata(key.getKind());
 	}
@@ -261,7 +259,7 @@ public class ObjectifyFactory
 	 * Converts an OKey into a raw Key.
 	 * @param obKey can be null, resulting in a null Key
 	 */
-	public Key oKeyToRawKey(OKey<?> obKey)
+	public com.google.appengine.api.datastore.Key oKeyToRawKey(OKey<?> obKey)
 	{
 		if (obKey == null)
 			return null;
@@ -276,7 +274,7 @@ public class ObjectifyFactory
 	 * Converts a raw Key into an OKey.
 	 * @param rawKey can be null, resulting in a null OKey
 	 */
-	public <T> OKey<T> rawKeyToOKey(Key rawKey)
+	public <T> OKey<T> rawKeyToOKey(com.google.appengine.api.datastore.Key rawKey)
 	{
 		if (rawKey == null)
 			return null;
