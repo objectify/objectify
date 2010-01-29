@@ -184,13 +184,7 @@ public class OQuery<T>
 	 */
 	public OQuery<T> ancestor(Object keyOrEntity)
 	{
-		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
-			this.actual.setAncestor((com.google.appengine.api.datastore.Key)keyOrEntity);
-		else if (keyOrEntity instanceof OKey<?>)
-			this.actual.setAncestor(this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
-		else
-			this.actual.setAncestor(this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
-		
+		this.actual.setAncestor(this.factory.getRawKey(keyOrEntity));
 		return this;
 	}
 	

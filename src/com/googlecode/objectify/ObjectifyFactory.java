@@ -287,4 +287,18 @@ public class ObjectifyFactory
 		else
 			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
 	}
+	
+	/**
+	 * @return the raw key for an object which might be a raw Key, a Key<T>, or an entity
+	 * @throws IllegalArgumentException if obj is not a Key, Key<T>, or registered entity 
+	 */
+	public com.google.appengine.api.datastore.Key getRawKey(Object keyOrEntity)
+	{
+		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			return (com.google.appengine.api.datastore.Key)keyOrEntity;
+		else if (keyOrEntity instanceof OKey<?>)
+			return this.oKeyToRawKey((OKey<?>)keyOrEntity);
+		else
+			 return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
+	}
 }

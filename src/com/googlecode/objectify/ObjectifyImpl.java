@@ -208,12 +208,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public void delete(Object keyOrEntity)
 	{
-		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
-			this.ds.delete(this.txn, (com.google.appengine.api.datastore.Key)keyOrEntity);
-		else if (keyOrEntity instanceof OKey<?>)
-			this.ds.delete(this.txn, this.factory.oKeyToRawKey((OKey<?>)keyOrEntity));
-		else
-			this.ds.delete(this.txn, this.factory.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
+		this.ds.delete(this.txn, this.factory.getRawKey(keyOrEntity));
 	}
 
 	/* (non-Javadoc)
@@ -226,14 +221,7 @@ public class ObjectifyImpl implements Objectify
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		
 		for (Object obj: keysOrEntities)
-		{
-			if (obj instanceof com.google.appengine.api.datastore.Key)
-				keys.add((com.google.appengine.api.datastore.Key)obj);
-			else if (obj instanceof OKey<?>)
-				keys.add(this.factory.oKeyToRawKey((OKey<?>)obj));
-			else
-				keys.add(this.factory.getMetadataForEntity(obj).getKey(obj));
-		}
+			keys.add(this.factory.getRawKey(obj));
 		
 		this.ds.delete(this.txn, keys);
 	}
