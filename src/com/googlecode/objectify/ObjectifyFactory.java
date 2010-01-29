@@ -157,15 +157,20 @@ public class ObjectifyFactory
 	//
 	
 	/**
-	 * @return the kind associated with a particular entity class
+	 * @return the kind associated with a particular entity class, checking both @Entity
+	 *  annotations and defaulting to the class' simplename.
 	 */
 	public String getKind(Class<?> clazz)
 	{
-		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
-		if (entityAnn == null || entityAnn.name() == null || entityAnn.name().length() == 0)
-			return clazz.getSimpleName();
-		else
-			return entityAnn.name();
+		com.googlecode.objectify.annotation.Entity ourAnn = clazz.getAnnotation(com.googlecode.objectify.annotation.Entity.class);
+		if (ourAnn != null && ourAnn.name() != null && ourAnn.name().length() != 0)
+			return ourAnn.name();
+		
+		javax.persistence.Entity jpaAnn = clazz.getAnnotation(javax.persistence.Entity.class);
+		if (jpaAnn != null && jpaAnn.name() != null && jpaAnn.name().length() != 0)
+			return jpaAnn.name();
+		
+		return clazz.getSimpleName();
 	}
 	
 	/**
