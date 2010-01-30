@@ -2,5 +2,5 @@
 <!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 1.7.0//EN" "http://google-web-toolkit.googlecode.com/svn/tags/1.7.0/distro-source/core/src/gwt-module.dtd">
 <module>
     <super-source path="objectify/impl/emul"/>
-    <source path="objectify" includes="OKey.java"/>
+    <source path="objectify" includes="Key.java"/>
 </module>

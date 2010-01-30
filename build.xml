@@ -95,12 +95,9 @@
 			</fileset>
 			<fileset dir="${src.dir}">
 				<include name="**/*.gwt.xml"/>
-				<include name="**/OKey.java"/>
-				<include name="**/*_CustomFieldSerializer.java"/>
+				<include name="**/Key.java"/>
 			</fileset>
 
-			<!-- copy the "super" classes and sources under the emul directory -->
-			<zipfileset dir="${build.super.dir}" prefix="${super.package}"/>
 			<zipfileset dir="${super.src.dir}" prefix="${super.package}">
 				<include name="**/*.java"/>
 			</zipfileset>
