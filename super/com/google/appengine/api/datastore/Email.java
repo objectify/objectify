@@ -5,12 +5,15 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Email implements Serializable, Comparable<Email>
 {
-	private String email;
+	private final String email;
 
+	@SuppressWarnings("unused")
 	private Email()
 	{
+		this.email = null;
 	}
 
 	public Email(String email)

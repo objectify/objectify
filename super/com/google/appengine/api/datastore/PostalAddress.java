@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class PostalAddress implements Serializable, Comparable<PostalAddress>
 {
 	private final String address;
@@ -21,6 +22,7 @@ public class PostalAddress implements Serializable, Comparable<PostalAddress>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private PostalAddress()
 	{
 		address = null;

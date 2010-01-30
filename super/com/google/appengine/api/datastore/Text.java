@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Text implements Serializable
 {
 	private final String value;

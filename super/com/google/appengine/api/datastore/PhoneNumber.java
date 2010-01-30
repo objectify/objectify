@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class PhoneNumber implements Serializable, Comparable<PhoneNumber>
 {
 	private final String number;
@@ -22,6 +23,7 @@ public class PhoneNumber implements Serializable, Comparable<PhoneNumber>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private PhoneNumber()
 	{
 		number = null;

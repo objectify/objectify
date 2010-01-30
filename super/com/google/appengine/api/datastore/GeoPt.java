@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class GeoPt implements Serializable, Comparable<GeoPt>
 {
 	private final float latitude;
@@ -25,6 +26,7 @@ public class GeoPt implements Serializable, Comparable<GeoPt>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private GeoPt()
 	{
 		this(0.0F, 0.0F);

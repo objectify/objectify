@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class IMHandle implements Serializable, Comparable<IMHandle>
 {
 	public static enum Scheme
@@ -29,6 +30,7 @@ public class IMHandle implements Serializable, Comparable<IMHandle>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private IMHandle()
 	{
 		protocol = null;

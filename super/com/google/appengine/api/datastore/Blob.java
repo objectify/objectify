@@ -6,9 +6,10 @@ import java.util.Arrays;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Blob implements Serializable
 {
-	private byte bytes[];
+	private final byte bytes[];
 
 	public Blob(byte bytes[])
 	{

@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Category implements Serializable, Comparable<Category>
 {
 	private final String category;
@@ -21,6 +22,7 @@ public class Category implements Serializable, Comparable<Category>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private Category()
 	{
 		category = null;

@@ -13,11 +13,14 @@ import java.util.LinkedList;
  */
 public final class Key implements Serializable, Comparable<Key>
 {
+	static final long serialVersionUID = -448150158203091507L;
+	
 	private Key parentKey;
 	private String kind;
 	private long id;
 	private String name;
 
+	@SuppressWarnings("unused")
 	private Key()
 	{
 		parentKey = null;
@@ -158,8 +161,8 @@ public final class Key implements Serializable, Comparable<Key>
 	{
 		if (this == other)
 			return 0;
-		Iterator thisPath = getPathIterator(this);
-		Iterator otherPath = getPathIterator(other);
+		Iterator<Key> thisPath = getPathIterator(this);
+		Iterator<Key> otherPath = getPathIterator(other);
 		while (thisPath.hasNext())
 		{
 			Key thisKey = (Key) thisPath.next();

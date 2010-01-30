@@ -6,10 +6,12 @@ import java.util.Arrays;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class ShortBlob implements Serializable
 {
 	private final byte bytes[];
 
+	@SuppressWarnings("unused")
 	private ShortBlob()
 	{
 		bytes = null;

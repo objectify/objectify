@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Rating implements Serializable, Comparable<Rating>
 {
 	public static final int MIN_VALUE = 0;
@@ -23,6 +24,7 @@ public class Rating implements Serializable, Comparable<Rating>
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private Rating()
 	{
 		this(0);

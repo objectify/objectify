@@ -5,10 +5,12 @@ import java.io.Serializable;
 /**
  * GWT emulation class.
  */
+@SuppressWarnings("serial")
 public class Link implements Serializable, Comparable<Link>
 {
 	private final String value;
 
+	@SuppressWarnings("unused")
 	private Link()
 	{
 		value = null;
