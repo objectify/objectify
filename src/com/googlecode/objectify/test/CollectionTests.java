@@ -139,4 +139,45 @@ public class CollectionTests extends TestBase
 		assert it.next().equals(key8);
 		assert it.next().equals(key9);
 	}
+
+	@Test
+	public void testNullCollections() throws Exception {
+		// create an entity with a list, save, null it, save and load it
+
+		Objectify ofy = this.fact.begin();
+
+		HasCollections hc = new HasCollections();
+		hc.integerList = Arrays.asList(1, 2, 3);
+
+		Key<HasCollections> key = ofy.put(hc);
+		hc = ofy.get(key);
+
+		assert hc.integerList != null;
+		assert hc.integerList.size() == 3;
+
+		assertContains123(hc.integerList, ArrayList.class);
+
+		hc.integerList = null;
+
+		ofy.put(hc);
+		hc = ofy.get(key);
+		assert hc.integerList == null;
+
+	}
+	
+	@Test
+	public void testEmptyCollections() throws Exception {
+		Objectify ofy = this.fact.begin();
+
+		HasCollections hc = new HasCollections();
+		hc.integerList = new ArrayList<Integer>();
+
+		Key<HasCollections> key = ofy.put(hc);
+		hc = ofy.get(key);
+
+		System.out.println(ofy.getDatastore().get(fact.getRawKey(hc)));
+
+		assert hc.integerList != null;
+		assert hc.integerList.size() == 0;
+	}
 }
