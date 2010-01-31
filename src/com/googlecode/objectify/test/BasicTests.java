@@ -13,9 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
-import com.googlecode.objectify.OPreparedQuery;
-import com.googlecode.objectify.OQuery;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
@@ -40,12 +38,12 @@ public class BasicTests extends TestBase
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
-		OKey<Trivial> k = ofy.put(triv);
+		Key<Trivial> k = ofy.put(triv);
 
 		assert k.getKindClassName().equals(triv.getClass().getName());
 		assert k.getId() == triv.getId();
 
-		OKey<Trivial> created = new OKey<Trivial>(Trivial.class, k.getId());
+		Key<Trivial> created = new Key<Trivial>(Trivial.class, k.getId());
 		assert k.equals(created);
 
 		Trivial fetched = ofy.get(k);
@@ -62,10 +60,10 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
-		OKey<Trivial> k = ofy.put(triv);
+		Key<Trivial> k = ofy.put(triv);
 
 		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		OKey<Trivial> k2 = ofy.put(triv2);
+		Key<Trivial> k2 = ofy.put(triv2);
 
 		assert k2.equals(k);
 
@@ -83,11 +81,11 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		OKey<NamedTrivial> k = ofy.put(triv);
+		Key<NamedTrivial> k = ofy.put(triv);
 
 		assert k.getName().equals("first");
 
-		OKey<NamedTrivial> createdKey = new OKey<NamedTrivial>(NamedTrivial.class, "first");
+		Key<NamedTrivial> createdKey = new Key<NamedTrivial>(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
 		NamedTrivial fetched = ofy.get(k);
@@ -110,7 +108,7 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		List<OKey<Trivial>> keys = ofy.put(objs);
+		List<Key<Trivial>> keys = ofy.put(objs);
 
 		// Verify the put keys
 		assert keys.size() == objs.size();
@@ -120,7 +118,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<OKey<Trivial>, Trivial> fetched = ofy.get(keys);
+		Map<Key<Trivial>, Trivial> fetched = ofy.get(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
@@ -140,7 +138,7 @@ public class BasicTests extends TestBase
 		Employee fred = new Employee("fred");
 		ofy.put(fred);
 
-		OKey<Employee> fredKey = this.fact.createKey(fred);
+		Key<Employee> fredKey = this.fact.createKey(fred);
 
 		List<Employee> employees = new ArrayList<Employee>(1100);
 		for (int i = 0; i < 1100; i++)
@@ -153,13 +151,8 @@ public class BasicTests extends TestBase
 
 		assert employees.size() == 1100;
 
-		OQuery<Employee> q = this.fact.createQuery(Employee.class);
-		q.filter("manager", this.fact.createKey(fred));
-		OPreparedQuery<Employee> pq = ofy.prepare(q);
-		Iterable<Employee> results = pq.asIterable();
-
 		int count = 0;
-		for (Employee emp : results)
+		for (Employee emp: ofy.query(Employee.class).filter("manager", fred))
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;

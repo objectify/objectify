@@ -5,9 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -149,31 +147,9 @@ public class ObjectifyFactory
 	 * 
 	 * @throws IllegalArgumentException if the entity has a null id.
 	 */
-	public <T> OKey<T> createKey(T entity)
+	public <T> Key<T> createKey(T entity)
 	{
 		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
-	}
-	
-	//
-	// Friendly query creation methods
-	//
-	
-	/**
-	 * Creates a new kind-less query that finds entities.
-	 * @see Query#Query()
-	 */
-	public <T> OQuery<T> createQuery()
-	{
-		return new OQuery<T>(this);
-	}
-	
-	/**
-	 * Creates a query that finds entities with the specified type
-	 * @see Query#Query(String)
-	 */
-	public <T> OQuery<T> createQuery(Class<T> entityClazz)
-	{
-		return new OQuery<T>(this, entityClazz);
 	}
 	
 	//
@@ -181,15 +157,20 @@ public class ObjectifyFactory
 	//
 	
 	/**
-	 * @return the kind associated with a particular entity class
+	 * @return the kind associated with a particular entity class, checking both @Entity
+	 *  annotations and defaulting to the class' simplename.
 	 */
 	public String getKind(Class<?> clazz)
 	{
-		javax.persistence.Entity entityAnn = clazz.getAnnotation(javax.persistence.Entity.class);
-		if (entityAnn == null || entityAnn.name() == null || entityAnn.name().length() == 0)
-			return clazz.getSimpleName();
-		else
-			return entityAnn.name();
+		com.googlecode.objectify.annotation.Entity ourAnn = clazz.getAnnotation(com.googlecode.objectify.annotation.Entity.class);
+		if (ourAnn != null && ourAnn.name() != null && ourAnn.name().length() != 0)
+			return ourAnn.name();
+		
+		javax.persistence.Entity jpaAnn = clazz.getAnnotation(javax.persistence.Entity.class);
+		if (jpaAnn != null && jpaAnn.name() != null && jpaAnn.name().length() != 0)
+			return jpaAnn.name();
+		
+		return clazz.getSimpleName();
 	}
 	
 	/**
@@ -209,7 +190,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Key key)
+	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key)
 	{
 		return this.getMetadata(key.getKind());
 	}
@@ -219,7 +200,7 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadata(OKey<T> key)
+	public <T> EntityMetadata<T> getMetadata(Key<T> key)
 	{
 		// I would love to know why this produces a warning
 		return (EntityMetadata<T>)this.getMetadata(this.getKind(key.getKindClassName()));
@@ -258,10 +239,10 @@ public class ObjectifyFactory
 	}
 
 	/** 
-	 * Converts an OKey into a raw Key.
+	 * Converts an Key into a raw Key.
 	 * @param obKey can be null, resulting in a null Key
 	 */
-	public Key oKeyToRawKey(OKey<?> obKey)
+	public com.google.appengine.api.datastore.Key oKeyToRawKey(Key<?> obKey)
 	{
 		if (obKey == null)
 			return null;
@@ -273,10 +254,10 @@ public class ObjectifyFactory
 	}
 	
 	/** 
-	 * Converts a raw Key into an OKey.
-	 * @param rawKey can be null, resulting in a null OKey
+	 * Converts a raw Key into an Key.
+	 * @param rawKey can be null, resulting in a null Key
 	 */
-	public <T> OKey<T> rawKeyToOKey(Key rawKey)
+	public <T> Key<T> rawKeyToOKey(com.google.appengine.api.datastore.Key rawKey)
 	{
 		if (rawKey == null)
 			return null;
@@ -285,8 +266,50 @@ public class ObjectifyFactory
 		Class<T> entityClass = meta.getEntityClass();
 		
 		if (rawKey.getName() != null)
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
+			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
 		else
-			return new OKey<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
+			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
+	}
+	
+	/**
+	 * @return the raw key for an object which might be a raw Key, a Key<T>, or an entity
+	 * @throws IllegalArgumentException if obj is not a Key, Key<T>, or registered entity 
+	 */
+	public com.google.appengine.api.datastore.Key getRawKey(Object keyOrEntity)
+	{
+		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			return (com.google.appengine.api.datastore.Key)keyOrEntity;
+		else if (keyOrEntity instanceof Key<?>)
+			return this.oKeyToRawKey((Key<?>)keyOrEntity);
+		else
+			return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
+	}
+
+	/**
+	 * Translate Key<?> or Entity objects into something that can be used in a filter clause.
+	 * Anything unknown (including null) is simply returned as-is and we hope that the filter works.
+	 * 
+	 * @return whatever can be put into a filter clause.
+	 */
+	public Object makeFilterable(Object keyOrEntityOrOther)
+	{
+		if (keyOrEntityOrOther == null)
+		{
+			return null;
+		}
+		else if (keyOrEntityOrOther instanceof Key<?>)
+		{
+			return this.oKeyToRawKey((Key<?>)keyOrEntityOrOther);
+		}
+		else
+		{
+			// Unfortunately we can't use getRawKey() because it throws IllegalArgumentException
+			String kind = this.getKind(keyOrEntityOrOther.getClass());
+			EntityMetadata<?> meta = this.types.get(kind);
+			if (meta == null)
+				return keyOrEntityOrOther;
+			else
+				return meta.getKey(keyOrEntityOrOther);
+		}
 	}
 }

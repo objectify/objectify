@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -38,7 +38,7 @@ public class ConversionTests extends TestBase
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		OKey<Trivial> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<Trivial> key = this.fact.rawKeyToOKey(ent.getKey());
 		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;

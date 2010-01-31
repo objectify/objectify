@@ -5,8 +5,6 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -29,14 +27,14 @@ public interface Objectify
 	 * @return a empty map if no keys are found in the datastore.
 	 * @see DatastoreService#get(Iterable)
 	 */
-	<T> Map<OKey<T>, T> get(Iterable<? extends OKey<? extends T>> keys);
+	<T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys);
 	
 	/**
 	 * Gets one instance of your typed object.
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 * @see DatastoreService#get(Key) 
 	 */
-	<T> T get(OKey<? extends T> key) throws EntityNotFoundException;
+	<T> T get(Key<? extends T> key) throws EntityNotFoundException;
 	
 	/**
 	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
@@ -59,10 +57,10 @@ public interface Objectify
 	 *  or of type Iterable<String> (which translates to name keys).
 	 * @throws IllegalArgumentException if ids is not Iterable<Long> or Iterable<String>
 	 */
-	<T> Map<OKey<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
+	<T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
 	
-	/** Identical to get(OKey) but returns null instead of throwing EntityNotFoundException */ 
-	<T> T find(OKey<? extends T> key);
+	/** Identical to get(Key) but returns null instead of throwing EntityNotFoundException */ 
+	<T> T find(Key<? extends T> key);
 	
 	/** Identical to get(Class, long) but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Class<? extends T> clazz, long id);
@@ -76,7 +74,7 @@ public interface Objectify
 	 * has a key, it will overwrite any value formerly stored with that key.
 	 * @see DatastoreService#put(com.google.appengine.api.datastore.Entity) 
 	 */
-	<T> OKey<T> put(T obj);
+	<T> Key<T> put(T obj);
 	
 	/**
 	 * Just like the DatastoreService method, but uses your typed objects.
@@ -85,7 +83,7 @@ public interface Objectify
 	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	<T> List<OKey<T>> put(Iterable<? extends T> objs);
+	<T> List<Key<T>> put(Iterable<? extends T> objs);
 	
 	/**
 	 * Deletes the specified entity.  The object passed in can be either a Key
@@ -105,26 +103,14 @@ public interface Objectify
 	void delete(Iterable<?> keysOrEntities);
 	
 	/**
-	 * <p>Prepares a query for execution.  The resulting ObjPreparedQuery allows the result
-	 * set to be iterated through in a typesafe way.</p>
-	 * 
-	 * <p>You should create a query by calling one of the {@code ObjectifyFactory.createQuery()}
-	 * methods.</p>
-	 * 
-	 * @see DatastoreService#prepare(Query)
+	 * <p>Create a typesafe query across all kinds of entities.</p>
 	 */
-	<T> OPreparedQuery<T> prepare(OQuery<T> query);
+	<T> Query<T> query();
 	
 	/**
-	 * <p>Prepares a keys-only query for execution.  The resulting ObjPreparedQuery allows the result
-	 * set to be iterated through in a typesafe way, efficiently returning only keys.</p>
-	 * 
-	 * <p>You should create a query by calling one of the {@code ObjectifyFactory.createQuery()}
-	 * methods.</p>
-	 * 
-	 * @see DatastoreService#prepare(Query)
+	 * <p>Create a typesafe query across one specific kind of entity.</p>
 	 */
-	<T> OPreparedQuery<OKey<T>> prepareKeysOnly(OQuery<T> query);
+	<T> Query<T> query(Class<T> clazz);
 	
 	/**
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},

@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasArrays;
 
@@ -35,7 +35,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.strings = new String[] { "red", "green" };
 		
-		OKey<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put(hasa);
 
 		HasArrays fetched = ofy.get(k);
 
@@ -51,7 +51,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.ints = new int[] { 5, 6 };
 		
-		OKey<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put(hasa);
 
 		HasArrays fetched = ofy.get(k);
 
@@ -67,7 +67,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.integers = new Integer[] { 5, 6 };
 		
-		OKey<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put(hasa);
 
 		HasArrays fetched = ofy.get(k);
 
@@ -83,7 +83,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.longs = new long[] { 5, 6 };
 		
-		OKey<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put(hasa);
 
 		HasArrays fetched = ofy.get(k);
 

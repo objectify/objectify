@@ -49,15 +49,5 @@ public class ObjectifyService
 	//
 	
 	/** @see ObjectifyFactory#createKey(Object) */
-	public static <T> OKey<T> createKey(T entity) { return factory().createKey(entity); }
-	
-	//
-	// Friendly query creation methods
-	//
-	
-	/** @see ObjectifyFactory#createQuery() */
-	public static <T> OQuery<T> createQuery() { return factory().createQuery(); }
-	
-	/** @see ObjectifyFactory#createQuery(Class) */
-	public static <T> OQuery<T> createQuery(Class<T> entityClazz) { return factory().createQuery(entityClazz); }
+	public static <T> Key<T> createKey(T entity) { return factory().createKey(entity); }
 }

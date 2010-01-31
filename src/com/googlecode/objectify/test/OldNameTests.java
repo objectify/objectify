@@ -11,7 +11,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.OKey;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasOldNames;
 
@@ -37,7 +37,7 @@ public class OldNameTests extends TestBase
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getStuff().equals("oldStuff");
@@ -58,7 +58,7 @@ public class OldNameTests extends TestBase
 		
 		try
 		{
-			OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+			Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 			ofy.get(key);
 			assert false: "Shouldn't be able to read data duplicated with @OldName";
 		}
@@ -76,7 +76,7 @@ public class OldNameTests extends TestBase
 		ent.setProperty("weirdStuff", "5");
 		ds.put(ent);
 		
-		OKey<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getWeird() == 5;

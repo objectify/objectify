@@ -20,15 +20,19 @@
 
 	<property name="build.dir" location="target" />
 	<property name="build.classes.dir" location="${build.dir}/classes" />
+	<property name="build.super.dir" location="${build.dir}/super" />
 	<property name="build.javadoc.dir" location="${build.dir}/javadoc" />
 
 	<property name="docs.dir" value="${build.dir}/docs" />
 	<property name="javadoc.dir" value="javadoc" />
 
+	<property name="super.package" value="com/googlecode/objectify/impl/emul"/>
+
 	<property name="googlecode.projectname" value="objectify-appengine"/>
 
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
+	<property name="super.src.dir" location="super" />
 
 	<path id="master.classpath">		
 		<fileset dir="${lib.dir}">
@@ -66,6 +70,15 @@
 			>
 			<classpath refid="master.classpath" />
 		</javac>
+
+		<mkdir dir="${build.super.dir}" />
+
+		<javac srcdir="${super.src.dir}"
+				destdir="${build.super.dir}"
+				debug="${build.debug}"
+				deprecation="${build.deprecation}"
+			>
+		</javac>
 	</target>
 
 	<target name="jar" depends="classes">
@@ -77,13 +90,20 @@
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
 			
-			<fileset dir="${build.classes.dir}">			
+			<fileset dir="${build.classes.dir}">
 				<exclude name="**/test/**"/>
 			</fileset>
-			<fileset dir="${src.dir}">			
+			<fileset dir="${src.dir}">
 				<include name="**/*.gwt.xml"/>
-				<include name="**/OKey.java"/>
+				<include name="**/Key.java"/>
 			</fileset>
+
+			<zipfileset dir="${super.src.dir}" prefix="${super.package}">
+				<include name="**/*.java"/>
+			</zipfileset>
+			<zipfileset dir="${src.dir}" prefix="${super.package}">
+				<include name="**/*_CustomFieldSerializer.java"/>
+			</zipfileset>
 		</jar>
 	</target>
 	
@@ -101,6 +121,7 @@
 			Windowtitle="Objectify-AppEngine Javadoc"
 		>
 			<fileset dir="${src.dir}">
+				<include name="**/com/googlecode/objectify/**/*.java" />
 				<exclude name="**/test/**" />
 				<exclude name="**/*.xml" />
 			</fileset>

@@ -14,12 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.googlecode.objectify.OKey;
-import com.googlecode.objectify.OPreparedQuery;
-import com.googlecode.objectify.OQuery;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.Query;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -36,7 +34,7 @@ public class QueryTests extends TestBase
 	/** */
 	Trivial triv1;
 	Trivial triv2;
-	List<OKey<Trivial>> keys;
+	List<Key<Trivial>> keys;
 	
 	/** */
 	@BeforeMethod
@@ -60,13 +58,10 @@ public class QueryTests extends TestBase
 	public void testKeysOnly() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
-		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		
-		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
+		Query<Trivial> q = ofy.query(Trivial.class);
 		
 		int count = 0;
-		for (OKey<Trivial> k: pq.asIterable())
+		for (Key<Trivial> k: q.fetchKeys())
 		{
 			assert keys.contains(k);
 			count++;
@@ -75,15 +70,15 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		for (OKey<Trivial> k: pq.asList(FetchOptions.Builder.withLimit(1000)))
+		for (Key<Trivial> k: q.fetchKeys(1000, 0))
 			assert keys.contains(k);
 		
-		assert pq.count() == keys.size();
+		assert q.count() == keys.size();
 		
 		try
 		{
-			pq.asSingle();
-			assert false: "Should not be able to asSingle() when there are multiple results";
+			q.get();
+			assert false: "Should not be able to get() when there are multiple results";
 		}
 		catch (PreparedQuery.TooManyResultsException ex) {}
 	}
@@ -93,12 +88,7 @@ public class QueryTests extends TestBase
 	public void testNormalSorting() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
-		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.sort("someString");
-		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		Iterator<Trivial> it = pq.asIterable().iterator();
+		Iterator<Trivial> it = ofy.query(Trivial.class).order("someString").iterator();
 		
 		Trivial t1 = it.next();
 		Trivial t2 = it.next();
@@ -112,12 +102,7 @@ public class QueryTests extends TestBase
 	public void testNormalReverseSorting() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
-		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.sort("-someString");
-		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		Iterator<Trivial> it = pq.asIterable().iterator();
+		Iterator<Trivial> it = ofy.query(Trivial.class).order("-someString").iterator();
 		
 		// t2 first
 		Trivial t2 = it.next();
@@ -132,12 +117,7 @@ public class QueryTests extends TestBase
 	public void testIdSorting() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
-		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.sort("id");
-		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		Iterator<Trivial> it = pq.asIterable().iterator();
+		Iterator<Trivial> it = ofy.query(Trivial.class).order("id").iterator();
 		
 		Trivial t1 = it.next();
 		Trivial t2 = it.next();
@@ -151,13 +131,8 @@ public class QueryTests extends TestBase
 	public void testFiltering() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
-		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.filter("someString >", triv1.getSomeString());
-		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		Iterator<Trivial> it = pq.asIterable().iterator();
-		
+		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString >", triv1.getSomeString()).iterator();
+			
 		Trivial t2 = it.next();
 		assert !it.hasNext();
 		assert t2.getId().equals(triv2.getId()); 
@@ -165,15 +140,26 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testIdFiltering() throws Exception
+	public void testFilteringByNull() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
 		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.filter("id >", triv1.getId());
+		Trivial triv3 = new Trivial(null, 3);
+		ofy.put(triv3);
 		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		Iterator<Trivial> it = pq.asIterable().iterator();
+		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString", null).iterator();
+			
+		Trivial t3 = it.next();
+		assert !it.hasNext();
+		assert t3.getId().equals(triv3.getId()); 
+	}
+
+	/** */
+	@Test
+	public void testIdFiltering() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.query(Trivial.class).filter("id >", triv1.getId()).iterator();
 		
 		Trivial t2 = it.next();
 		assert !it.hasNext();
@@ -184,15 +170,11 @@ public class QueryTests extends TestBase
 	@Test
 	public void testQueryToString() throws Exception
 	{
-		OQuery<Trivial> q1 = this.fact.createQuery(Trivial.class);
-		q1.filter("id >", triv1.getId());
-
-		OQuery<Trivial> q2 = this.fact.createQuery(Trivial.class);
-		q2.filter("id <", triv1.getId());
-
-		OQuery<Trivial> q3 = this.fact.createQuery(Trivial.class);
-		q3.filter("id >", triv1.getId());
-		q3.sort("-id");
+		Objectify ofy = this.fact.begin();
+		
+		Query<Trivial> q1 = ofy.query(Trivial.class).filter("id >", triv1.getId());
+		Query<Trivial> q2 = ofy.query(Trivial.class).filter("id <", triv1.getId());
+		Query<Trivial> q3 = ofy.query(Trivial.class).filter("id >", triv1.getId()).order("-id");
 
 		assert !q1.toString().equals(q2.toString());
 		assert !q1.toString().equals(q3.toString());
@@ -204,11 +186,8 @@ public class QueryTests extends TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		q.filter("id", 999999);	// no such entity
-		
-		OPreparedQuery<Trivial> pq = ofy.prepare(q);
-		assert pq.asSingle() == null;
+		Query<Trivial> q = ofy.query(Trivial.class).filter("id", 999999);	// no such entity
+		assert q.get() == null;
 	}
 
 	/**
@@ -220,13 +199,9 @@ public class QueryTests extends TestBase
 		this.fact.setDatastoreTimeoutRetryCount(1);
 		Objectify ofy = this.fact.begin();
 		
-		OQuery<Trivial> q = this.fact.createQuery(Trivial.class);
-		OPreparedQuery<OKey<Trivial>> pq = ofy.prepareKeysOnly(q);
-		FetchOptions opts = FetchOptions.Builder.withLimit(10);
-		
 		// This used to throw an exception when wrapping the ArrayList in the retry wrapper
 		// because we used the wrong classloader to produce the proxy.  Fixed.
-    	List<OKey<Trivial>> keys = pq.asList(opts);
+    	Iterable<Key<Trivial>> keys = ofy.query(Trivial.class).fetchKeys(10, 0);
     	
     	assert keys != null;
 	}

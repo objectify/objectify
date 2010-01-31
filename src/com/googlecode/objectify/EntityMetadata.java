@@ -21,7 +21,6 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.OldName;
@@ -211,8 +210,8 @@ public class EntityMetadata<T>
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
-				if (field.getType() != Key.class && field.getType() != OKey.class)
-					throw new IllegalStateException("Only fields of type OKey<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				if (field.getType() != com.google.appengine.api.datastore.Key.class && field.getType() != Key.class)
+					throw new IllegalStateException("Only fields of type Key<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
 
 				this.parentField = field;
 			}
@@ -395,9 +394,9 @@ public class EntityMetadata<T>
 		{
 			return this.coerceNumber((Number)value, type);
 		}
-		else if (value instanceof Key && OKey.class.isAssignableFrom(type))
+		else if (value instanceof com.google.appengine.api.datastore.Key && Key.class.isAssignableFrom(type))
 		{
-			return this.factory.rawKeyToOKey((Key)value);
+			return this.factory.rawKeyToOKey((com.google.appengine.api.datastore.Key)value);
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
@@ -462,9 +461,9 @@ public class EntityMetadata<T>
 			
 			return list;
 		}
-		else if (value instanceof OKey<?>)
+		else if (value instanceof Key<?>)
 		{
-			return this.factory.oKeyToRawKey((OKey<?>)value);
+			return this.factory.oKeyToRawKey((Key<?>)value);
 		}
 
 		// Usually we just want to return the value
@@ -511,7 +510,7 @@ public class EntityMetadata<T>
 	{
 		try
 		{
-			Key parentKey = null;
+			com.google.appengine.api.datastore.Key parentKey = null;
 
 			// First thing, get the parentKey (if appropriate)
 			if (this.parentField != null)
@@ -558,7 +557,7 @@ public class EntityMetadata<T>
 	 * Sets the relevant id and parent fields of the object to the values stored in the key.
 	 * Object must be of the entityClass type for this metadata.
 	 */
-	public void setKey(Object obj, Key key)
+	public void setKey(Object obj, com.google.appengine.api.datastore.Key key)
 	{
 		if (obj.getClass() != this.entityClass)
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
@@ -580,13 +579,13 @@ public class EntityMetadata<T>
 				this.idField.set(obj, key.getId());
 			}
 
-			Key parentKey = key.getParent();
+			com.google.appengine.api.datastore.Key parentKey = key.getParent();
 			if (parentKey != null)
 			{
 				if (this.parentField == null)
 					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
 
-				if (this.parentField.getType() == Key.class)
+				if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
 					this.parentField.set(obj, parentKey);
 				else
 					this.parentField.set(obj, this.factory.rawKeyToOKey(parentKey));
@@ -600,7 +599,7 @@ public class EntityMetadata<T>
 	 * @param obj must be of the entityClass type for this metadata.
 	 * @throws IllegalArgumentException if obj has a null id
 	 */
-	public Key getKey(Object obj)
+	public com.google.appengine.api.datastore.Key getKey(Object obj)
 	{
 		if (obj.getClass() != this.entityClass)
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + obj.getClass().getName());
@@ -613,7 +612,7 @@ public class EntityMetadata<T>
 
 				if (this.parentField != null)
 				{
-					Key parent = this.getRawKey(this.parentField, obj);
+					com.google.appengine.api.datastore.Key parent = this.getRawKey(this.parentField, obj);
 					return KeyFactory.createKey(parent, this.kind, name);
 				}
 				else	// name yes parent no
@@ -629,7 +628,7 @@ public class EntityMetadata<T>
 
 				if (this.parentField != null)
 				{
-					Key parent = this.getRawKey(this.parentField, obj);
+					com.google.appengine.api.datastore.Key parent = this.getRawKey(this.parentField, obj);
 					return KeyFactory.createKey(parent, this.kind, id);
 				}
 				else	// id yes parent no
@@ -641,13 +640,13 @@ public class EntityMetadata<T>
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 	
-	/** @return the raw key even if the field is an OKey */
-	private Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
+	/** @return the raw key even if the field is an Key */
+	private com.google.appengine.api.datastore.Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
 	{
-		if (keyField.getType() == Key.class)
-			return (Key)keyField.get(obj);
+		if (keyField.getType() == com.google.appengine.api.datastore.Key.class)
+			return (com.google.appengine.api.datastore.Key)keyField.get(obj);
 		else
-			return this.factory.oKeyToRawKey((OKey<?>)keyField.get(obj));
+			return this.factory.oKeyToRawKey((Key<?>)keyField.get(obj));
 	}
 	
 	/**
