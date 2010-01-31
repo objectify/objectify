@@ -1,31 +1,21 @@
 package com.googlecode.objectify;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
-
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.annotation.Embedded;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.impl.ClassSerializer;
+import com.googlecode.objectify.impl.ObjectHolder;
+import com.googlecode.objectify.impl.TypeUtils;
+
+import javax.persistence.Id;
+import javax.persistence.Transient;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
 
 
 /**
@@ -39,87 +29,6 @@ public class EntityMetadata<T>
 	/** We do not persist fields with any of these modifiers */
 	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
 
-	/** We need to be able to populate fields and methods with @OldName */
-	static abstract class Populator
-	{
-		/** Actually populate the thing (field or method) */
-		abstract void populate(Object entity, Object value);
-
-		/** Get the thing for hashing, string conversion, etc */
-		abstract Object getThing();
-
-		/** Get the type of the thing */
-		abstract Class<?> getType();
-		
-		/** Get the "generictype", which can be a ParameterizedType */
-		abstract Type getGenericType();
-		
-		/** If getType() is an array or Collection, returns the component type - otherwise null */
-		Class<?> getComponentType()
-		{
-			if (this.getType().isArray())
-			{
-				return this.getType().getComponentType();
-			}
-			else if (Collection.class.isAssignableFrom(this.getType()))
-			{
-				Type aType = this.getGenericType();
-				while (aType instanceof Class<?>)
-					aType = ((Class<?>)aType).getGenericSuperclass();
-				
-				if (aType instanceof ParameterizedType)
-				{
-					Type actualTypeArgument = ((ParameterizedType)aType).getActualTypeArguments()[0];
-					if (actualTypeArgument instanceof Class<?>)
-						return (Class<?>)actualTypeArgument;
-					else if (actualTypeArgument instanceof ParameterizedType)
-						return (Class<?>)((ParameterizedType)actualTypeArgument).getRawType();
-					else
-						return null;
-				}
-				else
-				{
-					return null;
-				}
-			}
-			else	// not array or collection
-			{
-				return null;
-			}
-		}
-	}
-
-	/** Works with fields */
-	static class FieldPopulator extends Populator
-	{
-		Field field;
-		public FieldPopulator(Field field) { this.field = field; }
-		public Object getThing() { return this.field; }
-		public Class<?> getType() { return this.field.getType(); }
-		public Type getGenericType() { return this.field.getGenericType(); }
-		public void populate(Object entity, Object value)
-		{
-			try { this.field.set(entity, value); }
-			catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
-		}
-	}
-
-	/** Works with methods */
-	static class MethodPopulator extends Populator
-	{
-		Method method;
-		public MethodPopulator(Method method) { this.method = method; }
-		public Object getThing() { return this.method; }
-		public Class<?> getType() { return this.method.getParameterTypes()[0]; }
-		public Type getGenericType() { return this.method.getGenericParameterTypes()[0]; }
-		public void populate(Object entity, Object value)
-		{
-			try { this.method.invoke(entity, value); }
-			catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
-			catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
-		}
-	}
-	
 	/** Needed for key translation */
 	protected ObjectifyFactory factory;
 
@@ -137,11 +46,8 @@ public class EntityMetadata<T>
 	/** If the entity has a @Parent field, treat it specially */
 	protected Field parentField;
 
-	/** The fields we persist, not including the @Id or @Parent fields */
-	protected Set<Field> writeables = new HashSet<Field>();
+	private final ClassSerializer classinfo;
 
-	/** The things that we read, keyed by name (including @OldName fields and methods).  A superset of writeables. */
-	protected Map<String, Populator> readables = new HashMap<String, Populator>();
 
 	/** */
 	public EntityMetadata(ObjectifyFactory fact, Class<T> clazz)
@@ -149,24 +55,18 @@ public class EntityMetadata<T>
 		this.factory = fact;
 		this.entityClass = clazz;
 		this.kind = this.factory.getKind(clazz);
+		this.classinfo = new ClassSerializer(fact, clazz);
 
 		// Recursively walk up the inheritance chain looking for fields
-		this.visit(clazz);
+		this.visit(clazz, "", classinfo, false, true);
 
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 
-		try
-		{
-			clazz.getConstructor(new Class[0]);
-		}
-		catch (NoSuchMethodException e)
-		{
-			throw new IllegalStateException("There must be a public no-arg constructor for " + this.entityClass.getName(), e);
-		}
-    }
-	
+		TypeUtils.checkForNoArgConstructor(clazz);
+	}
+
 	/** @return the kind associated with this metadata */
 	public String getKind()
 	{
@@ -177,13 +77,13 @@ public class EntityMetadata<T>
 	 * Recursive function adds any appropriate fields to our internal data
 	 * structures for persisting and retrieving later.
 	 */
-	private void visit(Class<?> clazz)
+	private void visit(Class<?> clazz, String propPrefix, ClassSerializer classinfo, boolean forceUnindexed, boolean outerclass)
 	{
 		if ((clazz == null) || (clazz == Object.class))
 			return;
-		
-		this.visit(clazz.getSuperclass());
-		
+
+		this.visit(clazz.getSuperclass(), propPrefix, classinfo, forceUnindexed, outerclass);
+
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
@@ -194,6 +94,8 @@ public class EntityMetadata<T>
 
 			if (field.isAnnotationPresent(Id.class))
 			{
+				if (!outerclass)
+					throw new IllegalStateException("@Id not supported on embedded class " + clazz);
 				if ((this.idField != null) || (this.nameField != null))
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -207,6 +109,8 @@ public class EntityMetadata<T>
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
+				if (!outerclass)
+					throw new IllegalStateException("@Parent not supported on embedded class " + clazz);
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -217,14 +121,41 @@ public class EntityMetadata<T>
 			}
 			else
 			{
-				this.writeables.add(field);
+				boolean hasUnindexed = field.isAnnotationPresent(Unindexed.class);
+				boolean indexed = !hasUnindexed && !forceUnindexed;
+				boolean embedded = field.isAnnotationPresent(Embedded.class) || field.isAnnotationPresent(javax.persistence.Embedded.class);
+				String name = propPrefix + field.getName();
 
-				Populator pop = new FieldPopulator(field);
-				this.putReadable(field.getName(), pop);
 
-				OldName old = field.getAnnotation(OldName.class);
-				if (old != null)
-					this.putReadable(old.value(), pop);
+				boolean isArray = field.getType().isArray();
+				boolean isCollection = Collection.class.isAssignableFrom(field.getType());
+
+				if (embedded)
+				{
+					ClassSerializer subinfo;
+					Class<?> childType;
+					if (isArray)
+					{
+						childType = field.getType().getComponentType();
+						if (childType.isPrimitive())
+						{
+							throw new IllegalStateException("Can't use @Embedded on '" + field.getName() + "' in " +
+									clazz.getName() + " because it is a primitive array.");
+						}
+						subinfo = classinfo.addEmbeddedArrayField(field, name);
+					}
+					else
+					{
+						childType = field.getType();
+						subinfo = classinfo.addEmbeddedField(field, name, indexed);
+					}
+
+					visit(childType, name + ".", subinfo, forceUnindexed || hasUnindexed, false);
+				}
+				else
+				{
+					classinfo.addField(field, name, isArray || isCollection, indexed);
+				}
 			}
 		}
 
@@ -239,21 +170,10 @@ public class EntityMetadata<T>
 
 				method.setAccessible(true);
 
-				this.putReadable(oldName.value(), new MethodPopulator(method));
+				classinfo.addMethod(method, oldName.value());
 			}
 		}
-	}
 
-	/**
-	 * Adds the key/value pair to this.readables, throwing an exception if there
-	 * is a duplicate key.
-	 */
-	private void putReadable(String name, Populator p)
-	{
-		if (this.readables.put(name, p) != null)
-			throw new IllegalStateException(
-					"Data property name '" + name + "' is duplicated in hierarchy of " +
-					this.entityClass.getName() + ". Check for conflicting @OldNames.");
 	}
 
 	/**
@@ -270,27 +190,8 @@ public class EntityMetadata<T>
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());
 
-			// Keep track of which fields and methods have been done so we don't repeat any;
-			// this could happen if an Entity has data for both @OldName and the current name.
-			Set<Object> done = new HashSet<Object>();
 
-			for (Map.Entry<String, Object> property: ent.getProperties().entrySet())
-			{
-				Populator pop = this.readables.get(property.getKey());
-				if (pop != null)
-				{
-					// First make sure we haven't already done this one
-					if (done.contains(pop.getThing()))
-						throw new IllegalStateException("Tried to set '" + pop.getThing() + "' twice; check @OldName annotations");
-					else
-						done.add(pop.getThing());
-
-					Object value = property.getValue();
-					value = this.convertFromDatastore(value, pop.getType(), pop.getComponentType());
-
-					pop.populate(obj, value);
-				}
-			}
+			classinfo.populateIntoObject(ent, new ObjectHolder(obj));
 
 			return obj;
 		}
@@ -298,203 +199,16 @@ public class EntityMetadata<T>
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 
-	/**
-	 * Converts the value into an object suitable for the type (hopefully).
-	 * For loading data out of the datastore.  Note that collections are
-	 * quite complicated since they are always written as List<?>.
-	 * 
-	 * @param value is the property value that came out of the datastore Entity
-	 * @param type is the type of the field or method param we are populating
-	 * @param componentType is the type of a component of 'type' when 'type' is
-	 *  an array or collection.  null if 'type' is not an array or collection.
-	 */
-	@SuppressWarnings("unchecked")
-	Object convertFromDatastore(Object value, Class<?> type, Class<?> componentType)
-	{
-		if (value == null)
-		{
-			return null;
-		}
-		else if (value instanceof Collection<?>)
-		{
-			Collection<?> collValue = (Collection<?>)value;
-			
-			if (type.isArray())
-			{
-				// The objects in the Collection are assumed to be of correct type for the array
-				Object array = Array.newInstance(componentType, collValue.size());
-				
-				int index = 0;
-				for (Object componentValue: collValue)
-				{
-					componentValue = this.convertFromDatastore(componentValue, componentType, null);
-					
-					//System.out.println("componentType is " + componentType + ", componentValue class is " + componentValue.getClass());
-					Array.set(array, index++, componentValue);
-				}
-				
-				return array;
-			}
-			else if (Collection.class.isAssignableFrom(type)) // Check for collection early!
-			{
-				// We're making some sort of collection.  If it's a concrete class, just
-				// instantiate it.  Otherwise it's an interface and we need to pick the
-				// concrete class ourselves.
-				Collection<Object> target = null;
-				
-				if (!type.isInterface())
-				{
-					try
-					{
-						target = (Collection<Object>)type.newInstance();
-					}
-					catch (InstantiationException e) { throw new RuntimeException(e); }
-					catch (IllegalAccessException e) { throw new RuntimeException(e); }
-				}
-				else if (SortedSet.class.isAssignableFrom(type))
-				{
-					target = new TreeSet<Object>();
-				}
-				else if (Set.class.isAssignableFrom(type))
-				{
-					target = new HashSet<Object>();
-				}
-				else if (List.class.isAssignableFrom(type) || type.isAssignableFrom(ArrayList.class))
-				{
-					target = new ArrayList<Object>();
-				}
-				
-				for (Object obj: collValue)
-					target.add(this.convertFromDatastore(obj, componentType, null));
-				
-				return target;
-			}
-		}
-		else if (type.isAssignableFrom(value.getClass()))
-		{
-			return value;
-		}
-		else if (type == String.class)
-		{
-			if (value instanceof Text)
-				return ((Text)value).getValue();
-			else
-				return value.toString();
-		}
-		else if (Enum.class.isAssignableFrom(type))
-		{
-			// Anyone have any idea how to avoid this generics warning?
-			return Enum.valueOf((Class<Enum>)type, value.toString());
-		}
-		else if ((value instanceof Boolean) && (type == Boolean.TYPE))
-		{
-			return value;
-		}
-		else if (value instanceof Number)
-		{
-			return this.coerceNumber((Number)value, type);
-		}
-		else if (value instanceof com.google.appengine.api.datastore.Key && Key.class.isAssignableFrom(type))
-		{
-			return this.factory.rawKeyToOKey((com.google.appengine.api.datastore.Key)value);
-		}
-
-		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
-	}
-	
-	/**
-	 * Coerces the value to be a number of the specified type; needed because
-	 * all numbers come back from the datastore as Long and this screws up
-	 * any type that expects something smaller.  Also does toString just for the
-	 * hell of it.
-	 */
-	Object coerceNumber(Number value, Class<?> type)
-	{
-		if ((type == Byte.class) || (type == Byte.TYPE)) return value.byteValue();
-		else if ((type == Short.class) || (type == Short.TYPE)) return value.shortValue();
-		else if ((type == Integer.class) || (type == Integer.TYPE)) return value.intValue();
-		else if ((type == Long.class) || (type == Long.TYPE)) return value.longValue();
-		else if ((type == Float.class) || (type == Float.TYPE)) return value.floatValue();
-		else if ((type == Double.class) || (type == Double.TYPE)) return value.doubleValue();
-		else if (type == String.class) return value.toString();
-		else throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
-	}
-
-	/**
-	 * Converts the value into an object suitable for storing in the datastore.
-	 */
-	Object convertToDatastore(Object value)
-	{
-		if (value == null)
-		{
-			return null;
-		}
-		else if (value instanceof String)
-		{
-			// Check to see if it's too long and needs to be Text instead
-			if (((String)value).length() > 500)
-				return new Text((String)value);
-		}
-		else if (value instanceof Enum<?>)
-		{
-			return value.toString();
-		}
-		else if (value.getClass().isArray())
-		{
-			// The datastore cannot persist arrays, but it can persist ArrayList
-			int length = Array.getLength(value);
-			ArrayList<Object> list = new ArrayList<Object>(length);
-			
-			for (int i=0; i<length; i++)
-				list.add(this.convertToDatastore(Array.get(value, i)));
-			
-			return list;
-		}
-		else if (value instanceof Collection<?>)
-		{
-			// All collections get turned into a List that preserves the order.  We must
-			// also be sure to convert anything contained in the collection
-			ArrayList<Object> list = new ArrayList<Object>(((Collection<?>)value).size());
-
-			for (Object obj: (Collection<?>)value)
-				list.add(this.convertToDatastore(obj));
-			
-			return list;
-		}
-		else if (value instanceof Key<?>)
-		{
-			return this.factory.oKeyToRawKey((Key<?>)value);
-		}
-
-		// Usually we just want to return the value
-		return value;
-	}
 
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
 	public Entity toEntity(Object obj)
 	{
-		try
-		{
-			Entity ent = this.initEntity(obj);
+		Entity ent = this.initEntity(obj);
 
-			for (Field f: this.writeables)
-			{
-				Object value = f.get(obj);
-				value = this.convertToDatastore(value);
-
-				if (f.isAnnotationPresent(Unindexed.class))
-					ent.setUnindexedProperty(f.getName(), value);
-				else
-					ent.setProperty(f.getName(), value);
-					// TODO: Add warning if the field is indexed but we have converted it to Text (which is always unindexed).
-			}
-
-			return ent;
-		}
-		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+		classinfo.toEntity(ent, obj);
+		return ent;
 	}
 
 	/**
@@ -622,7 +336,7 @@ public class EntityMetadata<T>
 			}
 			else	// has id not name
 			{
-				Long id = (Long)this.idField.get(obj);
+				Long id = (Long) this.idField.get(obj);
 				if (id == null)
 					throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + obj);
 
@@ -639,7 +353,7 @@ public class EntityMetadata<T>
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
-	
+
 	/** @return the raw key even if the field is an Key */
 	private com.google.appengine.api.datastore.Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
 	{
@@ -648,7 +362,7 @@ public class EntityMetadata<T>
 		else
 			return this.factory.oKeyToRawKey((Key<?>)keyField.get(obj));
 	}
-	
+
 	/**
 	 * @return true if the property name corresponds to a Long/long @Id
 	 *  field.  If the entity has a String name @Id, this will return false.
@@ -666,7 +380,7 @@ public class EntityMetadata<T>
 	{
 		return this.nameField != null && this.nameField.getName().equals(propertyName);
 	}
-	
+
 	/**
 	 * @return true if the entity has a parent field
 	 */

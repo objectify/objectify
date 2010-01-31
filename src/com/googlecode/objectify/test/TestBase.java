@@ -7,6 +7,7 @@ package com.googlecode.objectify.test;
 
 import java.io.File;
 
+import com.googlecode.objectify.test.entity.Town;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -68,6 +69,7 @@ public class TestBase
 		this.fact.register(Banana.class);
 		this.fact.register(HolderOfString.class);
 		this.fact.register(HolderOfStringAndLong.class);
+		this.fact.register(Town.class);
 	}
 
 	/** */

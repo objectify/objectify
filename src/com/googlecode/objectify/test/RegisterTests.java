@@ -3,6 +3,7 @@ package com.googlecode.objectify.test;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
+import com.googlecode.objectify.annotation.Embedded;
 import org.testng.annotations.Test;
 
 /**
@@ -33,11 +34,28 @@ public class RegisterTests extends TestBase
 		}
 	}
 
+    public static class BadStruct {
+        int age;
+
+        public BadStruct(int age) {
+            this.age = age;
+        }
+    }
+    @Entity
+    public static class HasEmbedded {
+        @Id
+        Long id;
+        @Embedded
+        BadStruct name;
+
+    }
+
 	@Test
 	public void testNoArgConstructor()
 	{
 		assertRegisterFails(NonPublicConstructor.class, IllegalStateException.class);
 		assertRegisterFails(NoNoargConstructors.class, IllegalStateException.class);
+		assertRegisterFails(HasEmbedded.class, IllegalStateException.class);
 	}
 
 	private void assertRegisterFails(Class<?> entity, Class<? extends Exception> expectedException)
