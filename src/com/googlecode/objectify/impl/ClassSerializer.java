@@ -1,16 +1,15 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.OldName;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.OldName;
 
 /**
  * Knows how to serialize a specific to an datastore entity, and back again, based
@@ -33,9 +32,9 @@ public class ClassSerializer implements Populator
 	private final ObjectifyFactory factory;
 
 	/** the concrete class this ClassSerializer knows how to serialize. */
-	private final Class type;
+	private final Class<?> type;
 
-	public ClassSerializer(ObjectifyFactory factory, Class type)
+	public ClassSerializer(ObjectifyFactory factory, Class<?> type)
 	{
 		this.factory = factory;
 		this.type = type;
@@ -176,7 +175,7 @@ public class ClassSerializer implements Populator
 		return writeables;
 	}
 
-	public Class getType()
+	public Class<?> getType()
 	{
 		return type;
 	}

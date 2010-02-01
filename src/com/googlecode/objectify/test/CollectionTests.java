@@ -159,7 +159,7 @@ public class CollectionTests extends TestBase
 
 		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
 		assert e.hasProperty("integerList");
-		List l = (List) e.getProperty("integerList");
+		List<?> l = (List<?>) e.getProperty("integerList");
 		assert l != null;
 		assert l.size() == 1;
 		assert l.get(0) == null;

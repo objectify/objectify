@@ -1,7 +1,11 @@
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.EntityNotFoundException;
+import java.util.Iterator;
+
+import javax.persistence.Id;
+
+import org.testng.annotations.Test;
+
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
@@ -10,13 +14,6 @@ import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
 import com.googlecode.objectify.test.entity.Town;
-import org.testng.annotations.Test;
-
-//import javax.persistence.Entity;
-import javax.persistence.Id;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  */

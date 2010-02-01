@@ -145,7 +145,7 @@ public class ExampleDocoTests extends TestBase
 
 	private boolean arrayPropertyEqual(Entity e, String prop, Object... vals)
 	{
-		List found = (List) e.getProperty(prop);
+		List<?> found = (List<?>) e.getProperty(prop);
 		return Arrays.asList(vals).equals(found);
 	}
 
