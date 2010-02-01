@@ -38,7 +38,7 @@ class FieldPopulator implements Populator
 		{
 			if (listProperty)
 			{
-				value = new ArrayList(); // Rule: load null/absent as empty list
+				value = new ArrayList<Object>(); // Rule: load null/absent as empty list
 			}
 			else
 			{
@@ -50,13 +50,14 @@ class FieldPopulator implements Populator
 			value = ent.getProperty(propname);
 			if (listProperty && (value == null))
 			{
-				value = new ArrayList(); // Rule: load null/absent as empty list
+				value = new ArrayList<Object>(); // Rule: load null/absent as empty list
 			}
 		}
 		value = TypeUtils.convertFromDatastore(factory, value, fieldType, fieldComponentType);
 		field.set(dest.get(), value);
 	}
 
+	@SuppressWarnings("unchecked")
 	public void populateFromList(Entity ent, ListHolder dests) throws IllegalAccessException, InstantiationException
 	{
 		String propname = whichPropname(ent);
@@ -66,7 +67,7 @@ class FieldPopulator implements Populator
 		}
 
 		Object o = ent.getProperty(propname);
-		if (o == null || !(o instanceof List)) {
+		if (o == null || !(o instanceof List<?>)) {
 			return; // TODO is this what we want to do, test for it
 		}
 		List<Object> list = (List<Object>) o;
