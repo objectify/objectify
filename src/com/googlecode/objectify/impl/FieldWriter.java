@@ -29,6 +29,7 @@ class FieldWriter implements Writer
 		this.indexed = indexed;
 	}
 
+	@Override
 	public void addtoEntity(Entity ent, Object obj) throws IllegalAccessException
 	{
 		Object value = field.get(obj);
@@ -45,6 +46,7 @@ class FieldWriter implements Writer
 		// TODO: Add warning if the field is indexed but we have converted it to Text (which is always unindexed).
 	}
 
+	@Override
 	public void addtoArray(ListPropertyMap entity, int i, Object obj) throws IllegalAccessException
 	{
 		Object value = field.get(obj);
@@ -52,6 +54,7 @@ class FieldWriter implements Writer
 		entity.setValue(name, i, value);
 	}
 
+	@Override
 	public void initArray(ListPropertyMap arrays)
 	{
 		arrays.createArray(name, indexed);
@@ -71,6 +74,8 @@ class FieldWriter implements Writer
 			// Check to see if it's too long and needs to be Text instead
 			if (((String) value).length() > 500)
 				return new Text((String) value);
+			else
+				return value;
 		}
 		else if (value instanceof Enum<?>)
 		{
@@ -111,8 +116,10 @@ class FieldWriter implements Writer
 		{
 			return factory.oKeyToRawKey((Key<?>) value);
 		}
-
-		// Usually we just want to return the value
-		return value;
+		else
+		{
+			// Usually we just want to return the value
+			return value;
+		}
 	}
 }

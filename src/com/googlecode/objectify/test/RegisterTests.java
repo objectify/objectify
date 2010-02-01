@@ -1,9 +1,9 @@
 package com.googlecode.objectify.test;
 
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Embedded;
 import org.testng.annotations.Test;
 
 /**

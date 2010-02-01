@@ -2,6 +2,7 @@ package com.googlecode.objectify.test;
 
 import java.util.Iterator;
 
+import javax.persistence.Embedded;
 import javax.persistence.Id;
 
 import org.testng.annotations.Test;
@@ -9,7 +10,6 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
-import com.googlecode.objectify.annotation.Embedded;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;

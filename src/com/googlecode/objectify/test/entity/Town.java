@@ -1,7 +1,6 @@
 package com.googlecode.objectify.test.entity;
 
-import com.googlecode.objectify.annotation.Embedded;
-
+import javax.persistence.Embedded;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 

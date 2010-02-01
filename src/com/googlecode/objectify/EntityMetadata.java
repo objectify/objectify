@@ -1,21 +1,21 @@
 package com.googlecode.objectify;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.Collection;
+
+import javax.persistence.Id;
+import javax.persistence.Transient;
+
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.googlecode.objectify.annotation.Embedded;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.impl.ClassSerializer;
 import com.googlecode.objectify.impl.ObjectHolder;
 import com.googlecode.objectify.impl.TypeUtils;
-
-import javax.persistence.Id;
-import javax.persistence.Transient;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
 
 
 /**
@@ -49,7 +49,10 @@ public class EntityMetadata<T>
 	private final ClassSerializer classinfo;
 
 
-	/** */
+	/**
+	 * Inspects and stores the metadata for a particular entity class.
+	 * @param clazz must be a properly-annotated Objectify entity class.
+	 */
 	public EntityMetadata(ObjectifyFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
@@ -58,7 +61,7 @@ public class EntityMetadata<T>
 		this.classinfo = new ClassSerializer(fact, clazz);
 
 		// Recursively walk up the inheritance chain looking for fields
-		this.visit(clazz, "", classinfo, false, true);
+		this.visit(clazz, "", classinfo, false, false);
 
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
@@ -67,7 +70,7 @@ public class EntityMetadata<T>
 		TypeUtils.checkForNoArgConstructor(clazz);
 	}
 
-	/** @return the kind associated with this metadata */
+	/** @return the datastore kind associated with this metadata */
 	public String getKind()
 	{
 		return this.kind;
@@ -75,14 +78,21 @@ public class EntityMetadata<T>
 
 	/**
 	 * Recursive function adds any appropriate fields to our internal data
-	 * structures for persisting and retrieving later.
+	 * structures for persisting and retrieving later.  Walks not only the
+	 * parent hierarchy, but also any embedded classes (and their parents).
+	 * This will walk through a potentially large tree.
+	 * 
+	 * @param clazz is the class to inspect.  All parent and embedded classes will also be visited.
+	 * @param propPrefix is the prefix for embedded class fields, starting at "" for root classes and going to "fieldname." and "fieldname.another."
+	 * @param forceUnindexed will cause all further properties to be treated as @Unindexed
+	 * @param embeddedClass is true if we are visiting an embedded class
 	 */
-	private void visit(Class<?> clazz, String propPrefix, ClassSerializer classinfo, boolean forceUnindexed, boolean outerclass)
+	private void visit(Class<?> clazz, String propPrefix, ClassSerializer classinfo, boolean forceUnindexed, boolean embeddedClass)
 	{
 		if ((clazz == null) || (clazz == Object.class))
 			return;
 
-		this.visit(clazz.getSuperclass(), propPrefix, classinfo, forceUnindexed, outerclass);
+		this.visit(clazz.getSuperclass(), propPrefix, classinfo, forceUnindexed, embeddedClass);
 
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
@@ -94,8 +104,9 @@ public class EntityMetadata<T>
 
 			if (field.isAnnotationPresent(Id.class))
 			{
-				if (!outerclass)
+				if (embeddedClass)
 					throw new IllegalStateException("@Id not supported on embedded class " + clazz);
+				
 				if ((this.idField != null) || (this.nameField != null))
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -109,8 +120,9 @@ public class EntityMetadata<T>
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
-				if (!outerclass)
+				if (embeddedClass)
 					throw new IllegalStateException("@Parent not supported on embedded class " + clazz);
+				
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -123,9 +135,8 @@ public class EntityMetadata<T>
 			{
 				boolean hasUnindexed = field.isAnnotationPresent(Unindexed.class);
 				boolean indexed = !hasUnindexed && !forceUnindexed;
-				boolean embedded = field.isAnnotationPresent(Embedded.class) || field.isAnnotationPresent(javax.persistence.Embedded.class);
+				boolean embedded = field.isAnnotationPresent(javax.persistence.Embedded.class);
 				String name = propPrefix + field.getName();
-
 
 				boolean isArray = field.getType().isArray();
 				boolean isCollection = Collection.class.isAssignableFrom(field.getType());
@@ -140,8 +151,9 @@ public class EntityMetadata<T>
 						if (childType.isPrimitive())
 						{
 							throw new IllegalStateException("Can't use @Embedded on '" + field.getName() + "' in " +
-									clazz.getName() + " because it is a primitive array.");
+									clazz.getName() + " because it is a primitive array. It will work fine without @Embedded.");
 						}
+						
 						subinfo = classinfo.addEmbeddedArrayField(field, name);
 					}
 					else
@@ -150,9 +162,9 @@ public class EntityMetadata<T>
 						subinfo = classinfo.addEmbeddedField(field, name, indexed);
 					}
 
-					visit(childType, name + ".", subinfo, forceUnindexed || hasUnindexed, false);
+					visit(childType, name + ".", subinfo, forceUnindexed || hasUnindexed, true);
 				}
-				else
+				else	// not embedded
 				{
 					classinfo.addField(field, name, isArray || isCollection, indexed);
 				}
@@ -190,7 +202,6 @@ public class EntityMetadata<T>
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());
 
-
 			classinfo.populateIntoObject(ent, new ObjectHolder(obj));
 
 			return obj;
@@ -203,7 +214,7 @@ public class EntityMetadata<T>
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
-	public Entity toEntity(Object obj)
+	public Entity toEntity(T obj)
 	{
 		Entity ent = this.initEntity(obj);
 
@@ -218,9 +229,10 @@ public class EntityMetadata<T>
 	 * <li>If it's a Long id, might be null and require autogeneration</li>
 	 * <li>Might have a parent key</li>
 	 * </ul>
-	 * <p>Gross, isn't it?</p>
+	 * 
+	 * @return an empty Entity object whose key has been set but no other properties.
 	 */
-	Entity initEntity(Object obj)
+	Entity initEntity(T obj)
 	{
 		try
 		{
@@ -269,11 +281,11 @@ public class EntityMetadata<T>
 
 	/**
 	 * Sets the relevant id and parent fields of the object to the values stored in the key.
-	 * Object must be of the entityClass type for this metadata.
+	 * @param obj must be of the entityClass type for this metadata.
 	 */
-	public void setKey(Object obj, com.google.appengine.api.datastore.Key key)
+	public void setKey(T obj, com.google.appengine.api.datastore.Key key)
 	{
-		if (obj.getClass() != this.entityClass)
+		if (!this.entityClass.isAssignableFrom(obj.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
 
 		try
@@ -288,7 +300,7 @@ public class EntityMetadata<T>
 			else
 			{
 				if (this.idField == null)
-					throw new IllegalStateException("Loaded Entity has id but " + this.entityClass.getName() + " has no Long (or long) @Id");
+					throw new IllegalStateException("Loaded Entity has numeric id but " + this.entityClass.getName() + " has no Long (or long) @Id");
 
 				this.idField.set(obj, key.getId());
 			}
@@ -310,12 +322,13 @@ public class EntityMetadata<T>
 
 	/**
 	 * Gets a key composed of the relevant id and parent fields in the object.
+	 * 
 	 * @param obj must be of the entityClass type for this metadata.
 	 * @throws IllegalArgumentException if obj has a null id
 	 */
 	public com.google.appengine.api.datastore.Key getKey(Object obj)
 	{
-		if (obj.getClass() != this.entityClass)
+		if (!this.entityClass.isAssignableFrom(obj.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + obj.getClass().getName());
 
 		try

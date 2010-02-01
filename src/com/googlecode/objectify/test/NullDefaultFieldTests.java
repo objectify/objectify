@@ -1,13 +1,14 @@
 package com.googlecode.objectify.test;
 
+import javax.persistence.Embedded;
+import javax.persistence.Id;
+
+import org.testng.annotations.Test;
+
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Embedded;
 import com.googlecode.objectify.annotation.Unindexed;
-import org.testng.annotations.Test;
-
-import javax.persistence.Id;
 
 /**
  * Test behavior of null fields, and default values

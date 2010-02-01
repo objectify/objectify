@@ -12,14 +12,15 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.OldName;
 
 /**
- * Knows how to serialize a specific to an datastore entity, and back again, based
- * on a description of field/property mappings.
- * <p/>
- * ClassSerializers may be hierarchically configured in order to serialize an object graph.
- * <p/>
- * Mappings are added using {@link #addField}, {@link #addEmbeddedField}, {@link #addEmbeddedArrayField}, {@link #addMethod}.
- * <p/>
- * This class does not know how serialize @Ids or @Parents.
+ * <p>Translates properties between typed entity objects and raw datastore Entities
+ * based on a description of field/property mappings set on this class.</p>
+ * 
+ * <p>ClassSerializers may be hierarchically configured in order to serialize an object graph.</p>
+ * 
+ * <p>Mappings are added using {@link #addField}, {@link #addEmbeddedField}, {@link #addEmbeddedArrayField}, {@link #addMethod}.</p>
+ * 
+ * <p>This class does not translate @Ids or @Parents - those are part of the key and are
+ * assumed to be already set.  This class translates normal properties only.</p>
  */
 public class ClassSerializer implements Populator
 {
@@ -44,10 +45,10 @@ public class ClassSerializer implements Populator
 	 * Add a field to serialize on this ClassSerializer. This field must be of a core data type, or a
 	 * Collection/List of core data types.
 	 *
-	 * @param field a field on this ClassSerializer
+	 * @param field a field on the class that we know how to serialize
 	 * @param name the property name to look for in the datastore
 	 * @param listProperty if this property represents a declared Collection or array
-	 * @param indexed should this field be indexes in the datastore
+	 * @param indexed should this field be indexed in the datastore
 	 */
 	public void addField(Field field, String name, boolean listProperty, boolean indexed)
 	{
@@ -62,7 +63,6 @@ public class ClassSerializer implements Populator
 			throw new IllegalStateException(
 					"Data property name '" + name + "' is duplicated in hierarchy of " +
 							type.getName() + ". Check for conflicting fields.");
-
 	}
 
 	/**
