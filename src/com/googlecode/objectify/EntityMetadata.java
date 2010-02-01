@@ -62,6 +62,7 @@ public class EntityMetadata<T>
 
 		// Recursively walk up the inheritance chain looking for fields
 		this.visit(clazz, "", classinfo, false, false);
+		classinfo.verify();
 
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
@@ -202,7 +203,7 @@ public class EntityMetadata<T>
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());
 
-			classinfo.populateIntoObject(ent, new ObjectHolder(obj));
+			classinfo.loadIntoObject(ent, new ObjectHolder(obj));
 
 			return obj;
 		}

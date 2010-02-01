@@ -22,13 +22,13 @@ import com.googlecode.objectify.annotation.OldName;
  * <p>This class does not translate @Ids or @Parents - those are part of the key and are
  * assumed to be already set.  This class translates normal properties only.</p>
  */
-public class ClassSerializer implements Populator
+public class ClassSerializer
 {
 	/**
-	 * The fields we persist, not including the @Id or @Parent fields
+	 * The fields we serialize, not including the @Id or @Parent fields
 	 */
-	private final Set<Writer> writeables = new HashSet<Writer>();
-	private Map<String, Populator> populators = new HashMap<String, Populator>();
+	private final Map<String, Serializer> serializers = new HashMap<String, Serializer>();
+	private final Map<String, MethodPopulator> methodLoaders = new HashMap<String, MethodPopulator>();
 
 	private final ObjectifyFactory factory;
 
@@ -52,14 +52,11 @@ public class ClassSerializer implements Populator
 	 */
 	public void addField(Field field, String name, boolean listProperty, boolean indexed)
 	{
-		FieldWriter writer = new FieldWriter(factory, field, name, listProperty, indexed);
-		writeables.add(writer);
-
 		OldName old = field.getAnnotation(OldName.class);
 		String oldName = old == null ? null : old.value();
 
-		FieldPopulator ri = new FieldPopulator(factory, name, oldName, field, listProperty);
-		if (this.populators.put(name, ri) != null)
+		FieldSerializer ri = new FieldSerializer(factory, name, oldName, field, indexed, listProperty);
+		if (this.serializers.put(name, ri) != null)
 			throw new IllegalStateException(
 					"Data property name '" + name + "' is duplicated in hierarchy of " +
 							type.getName() + ". Check for conflicting fields.");
@@ -81,11 +78,9 @@ public class ClassSerializer implements Populator
 		ClassSerializer subinfo = new ClassSerializer(factory, field.getType());
 
 		TypeUtils.checkForNoArgConstructor(field.getType());
-		EmbeddedFieldWriter writer = new EmbeddedFieldWriter(field, name, indexed, subinfo);
-		writeables.add(writer);
 
-		EmbeddedPopulator ri = new EmbeddedPopulator(field, name, subinfo);
-		if (populators.put(name, ri) != null)
+		EmbeddedFieldSerializer ri = new EmbeddedFieldSerializer(field, name, indexed, subinfo);
+		if (serializers.put(name, ri) != null)
 		{
 			throw new IllegalStateException(
 					"Embedded property name '" + name + "' is duplicated in hierarchy of " +
@@ -109,11 +104,8 @@ public class ClassSerializer implements Populator
 		// TODO oldname support
 		ClassSerializer subinfo = new ClassSerializer(factory, field.getType());
 
-		EmbeddedArrayWriter writer = new EmbeddedArrayWriter(field, subinfo);
-		writeables.add(writer);
-
-		EmbeddedArrayPopulator ri = new EmbeddedArrayPopulator(field, subinfo);
-		if (populators.put(name, ri) != null)
+		EmbeddedArraySerializer ri = new EmbeddedArraySerializer(field, subinfo);
+		if (serializers.put(name, ri) != null)
 		{
 			throw new IllegalStateException(
 					"Embedded property array/Collection name '" + name + "' is duplicated in hierarchy of " +
@@ -130,25 +122,49 @@ public class ClassSerializer implements Populator
 	 */
 	public void addMethod(Method method, String oldname)
 	{
-		if (populators.put(oldname, new MethodPopulator(factory, oldname, method)) != null)
+		if (methodLoaders.put(oldname, new MethodPopulator(factory, oldname, method)) != null)
 			throw new IllegalStateException(
 					"@OldName method for data property '" + oldname + "' is duplicated in hierarchy of " +
 							type.getName() + ". Check for conflicting fields.");
 	}
 
-	public void populateIntoObject(Entity ent, ObjectHolder dest) throws IllegalAccessException, InstantiationException
+	/**
+	 * Call to check if the way this class has been configured confirms to all the rules.
+	 */
+	public void verify() {
+		Set<String> names = new HashSet<String>(serializers.keySet());
+		names.retainAll(methodLoaders.keySet());
+		if (!names.isEmpty())
+		{
+			throw new IllegalArgumentException("Duplicate property name between field and @OldName method '"
+					+ names.iterator().next() + "' for type " + type.getName() + ". Check for conflicting fields.");
+		}
+
+		for (Serializer serializer : serializers.values())
+		{
+			serializer.verify();
+		}
+	}
+
+	
+
+	public void loadIntoObject(Entity ent, ObjectHolder dest) throws IllegalAccessException, InstantiationException
 	{
-		for (Populator ri : populators.values())
+		for (Serializer ri : serializers.values())
+		{
+			ri.loadIntoObject(ent, dest);
+		}
+		for (MethodPopulator ri : methodLoaders.values())
 		{
 			ri.populateIntoObject(ent, dest);
 		}
 	}
 
-	public void populateFromList(Entity ent, ListHolder dests) throws IllegalAccessException, InstantiationException
+	void loadIntoList(Entity ent, ListHolder dests) throws IllegalAccessException, InstantiationException
 	{
-		for (Populator ri : populators.values())
+		for (Serializer ri : serializers.values())
 		{
-			ri.populateFromList(ent, dests);
+			ri.loadIntoList(ent, dests);
 		}
 	}
 
@@ -159,9 +175,9 @@ public class ClassSerializer implements Populator
 	{
 		try
 		{
-			for (Writer fw : writeables)
+			for (Serializer fw : serializers.values())
 			{
-				fw.addtoEntity(ent, obj);
+				fw.saveObject(ent, obj);
 			}
 		}
 		catch (IllegalAccessException e)
@@ -170,9 +186,9 @@ public class ClassSerializer implements Populator
 		}
 	}
 
-	Set<Writer> getWriteables()
+	Iterable<Serializer> getSerializers()
 	{
-		return writeables;
+		return serializers.values();
 	}
 
 	public Class<?> getType()

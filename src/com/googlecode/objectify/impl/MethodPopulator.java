@@ -9,13 +9,13 @@ import java.lang.reflect.Method;
 /**
  * Works with methods
  */
-class MethodPopulator implements Populator
+class MethodPopulator
 {
 	private final ObjectifyFactory factory;
 	private final Method method;
 	private final String name;
 	private final Class<?> paramType;
-	private Class<?> paramComponentType;
+	private final Class<?> paramComponentType;
 
 	MethodPopulator(ObjectifyFactory factory, String name, Method method)
 	{
@@ -41,13 +41,5 @@ class MethodPopulator implements Populator
 				throw new RuntimeException(ex);
 			}
 		}
-	}
-
-	@Override
-	public void populateFromList(Entity ent, ListHolder dests) throws IllegalAccessException, InstantiationException
-	{
-		// should not be possible to reach here, you can't method populat
-		// into an array
-		throw new RuntimeException();
 	}
 }
