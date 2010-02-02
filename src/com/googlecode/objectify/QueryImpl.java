@@ -28,7 +28,11 @@ class QueryImpl<T> implements Query<T>
 	Class<T> classRestriction;
 	
 	/** The actual datastore query constructed by this object */
-	protected com.google.appengine.api.datastore.Query actual;
+	com.google.appengine.api.datastore.Query actual;
+	
+	/** */
+	int limit;
+	int offset;
 	
 	/** */
 	protected QueryImpl(ObjectifyFactory fact, Objectify objectify) 
@@ -155,6 +159,24 @@ class QueryImpl<T> implements Query<T>
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#limit(int)
+	 */
+	public Query<T> limit(int value)
+	{
+		this.limit = value;
+		return this;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#offset(int)
+	 */
+	public Query<T> offset(int value)
+	{
+		this.offset = value;
+		return this;
+	}
+	
+	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	public String toString()
@@ -218,6 +240,12 @@ class QueryImpl<T> implements Query<T>
 			bld.append(sort.getDirection().name());
 		}
 		
+		if (this.limit > 0)
+			bld.append(",limit=").append(this.limit);
+		
+		if (this.offset > 0)
+			bld.append(",offset=").append(this.offset);
+		
 		bld.append('}');
 		
 		return bld.toString();
@@ -238,12 +266,25 @@ class QueryImpl<T> implements Query<T>
 	@Override
 	public T get()
 	{
-		Entity ent = this.prepare().asSingleEntity();
-		if (ent == null)
-			return null;
+		// The underlying datastore is basically doing this for PreparedQuery.asSingleEntity(),
+		// so let's do it ourselves and integrate offset()
 
-		EntityMetadata<T> metadata = this.factory.getMetadata(ent.getKey());
-		return metadata.toObject(ent);
+		FetchOptions opts = FetchOptions.Builder.withLimit(1);
+		if (this.offset > 0)
+			opts = opts.offset(this.offset);
+		
+		Iterator<Entity> it = this.prepare().asIterator(opts);
+
+		if (it.hasNext())
+		{
+			Entity ent = it.next();
+			EntityMetadata<T> metadata = this.factory.getMetadata(ent.getKey());
+			return metadata.toObject(ent);
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -252,18 +293,28 @@ class QueryImpl<T> implements Query<T>
 	@Override
 	public Key<T> getKey()
 	{
-		Entity ent = this.prepareKeysOnly().asSingleEntity();
-		if (ent == null)
-			return null;
+		FetchOptions opts = FetchOptions.Builder.withLimit(1);
+		if (this.offset > 0)
+			opts = opts.offset(this.offset);
+		
+		Iterator<Entity> it = this.prepareKeysOnly().asIterator(opts);
 
-		return this.factory.rawKeyToOKey(ent.getKey());
+		if (it.hasNext())
+		{
+			Entity ent = it.next();
+			return this.factory.rawKeyToOKey(ent.getKey());
+		}
+		else
+		{
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#count()
+	 * @see com.googlecode.objectify.Query#countAll()
 	 */
 	@Override
-	public int count()
+	public int countAll()
 	{
 		return this.prepare().countEntities();
 	}
@@ -274,18 +325,11 @@ class QueryImpl<T> implements Query<T>
 	@Override
 	public Iterable<T> fetch()
 	{
-		// We are already iterable
-		return this;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#fetch(int, int)
-	 */
-	@Override
-	public Iterable<T> fetch(int limit, int offset)
-	{
-		FetchOptions opts = FetchOptions.Builder.withLimit(limit).offset(offset);
-		return new ToObjectIterable<T>(this.prepare().asIterable(opts), false);
+		FetchOptions opts = this.fetchOptions();
+		if (opts == null)
+			return this;	// We are already iterable
+		else
+			return new ToObjectIterable<T>(this.prepare().asIterable(opts), false);
 	}
 
 	/* (non-Javadoc)
@@ -294,19 +338,13 @@ class QueryImpl<T> implements Query<T>
 	@Override
 	public Iterable<Key<T>> fetchKeys()
 	{
-		return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(), true);
+		FetchOptions opts = this.fetchOptions();
+		if (opts == null)
+			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(), true);
+		else
+			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(opts), true);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#fetchKeys(int, int)
-	 */
-	@Override
-	public Iterable<Key<T>> fetchKeys(int limit, int offset)
-	{
-		FetchOptions opts = FetchOptions.Builder.withLimit(limit).offset(offset);
-		return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(opts), true);
-	}
-	
 	/**
 	 * Create a PreparedQuery relevant to our current state.
 	 */
@@ -325,6 +363,22 @@ class QueryImpl<T> implements Query<T>
 		cloned.setKeysOnly();
 		
 		return this.ofy.getDatastore().prepare(this.ofy.getTxn(), cloned);
+	}
+	
+	/**
+	 * @return a set of fetch options for the current limit and offset, or null if
+	 *  there is no limit or offset.
+	 */
+	private FetchOptions fetchOptions()
+	{
+		if (this.limit == 0 && this.offset == 0)
+			return null;
+		else if (this.offset == 0)
+			return FetchOptions.Builder.withLimit(this.limit);
+		else if (this.limit == 0)
+			return FetchOptions.Builder.withOffset(this.offset);
+		else
+			return FetchOptions.Builder.withLimit(this.limit).offset(this.offset);
 	}
 	
 	/**
