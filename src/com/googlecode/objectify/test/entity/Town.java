@@ -13,6 +13,9 @@ public class Town
 	public Long id;
 
 	public String name;
+	
+	@Embedded
+	Industry industry;
 
 	@Embedded
 	public Person mayor;

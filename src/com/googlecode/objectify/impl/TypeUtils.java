@@ -1,10 +1,8 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyFactory;
-
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -15,10 +13,22 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.persistence.Transient;
+
+import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
+
 /**
  */
 public class TypeUtils
 {
+	/** We do not persist fields with any of these modifiers */
+	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
+
+	/**
+	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
+	 */
 	public static void checkForNoArgConstructor(Class<?> clazz)
 	{
 		try
@@ -29,6 +39,16 @@ public class TypeUtils
 		{
 			throw new IllegalStateException("There must be a public no-arg constructor for " + clazz.getName(), e);
 		}
+	}
+	
+	/**
+	 * @return true if the field can be saved (is persistable), false if it
+	 *  is static, final, transient, etc.
+	 */
+	public static boolean isSaveable(Field field)
+	{
+		return !field.isAnnotationPresent(Transient.class)
+			&& ((field.getModifiers() & NOT_SAVED_MODIFIERS) == 0);
 	}
 
 	/**
@@ -166,6 +186,53 @@ public class TypeUtils
 	}
 
 	/**
+	 * Converts the value into an object suitable for the type (hopefully).
+	 * For loading data out of the datastore.  All items are assumed to be
+	 * simple types - no collections.
+	 *
+	 * @param value	is the property value that came out of the datastore Entity
+	 * @param type	is the type of the field or method param we are populating
+	 */
+	@SuppressWarnings("unchecked")
+	public static Object convertFromDatastore(ObjectifyFactory factory, Object value, Class<?> type)
+	{
+		if (value == null)
+		{
+			return null;
+		}
+		else if (type.isAssignableFrom(value.getClass()))
+		{
+			return value;
+		}
+		else if (type == String.class)
+		{
+			if (value instanceof Text)
+				return ((Text) value).getValue();
+			else
+				return value.toString();
+		}
+		else if (Enum.class.isAssignableFrom(type))
+		{
+			// Anyone have any idea how to avoid this generics warning?
+			return Enum.valueOf((Class<Enum>) type, value.toString());
+		}
+		else if ((value instanceof Boolean) && (type == Boolean.TYPE))
+		{
+			return value;
+		}
+		else if (value instanceof Number)
+		{
+			return coerceNumber((Number) value, type);
+		}
+		else if (value instanceof com.google.appengine.api.datastore.Key && Key.class.isAssignableFrom(type))
+		{
+			return factory.rawKeyToOKey((com.google.appengine.api.datastore.Key) value);
+		}
+
+		throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
+	}
+
+	/**
 	 * Coerces the value to be a number of the specified type; needed because
 	 * all numbers come back from the datastore as Long and this screws up
 	 * any type that expects something smaller.  Also does toString just for the
@@ -182,4 +249,38 @@ public class TypeUtils
 		else if (type == String.class) return value.toString();
 		else throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
+	
+	/** Checked exceptions are LAME. */
+	public static <T> T class_newInstance(Class<T> clazz)
+	{
+		try
+		{
+			return clazz.newInstance();
+		}
+		catch (InstantiationException e) { throw new RuntimeException(e); }
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
+	/** Checked exceptions are LAME. */
+	public static Object field_get(Field field, Object obj)
+	{
+		try
+		{
+			return field.get(obj);
+		}
+		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
+	/** Checked exceptions are LAME. */
+	public static void field_set(Field field, Object obj, Object value)
+	{
+		try
+		{
+			field.set(obj, value);
+		}
+		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
 }

@@ -1,20 +1,13 @@
 package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Collection;
 
 import javax.persistence.Id;
-import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.annotation.Unindexed;
-import com.googlecode.objectify.impl.ClassSerializer;
-import com.googlecode.objectify.impl.ObjectHolder;
+import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.TypeUtils;
 
 
@@ -26,9 +19,6 @@ import com.googlecode.objectify.impl.TypeUtils;
  */
 public class EntityMetadata<T>
 {
-	/** We do not persist fields with any of these modifiers */
-	static final int BAD_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
-
 	/** Needed for key translation */
 	protected ObjectifyFactory factory;
 
@@ -46,8 +36,8 @@ public class EntityMetadata<T>
 	/** If the entity has a @Parent field, treat it specially */
 	protected Field parentField;
 
-	private final ClassSerializer classinfo;
-
+	/** For translating between pojos and entities */
+	protected Transmog<T> transmog;
 
 	/**
 	 * Inspects and stores the metadata for a particular entity class.
@@ -58,12 +48,13 @@ public class EntityMetadata<T>
 		this.factory = fact;
 		this.entityClass = clazz;
 		this.kind = this.factory.getKind(clazz);
-		this.classinfo = new ClassSerializer(fact, clazz);
 
-		// Recursively walk up the inheritance chain looking for fields
-		this.visit(clazz, "", classinfo, false, false);
-		classinfo.verify();
+		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
+		this.processKeyFields(clazz);
 
+		// Now figure out how to handle normal properties
+		this.transmog = new Transmog<T>(fact, clazz);
+		
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
@@ -78,36 +69,28 @@ public class EntityMetadata<T>
 	}
 
 	/**
-	 * Recursive function adds any appropriate fields to our internal data
-	 * structures for persisting and retrieving later.  Walks not only the
-	 * parent hierarchy, but also any embedded classes (and their parents).
-	 * This will walk through a potentially large tree.
-	 * 
-	 * @param clazz is the class to inspect.  All parent and embedded classes will also be visited.
-	 * @param propPrefix is the prefix for embedded class fields, starting at "" for root classes and going to "fieldname." and "fieldname.another."
-	 * @param forceUnindexed will cause all further properties to be treated as @Unindexed
-	 * @param embeddedClass is true if we are visiting an embedded class
+	 * Recursive function which walks up the superclass hierarchy looking
+	 * for key-related fields (@Id and @Parent).  Ignores all other fields;
+	 * those are the responsibility of the Transmog.
 	 */
-	private void visit(Class<?> clazz, String propPrefix, ClassSerializer classinfo, boolean forceUnindexed, boolean embeddedClass)
+	private void processKeyFields(Class<?> clazz)
 	{
 		if ((clazz == null) || (clazz == Object.class))
 			return;
 
-		this.visit(clazz.getSuperclass(), propPrefix, classinfo, forceUnindexed, embeddedClass);
+		// Start at the top of the chain
+		this.processKeyFields(clazz.getSuperclass());
 
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
-			if (field.isAnnotationPresent(Transient.class) || ((field.getModifiers() & BAD_MODIFIERS) != 0))
+			if (!TypeUtils.isSaveable(field))
 				continue;
 
 			field.setAccessible(true);
 
 			if (field.isAnnotationPresent(Id.class))
 			{
-				if (embeddedClass)
-					throw new IllegalStateException("@Id not supported on embedded class " + clazz);
-				
 				if ((this.idField != null) || (this.nameField != null))
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -121,9 +104,6 @@ public class EntityMetadata<T>
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
-				if (embeddedClass)
-					throw new IllegalStateException("@Parent not supported on embedded class " + clazz);
-				
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
@@ -132,61 +112,7 @@ public class EntityMetadata<T>
 
 				this.parentField = field;
 			}
-			else
-			{
-				boolean hasUnindexed = field.isAnnotationPresent(Unindexed.class);
-				boolean indexed = !hasUnindexed && !forceUnindexed;
-				boolean embedded = field.isAnnotationPresent(javax.persistence.Embedded.class);
-				String name = propPrefix + field.getName();
-
-				boolean isArray = field.getType().isArray();
-				boolean isCollection = Collection.class.isAssignableFrom(field.getType());
-
-				if (embedded)
-				{
-					ClassSerializer subinfo;
-					Class<?> childType;
-					if (isArray)
-					{
-						childType = field.getType().getComponentType();
-						if (childType.isPrimitive())
-						{
-							throw new IllegalStateException("Can't use @Embedded on '" + field.getName() + "' in " +
-									clazz.getName() + " because it is a primitive array. It will work fine without @Embedded.");
-						}
-						
-						subinfo = classinfo.addEmbeddedArrayField(field, name);
-					}
-					else
-					{
-						childType = field.getType();
-						subinfo = classinfo.addEmbeddedField(field, name, indexed);
-					}
-
-					visit(childType, name + ".", subinfo, forceUnindexed || hasUnindexed, true);
-				}
-				else	// not embedded
-				{
-					classinfo.addField(field, name, isArray || isCollection, indexed);
-				}
-			}
 		}
-
-		// Now look for methods with one param that are annotated with @OldName
-		for (Method method: clazz.getDeclaredMethods())
-		{
-			OldName oldName = method.getAnnotation(OldName.class);
-			if (oldName != null)
-			{
-				if (method.getParameterTypes().length != 1)
-					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
-
-				method.setAccessible(true);
-
-				classinfo.addMethod(method, oldName.value());
-			}
-		}
-
 	}
 
 	/**
@@ -203,7 +129,7 @@ public class EntityMetadata<T>
 			// This will set the id and parent fields as appropriate.
 			this.setKey(obj, ent.getKey());
 
-			classinfo.loadIntoObject(ent, new ObjectHolder(obj));
+			this.transmog.load(ent, obj);
 
 			return obj;
 		}
@@ -219,7 +145,8 @@ public class EntityMetadata<T>
 	{
 		Entity ent = this.initEntity(obj);
 
-		classinfo.toEntity(ent, obj);
+		this.transmog.save(obj, ent);
+		
 		return ent;
 	}
 
