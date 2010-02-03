@@ -114,15 +114,21 @@ public class Transmog<T>
 			{
 				if (field.getType().isArray())
 				{
-					TypeUtils.checkForNoArgConstructor(field.getType().getComponentType());
+					Class<?> componentType = field.getType().getComponentType();
+					TypeUtils.checkForNoArgConstructor(componentType);
 					
 					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
-					visitor.visitClass(field.getType());
+					visitor.visitClass(componentType);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					throw new UnsupportedOperationException("@Embedded arrays not supported yet");
+					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
+					TypeUtils.checkForNoArgConstructor(componentType);
+					
+					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field);
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
+					visitor.visitClass(componentType);
 				}
 				else	// basic class
 				{
@@ -133,7 +139,7 @@ public class Transmog<T>
 					visitor.visitClass(field.getType());
 				}
 			}
-			else	// not embedded, so we're at a leaf object (including arrays of basic types)
+			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				Setter setter = new LeafSetter(factory, new FieldWrapper(field));
 				
