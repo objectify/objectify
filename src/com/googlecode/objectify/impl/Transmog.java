@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.Embedded;
@@ -13,6 +14,14 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.impl.load.FieldWrapper;
+import com.googlecode.objectify.impl.load.MethodWrapper;
+import com.googlecode.objectify.impl.load.Setter;
+import com.googlecode.objectify.impl.load.SetterEmbeddedArray;
+import com.googlecode.objectify.impl.load.SetterEmbeddedClass;
+import com.googlecode.objectify.impl.load.SetterEmbeddedCollection;
+import com.googlecode.objectify.impl.load.SetterLeaf;
+import com.googlecode.objectify.impl.load.SetterRoot;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
@@ -30,6 +39,9 @@ public class Transmog<T>
 	
 	/** Maps full "blah.blah.blah" property name to a particular Setter implementation */
 	Map<String, Setter> setters;
+	
+	/** The savers for this entity, each of which saves a top-level field */
+	List<Saver> savers;
 	
 	/**
 	 * Object which visits various levels of the object graph and builds the loaders & savers.
@@ -162,7 +174,7 @@ public class Transmog<T>
 				throw new IllegalStateException("Attempting to create multiple associations for " + wholeName);
 
 			// Extend and strip off the unnecessary (at runtime) SetterRoot
-			Setter chain = this.setterChain.extend(setter).next;
+			Setter chain = this.setterChain.extend(setter).getNext();
 			setters.put(wholeName, chain);
 		}
 	}
@@ -181,28 +193,29 @@ public class Transmog<T>
 	 * Loads the property data in an Entity into a POJO.  Does not affect id/parent
 	 * (ie key) fields; those are assumed to already have been set.
 	 * 
-	 * @param entity is a raw datastore entity
-	 * @param pojo is your typed entity
+	 * @param fromEntity is a raw datastore entity
+	 * @param toPojo is your typed entity
 	 */
-	public void load(Entity entity, T pojo)
+	public void load(Entity fromEntity, T toPojo)
 	{
-		for (Map.Entry<String, Object> property: entity.getProperties().entrySet())
+		for (Map.Entry<String, Object> property: fromEntity.getProperties().entrySet())
 		{
 			Setter setter = this.setters.get(property.getKey());
 			if (setter != null)
-				setter.set(pojo, property.getValue());
+				setter.set(toPojo, property.getValue());
 		}
 	}
 	
 	/**
-	 * Saves the fields of a POJO ito the properties of an Entity.  Does not affect id/parent
+	 * Saves the fields of a POJO into the properties of an Entity.  Does not affect id/parent
 	 * (ie key) fields; those are assumed to already have been set.
 	 * 
-	 * @param pojo is your typed entity
-	 * @param entity is a raw datastore entity
+	 * @param fromPojo is your typed entity
+	 * @param toEntity is a raw datastore entity
 	 */
-	public void save(T pojo, Entity entity)
+	public void save(T fromPojo, Entity toEntity)
 	{
-		
+		for (Saver saver: this.savers)
+			saver.save(fromPojo, toEntity);
 	}
 }

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
  * Wrapper which makes a method with a single parameter look just like a field.
  * Well, almost - if you try to get() the value it is always null.
  */
-class MethodWrapper implements Wrapper
+public class MethodWrapper implements Wrapper
 {
 	Method method;
 	

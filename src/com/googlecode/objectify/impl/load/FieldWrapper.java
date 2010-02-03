@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
  * Wrapper which makes a field look just like... a field.  More importantly,
  * we can also make methods look just like this. 
  */
-class FieldWrapper implements Wrapper
+public class FieldWrapper implements Wrapper
 {
 	Field field;
 	

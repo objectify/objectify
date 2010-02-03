@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 /**
  * <p>An instance of this object makes the construction of setter chains a lot easier.

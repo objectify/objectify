@@ -1,18 +1,13 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>Setter which knows how to set any kind of leaf value.  This could be any basic type
@@ -31,9 +26,9 @@ public class SetterLeaf extends Setter
 	class ForBasic extends Setter
 	{
 		@Override
-		public void set(Object obj, Object value)
+		public void set(Object toPojo, Object value)
 		{
-			field.set(obj, importBasic(value, field.getType()));
+			field.set(toPojo, importBasic(value, field.getType()));
 		}
 	}
 	
@@ -41,84 +36,49 @@ public class SetterLeaf extends Setter
 	class ForArray extends Setter
 	{
 		@Override
-		public void set(Object obj, Object value)
+		public void set(Object toPojo, Object value)
 		{
 			if (!(value instanceof Collection<?>))
 				throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
 
-			Collection<?> collValue = (Collection<?>)value;
+			Collection<?> datastoreCollection = (Collection<?>)value;
 
 			Class<?> componentType = field.getType().getComponentType();
 			
-			Object array = Array.newInstance(componentType, collValue.size());
+			Object array = Array.newInstance(componentType, datastoreCollection.size());
 
 			int index = 0;
-			for (Object componentValue: collValue)
+			for (Object componentValue: datastoreCollection)
 			{
 				componentValue = importBasic(componentValue, componentType);
 				Array.set(array, index++, componentValue);
 			}
 
-			field.set(obj, array);
+			field.set(toPojo, array);
 		}
 	}
 
 	/**
 	 * <p>Deals with collections of basic types.</p>
 	 * 
-	 * <p>There are a number of special considerations for collections:</p>
-	 * <ul>
-	 * <li>If the target field already contains a collection object, it will be cleared and
-	 * repopulated.  A new instance will not be created.</li>
-	 * <li>If the target field is a concrete collection type, an instance of the concrete type
-	 * will be created.</li>
-	 * <li>If the target field is Set, a HashSet will be created.</li>  
-	 * <li>If the target field is SortedSet, a TreeSet will be created.</li>  
-	 * <li>If the target field is List, an ArrayList will be created.</li>  
-	 * </ul>
+	 * <p>The special considerations for collections follows
+	 * {@link TypeUtils#prepareCollection(Object, Wrapper)}</p>
 	 */
 	class ForCollection extends Setter
 	{
 		@Override
-		@SuppressWarnings("unchecked")
-		public void set(Object obj, Object value)
+		public void set(Object toPojo, Object value)
 		{
 			if (!(value instanceof Collection<?>))
 				throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
 
-			Collection<?> collValue = (Collection<?>)value;
-			Collection<Object> target = (Collection<Object>)field.get(obj);
-
-			if (target != null)
-			{
-				target.clear();
-			}
-			else
-			{
-				if (!field.getType().isInterface())
-				{
-					target = (Collection<Object>)TypeUtils.class_newInstance(field.getType());
-				}
-				else if (SortedSet.class.isAssignableFrom(field.getType()))
-				{
-					target = new TreeSet<Object>();
-				}
-				else if (Set.class.isAssignableFrom(field.getType()))
-				{
-					target = new HashSet<Object>();
-				}
-				else if (List.class.isAssignableFrom(field.getType()) || field.getType().isAssignableFrom(ArrayList.class))
-				{
-					target = new ArrayList<Object>();
-				}
-			}
+			Collection<?> datastoreCollection = (Collection<?>)value;
+			Collection<Object> target = TypeUtils.prepareCollection(toPojo, field);
 
 			Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 			
-			for (Object member: collValue)
-				target.add(importBasic(member, componentType));
-
-			field.set(obj, target);
+			for (Object datastoreValue: datastoreCollection)
+				target.add(importBasic(datastoreValue, componentType));
 		}
 	}
 	

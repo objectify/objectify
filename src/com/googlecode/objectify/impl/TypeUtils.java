@@ -4,9 +4,17 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import javax.persistence.Transient;
+
+import com.googlecode.objectify.impl.load.Wrapper;
 
 /**
  */
@@ -73,6 +81,58 @@ public class TypeUtils
 		{
 			return null;
 		}
+	}
+	
+	/**
+	 * <p>Prepare a collection of the appropriate type and place it on the pojo's field.
+	 * The rules are thus:</p>
+	 * <ul>
+	 * <li>If the field already contains a collection object, it will be returned.
+	 * A new instance will not be created.</li>
+	 * <li>If the field is a concrete collection type, an instance of the concrete type
+	 * will be created.</li>
+	 * <li>If the field is Set, a HashSet will be created.</li>  
+	 * <li>If the field is SortedSet, a TreeSet will be created.</li>  
+	 * <li>If the field is List, an ArrayList will be created.</li>  
+	 * </ul>
+	 * 
+	 * @param field is a Collection-derived field on the pojo.
+	 * @param onPojo is the object whose field should be set 
+	 */
+	@SuppressWarnings("unchecked")
+	public static Collection<Object> prepareCollection(Object onPojo, Wrapper collectionField)
+	{
+		assert Collection.class.isAssignableFrom(collectionField.getType());
+		
+		Collection<Object> coll = (Collection<Object>)collectionField.get(onPojo);
+
+		if (coll != null)
+		{
+			return coll;
+		}
+		else
+		{
+			if (!collectionField.getType().isInterface())
+			{
+				coll = (Collection<Object>)TypeUtils.class_newInstance(collectionField.getType());
+			}
+			else if (SortedSet.class.isAssignableFrom(collectionField.getType()))
+			{
+				coll = new TreeSet<Object>();
+			}
+			else if (Set.class.isAssignableFrom(collectionField.getType()))
+			{
+				coll = new HashSet<Object>();
+			}
+			else if (List.class.isAssignableFrom(collectionField.getType()) || collectionField.getType().isAssignableFrom(ArrayList.class))
+			{
+				coll = new ArrayList<Object>();
+			}
+		}
+		
+		collectionField.set(onPojo, coll);
+		
+		return coll;
 	}
 	
 	/** Checked exceptions are LAME. */

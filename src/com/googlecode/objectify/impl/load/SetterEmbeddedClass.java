@@ -1,6 +1,8 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Field;
+
+import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>Setter which knows how to get or instantiate an embedded class, then

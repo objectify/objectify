@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 
 
@@ -14,8 +14,8 @@ package com.googlecode.objectify.impl;
  * <li>Transmog will look up a Setter for "name.firstName".</li>
  * <li>Transmog will call setter.set(rootPojo, "Bob")</li>
  * <li>The EmbeddedClassSetter will create a Person object in rootPojo.name</li>
- * <li>The EmbeddedClassSetter will delegate to a BasicSetter, passing in the Person</li>
- * <li>The BasicSetter will set the name field on the Person object.
+ * <li>The EmbeddedClassSetter will delegate to a LeafSetter, passing in the Person</li>
+ * <li>The LeafSetter will set the name field on the Person object.
  * 
  * <p>Setters are a linear chain like a linked list.  They are also immutable.  You
  * extend the chain by calling extend(), passing in the new tail; this produces an
@@ -33,7 +33,12 @@ abstract public class Setter implements Cloneable
 	 * Called by the Transmog to set a value on an object.  Might actually delegate to
 	 * some composite setter to actually set a value deep in the structure.
 	 */
-	abstract public void set(Object obj, Object value);
+	abstract public void set(Object toPojo, Object value);
+	
+	/**
+	 * @return the next setter in the chain, or null if there is none
+	 */
+	public Setter getNext() { return this.next; }
 	
 	/**
 	 * Extends the whole chain, adding a setter to the tail.  Since the setters

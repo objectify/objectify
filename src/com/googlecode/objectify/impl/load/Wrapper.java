@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Type;
 
@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
  * Basic interface so we can wrap fields and methods so they look more or less the same.
  * This makes @OldName methods look just like fields. 
  */
-interface Wrapper
+public interface Wrapper
 {
 	/** Actually set the thing (field or method) on an object */
 	void set(Object entity, Object value);
