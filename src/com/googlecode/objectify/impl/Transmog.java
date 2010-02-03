@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
@@ -70,20 +71,29 @@ public class Transmog<T>
 			for (Field field: clazz.getDeclaredFields())
 				this.visitField(field);
 
-			// Now look for methods with one param that are annotated with @OldName
-//			for (Method method: clazz.getDeclaredMethods())
-//			{
-//				OldName oldName = method.getAnnotation(OldName.class);
-//				if (oldName != null)
-//				{
-//					if (method.getParameterTypes().length != 1)
-//						throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
-//
-//					method.setAccessible(true);
-//
-//					this.addMethod(method, oldName.value());
-//				}
-//			}
+			for (Method method: clazz.getDeclaredMethods())
+				this.visitMethod(method);
+		}
+		
+		/**
+		 * Check out a method looking for @OldName
+		 */
+		void visitMethod(Method method)
+		{
+			OldName oldName = method.getAnnotation(OldName.class);
+			if (oldName != null)
+			{
+				if (method.isAnnotationPresent(Embedded.class))
+					throw new IllegalStateException("@Embedded cannot be used on @OldName methods");
+
+				if (method.getParameterTypes().length != 1)
+					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+				
+				method.setAccessible(true);
+
+				Setter setter = new LeafSetter(factory, new MethodWrapper(method));
+				this.addSetter(oldName.value(), setter);
+			}
 		}
 		
 		/**
@@ -125,20 +135,7 @@ public class Transmog<T>
 			}
 			else	// not embedded, so we're at a leaf object (including arrays of basic types)
 			{
-				Setter setter;
-				
-				if (field.getType().isArray())
-				{
-					setter = new ArrayBasicSetter(factory, field);
-				}
-				else if (Collection.class.isAssignableFrom(field.getType()))
-				{
-					setter = new CollectionBasicSetter(factory, field);
-				}
-				else
-				{
-					setter = new BasicSetter(factory, field);
-				}
+				Setter setter = new LeafSetter(factory, new FieldWrapper(field));
 				
 				this.addSetter(field.getName(), setter);
 				
