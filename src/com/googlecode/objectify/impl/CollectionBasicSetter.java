@@ -9,12 +9,10 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.persistence.Embedded;
-
 import com.googlecode.objectify.ObjectifyFactory;
 
 /**
- * <p>A loader that knows how to persist collections of basic types.  This is not
+ * <p>BasicSetter which deals with collections of basic types. This is not
  * to be used with collections of embedded objects, which aren't "real" collections that
  * can be stored in the datastore.</p>
  * 
@@ -29,37 +27,34 @@ import com.googlecode.objectify.ObjectifyFactory;
  * <li>If the target field is List, an ArrayList will be created.</li>  
  * </ul>
  */
-public class CollectionLoader<T> extends Loader<T>
+public class CollectionBasicSetter extends BasicSetter
 {
-	/** */
-	Field field;
-	
-	/** */
-	public CollectionLoader(ObjectifyFactory fact, Navigator<T> nav, Field field)
+	/** @param field must be of array type */
+	public CollectionBasicSetter(ObjectifyFactory fact, Field field)
 	{
-		super(fact, nav);
+		super(fact, field);
 		
-		assert (Collection.class.isAssignableFrom(field.getType()));
-		assert (!field.getType().isArray());
-		assert (!field.isAnnotationPresent(Embedded.class));
-
-		this.field = field;
+		assert Collection.class.isAssignableFrom(field.getType());
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Loader#load(java.lang.Object, java.lang.Object)
+	 * @see com.googlecode.objectify.impl.BasicSetter#set(java.lang.Object, java.lang.Object)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public void load(Object intoTarget, Object value)
+	public void set(Object obj, Object value)
 	{
 		if (!(value instanceof Collection<?>))
 			throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + this.field);
 
 		Collection<?> collValue = (Collection<?>)value;
-		Collection<Object> target = (Collection<Object>)TypeUtils.field_get(this.field, intoTarget);
+		Collection<Object> target = (Collection<Object>)TypeUtils.field_get(this.field, obj);
 
-		if (target == null)
+		if (target != null)
+		{
+			target.clear();
+		}
+		else
 		{
 			if (!this.field.getType().isInterface())
 			{
@@ -81,9 +76,9 @@ public class CollectionLoader<T> extends Loader<T>
 
 		Class<?> componentType = TypeUtils.getComponentType(this.field.getType(), this.field.getGenericType());
 		
-		for (Object obj: collValue)
-			target.add(TypeUtils.convertFromDatastore(factory, obj, componentType));
+		for (Object member: collValue)
+			target.add(this.importBasic(member, componentType));
 
-		TypeUtils.field_set(this.field, intoTarget, target);
+		TypeUtils.field_set(this.field, obj, target);
 	}
 }

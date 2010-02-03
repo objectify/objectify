@@ -27,8 +27,8 @@ public class Transmog<T>
 	/** Needed to convert Key types */
 	ObjectifyFactory factory;
 	
-	/** Maps full "blah.blah.blah" property name to a particular Loader implementation */
-	Map<String, Loader<T>> loaders;
+	/** Maps full "blah.blah.blah" property name to a particular Setter implementation */
+	Map<String, Setter> setters;
 	
 	/**
 	 * Object which visits various levels of the object graph and builds the loaders & savers.
@@ -36,25 +36,24 @@ public class Transmog<T>
 	 */
 	class Visitor
 	{
+		Setter setterChain;
 		String prefix = "";
 		boolean embedded;
 		boolean forceUnindexed;
-		Navigator<T> navigator;
 		
 		/** Constructs a visitor for a top-level entity */
 		public Visitor()
 		{
-			this.navigator = new RootNavigator<T>();
+			this.setterChain = new RootSetter();
 		}
 		
 		/**
 		 * Constructs a visitor for an embedded object.
-		 * @param navigator figures out how to build the path to the object upon which
-		 *  we want to set properties when we find fields. 
+		 * @param setterChain is the root of the setter chain
 		 */
-		public Visitor(Navigator<T> nav, String prefix, boolean forceUnindexed)
+		public Visitor(Setter setterChain, String prefix, boolean forceUnindexed)
 		{
-			this.navigator = nav;
+			this.setterChain = setterChain;
 			this.prefix = prefix;
 			this.embedded = true;
 			this.forceUnindexed = forceUnindexed;
@@ -69,9 +68,7 @@ public class Transmog<T>
 			this.visitClass(clazz.getSuperclass());
 
 			for (Field field: clazz.getDeclaredFields())
-			{
 				this.visitField(field);
-			}
 
 			// Now look for methods with one param that are annotated with @OldName
 //			for (Method method: clazz.getDeclaredMethods())
@@ -90,7 +87,7 @@ public class Transmog<T>
 		}
 		
 		/**
-		 * We have a non-transient field field
+		 * Check out a field
 		 */
 		void visitField(Field field)
 		{
@@ -109,11 +106,9 @@ public class Transmog<T>
 				{
 					TypeUtils.checkForNoArgConstructor(field.getType().getComponentType());
 					
-					EmbeddedArrayNavigator<T> nav = new EmbeddedArrayNavigator<T>(this.navigator, field);
-					Visitor visitor = new Visitor(nav, this.prefix + field.getName(), unindexed);
+					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
 					visitor.visitClass(field.getType());
-					
-					throw new UnsupportedOperationException("@Embedded arrays not supported yet");
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
@@ -122,48 +117,50 @@ public class Transmog<T>
 				else	// basic class
 				{
 					TypeUtils.checkForNoArgConstructor(field.getType());
-					
-					EmbeddedClassNavigator<T> nav = new EmbeddedClassNavigator<T>(this.navigator, field);
-					Visitor visitor = new Visitor(nav, this.prefix + field.getName(), unindexed);
+
+					EmbeddedClassSetter setter = new EmbeddedClassSetter(field);
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
 					visitor.visitClass(field.getType());
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays of basic types)
 			{
-				Loader<T> loader;
+				Setter setter;
 				
 				if (field.getType().isArray())
 				{
-					loader = new ArrayLoader<T>(factory, this.navigator, field);
+					setter = new ArrayBasicSetter(factory, field);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					loader = new CollectionLoader<T>(factory, this.navigator, field);
+					setter = new CollectionBasicSetter(factory, field);
 				}
 				else
 				{
-					loader = new BasicLoader<T>(factory, this.navigator, field);
+					setter = new BasicSetter(factory, field);
 				}
 				
-				this.addLoader(field.getName(), loader);
+				this.addSetter(field.getName(), setter);
 				
 				OldName oldName = field.getAnnotation(OldName.class);
 				if (oldName != null)
-					this.addLoader(oldName.value(), loader);
+					this.addSetter(oldName.value(), setter);
 			}
 		}
 		
 		/**
-		 * Adds a final loader to the loaders collection.
+		 * Adds a final setter to the setters collection.
 		 * @param name is the short, immediate name of the property
 		 */
-		void addLoader(String name, Loader<T> loader)
+		void addSetter(String name, Setter setter)
 		{
 			String wholeName = this.prefix + "." + name;
-			if (loaders.containsKey(wholeName))
+			if (setters.containsKey(wholeName))
 				throw new IllegalStateException("Attempting to create multiple associations for " + wholeName);
-			
-			loaders.put(wholeName, loader);
+
+			// Extend and strip off the unnecessary (at runtime) RootSetter
+			Setter chain = this.setterChain.extend(setter).next;
+			setters.put(wholeName, chain);
 		}
 	}
 	
@@ -188,11 +185,9 @@ public class Transmog<T>
 	{
 		for (Map.Entry<String, Object> property: entity.getProperties().entrySet())
 		{
-			Loader<T> loader = this.loaders.get(property.getKey());
-			if (loader != null)
-			{
-				loader.load(pojo, property.getValue());
-			}
+			Setter setter = this.setters.get(property.getKey());
+			if (setter != null)
+				setter.set(pojo, property.getValue());
 		}
 	}
 	
