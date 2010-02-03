@@ -12,13 +12,13 @@ import javax.persistence.Embedded;
  * all the embedded objects in the array, calling the next setter in the chain with each
  * value.</p>
  */
-public class EmbeddedArraySetter extends Setter
+public class SetterEmbeddedCollection extends Setter
 {
 	/** The field which holds the embedded array */
 	Field field;
 	
 	/** */
-	public EmbeddedArraySetter(Field field)
+	public SetterEmbeddedCollection(Field field)
 	{
 		assert field.isAnnotationPresent(Embedded.class);
 		assert field.getType().isArray();
@@ -29,7 +29,6 @@ public class EmbeddedArraySetter extends Setter
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.Setter#set(java.lang.Object, java.lang.Object)
 	 */
-	@Override
 	public void set(Object obj, Object value)
 	{
 		if (!(value instanceof Collection<?>))

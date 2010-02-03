@@ -20,6 +20,10 @@ package com.googlecode.objectify.impl;
  * <p>Setters are a linear chain like a linked list.  They are also immutable.  You
  * extend the chain by calling extend(), passing in the new tail; this produces an
  * entirely new list.</p> 
+ * 
+ * <p>Because this inheritance hierarchy gets confusing fast, the classes have been prefixed
+ * with Setter rather than following the Java convetion of naming them "EmbeddedCollectionSetter",
+ * etc.  It helps.</p>
  */
 abstract public class Setter implements Cloneable
 {

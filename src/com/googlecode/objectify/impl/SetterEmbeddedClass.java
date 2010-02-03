@@ -6,13 +6,13 @@ import java.lang.reflect.Field;
  * <p>Setter which knows how to get or instantiate an embedded class, then
  * pass on to the next setter in the chain.</p>
  */
-public class EmbeddedClassSetter extends Setter
+public class SetterEmbeddedClass extends Setter
 {
 	/** The field which holds the embedded class */
 	Field field;
 	
 	/** */
-	public EmbeddedClassSetter(Field field)
+	public SetterEmbeddedClass(Field field)
 	{
 		this.field = field;
 	}

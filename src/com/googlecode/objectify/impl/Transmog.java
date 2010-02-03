@@ -45,7 +45,7 @@ public class Transmog<T>
 		/** Constructs a visitor for a top-level entity */
 		public Visitor()
 		{
-			this.setterChain = new RootSetter();
+			this.setterChain = new SetterRoot();
 		}
 		
 		/**
@@ -91,7 +91,7 @@ public class Transmog<T>
 				
 				method.setAccessible(true);
 
-				Setter setter = new LeafSetter(factory, new MethodWrapper(method));
+				Setter setter = new SetterLeaf(factory, new MethodWrapper(method));
 				this.addSetter(oldName.value(), setter);
 			}
 		}
@@ -117,7 +117,7 @@ public class Transmog<T>
 					Class<?> componentType = field.getType().getComponentType();
 					TypeUtils.checkForNoArgConstructor(componentType);
 					
-					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
+					SetterEmbeddedArray setter = new SetterEmbeddedArray(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
 					visitor.visitClass(componentType);
 				}
@@ -126,7 +126,7 @@ public class Transmog<T>
 					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 					TypeUtils.checkForNoArgConstructor(componentType);
 					
-					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field);
+					SetterEmbeddedCollection setter = new SetterEmbeddedCollection(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
 					visitor.visitClass(componentType);
 				}
@@ -134,14 +134,14 @@ public class Transmog<T>
 				{
 					TypeUtils.checkForNoArgConstructor(field.getType());
 
-					EmbeddedClassSetter setter = new EmbeddedClassSetter(field);
+					SetterEmbeddedClass setter = new SetterEmbeddedClass(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), this.prefix + field.getName(), unindexed);
 					visitor.visitClass(field.getType());
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
-				Setter setter = new LeafSetter(factory, new FieldWrapper(field));
+				Setter setter = new SetterLeaf(factory, new FieldWrapper(field));
 				
 				this.addSetter(field.getName(), setter);
 				
@@ -161,7 +161,7 @@ public class Transmog<T>
 			if (setters.containsKey(wholeName))
 				throw new IllegalStateException("Attempting to create multiple associations for " + wholeName);
 
-			// Extend and strip off the unnecessary (at runtime) RootSetter
+			// Extend and strip off the unnecessary (at runtime) SetterRoot
 			Setter chain = this.setterChain.extend(setter).next;
 			setters.put(wholeName, chain);
 		}

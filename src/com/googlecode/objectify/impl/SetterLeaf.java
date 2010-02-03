@@ -25,10 +25,10 @@ import com.googlecode.objectify.ObjectifyFactory;
  * 
  * <p>This is always the termination of a setter chain; the {@code next} value is ignored.</p>
  */
-public class LeafSetter extends Setter
+public class SetterLeaf extends Setter
 {
 	/** Knows how to set basic noncollection and nonarray values */
-	class BasicSetter extends Setter
+	class ForBasic extends Setter
 	{
 		@Override
 		public void set(Object obj, Object value)
@@ -38,7 +38,7 @@ public class LeafSetter extends Setter
 	}
 	
 	/** Knows how to set arrays of basic types */
-	class ArraySetter extends Setter
+	class ForArray extends Setter
 	{
 		@Override
 		public void set(Object obj, Object value)
@@ -77,7 +77,7 @@ public class LeafSetter extends Setter
 	 * <li>If the target field is List, an ArrayList will be created.</li>  
 	 * </ul>
 	 */
-	class CollectionSetter extends Setter
+	class ForCollection extends Setter
 	{
 		@Override
 		@SuppressWarnings("unchecked")
@@ -129,22 +129,22 @@ public class LeafSetter extends Setter
 	Wrapper field;
 	
 	/** */
-	public LeafSetter(ObjectifyFactory fact, Wrapper field)
+	public SetterLeaf(ObjectifyFactory fact, Wrapper field)
 	{
 		this.factory = fact;
 		this.field = field;
 
 		if (field.getType().isArray())
 		{
-			this.next = new ArraySetter();
+			this.next = new ForArray();
 		}
 		else if (Collection.class.isAssignableFrom(field.getType()))
 		{
-			this.next = new CollectionSetter();
+			this.next = new ForCollection();
 		}
 		else
 		{
-			this.next = new BasicSetter();
+			this.next = new ForBasic();
 		}
 	}
 	
@@ -222,4 +222,12 @@ public class LeafSetter extends Setter
 		else if (type == String.class) return value.toString();
 		else throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
 	}
+	
+	/** Ensure that nobody tries to extend the leaf nodes. */
+	@Override
+	final public Setter extend(Setter tail)
+	{
+		throw new UnsupportedOperationException("Objectify bug - cannot extend Leaf setters");
+	}
+
 }
