@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 
@@ -134,8 +135,7 @@ public class EmbeddedNullTests extends TestBase
 	{
 		Criminal crim = new Criminal();
 		crim.aliases = new Name[] { null };
-		crim.moreAliases = new ArrayList<Name>();
-		crim.moreAliases.add(null);
+		crim.moreAliases = Arrays.asList(crim.aliases);
 		
 		Criminal fetched = this.saveAndFetch(crim);
 		assert fetched.aliases != null;
@@ -172,4 +172,54 @@ public class EmbeddedNullTests extends TestBase
 //		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
 //		assert !queried.hasNext();
 	}
+	
+	/**
+	 */
+	@Test
+	public void testCollectionContainingNullAndOtherStuff() throws Exception
+	{
+		Criminal crim = new Criminal();
+		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
+		crim.moreAliases = Arrays.asList(crim.aliases);
+		
+		Criminal fetched = this.saveAndFetch(crim);
+		assert fetched.aliases != null;
+		assert fetched.aliases.length == 3;
+		assert fetched.aliases[0] != null;
+		assert fetched.aliases[1] == null;
+		assert fetched.aliases[2] != null;
+		
+		assert fetched.moreAliases != null;
+		assert fetched.moreAliases.size() == 3;
+		assert fetched.moreAliases.get(0) != null;
+		assert fetched.moreAliases.get(1) == null;
+		assert fetched.moreAliases.get(2) != null;
+
+		// Now check the queries
+		Objectify ofy = this.fact.begin();
+		Iterator<Criminal> queried;
+		
+		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
+		assert queried.hasNext();
+		assert queried.next().id.equals(fetched.id);
+		assert !queried.hasNext();
+
+		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
+		assert queried.hasNext();
+		assert queried.next().id.equals(fetched.id);
+		assert !queried.hasNext();
+
+//		queried = ofy.query(Criminal.class).filterNullCollection("aliases").iterator();
+//		assert !queried.hasNext();
+
+//		queried = ofy.query(Criminal.class).filterNullCollection("moreAliases").iterator();
+//		assert !queried.hasNext();
+
+//		queried = ofy.query(Criminal.class).filterEmptyCollection("aliases").iterator();
+//		assert !queried.hasNext();
+
+//		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
+//		assert !queried.hasNext();
+	}
+	
 }
