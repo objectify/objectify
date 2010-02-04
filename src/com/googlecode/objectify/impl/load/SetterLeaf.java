@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.Wrapper;
 
 /**
  * <p>Setter which knows how to set any kind of leaf value.  This could be any basic type

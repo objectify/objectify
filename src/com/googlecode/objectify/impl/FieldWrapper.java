@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;

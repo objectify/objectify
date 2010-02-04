@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -12,9 +13,13 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.persistence.Embedded;
+import javax.persistence.Id;
 import javax.persistence.Transient;
 
-import com.googlecode.objectify.impl.load.Wrapper;
+import com.googlecode.objectify.annotation.OldName;
+import com.googlecode.objectify.annotation.Parent;
+
 
 /**
  */
@@ -168,4 +173,79 @@ public class TypeUtils
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 
+	/**
+	 * Get all the persistent fields on a class, checking the superclasses as well.
+	 * 
+	 * @return the fields we load and save, *not* including @Id & @Parent fields.
+	 *  All fields will be set accessable, and returned in order starting with superclass
+	 *  fields.
+	 */
+	public static List<Field> getPesistentFields(Class<?> clazz)
+	{
+		List<Field> goodFields = new ArrayList<Field>();
+
+		getPersistentFields(clazz, goodFields);
+		
+		return goodFields;
+	}
+	
+	/** Recursive implementation of getPersistentFields() */
+	private static void getPersistentFields(Class<?> clazz, List<Field> goodFields)
+	{
+		if (clazz == null || clazz == Object.class)
+			return;
+		
+		getPersistentFields(clazz.getSuperclass(), goodFields);
+		
+		for (Field field: clazz.getDeclaredFields())
+		{
+			if (TypeUtils.isSaveable(field)
+					&& !field.isAnnotationPresent(Id.class)
+					&& !field.isAnnotationPresent(Parent.class))
+			{
+				field.setAccessible(true);
+				goodFields.add(field);
+			}
+		}
+	}
+	
+	/**
+	 * Get all the methods that are appropriate for saving into on this
+	 * class and all superclasses.  Validates that @OldName methods are
+	 * properly created (one parameter, not @Embedded).
+	 * 
+	 * @return all the correctly specified @OldName methods.  Methods will be set accessable.
+	 */
+	public static List<Method> getOldNameMethods(Class<?> clazz)
+	{
+		List<Method> goodMethods = new ArrayList<Method>();
+
+		getOldNameMethods(clazz, goodMethods);
+		
+		return goodMethods;
+	}
+	
+	/** Recursive implementation of getPersistentMethods() */
+	private static void getOldNameMethods(Class<?> clazz, List<Method> goodMethods)
+	{
+		if (clazz == null || clazz == Object.class)
+			return;
+		
+		getOldNameMethods(clazz.getSuperclass(), goodMethods);
+		
+		for (Method method: clazz.getDeclaredMethods())
+		{
+			if (method.isAnnotationPresent(OldName.class))
+			{
+				if (method.isAnnotationPresent(Embedded.class))
+					throw new IllegalStateException("@Embedded cannot be used on @OldName methods");
+
+				if (method.getParameterTypes().length != 1)
+					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+				
+				method.setAccessible(true);
+				goodMethods.add(method);
+			}
+		}
+	}
 }

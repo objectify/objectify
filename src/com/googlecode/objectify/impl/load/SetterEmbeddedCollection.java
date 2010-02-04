@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import javax.persistence.Embedded;
 
+import com.googlecode.objectify.impl.FieldWrapper;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**

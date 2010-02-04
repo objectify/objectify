@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
