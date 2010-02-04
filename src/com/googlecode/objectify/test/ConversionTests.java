@@ -18,6 +18,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -39,6 +40,13 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
+	public static class HasNames
+	{
+		public @Id Long id;
+		public Name[] names;
+	}
+	
+	/** */
 	public final static String BIG_STRING;
 	static {
 		StringBuilder bld = new StringBuilder(501);
@@ -56,6 +64,7 @@ public class ConversionTests extends TestBase
 	{
 		super.setUp();
 		this.fact.register(HasStringArray.class);
+		this.fact.register(HasNames.class);
 	}
 
 	/**
@@ -104,6 +113,29 @@ public class ConversionTests extends TestBase
 		
 		HasStringArray fetched = this.putAndGet(has);
 		
-		assert Arrays.equals(fetched.strings, has.strings);
+		// Nasty behavior!
+		assert !Arrays.equals(fetched.strings, has.strings);
+		assert Arrays.equals(fetched.strings, new String[] { "Short", "AlsoShort", BIG_STRING });
+	}
+
+	/**
+	 * You should not be able to store a big string in an embedded collection
+	 */
+	@Test
+	public void testBigStringsInEmbeddedCollections() throws Exception
+	{
+		HasNames has = new HasNames();
+		has.names = new Name[] { new Name("Bob", BIG_STRING) };
+		
+		Objectify ofy = this.fact.begin();
+		try
+		{
+			ofy.put(has);
+			assert false : "You should not be able to put() embedded collections with big strings"; 
+		}
+		catch (IllegalStateException ex)
+		{
+			// Correct
+		}
 	}
 }
