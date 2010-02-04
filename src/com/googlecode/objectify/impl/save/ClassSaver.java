@@ -18,6 +18,12 @@ public class ClassSaver implements Saver
 {
 	/** Classes are composed of fields, each of which could be a LeafSaver or an EmbeddedArraySaver etc */
 	List<Saver> fieldSavers = new ArrayList<Saver>();
+
+	/** Creates a ClassSaver for a root entity pojo class */
+	public ClassSaver(ObjectifyFactory factory, Class<?> rootClazz)
+	{
+		this(factory, null, rootClazz, false, false);
+	}
 	
 	/**
 	 * @param collectionize causes all leaf setters to create and append to a simple list of

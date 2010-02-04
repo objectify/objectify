@@ -89,6 +89,18 @@ public class TypeUtils
 	}
 	
 	/**
+	 * Extend a property path, adding a '.' separator but also checking
+	 * for the first element.
+	 */
+	public static String extendPropertyPath(String prefix, String name)
+	{
+		if (prefix == null || prefix.length() == 0)
+			return name;
+		else
+			return prefix + '.' + name;
+	}
+	
+	/**
 	 * <p>Prepare a collection of the appropriate type and place it on the pojo's field.
 	 * The rules are thus:</p>
 	 * <ul>

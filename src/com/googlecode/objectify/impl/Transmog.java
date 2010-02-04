@@ -12,12 +12,12 @@ import javax.persistence.Embedded;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.OldName;
-import com.googlecode.objectify.impl.load.Setter;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
 import com.googlecode.objectify.impl.load.LeafSetter;
 import com.googlecode.objectify.impl.load.RootSetter;
+import com.googlecode.objectify.impl.load.Setter;
 import com.googlecode.objectify.impl.save.ClassSaver;
 
 /**
@@ -82,7 +82,7 @@ public class Transmog<T>
 	class Visitor
 	{
 		Setter setterChain;
-		String prefix = "";
+		String prefix;	// starts null for root
 		boolean embedded;
 		
 		/** Constructs a visitor for a top-level entity */
@@ -127,7 +127,7 @@ public class Transmog<T>
 		void visitMethod(Method method)
 		{
 			OldName oldName = method.getAnnotation(OldName.class);
-			String path = this.prefix + "." + oldName.value();
+			String path = TypeUtils.extendPropertyPath(this.prefix, oldName.value());
 			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method));
 			
 			this.addRootSetter(path, setter);
@@ -142,7 +142,7 @@ public class Transmog<T>
 		 */
 		void visitField(Field field)
 		{
-			String path = this.prefix + "." + field.getName();
+			String path = TypeUtils.extendPropertyPath(this.prefix, field.getName());
 			
 			if (field.isAnnotationPresent(Embedded.class))
 			{
@@ -182,7 +182,7 @@ public class Transmog<T>
 				
 				OldName oldName = field.getAnnotation(OldName.class);
 				if (oldName != null)
-					this.addRootSetter(this.prefix + "." + oldName.value(), setter);	// alternate path
+					this.addRootSetter(TypeUtils.extendPropertyPath(this.prefix, oldName.value()), setter);	// alternate path
 			}
 		}
 		
@@ -214,7 +214,7 @@ public class Transmog<T>
 		new Visitor().visitClass(clazz);
 		
 		// Construction of the savers is relatively straighforward
-		this.rootSaver = new ClassSaver(fact, "", clazz, false, false);
+		this.rootSaver = new ClassSaver(fact, clazz);
 	}
 	
 	/**

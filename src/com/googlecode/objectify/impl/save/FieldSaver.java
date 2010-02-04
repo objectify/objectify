@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>Most savers are related to a particular type of field.  This provides
@@ -20,7 +21,7 @@ abstract public class FieldSaver implements Saver
 	{
 		this.field = field;
 		
-		this.path = pathPrefix + "." + field.getName();
+		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
 		this.unindexed = forceUnindexed || field.isAnnotationPresent(Unindexed.class);
 	}
 	
