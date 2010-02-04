@@ -7,7 +7,6 @@ package com.googlecode.objectify.test;
 
 import java.io.File;
 
-import com.googlecode.objectify.test.entity.Town;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -21,6 +20,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
+import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
@@ -29,6 +29,7 @@ import com.googlecode.objectify.test.entity.HasOldNames;
 import com.googlecode.objectify.test.entity.HolderOfString;
 import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
 import com.googlecode.objectify.test.entity.NamedTrivial;
+import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -70,6 +71,7 @@ public class TestBase
 		this.fact.register(HolderOfString.class);
 		this.fact.register(HolderOfStringAndLong.class);
 		this.fact.register(Town.class);
+		this.fact.register(Criminal.class);
 	}
 
 	/** */
