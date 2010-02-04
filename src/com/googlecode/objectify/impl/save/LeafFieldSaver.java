@@ -38,6 +38,7 @@ public class LeafFieldSaver extends FieldSaver
 			if (field.getType().isArray() || Collection.class.isAssignableFrom(field.getType()))
 				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
 		
+		this.factory = fact;
 		this.collectionize = collectionize;
 	}
 	
