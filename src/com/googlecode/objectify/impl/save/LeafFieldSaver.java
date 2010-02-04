@@ -69,7 +69,7 @@ public class LeafFieldSaver extends FieldSaver
 			if (savedCollection == null)
 			{
 				savedCollection = new ArrayList<Object>();
-				this.setEntityProperty(entity, value);
+				this.setEntityProperty(entity, savedCollection);
 			}
 			
 			savedCollection.add(value);
