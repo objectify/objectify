@@ -185,10 +185,10 @@ public class ObjectifyImpl implements Objectify
 		
 		// Patch up any generated keys in the original objects while building new key list
 		Iterator<com.google.appengine.api.datastore.Key> keysIt = rawKeys.iterator();
-		for (Object obj: objs)
+		for (T obj: objs)
 		{
 			com.google.appengine.api.datastore.Key k = keysIt.next();
-			EntityMetadata<?> metadata = this.factory.getMetadataForEntity(obj);
+			EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
 			metadata.setKey(obj, k);
 			
 			Key<T> obKey = this.factory.rawKeyToOKey(k);

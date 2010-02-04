@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.PreparedQuery;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
@@ -70,17 +69,18 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		for (Key<Trivial> k: q.fetchKeys(1000, 0))
+		assert q.countAll() == keys.size();
+		
+		q.limit(2);
+		for (Key<Trivial> k: q.fetchKeys())
 			assert keys.contains(k);
 		
-		assert q.count() == keys.size();
+		Key<Trivial> first = q.getKey();
+		assert first.equals(this.keys.get(0));
 		
-		try
-		{
-			q.get();
-			assert false: "Should not be able to get() when there are multiple results";
-		}
-		catch (PreparedQuery.TooManyResultsException ex) {}
+		q.offset(1);
+		Key<Trivial> second = q.getKey();
+		assert second.equals(this.keys.get(1));
 	}
 
 	/** */
@@ -201,7 +201,7 @@ public class QueryTests extends TestBase
 		
 		// This used to throw an exception when wrapping the ArrayList in the retry wrapper
 		// because we used the wrong classloader to produce the proxy.  Fixed.
-    	Iterable<Key<Trivial>> keys = ofy.query(Trivial.class).fetchKeys(10, 0);
+    	Iterable<Key<Trivial>> keys = ofy.query(Trivial.class).limit(10).fetchKeys();
     	
     	assert keys != null;
 	}

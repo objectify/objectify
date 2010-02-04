@@ -1,18 +1,32 @@
 package com.googlecode.objectify.test;
 
+import javax.persistence.Embedded;
+import javax.persistence.Id;
+
+import org.testng.annotations.Test;
+
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Unindexed;
-import org.testng.annotations.Test;
-
-import javax.persistence.Id;
 
 /**
  * Test behavior of null fields, and default values
  */
 public class NullDefaultFieldTests extends TestBase
 {
+	public static class Struct {
+		String s = "default1";
+
+		public Struct()
+		{
+		}
+
+		public Struct(String s)
+		{
+			this.s = s;
+		}
+	}
 	public static class EntityWithDefault {
 		@Id
 		Long id;
@@ -23,6 +37,9 @@ public class NullDefaultFieldTests extends TestBase
 		/** new property */
 		@Unindexed
 		String c = "bar";
+		/** new embedded */
+		@Embedded
+		Struct s = new Struct("default2");
 
 		public EntityWithDefault()
 		{
@@ -63,6 +80,8 @@ public class NullDefaultFieldTests extends TestBase
 		assert "foo".equals(o.b);
 		assert o.c != null;
 		assert "bar".equals(o.c);
+		assert o.s != null;
+		assert "default2".equals(o.s.s);
 	}
 
 	/**

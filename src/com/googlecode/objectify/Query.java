@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import com.google.appengine.api.datastore.PreparedQuery;
 
 /**
  * <p>This is similar to the datastore Query object, but better understands
@@ -63,6 +62,23 @@ public interface Query<T> extends Iterable<T>
 	public Query<T> ancestor(Object keyOrEntity);
 	
 	/**
+	 * Limit the fetched result set to a certain number of values.  The largest value
+	 * allowed is 1000, reduced by the offset value.
+	 * 
+	 * @param value must be between 0 and 1000, inclusive.  A value of 0 indicates no limit.
+	 */
+	public Query<T> limit(int value);
+	
+	/**
+	 * Starts the query results at a particular zero-based offset.  The appengine-wide limit of
+	 * 1000 items must be taken into account; if you specify an offset of 999 you will get
+	 * one item back (assuming there are 1000 items or more).
+	 * 
+	 * @param value must be >= 0
+	 */
+	public Query<T> offset(int value);
+	
+	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
 	 * is no way to convert this string back into a query and there is no guarantee that
 	 * the string will be consistent across versions of Objectify.</p>
@@ -72,14 +88,16 @@ public interface Query<T> extends Iterable<T>
 	public String toString();
 	
 	/**
+	 * Gets the first entity in the result set.  Obeys the offset value.
+	 * 
 	 * @return the only instance in the result, or null if the result set is empty.
-	 * @throws PreparedQuery.TooManyResultsException if there are more than one result.
 	 */
 	public T get();
 	
 	/**
-	 * @return the key of the only instance in the result, or null if the result set is empty.
-	 * @throws PreparedQuery.TooManyResultsException if there are more than one result.
+	 * Get the key of the first entity in the result set.  Obeys the offset value.
+	 * 
+	 * @return the key of the first instance in the result, or null if the result set is empty.
 	 */
 	public Key<T> getKey();
 	
@@ -90,30 +108,16 @@ public interface Query<T> extends Iterable<T>
 	public Iterable<T> fetch();
 	
 	/**
-	 * Execute the query and get the results.  The usual 1000-entry limit applies.
-	 * @param limit is the max number of entities to return.
-	 * @param offset is where to start; an offset of 0 is the first normal response.
-	 */
-	public Iterable<T> fetch(int limit, int offset);
-
-	/**
 	 * Execute the query and get the keys of the results.  This is more efficient than
 	 * fetching the actual results.
 	 */
 	public Iterable<Key<T>> fetchKeys();
 	
 	/**
-	 * Execute the query and get the keys of the results.  This is more efficient than
-	 * fetching the actual results.  The usual 1000-entry limit applies.
-	 * @param limit is the max number of keys to return.
-	 * @param offset is where to start; an offset of 0 is the first normal result.
+	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and
+	 * <em>offset</em>.</p>
+	 * <p>This is somewhat faster than fetching, but the time still grows with the number
+	 * of results.  The largest number returned will be 1000 as per GAE limits.</p>
 	 */
-	public Iterable<Key<T>> fetchKeys(int limit, int offset);
-	
-	/**
-	 * Count the number of values in the result.  This is somewhat faster than fetching,
-	 * but the time still grows with the number of results.  The largest number returned
-	 * will be 1000 as per GAE limits. 
-	 */
-	public int count();
+	public int countAll();
 }
