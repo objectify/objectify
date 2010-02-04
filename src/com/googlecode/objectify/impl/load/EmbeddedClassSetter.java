@@ -8,13 +8,13 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <p>Setter which knows how to get or instantiate an embedded class, then
  * pass on to the next setter in the chain.</p>
  */
-public class SetterEmbeddedClass extends Setter
+public class EmbeddedClassSetter extends Setter
 {
 	/** The field which holds the embedded class */
 	Field field;
 	
 	/** */
-	public SetterEmbeddedClass(Field field)
+	public EmbeddedClassSetter(Field field)
 	{
 		this.field = field;
 	}

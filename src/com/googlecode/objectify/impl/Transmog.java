@@ -13,11 +13,11 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.impl.load.Setter;
-import com.googlecode.objectify.impl.load.SetterEmbeddedArray;
-import com.googlecode.objectify.impl.load.SetterEmbeddedClass;
-import com.googlecode.objectify.impl.load.SetterEmbeddedCollection;
-import com.googlecode.objectify.impl.load.SetterLeaf;
-import com.googlecode.objectify.impl.load.SetterRoot;
+import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
+import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
+import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
+import com.googlecode.objectify.impl.load.LeafSetter;
+import com.googlecode.objectify.impl.load.RootSetter;
 import com.googlecode.objectify.impl.save.ClassSaver;
 
 /**
@@ -88,7 +88,7 @@ public class Transmog<T>
 		/** Constructs a visitor for a top-level entity */
 		public Visitor()
 		{
-			this.setterChain = new SetterRoot();
+			this.setterChain = new RootSetter();
 		}
 		
 		/**
@@ -128,7 +128,7 @@ public class Transmog<T>
 		{
 			OldName oldName = method.getAnnotation(OldName.class);
 			String path = this.prefix + "." + oldName.value();
-			SetterLeaf setter = new SetterLeaf(factory, new MethodWrapper(method));
+			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method));
 			
 			this.addRootSetter(path, setter);
 		}
@@ -151,7 +151,7 @@ public class Transmog<T>
 					Class<?> componentType = field.getType().getComponentType();
 					TypeUtils.checkForNoArgConstructor(componentType);
 					
-					SetterEmbeddedArray setter = new SetterEmbeddedArray(field);
+					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
 				}
@@ -160,7 +160,7 @@ public class Transmog<T>
 					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 					TypeUtils.checkForNoArgConstructor(componentType);
 					
-					SetterEmbeddedCollection setter = new SetterEmbeddedCollection(field);
+					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
 				}
@@ -168,7 +168,7 @@ public class Transmog<T>
 				{
 					TypeUtils.checkForNoArgConstructor(field.getType());
 
-					SetterEmbeddedClass setter = new SetterEmbeddedClass(field);
+					EmbeddedClassSetter setter = new EmbeddedClassSetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(field.getType());
 				}
@@ -176,7 +176,7 @@ public class Transmog<T>
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a root setter based on the leaf setter
-				SetterLeaf setter = new SetterLeaf(factory, new FieldWrapper(field));
+				LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field));
 				
 				this.addRootSetter(path, setter);
 				
@@ -191,7 +191,7 @@ public class Transmog<T>
 		 * Adds a final leaf setter to the setters collection.
 		 * @param fullPath is the whole "blah.blah.blah" path for this property
 		 */
-		void addRootSetter(String fullPath, SetterLeaf setter)
+		void addRootSetter(String fullPath, LeafSetter setter)
 		{
 			if (rootSetters.containsKey(fullPath))
 				throw new IllegalStateException("Attempting to create multiple associations for " + fullPath);

@@ -16,12 +16,12 @@ import com.googlecode.objectify.impl.Wrapper;
  * 
  * <p>This class is a little weird.  It is a termination setter which itself cannot be
  * extended.  However, when constructed, it actually sets its next value to be a more-specific
- * type of setter defined by the three inner classes:  BasicSetter, ArraySetter, and CollectionSetter.
+ * type of setter defined by the three inner classes:  ForBasic, ForArray, and ForCollection.
  * This allows us to break up the logic a bit better.</p>
  * 
  * <p>This is always the termination of a setter chain; the {@code next} value is ignored.</p>
  */
-public class SetterLeaf extends Setter
+public class LeafSetter extends Setter
 {
 	/** Knows how to set basic noncollection and nonarray values */
 	class ForBasic extends Setter
@@ -90,7 +90,7 @@ public class SetterLeaf extends Setter
 	Wrapper field;
 	
 	/** */
-	public SetterLeaf(ObjectifyFactory fact, Wrapper field)
+	public LeafSetter(ObjectifyFactory fact, Wrapper field)
 	{
 		this.factory = fact;
 		this.field = field;
@@ -190,5 +190,4 @@ public class SetterLeaf extends Setter
 	{
 		throw new UnsupportedOperationException("Objectify bug - cannot extend Leaf setters");
 	}
-
 }

@@ -14,13 +14,13 @@ import com.googlecode.objectify.impl.TypeUtils;
  * all the embedded objects in the array, calling the next setter in the chain with each
  * value.</p>
  */
-public class SetterEmbeddedArray extends Setter
+public class EmbeddedArraySetter extends Setter
 {
 	/** The field which holds the embedded array */
 	Field field;
 	
 	/** */
-	public SetterEmbeddedArray(Field field)
+	public EmbeddedArraySetter(Field field)
 	{
 		assert field.isAnnotationPresent(Embedded.class);
 		assert field.getType().isArray();

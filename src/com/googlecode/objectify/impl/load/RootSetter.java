@@ -4,7 +4,7 @@ package com.googlecode.objectify.impl.load;
  * <p>An instance of this object makes the construction of setter chains a lot easier.
  * It should be removed from the chain after construction is complete.</p>
  */
-public class SetterRoot extends Setter
+public class RootSetter extends Setter
 {
 	/**
 	 * This shouldn't be called and will actually pop an assertion.  However, if assertions

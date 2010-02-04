@@ -11,18 +11,11 @@ import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>This setter handles embedded collections similar to embedded arrays.  The special
- * consideration of collections follows the approach for collections of basic types:</p>
- * <ul>
- * <li>If the target field already contains a collection object, it will be cleared and
- * repopulated.  A new instance will not be created.</li>
- * <li>If the target field is a concrete collection type, an instance of the concrete type
- * will be created.</li>
- * <li>If the target field is Set, a HashSet will be created.</li>  
- * <li>If the target field is SortedSet, a TreeSet will be created.</li>  
- * <li>If the target field is List, an ArrayList will be created.</li>  
- * </ul>
+ * consideration of collections follows the documentation for {@code TypeUtils.prepareCollection()}.</p>
+ * 
+ * @see TypeUtils#prepareCollection(Object, com.googlecode.objectify.impl.Wrapper)
  */
-public class SetterEmbeddedCollection extends Setter
+public class EmbeddedCollectionSetter extends Setter
 {
 	/**
 	 * The field which holds the embedded collection. We use FieldWrapper instead of
@@ -31,7 +24,7 @@ public class SetterEmbeddedCollection extends Setter
 	FieldWrapper field;
 	
 	/** */
-	public SetterEmbeddedCollection(Field field)
+	public EmbeddedCollectionSetter(Field field)
 	{
 		assert field.isAnnotationPresent(Embedded.class);
 		assert Collection.class.isAssignableFrom(field.getType());
