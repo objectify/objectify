@@ -40,15 +40,15 @@ abstract public class Setter implements Cloneable
 	 */
 	public Setter extend(Setter tail)
 	{
-		this.clone();
+		Setter cloned = this.clone();
 		
-		Setter traverse = this;
+		Setter traverse = cloned;
 		while (traverse.next != null)
 			traverse = traverse.next;
 		
 		traverse.next = tail;
 		
-		return this;
+		return cloned;
 	}
 	
 	/**
