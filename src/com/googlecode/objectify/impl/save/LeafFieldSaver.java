@@ -95,7 +95,14 @@ public class LeafFieldSaver extends FieldSaver
 		{
 			// Check to see if it's too long and needs to be Text instead
 			if (((String)value).length() > 500)
+			{
+				if (this.collectionize)
+					throw new IllegalStateException("You cannot save Strings greater than 500 chars inside @Embedded collections because" +
+							" they would be turned into Text type, and Text/Blob is not allowed in @Embedded collections.  This is what you" +
+							" tried to save into " + this.field + ": " + value);
+				
 				return new Text((String)value);
+			}
 		}
 		else if (value instanceof Enum<?>)
 		{

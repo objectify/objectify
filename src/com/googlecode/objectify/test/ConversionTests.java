@@ -7,6 +7,7 @@ package com.googlecode.objectify.test;
 
 import java.util.Arrays;
 
+import javax.persistence.Embedded;
 import javax.persistence.Id;
 
 import org.slf4j.Logger;
@@ -43,7 +44,7 @@ public class ConversionTests extends TestBase
 	public static class HasNames
 	{
 		public @Id Long id;
-		public Name[] names;
+		public @Embedded Name[] names;
 	}
 	
 	/** */
