@@ -39,23 +39,30 @@ public class LeafSetter extends Setter
 		@Override
 		public void set(Object toPojo, Object value)
 		{
-			if (!(value instanceof Collection<?>))
-				throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
-
-			Collection<?> datastoreCollection = (Collection<?>)value;
-
-			Class<?> componentType = field.getType().getComponentType();
-			
-			Object array = Array.newInstance(componentType, datastoreCollection.size());
-
-			int index = 0;
-			for (Object componentValue: datastoreCollection)
+			if (value == null)
 			{
-				componentValue = importBasic(componentValue, componentType);
-				Array.set(array, index++, componentValue);
+				field.set(toPojo, null);
 			}
-
-			field.set(toPojo, array);
+			else
+			{
+				if (!(value instanceof Collection<?>))
+					throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
+	
+				Collection<?> datastoreCollection = (Collection<?>)value;
+	
+				Class<?> componentType = field.getType().getComponentType();
+				
+				Object array = Array.newInstance(componentType, datastoreCollection.size());
+	
+				int index = 0;
+				for (Object componentValue: datastoreCollection)
+				{
+					componentValue = importBasic(componentValue, componentType);
+					Array.set(array, index++, componentValue);
+				}
+	
+				field.set(toPojo, array);
+			}
 		}
 	}
 
@@ -70,16 +77,23 @@ public class LeafSetter extends Setter
 		@Override
 		public void set(Object toPojo, Object value)
 		{
-			if (!(value instanceof Collection<?>))
-				throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
-
-			Collection<?> datastoreCollection = (Collection<?>)value;
-			Collection<Object> target = TypeUtils.prepareCollection(toPojo, field);
-
-			Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-			
-			for (Object datastoreValue: datastoreCollection)
-				target.add(importBasic(datastoreValue, componentType));
+			if (value == null)
+			{
+				field.set(toPojo, null);
+			}
+			else
+			{
+				if (!(value instanceof Collection<?>))
+					throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
+	
+				Collection<?> datastoreCollection = (Collection<?>)value;
+				Collection<Object> target = TypeUtils.prepareCollection(toPojo, field);
+	
+				Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
+				
+				for (Object datastoreValue: datastoreCollection)
+					target.add(importBasic(datastoreValue, componentType));
+			}
 		}
 	}
 	
