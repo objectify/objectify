@@ -48,8 +48,19 @@ public class LeafFieldSaver extends FieldSaver
 	@SuppressWarnings("unchecked")
 	public void save(Object pojo, Entity entity)
 	{
-		Object value = TypeUtils.field_get(this.field, pojo);
-		value = this.prepareForSave(value);
+		Object value = null;
+		
+		// If the pojo itself comes in as null, that means we are in an embedded collection
+		// and there was a null value in it.  We must insert a placeholder in the array!
+		if (pojo == null)
+		{
+			assert this.collectionize : "Shouldn't be here with a null pojo if we're not in an embedded collection!";
+		}
+		else
+		{
+			value = TypeUtils.field_get(this.field, pojo);
+			value = this.prepareForSave(value);
+		}
 		
 		if (this.collectionize)
 		{

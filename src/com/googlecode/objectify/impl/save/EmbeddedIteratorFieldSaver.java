@@ -51,23 +51,24 @@ abstract public class EmbeddedIteratorFieldSaver extends FieldSaver
 		Object arrayOrCollection = TypeUtils.field_get(this.field, pojo);
 		if (arrayOrCollection == null)
 		{
-			//TODO
+			// TODO: maintain an out-of-band property for the null state since there is
+			// no way to maintain this state in-band.  Currently, nothing gets saved
+			// when the collection is null - generally an OK solution, but not ideal.
 		}
 		else
 		{
+			// TODO: maintain an out-of-band property for the EMPTY state since there is
+			// no way to maintain this state in-band.  Currently, nothing gets saved
+			// when the collection is empty - generally an OK solution, but not ideal.
+			
 			Iterator<Object> iterator = this.iterator(arrayOrCollection);
 			while (iterator.hasNext())
 			{
 				Object embeddedPojo = iterator.next();
 				
-				if (embeddedPojo == null)
-				{
-					// TODO
-				}
-				else
-				{
-					this.classSaver.save(embeddedPojo, entity);
-				}
+				// Not a problem if it's null!  Just keep going, it will insert a null
+				// placeholder in all of the relevant collections.
+				this.classSaver.save(embeddedPojo, entity);
 			}
 		}
 	}
