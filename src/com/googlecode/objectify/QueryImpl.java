@@ -302,7 +302,7 @@ class QueryImpl<T> implements Query<T>
 		if (it.hasNext())
 		{
 			Entity ent = it.next();
-			return this.factory.rawKeyToOKey(ent.getKey());
+			return this.factory.rawKeyToTypedKey(ent.getKey());
 		}
 		else
 		{
@@ -450,7 +450,7 @@ class QueryImpl<T> implements Query<T>
 			if (keysOnly)
 			{
 				// This will be a ToObjectIterator<Key<T>>
-				return (S)factory.rawKeyToOKey(nextEntity.getKey());
+				return (S)factory.rawKeyToTypedKey(nextEntity.getKey());
 			}
 			else
 			{

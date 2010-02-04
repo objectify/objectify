@@ -149,7 +149,7 @@ public class ObjectifyFactory
 	 */
 	public <T> Key<T> createKey(T entity)
 	{
-		return this.rawKeyToOKey(this.getMetadataForEntity(entity).getKey(entity));
+		return this.rawKeyToTypedKey(this.getMetadataForEntity(entity).getKey(entity));
 	}
 	
 	//
@@ -239,25 +239,25 @@ public class ObjectifyFactory
 	}
 
 	/** 
-	 * Converts an Key into a raw Key.
-	 * @param obKey can be null, resulting in a null Key
+	 * Converts a typed Key<?> into a raw datastore Key.
+	 * @param typedKey can be null, resulting in a null Key
 	 */
-	public com.google.appengine.api.datastore.Key oKeyToRawKey(Key<?> obKey)
+	public com.google.appengine.api.datastore.Key typedKeyToRawKey(Key<?> typedKey)
 	{
-		if (obKey == null)
+		if (typedKey == null)
 			return null;
 		
-		if (obKey.getName() != null)
-			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKindClassName()), obKey.getName());
+		if (typedKey.getName() != null)
+			return KeyFactory.createKey(this.typedKeyToRawKey(typedKey.getParent()), this.getKind(typedKey.getKindClassName()), typedKey.getName());
 		else
-			return KeyFactory.createKey(this.oKeyToRawKey(obKey.getParent()), this.getKind(obKey.getKindClassName()), obKey.getId());
+			return KeyFactory.createKey(this.typedKeyToRawKey(typedKey.getParent()), this.getKind(typedKey.getKindClassName()), typedKey.getId());
 	}
 	
 	/** 
-	 * Converts a raw Key into an Key.
+	 * Converts a raw datastore Key into a typed Key<?>.
 	 * @param rawKey can be null, resulting in a null Key
 	 */
-	public <T> Key<T> rawKeyToOKey(com.google.appengine.api.datastore.Key rawKey)
+	public <T> Key<T> rawKeyToTypedKey(com.google.appengine.api.datastore.Key rawKey)
 	{
 		if (rawKey == null)
 			return null;
@@ -266,9 +266,9 @@ public class ObjectifyFactory
 		Class<T> entityClass = meta.getEntityClass();
 		
 		if (rawKey.getName() != null)
-			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getName());
+			return new Key<T>(this.rawKeyToTypedKey(rawKey.getParent()), entityClass, rawKey.getName());
 		else
-			return new Key<T>(this.rawKeyToOKey(rawKey.getParent()), entityClass, rawKey.getId());
+			return new Key<T>(this.rawKeyToTypedKey(rawKey.getParent()), entityClass, rawKey.getId());
 	}
 	
 	/**
@@ -280,7 +280,7 @@ public class ObjectifyFactory
 		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return (com.google.appengine.api.datastore.Key)keyOrEntity;
 		else if (keyOrEntity instanceof Key<?>)
-			return this.oKeyToRawKey((Key<?>)keyOrEntity);
+			return this.typedKeyToRawKey((Key<?>)keyOrEntity);
 		else
 			return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
 	}
@@ -299,7 +299,7 @@ public class ObjectifyFactory
 		}
 		else if (keyOrEntityOrOther instanceof Key<?>)
 		{
-			return this.oKeyToRawKey((Key<?>)keyOrEntityOrOther);
+			return this.typedKeyToRawKey((Key<?>)keyOrEntityOrOther);
 		}
 		else
 		{

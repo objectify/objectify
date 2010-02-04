@@ -242,7 +242,7 @@ public class EntityMetadata<T>
 				if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
 					this.parentField.set(obj, parentKey);
 				else
-					this.parentField.set(obj, this.factory.rawKeyToOKey(parentKey));
+					this.parentField.set(obj, this.factory.rawKeyToTypedKey(parentKey));
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
@@ -301,7 +301,7 @@ public class EntityMetadata<T>
 		if (keyField.getType() == com.google.appengine.api.datastore.Key.class)
 			return (com.google.appengine.api.datastore.Key)keyField.get(obj);
 		else
-			return this.factory.oKeyToRawKey((Key<?>)keyField.get(obj));
+			return this.factory.typedKeyToRawKey((Key<?>)keyField.get(obj));
 	}
 
 	/**

@@ -125,7 +125,7 @@ public class LeafFieldSaver extends FieldSaver
 		}
 		else if (value instanceof Key<?>)
 		{
-			return this.factory.oKeyToRawKey((Key<?>)value);
+			return this.factory.typedKeyToRawKey((Key<?>)value);
 		}
 
 		// Usually we just want to return the value

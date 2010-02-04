@@ -174,7 +174,7 @@ public class LeafSetter extends Setter
 		}
 		else if (Key.class.isAssignableFrom(toType) && fromValue instanceof com.google.appengine.api.datastore.Key)
 		{
-			return this.factory.rawKeyToOKey((com.google.appengine.api.datastore.Key) fromValue);
+			return this.factory.rawKeyToTypedKey((com.google.appengine.api.datastore.Key) fromValue);
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + fromValue.getClass() + " to " + toType);

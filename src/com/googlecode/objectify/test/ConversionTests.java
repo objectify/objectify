@@ -38,7 +38,7 @@ public class ConversionTests extends TestBase
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		Key<Trivial> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<Trivial> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;

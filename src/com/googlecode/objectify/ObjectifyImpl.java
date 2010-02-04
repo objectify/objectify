@@ -51,7 +51,7 @@ public class ObjectifyImpl implements Objectify
 		// First we need to turn the keys into raw keys
 		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Key<? extends T> obKey: keys)
-			rawKeys.add(this.factory.oKeyToRawKey(obKey));
+			rawKeys.add(this.factory.typedKeyToRawKey(obKey));
 			
 		Map<com.google.appengine.api.datastore.Key, Entity> entities = this.ds.get(this.txn, rawKeys);
 		Map<Key<T>, T> result = new HashMap<Key<T>, T>(entities.size() * 2);
@@ -59,7 +59,7 @@ public class ObjectifyImpl implements Objectify
 		for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: entities.entrySet())
 		{
 			EntityMetadata metadata = this.factory.getMetadata(entry.getKey());
-			Key<T> obKey = this.factory.rawKeyToOKey(entry.getKey());
+			Key<T> obKey = this.factory.rawKeyToTypedKey(entry.getKey());
 			result.put(obKey, (T)metadata.toObject(entry.getValue()));
 		}
 		
@@ -72,7 +72,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> T get(Key<? extends T> key) throws EntityNotFoundException
 	{
-		Entity ent = this.ds.get(this.txn, this.factory.oKeyToRawKey(key));
+		Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
 		
 		return this.factory.getMetadata(key).toObject(ent);
 	}
@@ -163,7 +163,7 @@ public class ObjectifyImpl implements Objectify
 		// Need to reset the key value in case the value was generated
 		metadata.setKey(obj, rawKey);
 		
-		return this.factory.rawKeyToOKey(rawKey);
+		return this.factory.rawKeyToTypedKey(rawKey);
 	}
 
 	/* (non-Javadoc)
@@ -191,7 +191,7 @@ public class ObjectifyImpl implements Objectify
 			EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
 			metadata.setKey(obj, k);
 			
-			Key<T> obKey = this.factory.rawKeyToOKey(k);
+			Key<T> obKey = this.factory.rawKeyToTypedKey(k);
 			obKeys.add(obKey);
 		}
 		

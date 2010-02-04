@@ -37,7 +37,7 @@ public class OldNameTests extends TestBase
 		ent.setProperty("oldStuff", "oldStuff");
 		ds.put(ent);
 		
-		Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<HasOldNames> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getStuff().equals("oldStuff");
@@ -58,7 +58,7 @@ public class OldNameTests extends TestBase
 		
 		try
 		{
-			Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+			Key<HasOldNames> key = this.fact.rawKeyToTypedKey(ent.getKey());
 			ofy.get(key);
 			assert false: "Shouldn't be able to read data duplicated with @OldName";
 		}
@@ -76,7 +76,7 @@ public class OldNameTests extends TestBase
 		ent.setProperty("weirdStuff", "5");
 		ds.put(ent);
 		
-		Key<HasOldNames> key = this.fact.rawKeyToOKey(ent.getKey());
+		Key<HasOldNames> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getWeird() == 5;
