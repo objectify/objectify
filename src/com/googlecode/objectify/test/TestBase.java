@@ -16,6 +16,8 @@ import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
 import com.google.apphosting.api.ApiProxy;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
@@ -85,5 +87,15 @@ public class TestBase
         // not strictly necessary to null these out but there's no harm either
 		ApiProxy.setDelegate(null);
 		ApiProxy.setEnvironmentForCurrentThread(null);
+	}
+	
+	/** Utility methods that puts and immediately gets an entity */
+	protected <T> T putAndGet(T saveMe)
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Key<T> key = ofy.put(saveMe);
+		
+		return ofy.find(key);
 	}
 }

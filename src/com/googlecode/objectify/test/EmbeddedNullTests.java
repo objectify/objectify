@@ -8,7 +8,6 @@ import java.util.Iterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Name;
@@ -18,16 +17,6 @@ import com.googlecode.objectify.test.entity.Name;
  */
 public class EmbeddedNullTests extends TestBase
 {
-	/** */
-	protected Criminal saveAndFetch(Criminal saveMe)
-	{
-		Objectify ofy = this.fact.begin();
-		
-		Key<Criminal> key = ofy.put(saveMe);
-		
-		return ofy.find(key);
-	}
-
 	/**
 	 * Add an entry to the database that should never come back from null queries.
 	 */
@@ -53,7 +42,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = null;
 		crim.moreAliases = null;
 		
-		Criminal fetched = this.saveAndFetch(crim);
+		Criminal fetched = this.putAndGet(crim);
 		assert fetched.aliases == null;
 		assert fetched.moreAliases == null;
 		
@@ -94,7 +83,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[0];
 		crim.moreAliases = new ArrayList<Name>();
 		
-		Criminal fetched = this.saveAndFetch(crim);
+		Criminal fetched = this.putAndGet(crim);
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 0;
 		assert fetched.moreAliases != null;
@@ -137,7 +126,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { null };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 		
-		Criminal fetched = this.saveAndFetch(crim);
+		Criminal fetched = this.putAndGet(crim);
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 1;
 		assert fetched.aliases[0] == null;
@@ -182,7 +171,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 		
-		Criminal fetched = this.saveAndFetch(crim);
+		Criminal fetched = this.putAndGet(crim);
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
 		assert fetched.aliases[0] != null;
