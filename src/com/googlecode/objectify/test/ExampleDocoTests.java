@@ -102,8 +102,7 @@ public class ExampleDocoTests extends TestBase
 		assert town.mayor.name.lastName == null;
 		assert town.mayor.age == 53;
 
-		assert town.folk != null; // null Collections are loaded as empty
-		assert town.folk.length == 0;
+		assert town.folk == null; // it started as null, it should come back as null
 	}
 
 	@Test
@@ -133,7 +132,7 @@ public class ExampleDocoTests extends TestBase
 
 		assert town.mayor == null;
 
-		assert town.folk != null; // null Collections are loaded as empty
+		assert town.folk != null; // it should come back as a Person[0] as before
 		assert town.folk.length == 0;
 	}
 

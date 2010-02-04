@@ -15,9 +15,6 @@ public class Town
 	public String name;
 	
 	@Embedded
-	Industry industry;
-
-	@Embedded
 	public Person mayor;
 
 	@Embedded
