@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
@@ -18,7 +19,9 @@ public class EmbeddedArraySetter extends Setter
 {
 	/** The field which holds the embedded array */
 	Field field;
-	
+	Class<?> componentType;
+	Constructor<?> componentTypeCtor;
+
 	/** */
 	public EmbeddedArraySetter(Field field)
 	{
@@ -26,6 +29,8 @@ public class EmbeddedArraySetter extends Setter
 		assert field.getType().isArray();
 		
 		this.field = field;
+		this.componentType = this.field.getType().getComponentType();
+		this.componentTypeCtor = TypeUtils.getNoArgConstructor(this.componentType);
 	}
 	
 	/* (non-Javadoc)
@@ -43,8 +48,6 @@ public class EmbeddedArraySetter extends Setter
 		Object embeddedArray = TypeUtils.field_get(this.field, toPojo);
 		if (embeddedArray == null)
 		{
-			Class<?> componentType = this.field.getType().getComponentType();
-			
 			// Make the array and set it on the pojo field
 			embeddedArray = Array.newInstance(componentType, datastoreCollection.size());
 			TypeUtils.field_set(this.field, toPojo, embeddedArray);
@@ -52,7 +55,7 @@ public class EmbeddedArraySetter extends Setter
 			// Populate the array with fresh embedded objects.
 			for (int i=0; i<datastoreCollection.size(); i++)
 			{
-				Object embedded = TypeUtils.class_newInstance(componentType);
+				Object embedded = TypeUtils.newInstance(componentTypeCtor);
 				Array.set(embeddedArray, i, embedded);
 			}
 		}

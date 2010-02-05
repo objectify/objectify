@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -31,11 +33,13 @@ public class TypeUtils
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */
-	public static void checkForNoArgConstructor(Class<?> clazz)
+	public static <T> Constructor<T> getNoArgConstructor(Class<T> clazz)
 	{
 		try
 		{
-			clazz.getConstructor(new Class[0]);
+			Constructor<T> ctor = clazz.getDeclaredConstructor(new Class[0]);
+			ctor.setAccessible(true);
+			return ctor;
 		}
 		catch (NoSuchMethodException e)
 		{
@@ -113,7 +117,7 @@ public class TypeUtils
 	 * <li>If the field is List, an ArrayList will be created.</li>  
 	 * </ul>
 	 * 
-	 * @param field is a Collection-derived field on the pojo.
+	 * @param collectionField is a Collection-derived field on the pojo.
 	 * @param onPojo is the object whose field should be set 
 	 */
 	@SuppressWarnings("unchecked")
@@ -151,9 +155,9 @@ public class TypeUtils
 		
 		return coll;
 	}
-	
+
 	/** Checked exceptions are LAME. */
-	public static <T> T class_newInstance(Class<T> clazz)
+	private static <T> T class_newInstance(Class<T> clazz)
 	{
 		try
 		{
@@ -161,6 +165,18 @@ public class TypeUtils
 		}
 		catch (InstantiationException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+	
+	/** Checked exceptions are LAME. */
+	public static <T> T newInstance(Constructor<T> ctor)
+	{
+		try
+		{
+			return ctor.newInstance();
+		}
+		catch (InstantiationException e) { throw new RuntimeException(e); }
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+		catch (InvocationTargetException e) { throw new RuntimeException(e); }
 	}
 
 	/** Checked exceptions are LAME. */

@@ -1,6 +1,8 @@
 package com.googlecode.objectify;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 
 import javax.persistence.Id;
 
@@ -24,6 +26,8 @@ public class EntityMetadata<T>
 
 	/** */
 	protected Class<T> entityClass;
+	protected Constructor<T> entityClassConstructor;
+
 	public Class<T> getEntityClass() { return this.entityClass; }
 
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
@@ -47,6 +51,7 @@ public class EntityMetadata<T>
 	{
 		this.factory = fact;
 		this.entityClass = clazz;
+		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);
 		this.kind = this.factory.getKind(clazz);
 
 		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
@@ -58,8 +63,6 @@ public class EntityMetadata<T>
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
-
-		TypeUtils.checkForNoArgConstructor(clazz);
 	}
 
 	/** @return the datastore kind associated with this metadata */
@@ -122,19 +125,14 @@ public class EntityMetadata<T>
 	 */
 	public T toObject(Entity ent)
 	{
-		try
-		{
-			T obj = this.entityClass.newInstance();
+		T obj = TypeUtils.newInstance(this.entityClassConstructor);
 
-			// This will set the id and parent fields as appropriate.
-			this.setKey(obj, ent.getKey());
+		// This will set the id and parent fields as appropriate.
+		this.setKey(obj, ent.getKey());
 
-			this.transmog.load(ent, obj);
+		this.transmog.load(ent, obj);
 
-			return obj;
-		}
-		catch (InstantiationException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+		return obj;
 	}
 
 

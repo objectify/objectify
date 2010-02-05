@@ -53,9 +53,21 @@ public class RegisterTests extends TestBase
 	@Test
 	public void testNoArgConstructor()
 	{
-		assertRegisterFails(NonPublicConstructor.class, IllegalStateException.class);
+		assertRegisterSucceeds(NonPublicConstructor.class);
 		assertRegisterFails(NoNoargConstructors.class, IllegalStateException.class);
 		assertRegisterFails(HasEmbedded.class, IllegalStateException.class);
+	}
+
+	private void assertRegisterSucceeds(Class<?> entity)
+	{
+		try
+		{
+			this.fact.register(entity);
+		}
+		catch (Exception e)
+		{
+			assert false : "Unexpected exception of type " + e.getClass();
+		}
 	}
 
 	private void assertRegisterFails(Class<?> entity, Class<? extends Exception> expectedException)

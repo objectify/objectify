@@ -149,8 +149,7 @@ public class Transmog<T>
 				if (field.getType().isArray())
 				{
 					Class<?> componentType = field.getType().getComponentType();
-					TypeUtils.checkForNoArgConstructor(componentType);
-					
+
 					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
@@ -158,16 +157,13 @@ public class Transmog<T>
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
 					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-					TypeUtils.checkForNoArgConstructor(componentType);
-					
+
 					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
 				}
 				else	// basic class
 				{
-					TypeUtils.checkForNoArgConstructor(field.getType());
-
 					EmbeddedClassSetter setter = new EmbeddedClassSetter(field);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(field.getType());
