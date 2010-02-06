@@ -4,6 +4,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.AbstractList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import com.googlecode.objectify.impl.TypeUtils;
@@ -87,8 +88,13 @@ public class EmbeddedArraySetter extends EmbeddedMultivalueSetter
 			// Make the array and set it on the pojo field
 			embeddedArray = Array.newInstance(this.componentType, size);
 			this.field.set(onPojo, embeddedArray);
+			
+			return new EmptyArrayListWrapper((Object[])embeddedArray);
+		}
+		else
+		{
+			return Arrays.asList((Object[])embeddedArray);
 		}
 		
-		return new EmptyArrayListWrapper((Object[])embeddedArray);
 	}
 }

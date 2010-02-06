@@ -151,6 +151,23 @@ public class EmbeddedNullTests extends TestBase
 	/**
 	 */
 	@Test
+	public void easierTestCollectionContainingNullAndOtherStuff() throws Exception
+	{
+		Criminal crim = new Criminal();
+		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
+		
+		Criminal fetched = this.putAndGet(crim);
+		
+		assert fetched.aliases != null;
+		assert fetched.aliases.length == 3;
+		assert fetched.aliases[0] != null;
+		assert fetched.aliases[1] == null;
+		assert fetched.aliases[2] != null;
+	}
+	
+	/**
+	 */
+	@Test
 	public void testCollectionContainingNullAndOtherStuff() throws Exception
 	{
 		Criminal crim = new Criminal();
@@ -158,6 +175,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.moreAliases = Arrays.asList(crim.aliases);
 		
 		Criminal fetched = this.putAndGet(crim);
+		
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
 		assert fetched.aliases[0] != null;

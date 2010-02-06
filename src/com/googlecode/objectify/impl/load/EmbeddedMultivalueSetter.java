@@ -67,7 +67,9 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 		Set<Integer> nullIndexes = TypeUtils.getNullIndexes(context.getEntity(), this.path);
 		
 		// Some nulls, some real, this is what we get
-		int collectionSize = datastoreCollection.size() + nullIndexes.size();
+		int collectionSize = datastoreCollection.size();
+		if (nullIndexes != null)
+			collectionSize += nullIndexes.size();
 		
 		Collection<Object> embeddedMultivalue = this.getOrCreateCollection(toPojo, collectionSize);
 		if (embeddedMultivalue.isEmpty())

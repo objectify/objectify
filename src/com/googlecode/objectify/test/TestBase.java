@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.dev.LocalDatastoreService;
 import com.google.appengine.tools.development.ApiProxyLocal;
 import com.google.appengine.tools.development.ApiProxyLocalImpl;
@@ -95,7 +97,14 @@ public class TestBase
 		Objectify ofy = this.fact.begin();
 		
 		Key<T> key = ofy.put(saveMe);
-		
+
+		try
+		{
+			Entity ent = ofy.getDatastore().get(fact.getRawKey(key));
+			System.out.println(ent);
+		}
+		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
+
 		return ofy.find(key);
 	}
 }
