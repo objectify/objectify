@@ -152,8 +152,9 @@
 
 		<copy todir="${build.dist.dir}">
 	        <fileset dir=".">
-	        	<include name="**/**"/>
-	        	<exclude name="target/**"/>
+	        	<include name="license.txt"/>
+			<include name="src/**"/>
+	        	<include name="javadoc/**"/>
 	        </fileset>
         </copy>
 
