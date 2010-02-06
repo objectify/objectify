@@ -133,30 +133,18 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases.size() == 1;
 		assert fetched.moreAliases.get(0) == null;
 
-		// Now check the queries
-		Objectify ofy = this.fact.begin();
-		Iterator<Criminal> queried;
-		
-		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
-		assert queried.hasNext();
-		assert queried.next().id.equals(fetched.id);
-		assert !queried.hasNext();
-
-		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
-		assert queried.hasNext();
-		assert queried.next().id.equals(fetched.id);
-		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("aliases").iterator();
+		// Queries on non-leaf values are not currently supported
+//		Objectify ofy = this.fact.begin();
+//		Iterator<Criminal> queried;
+//		
+//		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
+//		assert queried.hasNext();
+//		assert queried.next().id.equals(fetched.id);
 //		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("moreAliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("aliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
+//
+//		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
+//		assert queried.hasNext();
+//		assert queried.next().id.equals(fetched.id);
 //		assert !queried.hasNext();
 	}
 	
@@ -182,30 +170,18 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases.get(1) == null;
 		assert fetched.moreAliases.get(2) != null;
 
-		// Now check the queries
-		Objectify ofy = this.fact.begin();
-		Iterator<Criminal> queried;
-		
-		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
-		assert queried.hasNext();
-		assert queried.next().id.equals(fetched.id);
-		assert !queried.hasNext();
-
-		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
-		assert queried.hasNext();
-		assert queried.next().id.equals(fetched.id);
-		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("aliases").iterator();
+		// Queries on non-leaf values are not currently supported
+//		Objectify ofy = this.fact.begin();
+//		Iterator<Criminal> queried;
+//		
+//		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
+//		assert queried.hasNext();
+//		assert queried.next().id.equals(fetched.id);
 //		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("moreAliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("aliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
+//
+//		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
+//		assert queried.hasNext();
+//		assert queried.next().id.equals(fetched.id);
 //		assert !queried.hasNext();
 	}
 	

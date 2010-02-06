@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.load;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.Arrays;
+import java.util.AbstractList;
 import java.util.Collection;
 
 import com.googlecode.objectify.impl.TypeUtils;
@@ -18,6 +18,42 @@ public class EmbeddedArraySetter extends EmbeddedMultivalueSetter
 {
 	Class<?> componentType;
 	Constructor<?> componentTypeCtor;
+	
+	/**
+	 * The lame Arrays.asList() wrapper doesn't support the clear() operation, and
+	 * we need to be able to set the size back to 0 for our newly crated array of
+	 * nulls.  This wrapper uses the array as a backing store but it doesn't start
+	 * out thinking the collection is populated.
+	 */
+	static class EmptyArrayListWrapper extends AbstractList<Object>
+	{
+		int size;
+		Object[] array;
+		
+		public EmptyArrayListWrapper(Object[] array)
+		{
+			this.array = array;
+		}
+
+		@Override
+		public Object get(int index)
+		{
+			return this.array[index];
+		}
+
+		@Override
+		public int size()
+		{
+			return this.size;
+		}
+		
+		@Override
+		public boolean add(Object element)
+		{
+			this.array[this.size++] = element;
+			return true;
+		}
+	}
 
 	/** */
 	public EmbeddedArraySetter(Field field, String path)
@@ -53,6 +89,6 @@ public class EmbeddedArraySetter extends EmbeddedMultivalueSetter
 			this.field.set(onPojo, embeddedArray);
 		}
 		
-		return Arrays.asList(embeddedArray);
+		return new EmptyArrayListWrapper((Object[])embeddedArray);
 	}
 }
