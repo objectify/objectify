@@ -84,10 +84,8 @@ public class EmbeddedNullTests extends TestBase
 		crim.moreAliases = new ArrayList<Name>();
 		
 		Criminal fetched = this.putAndGet(crim);
-		assert fetched.aliases != null;
-		assert fetched.aliases.length == 0;
-		assert fetched.moreAliases != null;
-		assert fetched.moreAliases.isEmpty();
+		assert fetched.aliases == null;
+		assert fetched.moreAliases == null;
 
 		// Now check the queries
 		Objectify ofy = this.fact.begin();

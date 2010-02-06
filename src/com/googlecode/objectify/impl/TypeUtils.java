@@ -19,6 +19,7 @@ import javax.persistence.Embedded;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 
@@ -121,7 +122,7 @@ public class TypeUtils
 	 * @param onPojo is the object whose field should be set 
 	 */
 	@SuppressWarnings("unchecked")
-	public static Collection<Object> prepareCollection(Object onPojo, Wrapper collectionField)
+	public static Collection<Object> prepareCollection(Object onPojo, Wrapper collectionField, int size)
 	{
 		assert Collection.class.isAssignableFrom(collectionField.getType());
 		
@@ -143,11 +144,11 @@ public class TypeUtils
 			}
 			else if (Set.class.isAssignableFrom(collectionField.getType()))
 			{
-				coll = new HashSet<Object>();
+				coll = new HashSet<Object>((int)(size * 1.5));
 			}
 			else if (List.class.isAssignableFrom(collectionField.getType()) || collectionField.getType().isAssignableFrom(ArrayList.class))
 			{
-				coll = new ArrayList<Object>();
+				coll = new ArrayList<Object>(size);
 			}
 		}
 		
@@ -156,6 +157,56 @@ public class TypeUtils
 		return coll;
 	}
 
+	/**
+	 * <p>Sets the embedded null indexes property in an entity, which tracks which elements
+	 * of a collection are null.  For a base of "foo.bar", the state
+	 * property will be "foo.bar^null".  The value, if present, will be a list of indexes
+	 * in an embedded collection which are null.</p>
+	 * 
+	 * <p>If there are no nulls, this property does not need to be set.</p>
+	 */
+	public static void setNullIndexes(Entity entity, String pathBase, Collection<Integer> value)
+	{
+		String path = pathBase + "^null";
+		entity.setUnindexedProperty(path, value);
+	}
+	
+	/**
+	 * <p>Gets the embedded null indexes property in an entity.</p>
+	 * @return null if there is no such property
+	 * @see #setNullIndexes(Entity, String, List)
+	 */
+	@SuppressWarnings("unchecked")
+	public static Set<Integer> getNullIndexes(Entity entity, String pathBase)
+	{
+		String path = pathBase + "^null";
+		Collection<Integer> indexes = (Collection<Integer>)entity.getProperty(path);
+		if (indexes == null)
+			return null;
+		else
+			return new HashSet<Integer>(indexes);
+	}
+	
+	/**
+	 * @return true if clazz is an array type or a collection type
+	 */
+	public static boolean isArrayOrCollection(Class<?> clazz)
+	{
+		return clazz.isArray() || Collection.class.isAssignableFrom(clazz);
+	}
+	
+	/**
+	 * Determines if the field is embedded or not.  Today this checks for
+	 * an @Embedded annotation, but in the future it could check the type
+	 * (or component type) is one of the natively persistable classes.
+	 * 
+	 * @return true if field is an embedded class, collection, or array.
+	 */
+	public static boolean isEmbedded(Field field)
+	{
+		return field.isAnnotationPresent(Embedded.class);
+	}
+	
 	/** Checked exceptions are LAME. */
 	private static <T> T class_newInstance(Class<T> clazz)
 	{

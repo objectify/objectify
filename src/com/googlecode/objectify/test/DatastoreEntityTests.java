@@ -6,11 +6,16 @@
 package com.googlecode.objectify.test;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 
 /**
@@ -89,5 +94,51 @@ public class DatastoreEntityTests extends TestBase
 //		SerializableThing fetchedThing = (SerializableThing)fetched.getProperty("thing");
 //		assert thing.name.equals(fetchedThing.name);
 //		assert thing.age == fetchedThing.age;
+	}
+
+	/**
+	 * What happens when you put empty collections in an Entity?
+	 */
+	@Test
+	public void testEmptyCollectionInEntity() throws Exception
+	{
+		Entity ent = new Entity("Test");
+		List<Object> empty = new ArrayList<Object>();
+		ent.setProperty("empty", empty);
+
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		ds.put(ent);
+		
+		Entity fetched = ds.get(ent.getKey());
+		
+		System.out.println(fetched);
+		
+		Object whatIsIt = fetched.getProperty("empty");
+		assert whatIsIt == null;
+	}
+
+	/**
+	 * What happens when you put a single null in a collection in an Entity?
+	 */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testCollectionContainingNullInEntity() throws Exception
+	{
+		Entity ent = new Entity("Test");
+		List<Object> hasNull = new ArrayList<Object>();
+		hasNull.add(null);
+		ent.setProperty("hasNull", hasNull);
+
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		ds.put(ent);
+		
+		Entity fetched = ds.get(ent.getKey());
+		
+		System.out.println(fetched);
+		
+		Collection<Object> whatIsIt = (Collection<Object>)fetched.getProperty("hasNull");
+		assert whatIsIt != null;
+		assert whatIsIt.size() == 1;
+		assert whatIsIt.iterator().next() == null;
 	}
 }

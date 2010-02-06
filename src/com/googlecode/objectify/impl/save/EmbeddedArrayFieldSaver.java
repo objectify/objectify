@@ -2,19 +2,19 @@ package com.googlecode.objectify.impl.save;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.Iterator;
+import java.util.Collection;
 
 import com.googlecode.objectify.ObjectifyFactory;
 
 /**
  * <p>Knows how to save an embedded array.</p>
  *
- * @see EmbeddedIteratorFieldSaver
+ * @see EmbeddedMultivalueFieldSaver
  */
-public class EmbeddedArrayFieldSaver extends EmbeddedIteratorFieldSaver
+public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedIteratorFieldSaver#EmbeddedIteratorFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedIteratorFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
 	 */
 	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
 	{
@@ -32,13 +32,12 @@ public class EmbeddedArrayFieldSaver extends EmbeddedIteratorFieldSaver
 		return this.field.getType().getComponentType();
 	}
 
-
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.save.EmbeddedIteratorFieldSaver#iterator(java.lang.Object)
+	 * @see com.googlecode.objectify.impl.save.EmbeddedIteratorFieldSaver#asCollection(java.lang.Object)
 	 */
 	@Override
-	protected Iterator<Object> iterator(Object arrayOrCollection)
+	protected Collection<Object> asCollection(Object arrayOrCollection)
 	{
-		return Arrays.asList((Object[])arrayOrCollection).iterator();
+		return Arrays.asList((Object[])arrayOrCollection);
 	}
 }

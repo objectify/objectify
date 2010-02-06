@@ -103,14 +103,18 @@ public class EmbeddedBlobTests extends TestBase
 	@Test
 	public void testRegistration() throws Exception
 	{
-		// These are ok, no collections
+		// These are ok
 		this.fact.register(HasEmbeddedText.class);
 		this.fact.register(HasEmbeddedBlob.class);
+		this.fact.register(HasEmbeddedTextArray.class);
+		this.fact.register(HasEmbeddedBlobArray.class);
+		this.fact.register(HasEmbeddedTextList.class);
+		this.fact.register(HasEmbeddedBlobList.class);
 		
-		// These are all bad
-		this.assertRegistrationFailure(HasEmbeddedTextArray.class);
-		this.assertRegistrationFailure(HasEmbeddedBlobArray.class);
-		this.assertRegistrationFailure(HasEmbeddedTextList.class);
-		this.assertRegistrationFailure(HasEmbeddedBlobList.class);
+		// These are not bad anymore...
+//		this.assertRegistrationFailure(HasEmbeddedTextArray.class);
+//		this.assertRegistrationFailure(HasEmbeddedBlobArray.class);
+//		this.assertRegistrationFailure(HasEmbeddedTextList.class);
+//		this.assertRegistrationFailure(HasEmbeddedBlobList.class);
 	}
 }

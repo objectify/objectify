@@ -3,11 +3,7 @@ package com.googlecode.objectify.impl.load;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Iterator;
 
-import javax.persistence.Embedded;
-
-import com.googlecode.objectify.impl.FieldWrapper;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**
@@ -16,53 +12,38 @@ import com.googlecode.objectify.impl.TypeUtils;
  * 
  * @see TypeUtils#prepareCollection(Object, com.googlecode.objectify.impl.Wrapper)
  */
-public class EmbeddedCollectionSetter extends Setter
+public class EmbeddedCollectionSetter extends EmbeddedMultivalueSetter
 {
 	/**
-	 * The field which holds the embedded collection. We use FieldWrapper instead of
-	 * Field because we want to use methods that take a the wrapper type.
 	 */
-	FieldWrapper field;
-	Class<?> componentType;
 	Constructor<?> componentTypeCtor;
 
 	/** */
-	public EmbeddedCollectionSetter(Field field)
+	public EmbeddedCollectionSetter(Field field, String path)
 	{
-		assert field.isAnnotationPresent(Embedded.class);
+		super(field, path);
+
 		assert Collection.class.isAssignableFrom(field.getType());
 		
-		this.field = new FieldWrapper(field);
-		this.componentType = TypeUtils.getComponentType(this.field.getType(), this.field.getGenericType());
-		this.componentTypeCtor = TypeUtils.getNoArgConstructor(this.componentType);
+		Class<?> componentType = TypeUtils.getComponentType(this.field.getType(), this.field.getGenericType());
+		this.componentTypeCtor = TypeUtils.getNoArgConstructor(componentType);
 	}
-	
+
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Setter#set(java.lang.Object, java.lang.Object)
+	 * @see com.googlecode.objectify.impl.load.EmbeddedMultivalueSetter#getComponentTypeConstructor()
 	 */
-	public void set(Object toPojo, Object value)
+	@Override
+	protected Constructor<?> getComponentConstructor()
 	{
-		if (!(value instanceof Collection<?>))
-			throw new IllegalStateException("Tried to load a non-collection type into embedded collection " + this.field);
+		return this.componentTypeCtor;
+	}
 
-		Collection<?> datastoreCollection = (Collection<?>)value;
-		Collection<Object> embeddedCollection = (Collection<Object>)TypeUtils.prepareCollection(toPojo, field);
-
-		if (embeddedCollection.isEmpty())
-		{
-			// Initialize it with relevant POJOs
-			for (int i=0; i<datastoreCollection.size(); i++)
-			{
-				Object embedded = TypeUtils.newInstance(componentTypeCtor);
-				embeddedCollection.add(embedded);
-			}
-		}
-		
-		Iterator<Object> embeddedIt = embeddedCollection.iterator();
-		for (Object datastoreValue: datastoreCollection)
-		{
-			Object embedded = embeddedIt.next();
-			this.next.set(embedded, datastoreValue);
-		}
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.load.EmbeddedMultivalueSetter#getOrCreateCollection(java.lang.Object, int)
+	 */
+	@Override
+	protected Collection<Object> getOrCreateCollection(Object onPojo, int size)
+	{
+		return TypeUtils.prepareCollection(onPojo, this.field, size);
 	}
 }

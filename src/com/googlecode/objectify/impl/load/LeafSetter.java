@@ -4,6 +4,7 @@ package com.googlecode.objectify.impl.load;
 import java.lang.reflect.Array;
 import java.util.Collection;
 
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -27,7 +28,7 @@ public class LeafSetter extends Setter
 	class ForBasic extends Setter
 	{
 		@Override
-		public void set(Object toPojo, Object value)
+		public void set(Object toPojo, Object value, Entity fromEntity)
 		{
 			field.set(toPojo, importBasic(value, field.getType()));
 		}
@@ -36,8 +37,10 @@ public class LeafSetter extends Setter
 	/** Knows how to set arrays of basic types */
 	class ForArray extends Setter
 	{
+		Class<?> componentType = field.getType().getComponentType();
+		
 		@Override
-		public void set(Object toPojo, Object value)
+		public void set(Object toPojo, Object value, Entity fromEntity)
 		{
 			if (value == null)
 			{
@@ -50,14 +53,12 @@ public class LeafSetter extends Setter
 	
 				Collection<?> datastoreCollection = (Collection<?>)value;
 	
-				Class<?> componentType = field.getType().getComponentType();
-				
-				Object array = Array.newInstance(componentType, datastoreCollection.size());
+				Object array = Array.newInstance(this.componentType, datastoreCollection.size());
 	
 				int index = 0;
 				for (Object componentValue: datastoreCollection)
 				{
-					componentValue = importBasic(componentValue, componentType);
+					componentValue = importBasic(componentValue, this.componentType);
 					Array.set(array, index++, componentValue);
 				}
 	
@@ -74,8 +75,10 @@ public class LeafSetter extends Setter
 	 */
 	class ForCollection extends Setter
 	{
+		Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
+		
 		@Override
-		public void set(Object toPojo, Object value)
+		public void set(Object toPojo, Object value, Entity fromEntity)
 		{
 			if (value == null)
 			{
@@ -87,10 +90,8 @@ public class LeafSetter extends Setter
 					throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
 	
 				Collection<?> datastoreCollection = (Collection<?>)value;
-				Collection<Object> target = TypeUtils.prepareCollection(toPojo, field);
+				Collection<Object> target = TypeUtils.prepareCollection(toPojo, field, datastoreCollection.size());
 	
-				Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-				
 				for (Object datastoreValue: datastoreCollection)
 					target.add(importBasic(datastoreValue, componentType));
 			}
@@ -124,12 +125,12 @@ public class LeafSetter extends Setter
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Setter#set(java.lang.Object, java.lang.Object)
+	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
-	public void set(Object obj, Object value)
+	public void set(Object obj, Object value, Entity fromEntity)
 	{
-		this.next.set(obj, value);
+		this.next.set(obj, value, fromEntity);
 	}
 
 	/**

@@ -18,15 +18,20 @@ public class MethodWrapper implements Wrapper
 	
 	public Type getGenericType() { return this.method.getGenericParameterTypes()[0]; }
 	
-	public void set(Object entity, Object value)
+	public void set(Object pojo, Object value)
 	{
-		try { this.method.invoke(entity, value); }
+		try { this.method.invoke(pojo, value); }
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 		catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
 	}
 	
-	public Object get(Object entity)
+	public Object get(Object pojo)
 	{
 		return null;	// can't get values from methods
+	}
+	
+	public String toString()
+	{
+		return this.method.toString();
 	}
 }

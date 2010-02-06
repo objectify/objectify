@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl.save;
 
 import java.lang.reflect.Field;
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -11,10 +13,8 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <p>Base class for EmbeddedArrayFieldSaver and EmbeddedCollectionFieldSaver
  * that handles most of the logic.  The subclasses need only understand how to
  * get the component type and how to make an iterator.</p>
- * 
- * <p>TODO:  null handling</p>
  */
-abstract public class EmbeddedIteratorFieldSaver extends FieldSaver
+abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 {
 	/** Used to actually save the object in the field */
 	ClassSaver classSaver;
@@ -25,7 +25,7 @@ abstract public class EmbeddedIteratorFieldSaver extends FieldSaver
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedIteratorFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
 	{
 		super(pathPrefix, field, forceUnindexed);
 		
@@ -40,7 +40,7 @@ abstract public class EmbeddedIteratorFieldSaver extends FieldSaver
 	abstract protected Class<?> getComponentType();
 
 	/** Gets an iterator from the array or collection passed in */
-	abstract protected Iterator<Object> iterator(Object arrayOrCollection);
+	abstract protected Collection<Object> asCollection(Object arrayOrCollection);
 	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.Saver#save(java.lang.Object, com.google.appengine.api.datastore.Entity)
@@ -51,24 +51,46 @@ abstract public class EmbeddedIteratorFieldSaver extends FieldSaver
 		Object arrayOrCollection = TypeUtils.field_get(this.field, pojo);
 		if (arrayOrCollection == null)
 		{
-			// TODO: maintain an out-of-band property for the null state since there is
-			// no way to maintain this state in-band.  Currently, nothing gets saved
-			// when the collection is null - generally an OK solution, but not ideal.
+			// We currently ignore null arrays or collections
+			
+			// COLLECTION STATE TRACKING:  We could track this state in an out-of-band property.
+			// TypeUtils.saveStateProperty(entity, this.path, null);
 		}
 		else
 		{
-			// TODO: maintain an out-of-band property for the EMPTY state since there is
-			// no way to maintain this state in-band.  Currently, nothing gets saved
-			// when the collection is empty - generally an OK solution, but not ideal.
+			Collection<Object> pojos = this.asCollection(arrayOrCollection);
 			
-			Iterator<Object> iterator = this.iterator(arrayOrCollection);
-			while (iterator.hasNext())
+			if (pojos.isEmpty())
 			{
-				Object embeddedPojo = iterator.next();
+				// We currently ignore empty arrays or collections
 				
-				// Not a problem if it's null!  Just keep going, it will insert a null
-				// placeholder in all of the relevant collections.
-				this.classSaver.save(embeddedPojo, entity);
+				// COLLECTION STATE TRACKING:  We could track this state in an out-of-band property.
+				// TypeUtils.saveStateProperty(entity, this.path, 0);
+			}
+			else
+			{
+				// We track any nulls and store their indexes.  We put this list of indexes
+				// into a collection and store it in an out-of-band property.
+
+				List<Integer> nullIndexes = new ArrayList<Integer>();
+				
+				int index = 0;
+				for (Object embeddedPojo: pojos)
+				{
+					if (embeddedPojo == null)
+					{
+						nullIndexes.add(index);
+					}
+					else
+					{
+						this.classSaver.save(embeddedPojo, entity);
+					}
+
+					index++;
+				}
+				
+				if (!nullIndexes.isEmpty())
+					TypeUtils.setNullIndexes(entity, this.path, nullIndexes);
 			}
 		}
 	}

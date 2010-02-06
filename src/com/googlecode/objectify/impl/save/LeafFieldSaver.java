@@ -5,6 +5,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
@@ -24,6 +25,9 @@ public class LeafFieldSaver extends FieldSaver
 	/** If true, we add values to a collection inside the entity */
 	boolean collectionize;
 	
+	/** If true, null values are not saved. Leaf collection types are treated this way. */
+	boolean ignoreIfNull;
+	
 	/**
 	 * @param field must be a noncollection, nonarray type if collectionize is true
 	 * @param collectionize when true will cause this leaf saver to persist simple basic
@@ -35,11 +39,15 @@ public class LeafFieldSaver extends FieldSaver
 		super(pathPrefix, field, forceUnindexed);
 		
 		if (collectionize)
-			if (field.getType().isArray() || Collection.class.isAssignableFrom(field.getType()))
+			if (TypeUtils.isArrayOrCollection(field.getType()))
 				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
 		
 		this.factory = fact;
 		this.collectionize = collectionize;
+		
+		// Don't save null arrays or collections
+		if (TypeUtils.isArrayOrCollection(field.getType()))
+			this.ignoreIfNull = true;
 	}
 	
 	/* (non-Javadoc)
@@ -49,19 +57,12 @@ public class LeafFieldSaver extends FieldSaver
 	@SuppressWarnings("unchecked")
 	public void save(Object pojo, Entity entity)
 	{
-		Object value = null;
+		Object value = TypeUtils.field_get(this.field, pojo);
+		value = this.prepareForSave(value);
 		
-		// If the pojo itself comes in as null, that means we are in an embedded collection
-		// and there was a null value in it.  We must insert a placeholder in the array!
-		if (pojo == null)
-		{
-			assert this.collectionize : "Shouldn't be here with a null pojo if we're not in an embedded collection!";
-		}
-		else
-		{
-			value = TypeUtils.field_get(this.field, pojo);
-			value = this.prepareForSave(value);
-		}
+		// Maybe we are supposed to ignore this
+		if (value == null && this.ignoreIfNull)
+			return;
 		
 		if (this.collectionize)
 		{
@@ -75,7 +76,17 @@ public class LeafFieldSaver extends FieldSaver
 			savedCollection.add(value);
 		}
 		else
-			this.setEntityProperty(entity, value);
+		{
+			if (value instanceof Collection && ((Collection)value).isEmpty())
+			{
+				// We do not save empty collections
+				// COLLECTION STATE TRACKING: we could store this (and null) as an out-of-band property
+			}
+			else
+			{
+				this.setEntityProperty(entity, value);
+			}
+		}
 	}
 
 	/**
@@ -84,6 +95,8 @@ public class LeafFieldSaver extends FieldSaver
 	 * collections is so simple, we don't have an object hierarchy to deal with that case.
 	 * 
 	 * @param value can be any basic type or an array or collection of basic types
+	 * @return something that can be saved in the datastore; note that arrays are always
+	 *  converted to collections.
 	 */
 	protected Object prepareForSave(Object value)
 	{
@@ -97,9 +110,9 @@ public class LeafFieldSaver extends FieldSaver
 			if (((String)value).length() > 500)
 			{
 				if (this.collectionize)
-					throw new IllegalStateException("You cannot save Strings greater than 500 chars inside @Embedded collections because" +
-							" they would be turned into Text type, and Text/Blob is not allowed in @Embedded collections.  This is what you" +
-							" tried to save into " + this.field + ": " + value);
+					throw new IllegalStateException("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embedded collections." +
+							"  You must use Text for the field type instead." +
+							"  This is what you tried to save into " + this.field + ": " + value);
 				
 				return new Text((String)value);
 			}
@@ -110,14 +123,22 @@ public class LeafFieldSaver extends FieldSaver
 		}
 		else if (value.getClass().isArray())
 		{
-			// The datastore cannot persist arrays, but it can persist ArrayList
-			int length = Array.getLength(value);
-			ArrayList<Object> list = new ArrayList<Object>(length);
-			
-			for (int i=0; i<length; i++)
-				list.add(this.prepareForSave(Array.get(value, i)));
-			
-			return list;
+			if (value.getClass().getComponentType() == Byte.TYPE)
+			{
+				// Special case!  byte[] gets turned into Blob.
+				return new Blob((byte[])value);
+			}
+			else
+			{
+				// The datastore cannot persist arrays, but it can persist ArrayList
+				int length = Array.getLength(value);
+				ArrayList<Object> list = new ArrayList<Object>(length);
+				
+				for (int i=0; i<length; i++)
+					list.add(this.prepareForSave(Array.get(value, i)));
+				
+				return list;
+			}
 		}
 		else if (value instanceof Collection<?>)
 		{

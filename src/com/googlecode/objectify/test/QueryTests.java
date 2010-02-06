@@ -148,7 +148,8 @@ public class QueryTests extends TestBase
 		ofy.put(triv3);
 		
 		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString", null).iterator();
-			
+
+		assert it.hasNext();
 		Trivial t3 = it.next();
 		assert !it.hasNext();
 		assert t3.getId().equals(triv3.getId()); 

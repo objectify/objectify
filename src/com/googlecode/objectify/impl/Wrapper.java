@@ -9,10 +9,10 @@ import java.lang.reflect.Type;
 public interface Wrapper
 {
 	/** Actually set the thing (field or method) on an object */
-	void set(Object entity, Object value);
+	void set(Object pojo, Object value);
 
 	/** Get the value of the thing thing (field) if possible, or null if not possible (method) */
-	Object get(Object entity);
+	Object get(Object pojo);
 
 	/** Get the type of the thing */
 	Class<?> getType();

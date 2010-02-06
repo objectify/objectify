@@ -17,15 +17,20 @@ public class FieldWrapper implements Wrapper
 	
 	public Type getGenericType() { return this.field.getGenericType(); }
 	
-	public void set(Object entity, Object value)
+	public void set(Object pojo, Object value)
 	{
-		try { this.field.set(entity, value); }
+		try { this.field.set(pojo, value); }
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 	}
 	
-	public Object get(Object entity)
+	public Object get(Object pojo)
 	{
-		try { return this.field.get(entity); }
+		try { return this.field.get(pojo); }
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+	}
+	
+	public String toString()
+	{
+		return this.field.toString();
 	}
 }

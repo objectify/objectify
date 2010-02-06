@@ -166,7 +166,7 @@ public class CollectionTests extends TestBase
 	}
 
 	/**
-	 * Rule: never store a null Collection, and always reconstruct an empty List.
+	 * Rule: never store a null Collection, always leave it alone when loaded
 	 */
 	@Test
 	public void testNullCollections() throws Exception
@@ -181,8 +181,7 @@ public class CollectionTests extends TestBase
 
 		ofy.put(hc);
 		hc = ofy.get(key);
-		assert hc.integerList != null;
-		assert hc.integerList.size() == 0;
+		assert hc.integerList == null;	// not loaded
 
 		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
 		// rule : never store a null collection
@@ -190,7 +189,7 @@ public class CollectionTests extends TestBase
 	}
 
 	/**
-	 * Test rule: never store an empty Collection, and always reconstruct an empty List.
+	 * Test rule: never store an empty Collection, leaves value as null
 	 */
 	@Test
 	public void testEmptyCollections() throws Exception
@@ -205,8 +204,7 @@ public class CollectionTests extends TestBase
 
 		System.out.println(ofy.getDatastore().get(fact.getRawKey(hc)));
 
-		assert hc.integerList != null;
-		assert hc.integerList.size() == 0;
+		assert hc.integerList == null;	// not modified
 
 		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
 		// rule : never store an empty collection

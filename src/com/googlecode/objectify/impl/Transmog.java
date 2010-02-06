@@ -150,7 +150,7 @@ public class Transmog<T>
 				{
 					Class<?> componentType = field.getType().getComponentType();
 
-					EmbeddedArraySetter setter = new EmbeddedArraySetter(field);
+					EmbeddedArraySetter setter = new EmbeddedArraySetter(field, path);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
 				}
@@ -158,7 +158,7 @@ public class Transmog<T>
 				{
 					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 
-					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field);
+					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field, path);
 					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
 					visitor.visitClass(componentType);
 				}
@@ -226,7 +226,7 @@ public class Transmog<T>
 		{
 			Setter setter = this.rootSetters.get(property.getKey());
 			if (setter != null)
-				setter.set(toPojo, property.getValue());
+				setter.set(toPojo, property.getValue(), fromEntity);
 		}
 	}
 	
