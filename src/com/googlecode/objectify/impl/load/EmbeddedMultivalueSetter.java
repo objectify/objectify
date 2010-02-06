@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.impl.FieldWrapper;
+import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**
@@ -51,11 +51,11 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 	protected abstract Collection<Object> getOrCreateCollection(Object toPojo, int size);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public void set(Object toPojo, Object value, Entity fromEntity)
+	public void set(Object toPojo, Object value, LoadContext context)
 	{
 		// The datastore always gives us collections, never a native array
 		if (!(value instanceof Collection<?>))
@@ -64,7 +64,7 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 		Collection<Object> datastoreCollection = (Collection<Object>)value;
 		
 		// We will need the null state set, which might be null itself
-		Set<Integer> nullIndexes = TypeUtils.getNullIndexes(fromEntity, this.path);
+		Set<Integer> nullIndexes = TypeUtils.getNullIndexes(context.getEntity(), this.path);
 		
 		// Some nulls, some real, this is what we get
 		int collectionSize = datastoreCollection.size() + nullIndexes.size();
@@ -75,8 +75,8 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 			// Initialize it with relevant POJOs
 			for (int i=0; i<collectionSize; i++)
 			{
-				// Make an explicit null check instead of using emptySet() to eliminate autoboxing overhead
-				if (nullIndexes != null && nullIndexes.contains(i))
+				// Make an explicit null check instead of using emptySet() to reduce autoboxing overhead
+				if (nullIndexes != null && nullIndexes.contains(new Long(i)))
 				{
 					embeddedMultivalue.add(null);
 				}
@@ -95,8 +95,10 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 			if (embedded != null)
 			{
 				Object datastoreValue = datastoreIterator.next();
-				this.next.set(embedded, datastoreValue, fromEntity);
+				this.next.set(embedded, datastoreValue, context);
 			}
 		}
+		
+		context.addProcessedEmbeddedPath(this.path);
 	}
 }

@@ -4,10 +4,10 @@ package com.googlecode.objectify.impl.load;
 import java.lang.reflect.Array;
 import java.util.Collection;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.Wrapper;
 
@@ -28,7 +28,7 @@ public class LeafSetter extends Setter
 	class ForBasic extends Setter
 	{
 		@Override
-		public void set(Object toPojo, Object value, Entity fromEntity)
+		public void set(Object toPojo, Object value, LoadContext context)
 		{
 			field.set(toPojo, importBasic(value, field.getType()));
 		}
@@ -40,7 +40,7 @@ public class LeafSetter extends Setter
 		Class<?> componentType = field.getType().getComponentType();
 		
 		@Override
-		public void set(Object toPojo, Object value, Entity fromEntity)
+		public void set(Object toPojo, Object value, LoadContext context)
 		{
 			if (value == null)
 			{
@@ -78,7 +78,7 @@ public class LeafSetter extends Setter
 		Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 		
 		@Override
-		public void set(Object toPojo, Object value, Entity fromEntity)
+		public void set(Object toPojo, Object value, LoadContext context)
 		{
 			if (value == null)
 			{
@@ -125,12 +125,12 @@ public class LeafSetter extends Setter
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
 	 */
 	@Override
-	public void set(Object obj, Object value, Entity fromEntity)
+	public void set(Object obj, Object value, LoadContext context)
 	{
-		this.next.set(obj, value, fromEntity);
+		this.next.set(obj, value, context);
 	}
 
 	/**

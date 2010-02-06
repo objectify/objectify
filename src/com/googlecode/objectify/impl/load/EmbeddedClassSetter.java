@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.load;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
-import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**
@@ -24,10 +24,10 @@ public class EmbeddedClassSetter extends Setter
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
 	 */
 	@Override
-	public void set(Object obj, Object value, Entity fromEntity)
+	public void set(Object obj, Object value, LoadContext context)
 	{
 		Object embedded = TypeUtils.field_get(this.field, obj);
 		if (embedded == null)
@@ -36,6 +36,6 @@ public class EmbeddedClassSetter extends Setter
 			TypeUtils.field_set(this.field, obj, embedded);
 		}
 		
-		this.next.set(embedded, value, fromEntity);
+		this.next.set(embedded, value, context);
 	}
 }

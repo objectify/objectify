@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.load;
 
-import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.impl.LoadContext;
 
 /**
  * <p>An instance of this object makes the construction of setter chains a lot easier.
@@ -13,12 +13,12 @@ public class RootSetter extends Setter
 	 * are disabled it will operate just fine.
 	 */
 	@Override
-	public void set(Object obj, Object value, Entity fromEntity)
+	public void set(Object obj, Object value, LoadContext context)
 	{
 		// Might as well let us know that someone screwed up
 		assert false: "SetterRoot should have been removed from the setter chain. This is a programmer error.";
 	
 		// Let things work for anyone with assertions disabled - it will
-		this.next.set(obj, value, fromEntity);
+		this.next.set(obj, value, context);
 	}
 }

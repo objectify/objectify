@@ -7,14 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Embedded;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
+import com.googlecode.objectify.impl.load.EmbeddedMultivalueSetter;
+import com.googlecode.objectify.impl.load.EmbeddedNullIndexSetter;
 import com.googlecode.objectify.impl.load.LeafSetter;
 import com.googlecode.objectify.impl.load.RootSetter;
 import com.googlecode.objectify.impl.load.Setter;
@@ -144,30 +144,37 @@ public class Transmog<T>
 		{
 			String path = TypeUtils.extendPropertyPath(this.prefix, field.getName());
 			
-			if (field.isAnnotationPresent(Embedded.class))
+			if (TypeUtils.isEmbedded(field))
 			{
+				Setter setter;
+				Class<?> visitType;
+				
 				if (field.getType().isArray())
 				{
-					Class<?> componentType = field.getType().getComponentType();
-
-					EmbeddedArraySetter setter = new EmbeddedArraySetter(field, path);
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(componentType);
+					visitType = field.getType().getComponentType();
+					setter = new EmbeddedArraySetter(field, path);
+					
+					// Sneak in a special handler for the ^null index
+					EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter((EmbeddedMultivalueSetter)setter, path);
+					this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-
-					EmbeddedCollectionSetter setter = new EmbeddedCollectionSetter(field, path);
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(componentType);
+					visitType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
+					setter = new EmbeddedCollectionSetter(field, path);
+					
+					// Sneak in a special handler for the ^null index
+					EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter((EmbeddedMultivalueSetter)setter, path);
+					this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
 				}
 				else	// basic class
 				{
-					EmbeddedClassSetter setter = new EmbeddedClassSetter(field);
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(field.getType());
+					visitType = field.getType();
+					setter = new EmbeddedClassSetter(field);
 				}
+				
+				Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+				visitor.visitClass(visitType);
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
@@ -187,7 +194,7 @@ public class Transmog<T>
 		 * Adds a final leaf setter to the setters collection.
 		 * @param fullPath is the whole "blah.blah.blah" path for this property
 		 */
-		void addRootSetter(String fullPath, LeafSetter setter)
+		void addRootSetter(String fullPath, Setter setter)
 		{
 			if (rootSetters.containsKey(fullPath))
 				throw new IllegalStateException("Attempting to create multiple associations for " + fullPath);
@@ -222,12 +229,16 @@ public class Transmog<T>
 	 */
 	public void load(Entity fromEntity, T toPojo)
 	{
+		LoadContext context = new LoadContext(toPojo, fromEntity);
+		
 		for (Map.Entry<String, Object> property: fromEntity.getProperties().entrySet())
 		{
 			Setter setter = this.rootSetters.get(property.getKey());
 			if (setter != null)
-				setter.set(toPojo, property.getValue(), fromEntity);
+				setter.set(toPojo, property.getValue(), context);
 		}
+		
+		context.done();
 	}
 	
 	/**

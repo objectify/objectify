@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.load;
 
-import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.impl.LoadContext;
 
 /**
  * <p>A setter knows how to set a value in an object graph.  It may be composed of
@@ -29,7 +29,7 @@ abstract public class Setter implements Cloneable
 	 * Called by the Transmog to set a value on an object.  Might actually delegate to
 	 * some composite setter to actually set a value deep in the structure.
 	 */
-	abstract public void set(Object toPojo, Object value, Entity fromEntity);
+	abstract public void set(Object toPojo, Object value, LoadContext context);
 	
 	/**
 	 * @return the next setter in the chain, or null if there is none

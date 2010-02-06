@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.Embedded;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -35,7 +33,7 @@ public class ClassSaver implements Saver
 		List<Field> fields = TypeUtils.getPesistentFields(clazz);
 		for (Field field: fields)
 		{
-			if (field.isAnnotationPresent(Embedded.class))
+			if (TypeUtils.isEmbedded(field))
 			{
 				if (field.getType().isArray())
 				{

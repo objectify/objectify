@@ -167,7 +167,7 @@ public class TypeUtils
 	 */
 	public static void setNullIndexes(Entity entity, String pathBase, Collection<Integer> value)
 	{
-		String path = pathBase + "^null";
+		String path = getNullIndexPath(pathBase);
 		entity.setUnindexedProperty(path, value);
 	}
 	
@@ -179,12 +179,20 @@ public class TypeUtils
 	@SuppressWarnings("unchecked")
 	public static Set<Integer> getNullIndexes(Entity entity, String pathBase)
 	{
-		String path = pathBase + "^null";
+		String path = getNullIndexPath(pathBase);
 		Collection<Integer> indexes = (Collection<Integer>)entity.getProperty(path);
 		if (indexes == null)
 			return null;
 		else
 			return new HashSet<Integer>(indexes);
+	}
+	
+	/**
+	 * @return the path where you will find the null indexes for a base path
+	 */
+	public static String getNullIndexPath(String pathBase)
+	{
+		return pathBase + "^null";
 	}
 	
 	/**
