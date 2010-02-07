@@ -1,4 +1,4 @@
-package com.googlecode.objectify;
+package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -12,14 +12,17 @@ import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
-import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Query;
 
 /**
  * Implementation of Query.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class QueryImpl<T> implements Query<T>
+public class QueryImpl<T> implements Query<T>
 {
 	/** */
 	ObjectifyFactory factory;
@@ -36,7 +39,7 @@ class QueryImpl<T> implements Query<T>
 	int offset;
 	
 	/** */
-	protected QueryImpl(ObjectifyFactory fact, Objectify objectify) 
+	public QueryImpl(ObjectifyFactory fact, Objectify objectify) 
 	{
 		this.factory = fact;
 		this.ofy = objectify;
@@ -44,7 +47,7 @@ class QueryImpl<T> implements Query<T>
 	}
 	
 	/** */
-	protected QueryImpl(ObjectifyFactory fact, Objectify objectify, Class<T> clazz)
+	public QueryImpl(ObjectifyFactory fact, Objectify objectify, Class<T> clazz)
 	{
 		this.factory = fact;
 		this.ofy = objectify;

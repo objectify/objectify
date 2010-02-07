@@ -1,4 +1,4 @@
-package com.googlecode.objectify;
+package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,7 +10,10 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
-import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Query;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the DatastoreService
@@ -18,7 +21,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class ObjectifyImpl implements Objectify
+public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
 	ObjectifyFactory factory;
@@ -35,7 +38,7 @@ class ObjectifyImpl implements Objectify
 	 * 
 	 * @param txn can be null to not use transactions. 
 	 */
-	protected ObjectifyImpl(ObjectifyFactory fact, DatastoreService ds, Transaction txn)
+	public ObjectifyImpl(ObjectifyFactory fact, DatastoreService ds, Transaction txn)
 	{
 		this.factory = fact;
 		this.ds = ds;

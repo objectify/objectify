@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.impl.DatastoreTimeoutRetryProxy;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.ObjectifyImpl;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -140,7 +141,7 @@ public class ObjectifyFactory
 	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
 	 * datastoreTimeoutRetryCount > 0.
 	 */
-	protected <T> T maybeWrap(T impl)
+	public <T> T maybeWrap(T impl)
 	{
 		if (this.datastoreTimeoutRetryCount > 0)
 			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);
