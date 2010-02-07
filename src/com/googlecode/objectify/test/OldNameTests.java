@@ -5,14 +5,23 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.persistence.Embedded;
+import javax.persistence.Id;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.test.entity.HasOldNames;
 
 /**
@@ -26,6 +35,64 @@ public class OldNameTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(OldNameTests.class);
 	
+	/** */
+	public static final String TEST_VALUE = "blah";
+	
+	/** */
+	static class HasOldNameField
+	{
+		@OldName("oldFoo") String foo;
+		
+		public boolean equals(Object other)
+		{
+			return this.foo.equals(((HasOldNameField)other).foo);
+		}
+	}
+	
+	/** */
+	static class HasOldNameMethod
+	{
+		String foo;
+		
+		public void set(@OldName("oldFoo") String oldFoo)
+		{
+			this.foo = oldFoo;
+		}
+		
+		public boolean equals(Object other)
+		{
+			return this.foo.equals(((HasOldNameMethod)other).foo);
+		}
+	}
+	
+	/** */
+	static class HasEmbedded
+	{
+		@Id Long id;
+		@OldName("oldFieldUser") @Embedded HasOldNameField fieldUser;
+		@OldName("oldMethodUser") @Embedded HasOldNameMethod methodUser;
+	}
+	
+	/** */
+	static class HasEmbeddedArray
+	{
+		@Id Long id;
+		@OldName("oldFieldUsers") @Embedded HasOldNameField[] fieldUsers;
+		@OldName("oldMethodUsers") @Embedded HasOldNameMethod[] methodUsers;
+	}
+	
+	/**
+	 * Add an entry to the database that should never come back from null queries.
+	 */
+	@BeforeMethod
+	public void setUp()
+	{
+		super.setUp();
+		
+		this.fact.register(HasEmbedded.class);
+		this.fact.register(HasEmbeddedArray.class);
+	}
+
 	/** */
 	@Test
 	public void testSimpleOldName() throws Exception
@@ -80,5 +147,93 @@ public class OldNameTests extends TestBase
 		HasOldNames fetched = ofy.get(key);
 		
 		assert fetched.getWeird() == 5;
+	}
+	
+	/** */
+	@Test
+	public void testEasyHasEmbedded() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		Entity ent = new Entity(this.fact.getKind(HasEmbedded.class));
+		ent.setProperty("fieldUser.oldFoo", TEST_VALUE);
+		ent.setProperty("methodUser.oldFoo", TEST_VALUE);
+		ds.put(ent);
+		
+		Key<HasEmbedded> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		HasEmbedded fetched = ofy.get(key);
+		
+		assert TEST_VALUE.equals(fetched.fieldUser.foo);
+		assert TEST_VALUE.equals(fetched.methodUser.foo);
+	}
+
+	/** */
+	@Test
+	public void testHarderHasEmbedded() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		Entity ent = new Entity(this.fact.getKind(HasEmbedded.class));
+		ent.setProperty("oldFieldUser.oldFoo", TEST_VALUE);
+		ent.setProperty("oldMethodUser.oldFoo", TEST_VALUE);
+		ds.put(ent);
+		
+		Key<HasEmbedded> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		HasEmbedded fetched = ofy.get(key);
+		
+		assert TEST_VALUE.equals(fetched.fieldUser.foo);
+		assert TEST_VALUE.equals(fetched.methodUser.foo);
+	}
+
+	/** */
+	@Test
+	public void testEasyHasEmbeddedArrau() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		List<String> values = new ArrayList<String>();
+		values.add(TEST_VALUE);
+		values.add(TEST_VALUE);
+		
+		Entity ent = new Entity(this.fact.getKind(HasEmbeddedArray.class));
+		ent.setProperty("fieldUsers.oldFoo", values);
+		ent.setProperty("methodUsers.oldFoo", values);
+		ds.put(ent);
+		
+		Key<HasEmbeddedArray> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		HasEmbeddedArray fetched = ofy.get(key);
+		
+		String[] expected = values.toArray(new String[values.size()]);
+			
+		assert Arrays.equals(fetched.fieldUsers, expected);
+		assert Arrays.equals(fetched.methodUsers, expected);
+	}
+
+	/** */
+	@Test
+	public void testHarderHasEmbeddedArrau() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		List<String> values = new ArrayList<String>();
+		values.add(TEST_VALUE);
+		values.add(TEST_VALUE);
+		
+		Entity ent = new Entity(this.fact.getKind(HasEmbeddedArray.class));
+		ent.setProperty("oldFieldUsers.oldFoo", values);
+		ent.setProperty("oldMethodUsers.oldFoo", values);
+		ds.put(ent);
+		
+		Key<HasEmbeddedArray> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		HasEmbeddedArray fetched = ofy.get(key);
+		
+		String[] expected = values.toArray(new String[values.size()]);
+			
+		assert Arrays.equals(fetched.fieldUsers, expected);
+		assert Arrays.equals(fetched.methodUsers, expected);
 	}
 }
