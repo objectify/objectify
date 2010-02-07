@@ -1,3 +1,6 @@
 com.googlecode.objectify
 com.googlecode.objectify.annotation
 com.googlecode.objectify.helper
+com.googlecode.objectify.impl
+com.googlecode.objectify.impl.load
+com.googlecode.objectify.impl.save
