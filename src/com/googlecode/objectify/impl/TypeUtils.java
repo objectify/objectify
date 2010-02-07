@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -9,8 +10,10 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -303,9 +306,9 @@ public class TypeUtils
 	 * 
 	 * @return all the correctly specified @OldName methods.  Methods will be set accessable.
 	 */
-	public static List<Method> getOldNameMethods(Class<?> clazz)
+	public static Map<String, Method> getOldNameMethods(Class<?> clazz)
 	{
-		List<Method> goodMethods = new ArrayList<Method>();
+		Map<String, Method> goodMethods = new HashMap<String, Method>();
 
 		getOldNameMethods(clazz, goodMethods);
 		
@@ -313,7 +316,7 @@ public class TypeUtils
 	}
 	
 	/** Recursive implementation of getPersistentMethods() */
-	private static void getOldNameMethods(Class<?> clazz, List<Method> goodMethods)
+	private static void getOldNameMethods(Class<?> clazz, Map<String, Method> goodMethods)
 	{
 		if (clazz == null || clazz == Object.class)
 			return;
@@ -322,16 +325,35 @@ public class TypeUtils
 		
 		for (Method method: clazz.getDeclaredMethods())
 		{
-			if (method.isAnnotationPresent(OldName.class))
+			// This seems like a good idea
+			if (method.isAnnotationPresent(Embedded.class))
+				throw new IllegalStateException("@Embedded is not a legal annotation for methods");
+			
+			for (Annotation[] paramAnnotations: method.getParameterAnnotations())
 			{
-				if (method.isAnnotationPresent(Embedded.class))
-					throw new IllegalStateException("@Embedded cannot be used on @OldName methods");
-
-				if (method.getParameterTypes().length != 1)
-					throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
-				
-				method.setAccessible(true);
-				goodMethods.add(method);
+				for (Annotation maybeOldName: paramAnnotations)
+				{
+					if (maybeOldName instanceof OldName)
+					{
+						// Method must have only one parameter
+						if (method.getParameterTypes().length != 1)
+							throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+						
+						// Parameter cannot be @Embedded
+						for (Annotation maybeEmbedded: paramAnnotations)
+							if (maybeEmbedded instanceof Embedded)
+								throw new IllegalStateException("@Embedded cannot be used on @OldName methods. The offender is " + method);
+						
+						// It's good, let's add it
+						method.setAccessible(true);
+						
+						OldName oldName = (OldName)maybeOldName;
+						if (oldName.value() == null || oldName.value().length() == 0)
+							throw new IllegalStateException("@OldName must have a value on " + method);
+						
+						goodMethods.put(oldName.value(), method);
+					}
+				}
 			}
 		}
 	}

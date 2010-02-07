@@ -116,18 +116,18 @@ public class Transmog<T>
 				this.visitField(field);
 
 			// Only good methods come back from this method call
-			List<Method> methods = TypeUtils.getOldNameMethods(clazz);
-			for (Method method: methods)
-				this.visitMethod(method);
+			Map<String, Method> methods = TypeUtils.getOldNameMethods(clazz);
+			for (Map.Entry<String, Method> method: methods.entrySet())
+				this.visitMethod(method.getKey(), method.getValue());
 		}
 		
 		/**
+		 * @param name is the oldName value
 		 * @param method must be a proper @OldName field.
 		 */
-		void visitMethod(Method method)
+		void visitMethod(String name, Method method)
 		{
-			OldName oldName = method.getAnnotation(OldName.class);
-			String path = TypeUtils.extendPropertyPath(this.prefix, oldName.value());
+			String path = TypeUtils.extendPropertyPath(this.prefix, name);
 			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), null);
 			
 			this.addRootSetter(path, setter);

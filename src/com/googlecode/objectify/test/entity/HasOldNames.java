@@ -34,8 +34,7 @@ public class HasOldNames
 	/** Tests loading with @OldName on a method */
 	@Transient Integer weird;
 	public Integer getWeird() { return this.weird; }
-	@OldName("weirdStuff")
-	void namedAnything(String stuff)
+	void namedAnything(@OldName("weirdStuff") String stuff)
 	{
 		this.weird = Integer.valueOf(stuff);
 	}
