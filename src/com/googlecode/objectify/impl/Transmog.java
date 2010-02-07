@@ -146,35 +146,61 @@ public class Transmog<T>
 			
 			if (TypeUtils.isEmbedded(field))
 			{
-				Setter setter;
-				Class<?> visitType;
+				// Might have one of these,
+				OldName oldName = field.getAnnotation(OldName.class);
 				
 				if (field.getType().isArray())
 				{
-					visitType = field.getType().getComponentType();
-					setter = new EmbeddedArraySetter(field, path);
+					Class<?> visitType = field.getType().getComponentType();
 					
-					// Sneak in a special handler for the ^null index
-					EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter((EmbeddedMultivalueSetter)setter, path);
-					this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
+					EmbeddedMultivalueSetter setter = new EmbeddedArraySetter(field, path, null);
+					this.addNullIndexSetter(setter, path, null);
+					
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+					visitor.visitClass(visitType);
+					
+					if (oldName != null)
+					{
+						EmbeddedMultivalueSetter oldNameSetter = new EmbeddedArraySetter(field, oldName.value(), path);
+						this.addNullIndexSetter(oldNameSetter, oldName.value(), path);
+						
+						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
+						oldNameVisitor.visitClass(visitType);
+					}
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					visitType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-					setter = new EmbeddedCollectionSetter(field, path);
+					Class<?> visitType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
 					
-					// Sneak in a special handler for the ^null index
-					EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter((EmbeddedMultivalueSetter)setter, path);
-					this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
+					EmbeddedMultivalueSetter setter = new EmbeddedCollectionSetter(field, path, null);
+					this.addNullIndexSetter(setter, path, null);
+					
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+					visitor.visitClass(visitType);
+					
+					if (oldName != null)
+					{
+						EmbeddedMultivalueSetter oldNameSetter = new EmbeddedCollectionSetter(field, oldName.value(), path);
+						this.addNullIndexSetter(oldNameSetter, oldName.value(), path);
+						
+						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
+						oldNameVisitor.visitClass(visitType);
+					}
 				}
 				else	// basic class
 				{
-					visitType = field.getType();
-					setter = new EmbeddedClassSetter(field);
+					Class<?> visitType = field.getType();
+					Setter setter = new EmbeddedClassSetter(field, null);
+					
+					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+					visitor.visitClass(visitType);
+					
+					if (oldName != null)
+					{
+						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
+						oldNameVisitor.visitClass(visitType);
+					}
 				}
-				
-				Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-				visitor.visitClass(visitType);
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
@@ -190,6 +216,16 @@ public class Transmog<T>
 					this.addRootSetter(TypeUtils.extendPropertyPath(this.prefix, oldName.value()), oldNameSetter);	// alternate path
 				}
 			}
+		}
+		
+		/**
+		 * Embedded collections need a null index setter to handle the case of an all-null
+		 * collection.
+		 */
+		void addNullIndexSetter(EmbeddedMultivalueSetter setter, String path, String collisionPath)
+		{
+			EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter(setter, path, collisionPath);
+			this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
 		}
 		
 		/**

@@ -22,7 +22,7 @@ import com.googlecode.objectify.impl.Wrapper;
  * 
  * <p>This is always the termination of a setter chain; the {@code next} value is ignored.</p>
  */
-public class LeafSetter extends Setter
+public class LeafSetter extends CollisionDetectingSetter
 {
 	/** Knows how to set basic noncollection and nonarray values */
 	class ForBasic extends Setter
@@ -114,9 +114,10 @@ public class LeafSetter extends Setter
 	/** */
 	public LeafSetter(ObjectifyFactory fact, Wrapper field, String preemptionPath)
 	{
+		super(preemptionPath);
+		
 		this.factory = fact;
 		this.field = field;
-		this.preemptionPath = preemptionPath;
 
 		if (field.getType().isArray())
 		{
@@ -133,15 +134,11 @@ public class LeafSetter extends Setter
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
+	 * @see com.googlecode.objectify.impl.load.CollisionDetectingSetter#safeSet(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
-	public void set(Object obj, Object value, LoadContext context)
+	protected void safeSet(Object obj, Object value, LoadContext context)
 	{
-		if (this.preemptionPath != null)
-			if (context.getEntity().hasProperty(this.preemptionPath))
-				throw new IllegalStateException("Tried to load the same field twice.  Check " + this.field + " for entity " + context.getEntity().toString());
-				
 		this.next.set(obj, value, context);
 	}
 

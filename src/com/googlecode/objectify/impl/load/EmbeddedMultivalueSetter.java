@@ -13,7 +13,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 /**
  * <p>This is a base class for handling setter operations on collections and arrays.</p>
  */
-abstract public class EmbeddedMultivalueSetter extends Setter
+abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 {
 	/**
 	 * The field which holds the embedded collection. We use FieldWrapper instead of
@@ -28,8 +28,10 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 	String path;
 	
 	/** */
-	public EmbeddedMultivalueSetter(Field field, String path)
+	public EmbeddedMultivalueSetter(Field field, String path, String collisionPath)
 	{
+		super(collisionPath);
+		
 		assert TypeUtils.isEmbedded(field);
 		assert TypeUtils.isArrayOrCollection(field.getType());
 		
@@ -51,11 +53,11 @@ abstract public class EmbeddedMultivalueSetter extends Setter
 	protected abstract Collection<Object> getOrCreateCollection(Object toPojo, int size);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
+	 * @see com.googlecode.objectify.impl.load.CollisionDetectingSetter#safeSet(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public void set(Object toPojo, Object value, LoadContext context)
+	protected void safeSet(Object toPojo, Object value, LoadContext context)
 	{
 		// The datastore always gives us collections, never a native array
 		if (!(value instanceof Collection<?>))

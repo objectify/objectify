@@ -23,6 +23,7 @@ import com.googlecode.objectify.impl.LoadContext;
  */
 abstract public class Setter implements Cloneable
 {
+	/** The next setter to execute in the chain */
 	Setter next;
 	
 	/**

@@ -10,24 +10,26 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <p>Setter which knows how to get or instantiate an embedded class, then
  * pass on to the next setter in the chain.</p>
  */
-public class EmbeddedClassSetter extends Setter
+public class EmbeddedClassSetter extends CollisionDetectingSetter
 {
 	/** The field which holds the embedded class */
 	Field field;
 	Constructor<?> ctor;
 
 	/** */
-	public EmbeddedClassSetter(Field field)
+	public EmbeddedClassSetter(Field field, String collisionPath)
 	{
+		super(collisionPath);
+		
 		this.field = field;
 		this.ctor = TypeUtils.getNoArgConstructor(field.getType());
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Setter#set(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.TransmogContext)
+	 * @see com.googlecode.objectify.impl.load.CollisionDetectingSetter#safeSet(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
-	public void set(Object obj, Object value, LoadContext context)
+	protected void safeSet(Object obj, Object value, LoadContext context)
 	{
 		Object embedded = TypeUtils.field_get(this.field, obj);
 		if (embedded == null)

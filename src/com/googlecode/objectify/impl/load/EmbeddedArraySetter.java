@@ -57,9 +57,9 @@ public class EmbeddedArraySetter extends EmbeddedMultivalueSetter
 	}
 
 	/** */
-	public EmbeddedArraySetter(Field field, String path)
+	public EmbeddedArraySetter(Field field, String path, String collisionPath)
 	{
-		super(field, path);
+		super(field, path, collisionPath);
 		assert field.getType().isArray();
 		
 		this.componentType = this.field.getType().getComponentType();

@@ -43,6 +43,9 @@ public class OldNameTests extends TestBase
 	{
 		@OldName("oldFoo") String foo;
 		
+		public HasOldNameField() {}
+		public HasOldNameField(String value) { this.foo = value; }
+		
 		public boolean equals(Object other)
 		{
 			return this.foo.equals(((HasOldNameField)other).foo);
@@ -54,6 +57,9 @@ public class OldNameTests extends TestBase
 	{
 		String foo;
 		
+		public HasOldNameMethod() {}
+		public HasOldNameMethod(String value) { this.foo = value; }
+
 		public void set(@OldName("oldFoo") String oldFoo)
 		{
 			this.foo = oldFoo;
@@ -206,10 +212,11 @@ public class OldNameTests extends TestBase
 		Key<HasEmbeddedArray> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		HasEmbeddedArray fetched = ofy.get(key);
 		
-		String[] expected = values.toArray(new String[values.size()]);
+		HasOldNameField[] expectedFieldUsers = new HasOldNameField[] { new HasOldNameField(TEST_VALUE), new HasOldNameField(TEST_VALUE) };
+		HasOldNameMethod[] expectedMethodUsers = new HasOldNameMethod[] { new HasOldNameMethod(TEST_VALUE), new HasOldNameMethod(TEST_VALUE) };
 			
-		assert Arrays.equals(fetched.fieldUsers, expected);
-		assert Arrays.equals(fetched.methodUsers, expected);
+		assert Arrays.equals(fetched.fieldUsers, expectedFieldUsers);
+		assert Arrays.equals(fetched.methodUsers, expectedMethodUsers);
 	}
 
 	/** */
@@ -231,9 +238,10 @@ public class OldNameTests extends TestBase
 		Key<HasEmbeddedArray> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		HasEmbeddedArray fetched = ofy.get(key);
 		
-		String[] expected = values.toArray(new String[values.size()]);
+		HasOldNameField[] expectedFieldUsers = new HasOldNameField[] { new HasOldNameField(TEST_VALUE), new HasOldNameField(TEST_VALUE) };
+		HasOldNameMethod[] expectedMethodUsers = new HasOldNameMethod[] { new HasOldNameMethod(TEST_VALUE), new HasOldNameMethod(TEST_VALUE) };
 			
-		assert Arrays.equals(fetched.fieldUsers, expected);
-		assert Arrays.equals(fetched.methodUsers, expected);
+		assert Arrays.equals(fetched.fieldUsers, expectedFieldUsers);
+		assert Arrays.equals(fetched.methodUsers, expectedMethodUsers);
 	}
 }
