@@ -1,4 +1,4 @@
-package com.googlecode.objectify;
+package com.googlecode.objectify.impl;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -7,6 +7,8 @@ import java.lang.reflect.Proxy;
 import java.util.Iterator;
 
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.Query;
 
 /**
  * A dynamic proxy that catches DatastoreTimeoutException and retries
