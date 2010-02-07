@@ -43,12 +43,21 @@ public class ObjectifyFactory
 	protected int datastoreTimeoutRetryCount;
 	
 	/**
+	 * You can override this to add behavior at the raw datastoreservice level,
+	 * for example to add a caching datastore service.
+	 */
+	protected DatastoreService getDatastoreService()
+	{
+		return DatastoreServiceFactory.getDatastoreService();
+	}
+	
+	/**
 	 * @return an Objectify from the DatastoreService which does NOT use
 	 *  transactions.  This is a lightweight operation and can be used freely.
 	 */
 	public Objectify begin()
 	{
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		DatastoreService ds = this.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, null);
 
 		return this.maybeWrap(impl);
@@ -60,7 +69,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify beginTransaction()
 	{
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		DatastoreService ds = this.getDatastoreService();
 		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
 		
 		return this.maybeWrap(impl);
@@ -75,7 +84,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify withTransaction(Transaction txn)
 	{
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		DatastoreService ds = this.getDatastoreService();
 		return this.maybeWrap(new ObjectifyImpl(this, ds, txn));
 	}
 	
