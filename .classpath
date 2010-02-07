@@ -11,6 +11,5 @@
 	<classpathentry kind="lib" path="lib/build-only/appengine-api-labs-1.3.0.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/gwt-user-2.0.0.jar"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="super"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
