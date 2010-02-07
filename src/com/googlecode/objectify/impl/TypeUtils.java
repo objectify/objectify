@@ -32,7 +32,7 @@ import com.googlecode.objectify.annotation.Parent;
 public class TypeUtils
 {
 	/** We do not persist fields with any of these modifiers */
-	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC | Modifier.TRANSIENT;
+	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
