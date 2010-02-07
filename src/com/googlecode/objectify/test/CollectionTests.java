@@ -116,7 +116,7 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@Test
-	public void testOKeySet() throws Exception
+	public void testTypedKeySet() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
 
@@ -125,21 +125,20 @@ public class CollectionTests extends TestBase
 		Key<Trivial> key9 = new Key<Trivial>(Trivial.class, 9);
 
 		HasCollections hc = new HasCollections();
-		hc.oKeySet = new HashSet<Key<Trivial>>();
-		hc.oKeySet.add(key7);
-		hc.oKeySet.add(key8);
-		hc.oKeySet.add(key9);
+		hc.typedKeySet = new HashSet<Key<Trivial>>();
+		hc.typedKeySet.add(key7);
+		hc.typedKeySet.add(key8);
+		hc.typedKeySet.add(key9);
 
 		Key<HasCollections> key = ofy.put(hc);
 		hc = ofy.get(key);
 
-		assert hc.oKeySet instanceof HashSet<?>;
-		assert hc.oKeySet.size() == 3;
+		assert hc.typedKeySet instanceof HashSet<?>;
+		assert hc.typedKeySet.size() == 3;
 
-		Iterator<Key<Trivial>> it = hc.oKeySet.iterator();
-		assert it.next().equals(key7);
-		assert it.next().equals(key8);
-		assert it.next().equals(key9);
+		assert hc.typedKeySet.contains(key7);
+		assert hc.typedKeySet.contains(key8);
+		assert hc.typedKeySet.contains(key9);
 	}
 
 	@Test

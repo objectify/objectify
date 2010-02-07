@@ -47,5 +47,5 @@ public class HasCollections
 	public CustomSet customSet;
 	
 	/** This should give the system a workout */
-	public Set<Key<Trivial>> oKeySet;
+	public Set<Key<Trivial>> typedKeySet;
 }
