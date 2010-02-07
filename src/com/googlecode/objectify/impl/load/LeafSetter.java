@@ -104,17 +104,10 @@ public class LeafSetter extends CollisionDetectingSetter
 	/** The field or method we set */
 	Wrapper field;
 	
-	/** 
-	 * If this value is non-null, it will be checked for in the entity, and if it
-	 * exists, an error will occur.  This is used for @OldName setters to prevent
-	 * them from overwriting natural values.
-	 */
-	String preemptionPath;
-	
 	/** */
-	public LeafSetter(ObjectifyFactory fact, Wrapper field, String preemptionPath)
+	public LeafSetter(ObjectifyFactory fact, Wrapper field, String collisionPath)
 	{
-		super(preemptionPath);
+		super(collisionPath);
 		
 		this.factory = fact;
 		this.field = field;
