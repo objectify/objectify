@@ -18,7 +18,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify
+class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
 	ObjectifyFactory factory;
