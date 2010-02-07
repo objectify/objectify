@@ -14,7 +14,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedIteratorFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
 	 */
 	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
 	{

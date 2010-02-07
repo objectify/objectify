@@ -177,7 +177,7 @@ public class TypeUtils
 	/**
 	 * <p>Gets the embedded null indexes property in an entity.</p>
 	 * @return null if there is no such property
-	 * @see #setNullIndexes(Entity, String, List)
+	 * @see #setNullIndexes(Entity, String, Collection)
 	 */
 	@SuppressWarnings("unchecked")
 	public static Set<Integer> getNullIndexes(Entity entity, String pathBase)

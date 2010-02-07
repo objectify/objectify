@@ -4,13 +4,13 @@ import com.googlecode.objectify.impl.LoadContext;
 
 /**
  * <p>Base for setters which perform rudimentary collision detection.  This is how
- * @OldName values avoid stepping on the normally loaded values.</p> 
+ * {@code @OldName} values avoid stepping on the normally loaded values.</p> 
  */
 abstract public class CollisionDetectingSetter extends Setter
 {
 	/**
 	 * If non-null check this field in the entity to see if we're stepping on someone
-	 * else's field.  This prevents @OldName values from overwriting normal ones.
+	 * else's field.  This prevents {@code @OldName} values from overwriting normal ones.
 	 */
 	String collisionPath;
 	

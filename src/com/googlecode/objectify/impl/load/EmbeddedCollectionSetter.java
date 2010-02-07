@@ -10,7 +10,7 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <p>This setter handles embedded collections similar to embedded arrays.  The special
  * consideration of collections follows the documentation for {@code TypeUtils.prepareCollection()}.</p>
  * 
- * @see TypeUtils#prepareCollection(Object, com.googlecode.objectify.impl.Wrapper)
+ * @see TypeUtils#prepareCollection(Object, com.googlecode.objectify.impl.Wrapper, int)
  */
 public class EmbeddedCollectionSetter extends EmbeddedMultivalueSetter
 {
