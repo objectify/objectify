@@ -104,11 +104,19 @@ public class LeafSetter extends Setter
 	/** The field or method we set */
 	Wrapper field;
 	
+	/** 
+	 * If this value is non-null, it will be checked for in the entity, and if it
+	 * exists, an error will occur.  This is used for @OldName setters to prevent
+	 * them from overwriting natural values.
+	 */
+	String preemptionPath;
+	
 	/** */
-	public LeafSetter(ObjectifyFactory fact, Wrapper field)
+	public LeafSetter(ObjectifyFactory fact, Wrapper field, String preemptionPath)
 	{
 		this.factory = fact;
 		this.field = field;
+		this.preemptionPath = preemptionPath;
 
 		if (field.getType().isArray())
 		{
@@ -130,6 +138,10 @@ public class LeafSetter extends Setter
 	@Override
 	public void set(Object obj, Object value, LoadContext context)
 	{
+		if (this.preemptionPath != null)
+			if (context.getEntity().hasProperty(this.preemptionPath))
+				throw new IllegalStateException("Tried to load the same field twice.  Check " + this.field + " for entity " + context.getEntity().toString());
+				
 		this.next.set(obj, value, context);
 	}
 

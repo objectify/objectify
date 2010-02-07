@@ -38,7 +38,7 @@ public class EmbeddedNullIndexSetter extends Setter
 			@Override
 			public void run()
 			{
-				if (!context.getProcessedEmbeddedPaths().contains(basePath))
+				if (!context.getProcessedEmbeddedMultivaluePaths().contains(basePath))
 					implementation.set(toPojo, Collections.EMPTY_LIST, context);
 			}
 		});

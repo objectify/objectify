@@ -21,8 +21,8 @@ public class LoadContext
 	Entity entity;
 	public Entity getEntity() { return this.entity; }
 
-	/** Tracks which embedded paths have been processed */
-	Set<String> processedEmbeddedPaths;
+	/** Tracks which embedded collection paths (the Thing[] or Collection<Thing> field have been processed */
+	Set<String> processedEmbeddedMultivaluePaths;
 	
 	/** Things that get run when we are done() */
 	List<Runnable> doneHandlers;
@@ -38,12 +38,12 @@ public class LoadContext
 	 * @return the current set of processed embedded paths, possibly the empty set.
 	 *  Do not modify the returned Set.
 	 */
-	public Set<String> getProcessedEmbeddedPaths()
+	public Set<String> getProcessedEmbeddedMultivaluePaths()
 	{
-		if (this.processedEmbeddedPaths == null)
+		if (this.processedEmbeddedMultivaluePaths == null)
 			return Collections.emptySet();
 		else
-			return this.processedEmbeddedPaths;
+			return this.processedEmbeddedMultivaluePaths;
 	}
 	
 	/**
@@ -51,10 +51,10 @@ public class LoadContext
 	 */
 	public void addProcessedEmbeddedPath(String path)
 	{
-		if (this.processedEmbeddedPaths == null)
-			this.processedEmbeddedPaths = new HashSet<String>();
+		if (this.processedEmbeddedMultivaluePaths == null)
+			this.processedEmbeddedMultivaluePaths = new HashSet<String>();
 		
-		this.processedEmbeddedPaths.add(path);
+		this.processedEmbeddedMultivaluePaths.add(path);
 	}
 	
 	/**

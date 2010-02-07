@@ -128,7 +128,7 @@ public class Transmog<T>
 		{
 			OldName oldName = method.getAnnotation(OldName.class);
 			String path = TypeUtils.extendPropertyPath(this.prefix, oldName.value());
-			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method));
+			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), null);
 			
 			this.addRootSetter(path, setter);
 		}
@@ -179,13 +179,16 @@ public class Transmog<T>
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a root setter based on the leaf setter
-				LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field));
+				LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field), null);
 				
 				this.addRootSetter(path, setter);
 				
 				OldName oldName = field.getAnnotation(OldName.class);
 				if (oldName != null)
-					this.addRootSetter(TypeUtils.extendPropertyPath(this.prefix, oldName.value()), setter);	// alternate path
+				{
+					LeafSetter oldNameSetter = new LeafSetter(factory, new FieldWrapper(field), path);
+					this.addRootSetter(TypeUtils.extendPropertyPath(this.prefix, oldName.value()), oldNameSetter);	// alternate path
+				}
 			}
 		}
 		
