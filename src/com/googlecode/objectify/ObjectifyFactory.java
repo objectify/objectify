@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.impl.DatastoreTimeoutRetryProxy;
+import com.googlecode.objectify.impl.EntityMetadata;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.

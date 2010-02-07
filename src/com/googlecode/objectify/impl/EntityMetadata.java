@@ -1,4 +1,4 @@
-package com.googlecode.objectify;
+package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -7,9 +7,9 @@ import javax.persistence.Id;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.TypeUtils;
 
 
 /**

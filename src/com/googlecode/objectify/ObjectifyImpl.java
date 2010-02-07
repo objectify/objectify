@@ -10,6 +10,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.impl.EntityMetadata;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the DatastoreService
