@@ -20,7 +20,7 @@ import com.googlecode.objectify.impl.ObjectifyImpl;
  * create one with a transaction (by calling {@code beginTransaction()}.  If you create
  * an Objectify with a transaction, you should use it like this:</p>
  * <code><pre>
- * 	Objectify data = ObjectifyFactory.beginTransaction()
+ * 	Objectify data = factory.beginTransaction()
  * 	try {
  * 		// do work
  * 		data.getTxn().commit();
