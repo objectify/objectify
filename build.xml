@@ -4,7 +4,7 @@
 	Build file for Objectify.
 -->
 
-<project name="objectify" default="jar" basedir=".">
+<project name="objectify" default="jar" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
 
 	<property name="name" value="${ant.project.name}" />
 	
@@ -45,8 +45,10 @@
 		<path refid="master.classpath" />
 	</path>
 
+	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>
+	<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
+
 	<target name="init">
-		<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
 		<tstamp>
 			<format property="YEAR" pattern="yyyy" />
 		</tstamp>
@@ -83,6 +85,7 @@
 
 	<target name="jar" depends="classes">
 		<property name="build.jar.file" location="${build.dir}/${name}-${build.version}.jar" />
+		<property name="build.sources.file" location="${build.dir}/${name}-${build.version}-src.zip" />
 
 		<jar destfile="${build.jar.file}">
 			<manifest>
@@ -105,8 +108,12 @@
 				<include name="**/*_CustomFieldSerializer.java"/>
 			</zipfileset>
 		</jar>
+
+		<jar zipfile="${build.sources.file}">
+			<fileset dir="${src.dir}" includes="**/*.java"/>
+		</jar>
 	</target>
-	
+
 	<target name="init-version">
 		<input addproperty="build.version" message="Version number?" />
 	</target>
@@ -146,7 +153,7 @@
 		</testng>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar, build-docs">
+	<target name="dist" depends="clean, init-version, jar, build-docs, maven">
 		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
         <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
 
@@ -175,9 +182,6 @@
 	</target>
 
 	<target name="build-docs" description="downloads docs from wiki and processes them into the build/docs dir">
-		<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>
-		<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
-				
 		<property name="wiki.baseurl" value="http://code.google.com/p/${googlecode.projectname}/wiki"/>
 				
 		<mkdir dir="${docs.dir}"/>
@@ -205,5 +209,58 @@
 		<replace dir="${docs.dir}" token="/p/${googlecode.projectname}/wiki" value="${wiki.baseurl}"/>
 		
 	</target>
-	
+
+	<target name="init-maven-repo" unless="maven.repo.dir">
+		<if><available file="../maven" type="dir"/>
+			<then>
+				<property name="maven.repo.dir" location="../maven"/>
+			</then>
+			<else>
+				<property name="maven.repo.dir" location="target/maven"/>
+				<svn failonerror="true">
+					<checkout
+							url="https://objectify-appengine.googlecode.com/svn/maven"
+							path="${maven.repo.dir}"
+							depth="immediates"
+							/>
+					<!-- update sparsely until we get to our directory -->
+					<update path="${maven.repo.dir}/com/googlecode" depth="immediates"/>
+					<update path="${maven.repo.dir}/com/googlecode/objectify" depth="immediates"/>
+				</svn>
+			</else>
+		</if>
+	</target>
+
+	<!--
+	Using either "ant dist" or "ant maven" will deploy the maven artifacts to maven.repo.dir.
+	If you don't set maven.repo.dir then ../maven is used if it exists, otherwise ./target/maven is used
+	-->
+	<target name="maven" depends="init-maven-repo, init-version, jar"
+	        description="Checks out the maven repository, and deployes the jar artifact into it (but does not commit)"
+	        unless="skip.maven">
+
+		<svn failonerror="true">
+			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify" depth="files"/>
+			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify/${build.version}" depth="infinite"/>
+		</svn>
+
+		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpathref="master.classpath" />
+
+		<copy file="pom-template.xml" tofile="${build.dir}/pom.xml">
+			<filterset>
+				<filter token="BUILD.VERSION" value="${build.version}"/>
+			</filterset>
+		</copy>
+
+		<artifact:pom file="${build.dir}/pom.xml" id="objectify-pom"/>
+		<artifact:deploy file="${build.jar.file}">
+			<pom refid="objectify-pom"/>
+			<remoterepository url="file://${maven.repo.dir}"/>
+			<attach file="${build.sources.file}" classifier="sources"/>
+		</artifact:deploy>
+
+		<svn><add path="${maven.repo.dir}/com/googlecode/objectify/objectify"/></svn>
+		<echo>NB: please commit maven repository in ${maven.repo.dir}</echo>
+	</target>
+
 </project>
