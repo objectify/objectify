@@ -53,7 +53,7 @@ public class TypeUtils
 	
 	/**
 	 * @return true if the field can be saved (is persistable), false if it
-	 *  is static, final, transient, etc.
+	 *  is static, final, @Transient, etc.
 	 */
 	public static boolean isSaveable(Field field)
 	{
