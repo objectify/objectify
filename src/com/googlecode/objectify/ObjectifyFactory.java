@@ -57,7 +57,7 @@ public class ObjectifyFactory
 	protected DatastoreService getDatastoreService()
 	{
 		if (this.useCachingDatastoreService)
-			return new CachingDatastoreService(this.getRawDatastoreService());
+			return new CachingDatastoreService(this, this.getRawDatastoreService());
 		else
 			return this.getRawDatastoreService();
 	}

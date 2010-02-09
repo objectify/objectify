@@ -183,11 +183,21 @@ public class TypeUtils
 	public static Set<Integer> getNullIndexes(Entity entity, String pathBase)
 	{
 		String path = getNullIndexPath(pathBase);
-		Collection<Integer> indexes = (Collection<Integer>)entity.getProperty(path);
+		Collection<Number> indexes = (Collection<Number>)entity.getProperty(path);
 		if (indexes == null)
+		{
 			return null;
+		}
 		else
-			return new HashSet<Integer>(indexes);
+		{
+			// Fucking datastore converts Integers to Longs, but if we're getting this
+			// back from the cache then we will get the original Integer.  Evil.
+			Set<Integer> result = new HashSet<Integer>();
+			for (Number index: indexes)
+				result.add(index.intValue());
+			
+			return result;
+		}
 	}
 	
 	/**

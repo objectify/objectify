@@ -50,6 +50,6 @@ public class TransientTests extends TestBase
 		assert e.getProperty("name") != null;
 		assert e.getProperty("name").equals("saved");
 		assert e.getProperty("transientKeyword") != null;
-		assert e.getProperty("transientKeyword").equals(42L);
+		assert ((Number)e.getProperty("transientKeyword")).intValue() == 42;
 	}
 }

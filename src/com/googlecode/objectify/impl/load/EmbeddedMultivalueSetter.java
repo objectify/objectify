@@ -80,7 +80,7 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 			for (int i=0; i<collectionSize; i++)
 			{
 				// Make an explicit null check instead of using emptySet() to reduce autoboxing overhead
-				if (nullIndexes != null && nullIndexes.contains(new Long(i)))
+				if (nullIndexes != null && nullIndexes.contains(i))
 				{
 					embeddedMultivalue.add(null);
 				}

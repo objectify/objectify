@@ -1,5 +1,10 @@
 package com.googlecode.objectify.test;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.testng.annotations.Test;
+
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
@@ -7,10 +12,6 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
 import com.googlecode.objectify.test.entity.Town;
-import org.testng.annotations.Test;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Tests that a certain-shaped Town results in the correct datastore Entity.
@@ -18,6 +19,7 @@ import java.util.List;
  */
 public class ExampleDocoTests extends TestBase
 {
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testFirstExample() throws Exception
 	{
@@ -40,8 +42,13 @@ public class ExampleDocoTests extends TestBase
 		assert e.getProperty("name").equals("Springfield");
 		assert e.getProperty("mayor.name.firstName").equals("Joe");
 		assert e.getProperty("mayor.name.lastName").equals("Quimby");
-		assert e.getProperty("mayor.age").equals(53L);
-		assert arrayPropertyEqual(e, "folk.age", 39L, 48L);
+		assert ((Number)e.getProperty("mayor.age")).intValue() == 53;	// might be Integer or Long
+		
+		List<Number> ages = (List<Number>)e.getProperty("folk.age");
+		assert ages.size() == 2;
+		assert ages.get(0).intValue() == 39;
+		assert ages.get(1).intValue() == 48;
+		
 		assert arrayPropertyEqual(e, "folk.name.firstName", "Homer", "Apu");
 		assert arrayPropertyEqual(e, "folk.name.lastName", "Simpson", "Nahasapeemapetilon");
 
@@ -88,7 +95,7 @@ public class ExampleDocoTests extends TestBase
 		assert e.hasProperty("name") && e.getProperty("name") == null;
 		assert e.getProperty("mayor.name.firstName").equals("Joe");
 		assert e.hasProperty("mayor.name.lastName") && e.getProperty("mayor.name.lastName") == null;
-		assert e.getProperty("mayor.age").equals(53L);
+		assert ((Number)e.getProperty("mayor.age")).intValue() == 53;	// might be Integer or Long
 		assert !e.hasProperty("folk");
 
 		town = loadTown(e);

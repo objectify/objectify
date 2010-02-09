@@ -101,11 +101,13 @@ public class CachingDatastoreService implements DatastoreService
 			if (cachedAnno == null)
 				return;
 				
+			// If there was a put, we must not put it!
+			if (this.deferredPuts != null)
+				this.deferredPuts.remove(key);
+			
 			if (this.deferredDeletes == null)
 				this.deferredDeletes = new HashSet<Key>();
 			
-			// If there was a put, we must not put it!
-			this.deferredPuts.remove(key);
 			this.deferredDeletes.add(key);
 		}
 		
@@ -118,13 +120,15 @@ public class CachingDatastoreService implements DatastoreService
 			if (cachedAnno == null)
 				return;
 			
-			if (this.deferredPuts == null)
-				this.deferredPuts = new HashMap<Key, Entity>();
-			
 			Key key = entity.getKey();
 			
 			// If there was a delete, we must not delete it!
-			this.deferredDeletes.remove(key);
+			if (this.deferredDeletes != null)
+				this.deferredDeletes.remove(key);
+			
+			if (this.deferredPuts == null)
+				this.deferredPuts = new HashMap<Key, Entity>();
+			
 			this.deferredPuts.put(key, entity);
 		}
 	}
@@ -140,8 +144,9 @@ public class CachingDatastoreService implements DatastoreService
 	
 	/**
 	 */
-	public CachingDatastoreService(DatastoreService raw)
+	public CachingDatastoreService(ObjectifyFactory fact, DatastoreService raw)
 	{
+		this.fact = fact;
 		this.raw = raw;
 	}
 	

@@ -70,7 +70,7 @@ public class TestBase
 			protected DatastoreService getDatastoreService()
 			{
 				if (enableCache)
-					return new CachingDatastoreService(this.getRawDatastoreService());
+					return new CachingDatastoreService(this, this.getRawDatastoreService());
 				else
 					return this.getRawDatastoreService();
 			}
