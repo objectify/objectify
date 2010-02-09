@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Parent;
 
 
@@ -27,8 +28,6 @@ public class EntityMetadata<T>
 	protected Class<T> entityClass;
 	protected Constructor<T> entityClassConstructor;
 
-	public Class<T> getEntityClass() { return this.entityClass; }
-
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
 	protected String kind;
 
@@ -41,6 +40,9 @@ public class EntityMetadata<T>
 
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
+	
+	/** The cached annotation, or null if entity should not be cached */
+	protected Cached cached;
 
 	/**
 	 * Inspects and stores the metadata for a particular entity class.
@@ -52,7 +54,8 @@ public class EntityMetadata<T>
 		this.entityClass = clazz;
 		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);
 		this.kind = this.factory.getKind(clazz);
-
+		this.cached = clazz.getAnnotation(Cached.class);
+		
 		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
 		this.processKeyFields(clazz);
 
@@ -64,10 +67,25 @@ public class EntityMetadata<T>
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 	}
 
+	/**
+	 */
+	public Class<T> getEntityClass()
+	{
+		return this.entityClass;
+	}
+
 	/** @return the datastore kind associated with this metadata */
 	public String getKind()
 	{
 		return this.kind;
+	}
+	
+	/**
+	 * @return the Cached instruction for this entity, or null if it should not be cached.
+	 */
+	public Cached getCached()
+	{
+		return this.cached;
 	}
 
 	/**

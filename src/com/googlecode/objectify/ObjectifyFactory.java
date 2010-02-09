@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.impl.CachingDatastoreService;
 import com.googlecode.objectify.impl.DatastoreTimeoutRetryProxy;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
@@ -45,11 +46,26 @@ public class ObjectifyFactory
 	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
 	protected int datastoreTimeoutRetryCount;
 	
+	/** If nothing is {@code @Cached}, leave as false to eliminate proxy overhead */
+	protected boolean useCachingDatastoreService;
+	
 	/**
-	 * You can override this to add behavior at the raw datastoreservice level,
-	 * for example to add a caching datastore service.
+	 * @return a DatastoreService which *might* be a caching version if any cached
+	 * entities have been registered.  Delegates to getRawDatastoreService() to
+	 * actually obtain the instance from appengine.
 	 */
 	protected DatastoreService getDatastoreService()
+	{
+		if (this.useCachingDatastoreService)
+			return new CachingDatastoreService(this.getRawDatastoreService());
+		else
+			return this.getRawDatastoreService();
+	}
+	
+	/**
+	 * You can override this to add behavior at the raw datastoreservice level.
+	 */
+	protected DatastoreService getRawDatastoreService()
 	{
 		return DatastoreServiceFactory.getDatastoreService();
 	}
@@ -103,7 +119,12 @@ public class ObjectifyFactory
 	public <T> void register(Class<T> clazz)
 	{
 		String kind = getKind(clazz);
-		this.types.put(kind, new EntityMetadata<T>(this, clazz));
+		EntityMetadata<T> meta = new EntityMetadata<T>(this, clazz);
+		
+		this.types.put(kind, meta);
+		
+		if (meta.getCached() != null)
+			this.useCachingDatastoreService = true;
 	}
 	
 	/**
