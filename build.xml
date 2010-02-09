@@ -239,7 +239,7 @@
 	        description="Checks out the maven repository, and deployes the jar artifact into it (but does not commit)"
 	        unless="skip.maven">
 
-		<svn failonerror="true">
+		<svn failonerror="false">
 			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify" depth="files"/>
 			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify/${build.version}" depth="infinite"/>
 		</svn>
