@@ -5,12 +5,15 @@
 
 package com.googlecode.objectify.test.entity;
 
+import com.googlecode.objectify.annotation.Cached;
+
 
 /**
  * A holder of a string, and a Long.
  * 
  * @author Scott Hernandez
  */
+@Cached
 public class HolderOfStringAndLong extends HolderOfString
 {
 	protected Long myPrecious;

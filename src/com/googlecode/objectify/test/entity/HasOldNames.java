@@ -8,6 +8,7 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.OldName;
 
 /**
@@ -15,6 +16,7 @@ import com.googlecode.objectify.annotation.OldName;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Cached
 public class HasOldNames
 {
 	@Id Long id;

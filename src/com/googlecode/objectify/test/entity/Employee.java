@@ -10,6 +10,7 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Cached;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -17,6 +18,7 @@ import com.googlecode.objectify.Key;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Jon Stevens
  */
+@Cached
 public class Employee
 {
 	@Id

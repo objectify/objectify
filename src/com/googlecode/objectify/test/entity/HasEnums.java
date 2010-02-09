@@ -9,12 +9,15 @@ import java.util.List;
 
 import javax.persistence.Id;
 
+import com.googlecode.objectify.annotation.Cached;
+
 /**
  * An entity that has an enum type.
  * Left off getters and setters for convenience.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Cached
 public class HasEnums
 {
 	public enum Color {

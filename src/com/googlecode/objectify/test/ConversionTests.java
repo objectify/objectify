@@ -19,6 +19,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -34,6 +35,7 @@ public class ConversionTests extends TestBase
 	private static Logger log = LoggerFactory.getLogger(ConversionTests.class);
 	
 	/** Used for some of the tests here */
+	@Cached
 	public static class HasStringArray
 	{
 		public @Id Long id;
@@ -41,6 +43,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
+	@Cached
 	public static class HasNames
 	{
 		public @Id Long id;

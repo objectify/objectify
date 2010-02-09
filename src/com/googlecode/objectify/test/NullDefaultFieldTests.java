@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
 
 /**
@@ -27,6 +28,8 @@ public class NullDefaultFieldTests extends TestBase
 			this.s = s;
 		}
 	}
+	
+	@Cached
 	public static class EntityWithDefault {
 		@Id
 		Long id;

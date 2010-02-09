@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.annotation.Cached;
 
 /**
  * Testing what you can and can not do with @Embedded blobs like Text and Blob
@@ -39,42 +40,48 @@ public class EmbeddedBlobTests extends TestBase
 		public Blob blob;
 	}
 	
-	/** This should work */
+	/** */
+	@Cached
 	public static class HasEmbeddedText
 	{
 		public @Id Long id;
 		public EmbeddedText stuff;
 	}
 	
-	/** This should work */
+	/** */
+	@Cached
 	public static class HasEmbeddedBlob
 	{
 		public @Id Long id;
 		public EmbeddedBlob stuff;
 	}
 	
-	/** This should fail when you try to register it */
+	/** */
+	@Cached
 	public static class HasEmbeddedTextArray
 	{
 		public @Id Long id;
 		public EmbeddedText[] stuff;
 	}
 	
-	/** This should fail when you try to register it */
+	/** */
+	@Cached
 	public static class HasEmbeddedBlobArray
 	{
 		public @Id Long id;
 		public EmbeddedBlob[] stuff;
 	}
 	
-	/** This should fail when you try to register it */
+	/** */
+	@Cached
 	public static class HasEmbeddedTextList
 	{
 		public @Id Long id;
 		public List<EmbeddedText> stuff;
 	}
 	
-	/** This should fail when you try to register it */
+	/** */
+	@Cached
 	public static class HasEmbeddedBlobList
 	{
 		public @Id Long id;

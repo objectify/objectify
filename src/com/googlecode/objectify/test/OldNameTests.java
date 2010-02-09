@@ -21,6 +21,7 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.test.entity.HasOldNames;
 
@@ -72,6 +73,7 @@ public class OldNameTests extends TestBase
 	}
 	
 	/** */
+	@Cached
 	static class HasEmbedded
 	{
 		@Id Long id;
@@ -80,6 +82,7 @@ public class OldNameTests extends TestBase
 	}
 	
 	/** */
+	@Cached
 	static class HasEmbeddedArray
 	{
 		@Id Long id;

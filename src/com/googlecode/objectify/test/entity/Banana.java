@@ -5,12 +5,15 @@
 
 package com.googlecode.objectify.test.entity;
 
+import com.googlecode.objectify.annotation.Cached;
+
 
 /**
  * A banana fruit.
  * 
  * @author Scott Hernandez
  */
+@Cached
 public class Banana extends Fruit
 {
 	public static final String COLOR = "yellow";

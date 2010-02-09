@@ -1,17 +1,20 @@
 package com.googlecode.objectify.test;
 
+import javax.persistence.Id;
+import javax.persistence.Transient;
+
+import org.testng.annotations.Test;
+
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import org.testng.annotations.Test;
-
-import javax.persistence.Id;
-import javax.persistence.Transient;
+import com.googlecode.objectify.annotation.Cached;
 
 /**
  */
 public class TransientTests extends TestBase
 {
+	@Cached
 	public static class HasTransients
 	{
 		@Id Long id;

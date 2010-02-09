@@ -1,10 +1,11 @@
 package com.googlecode.objectify.test;
 
 import javax.persistence.Embedded;
-import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.testng.annotations.Test;
+
+import com.googlecode.objectify.annotation.Cached;
 
 /**
  * Basic tests for registering entities
@@ -13,7 +14,7 @@ import org.testng.annotations.Test;
  */
 public class RegisterTests extends TestBase
 {
-	@Entity
+	@Cached
 	public static class NonPublicConstructor
 	{
 		@Id
@@ -22,7 +23,7 @@ public class RegisterTests extends TestBase
 		private NonPublicConstructor() { }
 	}
 
-	@Entity
+	@Cached
 	public static class NoNoargConstructors
 	{
 		@Id
@@ -41,7 +42,8 @@ public class RegisterTests extends TestBase
             this.age = age;
         }
     }
-    @Entity
+    
+	@Cached
     public static class HasEmbedded {
         @Id
         Long id;

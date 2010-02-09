@@ -324,7 +324,7 @@ public class CachingDatastoreService implements DatastoreService
 	@Override
 	public void delete(Transaction txn, Key... keys)
 	{
-		this.delete(Arrays.asList(keys));
+		this.delete(txn, Arrays.asList(keys));
 	}
 
 	/* (non-Javadoc)

@@ -2,8 +2,11 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Embedded;
 
+import com.googlecode.objectify.annotation.Cached;
+
 /**
  */
+@Cached
 public class Person
 {
 	@Embedded

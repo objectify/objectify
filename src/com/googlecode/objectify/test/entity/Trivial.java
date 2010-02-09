@@ -7,6 +7,7 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
 
 /**
@@ -14,6 +15,7 @@ import com.googlecode.objectify.annotation.Unindexed;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Cached
 public class Trivial
 {
 	@Id Long id;

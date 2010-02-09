@@ -10,6 +10,7 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
@@ -44,6 +45,7 @@ public class EmbeddedTests extends TestBase
 		}
 	}
 
+	@Cached
 	public static class PartiallyUnindexedEntity
 	{
 		@Id
@@ -79,6 +81,7 @@ public class EmbeddedTests extends TestBase
 		Names members;
 	}
 
+	@Cached
 	public static class TeamEntity extends Team
 	{
 		@Id

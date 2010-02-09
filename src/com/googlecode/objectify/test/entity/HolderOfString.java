@@ -5,12 +5,15 @@
 
 package com.googlecode.objectify.test.entity;
 
+import com.googlecode.objectify.annotation.Cached;
+
 
 /**
  * A holder of a string.
  * 
  * @author Scott Hernandez
  */
+@Cached
 public class HolderOfString extends Holder<String>
 {
 	/** Default constructor must always exist */

@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.dev.LocalDatastoreService;
@@ -21,6 +22,7 @@ import com.google.apphosting.api.ApiProxy;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.CachingDatastoreService;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
@@ -50,9 +52,9 @@ public class TestBase
 	
 	/** */
 	protected ObjectifyFactory fact;
-
+	
 	/** */
-	@BeforeMethod
+	@BeforeMethod()
 	public void setUp()
 	{
 		ApiProxy.setEnvironmentForCurrentThread(new TestEnvironment());
@@ -61,7 +63,19 @@ public class TestBase
 		proxy.setProperty(LocalDatastoreService.NO_STORAGE_PROPERTY, Boolean.TRUE.toString());
 		ApiProxy.setDelegate(proxy);
 
-		this.fact = new ObjectifyFactory();
+		final boolean enableCache = true;
+		
+		this.fact = new ObjectifyFactory() {
+			@Override
+			protected DatastoreService getDatastoreService()
+			{
+				if (enableCache)
+					return new CachingDatastoreService(this.getRawDatastoreService());
+				else
+					return this.getRawDatastoreService();
+			}
+		};
+		
 		this.fact.register(Trivial.class);
 		this.fact.register(NamedTrivial.class);
 		this.fact.register(HasOldNames.class);
