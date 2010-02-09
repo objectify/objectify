@@ -208,5 +208,8 @@ public class CollectionTests extends TestBase
 		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
 		// rule : never store an empty collection
 		assert !e.hasProperty("integerList");
+
+		assert hc.initializedList != null;
+		assert hc.initializedList instanceof LinkedList<?>;
 	}
 }

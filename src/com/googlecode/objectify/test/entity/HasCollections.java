@@ -40,6 +40,8 @@ public class HasCollections
 	public TreeSet<Integer> integerTreeSet;
 	public LinkedHashSet<Integer> integerLinkedHashSet;
 	
+	public List<Integer> initializedList = new LinkedList<Integer>();
+	
 	public static class CustomSet extends HashSet<Integer>
 	{
 		private static final long serialVersionUID = 1L;
