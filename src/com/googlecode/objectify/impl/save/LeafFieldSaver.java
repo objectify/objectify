@@ -54,7 +54,7 @@ public class LeafFieldSaver extends FieldSaver
 				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
 		
 		// Don't save null arrays or collections
-		if (TypeUtils.isArrayOrCollection(field.getType()))
+		if (!this.serialize && TypeUtils.isArrayOrCollection(field.getType()))
 			this.ignoreIfNull = true;
 	}
 	
