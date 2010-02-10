@@ -25,6 +25,7 @@ import javax.persistence.Transient;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.annotation.Serialized;
 
 
 /**
@@ -303,6 +304,9 @@ public class TypeUtils
 					&& !field.isAnnotationPresent(Id.class)
 					&& !field.isAnnotationPresent(Parent.class))
 			{
+				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialized.class))
+					throw new IllegalStateException("Cannot have @Embedded and @Serialized on the same field! Check " + field);
+				
 				field.setAccessible(true);
 				goodFields.add(field);
 			}

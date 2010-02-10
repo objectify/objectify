@@ -1,9 +1,13 @@
 package com.googlecode.objectify.impl.load;
 
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.lang.reflect.Array;
 import java.util.Collection;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -104,6 +108,9 @@ public class LeafSetter extends CollisionDetectingSetter
 	/** The field or method we set */
 	Wrapper field;
 	
+	/** If true, we expect a Blob and need to de-serialize it */
+	boolean serialized;
+	
 	/** */
 	public LeafSetter(ObjectifyFactory fact, Wrapper field, String collisionPath)
 	{
@@ -111,12 +118,13 @@ public class LeafSetter extends CollisionDetectingSetter
 		
 		this.factory = fact;
 		this.field = field;
+		this.serialized = field.isSerialized();
 
-		if (field.getType().isArray())
+		if (!this.serialized && field.getType().isArray())
 		{
 			this.next = new ForArray();
 		}
-		else if (Collection.class.isAssignableFrom(field.getType()))
+		else if (!this.serialized && Collection.class.isAssignableFrom(field.getType()))
 		{
 			this.next = new ForCollection();
 		}
@@ -150,6 +158,22 @@ public class LeafSetter extends CollisionDetectingSetter
 		if (fromValue == null)
 		{
 			return null;
+		}
+		else if (this.serialized)
+		{
+			// Above all others, if we're serialized, take the Blob and deserialize it.
+			if (!(fromValue instanceof Blob))
+				throw new IllegalStateException("Tried to deserialize non-Blob " + fromValue + " for field " + this.field);
+			
+			try
+			{
+				ByteArrayInputStream bais = new ByteArrayInputStream(((Blob)fromValue).getBytes());
+				ObjectInputStream ois = new ObjectInputStream(bais);
+				
+				return ois.readObject();
+			}
+			catch (IOException ex) { throw new RuntimeException(ex); }
+			catch (ClassNotFoundException ex) { throw new IllegalStateException("Unable to deserialize " + fromValue + " on field " + this.field + ": " + ex); }
 		}
 		else if (toType.isAssignableFrom(fromValue.getClass()))
 		{

@@ -40,7 +40,6 @@ public class CachingTests extends TestBase
 	}
 	
 	/**
-	 * Add an entry to the database that should never come back from null queries.
 	 */
 	@BeforeMethod
 	public void setUp()

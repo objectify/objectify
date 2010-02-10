@@ -1,5 +1,8 @@
 package com.googlecode.objectify.impl.save;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -10,6 +13,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Serialized;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**
@@ -25,6 +29,9 @@ public class LeafFieldSaver extends FieldSaver
 	/** If true, we add values to a collection inside the entity */
 	boolean collectionize;
 	
+	/** If true, we serialize the value into a Blob */
+	boolean serialize;
+	
 	/** If true, null values are not saved. Leaf collection types are treated this way. */
 	boolean ignoreIfNull;
 	
@@ -38,12 +45,13 @@ public class LeafFieldSaver extends FieldSaver
 	{
 		super(pathPrefix, field, forceUnindexed);
 		
-		if (collectionize)
-			if (TypeUtils.isArrayOrCollection(field.getType()))
-				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
-		
 		this.factory = fact;
 		this.collectionize = collectionize;
+		this.serialize = field.isAnnotationPresent(Serialized.class);
+		
+		if (this.collectionize)
+			if (!this.serialize && TypeUtils.isArrayOrCollection(field.getType()))
+				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
 		
 		// Don't save null arrays or collections
 		if (TypeUtils.isArrayOrCollection(field.getType()))
@@ -103,6 +111,19 @@ public class LeafFieldSaver extends FieldSaver
 		if (value == null)
 		{
 			return null;
+		}
+		else if (this.serialize)
+		{
+			// If it's @Serialized, we serialize it no matter what it looks like
+			try
+			{
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				ObjectOutputStream oos = new ObjectOutputStream(baos);
+				oos.writeObject(value);
+				
+				return new Blob(baos.toByteArray());
+			}
+			catch (IOException ex) { throw new RuntimeException(ex); }
 		}
 		else if (value instanceof String)
 		{

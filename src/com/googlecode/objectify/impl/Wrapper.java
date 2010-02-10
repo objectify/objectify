@@ -19,4 +19,7 @@ public interface Wrapper
 	
 	/** Get the "generictype", which can be a ParameterizedType */
 	Type getGenericType();
+	
+	/** @return true if the value should be deserialized from blob */
+	boolean isSerialized();
 }
