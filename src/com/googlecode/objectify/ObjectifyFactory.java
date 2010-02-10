@@ -171,21 +171,6 @@ public class ObjectifyFactory
 	}
 	
 	//
-	// Sometimes convenient instead of constructing the key by hand
-	//
-	
-	/**
-	 * <p>Creates a key from a registered entity object that does *NOT* have
-	 * a null id.  This method does not have an equivalent on KeyFactory.</p>
-	 * 
-	 * @throws IllegalArgumentException if the entity has a null id.
-	 */
-	public <T> Key<T> createKey(T entity)
-	{
-		return this.rawKeyToTypedKey(this.getMetadataForEntity(entity).getKey(entity));
-	}
-	
-	//
 	// Stuff which should only be necessary internally, but might be useful to others.
 	//
 	
@@ -305,8 +290,29 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * @return the raw key for an object which might be a raw Key, a Key<T>, or an entity
-	 * @throws IllegalArgumentException if obj is not a Key, Key<T>, or registered entity 
+	 * <p>Gets the Key<T> given an object that might be a Key, Key<T>, or entity.</p>
+	 * 
+	 * @param keyOrEntity must be a Key, Key<T>, or registered entity.
+	 * @throws NullPointerException if keyOrEntity is null
+	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> Key<T> getKey(Object keyOrEntity)
+	{
+		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			return this.rawKeyToTypedKey((com.google.appengine.api.datastore.Key)keyOrEntity);
+		else if (keyOrEntity instanceof Key<?>)
+			return (Key<T>)keyOrEntity;
+		else
+			return this.rawKeyToTypedKey(this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
+	}
+	
+	/**
+	 * <p>Gets the raw datstore Key given an object that might be a Key, Key<T>, or entity.</p>
+	 * 
+	 * @param keyOrEntity must be a Key, Key<T>, or registered entity.
+	 * @throws NullPointerException if keyOrEntity is null
+	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
 	 */
 	public com.google.appengine.api.datastore.Key getRawKey(Object keyOrEntity)
 	{

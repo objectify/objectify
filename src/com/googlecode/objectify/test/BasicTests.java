@@ -123,7 +123,7 @@ public class BasicTests extends TestBase
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
 		{
-			Trivial fetchedTriv = fetched.get(this.fact.createKey(triv));
+			Trivial fetchedTriv = fetched.get(this.fact.getKey(triv));
 			assert triv.getSomeNumber() == fetchedTriv.getSomeNumber();
 			assert triv.getSomeString().equals(fetchedTriv.getSomeString());
 		}
@@ -138,7 +138,7 @@ public class BasicTests extends TestBase
 		Employee fred = new Employee("fred");
 		ofy.put(fred);
 
-		Key<Employee> fredKey = this.fact.createKey(fred);
+		Key<Employee> fredKey = this.fact.getKey(fred);
 
 		List<Employee> employees = new ArrayList<Employee>(1100);
 		for (int i = 0; i < 1100; i++)

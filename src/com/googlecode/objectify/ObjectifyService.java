@@ -43,11 +43,4 @@ public class ObjectifyService
 
 	/** @see ObjectifyFactory#getDatastoreTimeoutRetryCount() */
 	public static int getDatastoreTimeoutRetryCount() { return factory().getDatastoreTimeoutRetryCount(); }
-	
-	//
-	// Sometimes convenient instead of constructing the key by hand
-	//
-	
-	/** @see ObjectifyFactory#createKey(Object) */
-	public static <T> Key<T> createKey(T entity) { return factory().createKey(entity); }
 }
