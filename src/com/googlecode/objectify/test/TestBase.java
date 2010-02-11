@@ -5,8 +5,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.io.File;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
@@ -15,10 +13,10 @@ import org.testng.annotations.BeforeMethod;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.dev.LocalDatastoreService;
-import com.google.appengine.tools.development.ApiProxyLocal;
-import com.google.appengine.tools.development.ApiProxyLocalImpl;
-import com.google.apphosting.api.ApiProxy;
+import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
+import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
+import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -54,15 +52,17 @@ public class TestBase
 	protected ObjectifyFactory fact;
 	
 	/** */
+	private final LocalServiceTestHelper helper =
+			new LocalServiceTestHelper(
+					new LocalDatastoreServiceTestConfig(),
+					new LocalMemcacheServiceTestConfig(),
+					new LocalTaskQueueTestConfig());
+	/** */
 	@BeforeMethod()
 	public void setUp()
 	{
-		ApiProxy.setEnvironmentForCurrentThread(new TestEnvironment());
-
-		ApiProxyLocal proxy = new ApiProxyLocalImpl(new File("target")) {};
-		proxy.setProperty(LocalDatastoreService.NO_STORAGE_PROPERTY, Boolean.TRUE.toString());
-		ApiProxy.setDelegate(proxy);
-
+		this.helper.setUp();
+		
 		final boolean enableCache = true;
 		
 		this.fact = new ObjectifyFactory() {
@@ -96,13 +96,7 @@ public class TestBase
 	@AfterMethod
 	public void tearDown()
 	{
-		ApiProxyLocalImpl proxy = (ApiProxyLocalImpl)ApiProxy.getDelegate();
-		LocalDatastoreService datastoreService = (LocalDatastoreService)proxy.getService("datastore_v3");
-		datastoreService.clearProfiles();
-
-        // not strictly necessary to null these out but there's no harm either
-		ApiProxy.setDelegate(null);
-		ApiProxy.setEnvironmentForCurrentThread(null);
+		this.helper.tearDown();
 	}
 	
 	/** Utility methods that puts and immediately gets an entity */

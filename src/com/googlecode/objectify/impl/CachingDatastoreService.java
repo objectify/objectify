@@ -95,6 +95,12 @@ public class CachingDatastoreService implements DatastoreService
 			this.raw.rollback();
 		}
 
+		@Override
+		public String getApp()
+		{
+			return this.raw.getApp();
+		}
+
 		/**
 		 * Adds some keys which will be deleted if the commit is successful.
 		 */
