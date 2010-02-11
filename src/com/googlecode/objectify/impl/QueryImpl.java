@@ -4,10 +4,13 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.QueryResultIterable;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
@@ -37,6 +40,7 @@ public class QueryImpl<T> implements Query<T>
 	/** */
 	int limit;
 	int offset;
+	Cursor cursor;
 	
 	/** */
 	public QueryImpl(ObjectifyFactory fact, Objectify objectify) 
@@ -179,7 +183,17 @@ public class QueryImpl<T> implements Query<T>
 		this.offset = value;
 		return this;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#cursor(com.google.appengine.api.datastore.Cursor)
+	 */
+	@Override
+	public Query<T> cursor(Cursor value)
+	{
+		this.cursor = value;
+		return this;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -250,6 +264,9 @@ public class QueryImpl<T> implements Query<T>
 		if (this.offset > 0)
 			bld.append(",offset=").append(this.offset);
 		
+		if (this.cursor != null)
+			bld.append(",cursor=").append(this.cursor.toWebSafeString());
+
 		bld.append('}');
 		
 		return bld.toString();
@@ -259,9 +276,9 @@ public class QueryImpl<T> implements Query<T>
 	 * @see java.lang.Iterable#iterator()
 	 */
 	@Override
-	public Iterator<T> iterator()
+	public QueryResultIterator<T> iterator()
 	{
-		return new ToObjectIterator<T>(this.prepare().asIterator(), false);
+		return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(), false);
 	}
 
 	/* (non-Javadoc)
@@ -327,26 +344,26 @@ public class QueryImpl<T> implements Query<T>
 	 * @see com.googlecode.objectify.Query#fetch()
 	 */
 	@Override
-	public Iterable<T> fetch()
+	public QueryResultIterable<T> fetch()
 	{
 		FetchOptions opts = this.fetchOptions();
 		if (opts == null)
 			return this;	// We are already iterable
 		else
-			return new ToObjectIterable<T>(this.prepare().asIterable(opts), false);
+			return new ToObjectIterable<T>(this.prepare().asQueryResultIterable(opts), false);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#fetchKeys()
 	 */
 	@Override
-	public Iterable<Key<T>> fetchKeys()
+	public QueryResultIterable<Key<T>> fetchKeys()
 	{
 		FetchOptions opts = this.fetchOptions();
 		if (opts == null)
-			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(), true);
+			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(), true);
 		else
-			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asIterable(opts), true);
+			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(opts), true);
 	}
 
 	/**
@@ -375,14 +392,29 @@ public class QueryImpl<T> implements Query<T>
 	 */
 	private FetchOptions fetchOptions()
 	{
-		if (this.limit == 0 && this.offset == 0)
-			return null;
-		else if (this.offset == 0)
-			return FetchOptions.Builder.withLimit(this.limit);
-		else if (this.limit == 0)
-			return FetchOptions.Builder.withOffset(this.offset);
+		// The FetchOptions builder interface is really, really awful
+		if (this.cursor != null)
+		{
+			FetchOptions opts = FetchOptions.Builder.withCursor(this.cursor);
+			if (this.limit != 0) opts = opts.limit(this.limit);
+			if (this.offset != 0) opts = opts.offset(this.offset);
+			return opts;
+		}
+		else if (this.limit != 0)
+		{
+			FetchOptions opts = FetchOptions.Builder.withLimit(this.limit);
+			if (this.offset != 0) opts = opts.offset(this.offset);
+			return opts;
+		}
+		else if (this.offset != 0)
+		{
+			FetchOptions opts = FetchOptions.Builder.withOffset(this.offset);
+			return opts;
+		}
 		else
-			return FetchOptions.Builder.withLimit(this.limit).offset(this.offset);
+		{
+			return null;
+		}
 	}
 	
 	/**
@@ -408,19 +440,19 @@ public class QueryImpl<T> implements Query<T>
 	/**
 	 * Iterable that translates from datastore Entity to types Objects
 	 */
-	class ToObjectIterable<S> implements Iterable<S>
+	class ToObjectIterable<S> implements QueryResultIterable<S>
 	{
-		Iterable<Entity> source;
+		QueryResultIterable<Entity> source;
 		boolean keysOnly;
 
-		public ToObjectIterable(Iterable<Entity> source, boolean keysOnly)
+		public ToObjectIterable(QueryResultIterable<Entity> source, boolean keysOnly)
 		{
 			this.source = factory.maybeWrap(source);
 			this.keysOnly = keysOnly;
 		}
 
 		@Override
-		public Iterator<S> iterator()
+		public QueryResultIterator<S> iterator()
 		{
 			return new ToObjectIterator<S>(this.source.iterator(), this.keysOnly);
 		}
@@ -429,12 +461,12 @@ public class QueryImpl<T> implements Query<T>
 	/**
 	 * Iterator that translates from datastore Entity to typed Objects
 	 */
-	class ToObjectIterator<S> implements Iterator<S>
+	class ToObjectIterator<S> implements QueryResultIterator<S>
 	{
-		Iterator<Entity> source;
+		QueryResultIterator<Entity> source;
 		boolean keysOnly;
 
-		public ToObjectIterator(Iterator<Entity> source, boolean keysOnly)
+		public ToObjectIterator(QueryResultIterator<Entity> source, boolean keysOnly)
 		{
 			this.source = factory.maybeWrap(source);
 			this.keysOnly = keysOnly;
@@ -467,6 +499,12 @@ public class QueryImpl<T> implements Query<T>
 		public void remove()
 		{
 			this.source.remove();
+		}
+
+		@Override
+		public Cursor getCursor()
+		{
+			return this.source.getCursor();
 		}
 	}
 }

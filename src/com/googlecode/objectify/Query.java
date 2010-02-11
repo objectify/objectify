@@ -1,5 +1,8 @@
 package com.googlecode.objectify;
 
+import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.QueryResultIterable;
+
 
 /**
  * <p>This is similar to the datastore Query object, but better understands
@@ -12,10 +15,16 @@ package com.googlecode.objectify;
  * humans.  You will appreciate the improvement.</p>
  * 
  * <p>Construct this class by calling {@code Objectify.query()}</p>
+ * 
+ * <p>Note that this class is Iterable itself; you do not need to call the
+ * fetch() method, but it is available if you like it.</p>
+ * 
+ * <p>To obtain a {@code Cursor} call {@code Query.iterator().getCursor()}.
+ * This cursor can be resumed with {@code Query.cursor()}.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Query<T> extends Iterable<T>
+public interface Query<T> extends QueryResultIterable<T>
 {
 	/**
 	 * <p>Create a filter based on the specified condition and value, using
@@ -57,26 +66,29 @@ public interface Query<T> extends Iterable<T>
 	 * Restricts result set only to objects which have the given ancestor
 	 * somewhere in the chain.  Doesn't need to be the immediate parent.
 	 * 
-	 * @param keyOrEntity can be an Key, a Key, or an Objectify entity object.
+	 * @param keyOrEntity can be a Key, a Key<T>, or an Objectify entity object.
 	 */
 	public Query<T> ancestor(Object keyOrEntity);
 	
 	/**
-	 * Limit the fetched result set to a certain number of values.  The largest value
-	 * allowed is 1000, reduced by the offset value.
+	 * Limit the fetched result set to a certain number of values.
 	 * 
-	 * @param value must be between 0 and 1000, inclusive.  A value of 0 indicates no limit.
+	 * @param value must be >= 0.  A value of 0 indicates no limit.
 	 */
 	public Query<T> limit(int value);
 	
 	/**
-	 * Starts the query results at a particular zero-based offset.  The appengine-wide limit of
-	 * 1000 items must be taken into account; if you specify an offset of 999 you will get
-	 * one item back (assuming there are 1000 items or more).
+	 * Starts the query results at a particular zero-based offset.
 	 * 
 	 * @param value must be >= 0
 	 */
 	public Query<T> offset(int value);
+	
+	/**
+	 * Starts query results at the specified Cursor.  You can obtain a Cursor from
+	 * a QueryResultIterator by calling the getCursor() method.
+	 */
+	public Query<T> cursor(Cursor value);
 	
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
@@ -105,19 +117,17 @@ public interface Query<T> extends Iterable<T>
 	 * Execute the query and get the results.  This method is provided for orthogonality;
 	 * Query.fetch().iterator() is identical to Query.iterator().
 	 */
-	public Iterable<T> fetch();
+	public QueryResultIterable<T> fetch();
 	
 	/**
 	 * Execute the query and get the keys of the results.  This is more efficient than
 	 * fetching the actual results.
 	 */
-	public Iterable<Key<T>> fetchKeys();
+	public QueryResultIterable<Key<T>> fetchKeys();
 	
 	/**
-	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and
-	 * <em>offset</em>.</p>
-	 * <p>This is somewhat faster than fetching, but the time still grows with the number
-	 * of results.  The largest number returned will be 1000 as per GAE limits.</p>
+	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and <em>offset</em>.</p>
+	 * <p>This is somewhat faster than fetching, but the time still grows with the number of results.</p>
 	 */
 	public int countAll();
 }
