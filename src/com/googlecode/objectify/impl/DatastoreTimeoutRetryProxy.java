@@ -7,13 +7,16 @@ import java.lang.reflect.Proxy;
 import java.util.Iterator;
 
 import com.google.appengine.api.datastore.DatastoreTimeoutException;
+import com.google.appengine.api.datastore.QueryResultIterable;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 
 /**
  * A dynamic proxy that catches DatastoreTimeoutException and retries
  * the action up to a specified number of times.  Works with objects
- * of type Objectify, Query<?>, Iterable<?>, and Iterator<?>.
+ * of type Objectify, Query<?>, QueryResultIterable<?>, QueryResultIterator<?>,
+ * Iterable<?>, and Iterator<?>.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -25,13 +28,13 @@ public class DatastoreTimeoutRetryProxy implements InvocationHandler
 	/** The number of times we should retry.  1 means two possible tries. */
 	int retries;
 	
-	/** Only works on Objectify, Query<?>, Iterable<?>, and Iterator<?> */
+	/** Only works on Objectify, Query<?>, QueryResultIterable<?>, QueryResultIterator<?>, Iterable<?>, and Iterator<?> */
 	@SuppressWarnings("unchecked")
 	public static <T> T wrap(T impl, int retries)
 	{
 		return (T)Proxy.newProxyInstance(
 				Thread.currentThread().getContextClassLoader(),
-				new Class<?>[] { Objectify.class, Query.class, Iterable.class, Iterator.class },
+				new Class<?>[] { Objectify.class, Query.class, QueryResultIterable.class, QueryResultIterator.class, Iterable.class, Iterator.class },
 				new DatastoreTimeoutRetryProxy(impl, retries));
 	}
 	
