@@ -2,8 +2,14 @@ package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.persistence.Id;
+import javax.persistence.PostLoad;
+import javax.persistence.PrePersist;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -37,6 +43,12 @@ public class EntityMetadata<T>
 
 	/** If the entity has a @Parent field, treat it specially */
 	protected Field parentField;
+	
+	/** Any methods in the hierarchy annotated with @PrePersist, could be null */
+	protected List<Method> prePersistMethods;
+
+	/** Any methods in the hierarchy annotated with @PostLoad, could be null */
+	protected List<Method> postLoadMethods;
 
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
@@ -59,6 +71,9 @@ public class EntityMetadata<T>
 		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
 		this.processKeyFields(clazz);
 
+		// Walk up the inheritance chain looking for @PrePersist and @PostLoad
+		this.processLifecycleCallbacks(clazz);
+		
 		// Now figure out how to handle normal properties
 		this.transmog = new Transmog<T>(fact, clazz);
 		
@@ -136,33 +151,103 @@ public class EntityMetadata<T>
 	}
 
 	/**
+	 * Recursive function which walks up the superclass hierarchy looking
+	 * for lifecycle-related methods (@PrePersist and @PostLoad).
+	 */
+	private void processLifecycleCallbacks(Class<?> clazz)
+	{
+		if ((clazz == null) || (clazz == Object.class))
+			return;
+
+		// Start at the top of the chain
+		this.processLifecycleCallbacks(clazz.getSuperclass());
+
+		// Check all the methods
+		for (Method method: clazz.getDeclaredMethods())
+		{
+			if (method.isAnnotationPresent(PrePersist.class) || method.isAnnotationPresent(PostLoad.class))
+			{
+				method.setAccessible(true);
+				
+				Class<?>[] ptypes = method.getParameterTypes();
+				
+				if (ptypes.length > 1 || (ptypes.length == 1 && !Entity.class.isAssignableFrom(ptypes[0])))
+					throw new IllegalStateException("@PrePersist and @PostLoad methods can have at most one parameter of type Entity");
+				
+				if (method.isAnnotationPresent(PrePersist.class))
+				{
+					if (this.prePersistMethods == null)
+						this.prePersistMethods = new ArrayList<Method>();
+					
+					this.prePersistMethods.add(method);
+				}
+				
+				if (method.isAnnotationPresent(PostLoad.class))
+				{
+					if (this.postLoadMethods == null)
+						this.postLoadMethods = new ArrayList<Method>();
+					
+					this.postLoadMethods.add(method);
+				}
+			}
+			
+		}
+	}
+
+	/**
 	 * Converts an entity to an object of the appropriate type for this metadata structure.
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
 	public T toObject(Entity ent)
 	{
-		T obj = TypeUtils.newInstance(this.entityClassConstructor);
+		T pojo = TypeUtils.newInstance(this.entityClassConstructor);
 
 		// This will set the id and parent fields as appropriate.
-		this.setKey(obj, ent.getKey());
+		this.setKey(pojo, ent.getKey());
 
-		this.transmog.load(ent, obj);
+		this.transmog.load(ent, pojo);
+		
+		// If there are any @PostLoad methods, call them
+		this.invokeLifecycleCallbacks(this.postLoadMethods, pojo, ent);
 
-		return obj;
+		return pojo;
 	}
 
 
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
-	public Entity toEntity(T obj)
+	public Entity toEntity(T pojo)
 	{
-		Entity ent = this.initEntity(obj);
+		Entity ent = this.initEntity(pojo);
 
-		this.transmog.save(obj, ent);
+		// If there are any @PrePersist methods, call them
+		this.invokeLifecycleCallbacks(this.prePersistMethods, pojo, ent);
+		
+		this.transmog.save(pojo, ent);
 		
 		return ent;
+	}
+	
+	/**
+	 * Invoke a set of lifecycle callbacks on the pojo.
+	 * 
+	 * @param callbacks can be null if there are no callbacks
+	 */
+	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Entity ent)
+	{
+		try
+		{
+			if (callbacks != null)
+				for (Method method: callbacks)
+					if (method.getParameterTypes().length == 0)
+						method.invoke(pojo);
+					else
+						method.invoke(pojo, ent);
+		}
+		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+		catch (InvocationTargetException e) { throw new RuntimeException(e); }
 	}
 
 	/**
