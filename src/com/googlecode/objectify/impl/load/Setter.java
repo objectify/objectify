@@ -16,6 +16,7 @@ import com.googlecode.objectify.impl.LoadContext;
  * <li>The EmbeddedClassSetter will create a Person object in rootPojo.name</li>
  * <li>The EmbeddedClassSetter will delegate to a LeafSetter, passing in the Person</li>
  * <li>The LeafSetter will set the name field on the Person object.
+ * </ul>
  * 
  * <p>Setters are a linear chain like a linked list.  They are also immutable.  You
  * extend the chain by calling extend(), passing in the new tail; this produces an
