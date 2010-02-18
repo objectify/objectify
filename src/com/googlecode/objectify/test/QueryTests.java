@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -205,5 +206,25 @@ public class QueryTests extends TestBase
     	Iterable<Key<Trivial>> keys = ofy.query(Trivial.class).limit(10).fetchKeys();
     	
     	assert keys != null;
+	}
+
+	/** */
+	@Test
+	public void testFilteringByAncestor() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Trivial triv = new Trivial(null, 3);
+		Key<Trivial> trivKey = ofy.put(triv);
+		
+		Child child = new Child(trivKey, "blah");
+		ofy.put(child);
+		
+		Iterator<Child> it = ofy.<Child>query().ancestor(trivKey).iterator();
+
+		assert it.hasNext();
+		Child fetched = it.next();
+		assert !it.hasNext();
+		assert child.getId().equals(fetched.getId()); 
 	}
 }
