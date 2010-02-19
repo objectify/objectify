@@ -26,6 +26,9 @@ public class EmbeddedCollectionSetter extends EmbeddedMultivalueSetter
 		assert Collection.class.isAssignableFrom(field.getType());
 		
 		Class<?> componentType = TypeUtils.getComponentType(this.field.getType(), this.field.getGenericType());
+		
+		if (componentType == null) throw new RuntimeException("non-generic collections do not work: " + path + " is a " + this.field.getType().getName());
+		
 		this.componentTypeCtor = TypeUtils.getNoArgConstructor(componentType);
 	}
 

@@ -18,9 +18,9 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	
 	/**
 	 */
-	public EmbeddedClassFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
+	public EmbeddedClassFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean unindexedByDefault, boolean collectionize)
 	{
-		super(pathPrefix, field, forceUnindexed);
+		super(pathPrefix, field, unindexedByDefault);
 		
 		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.unindexed, collectionize);
 	}

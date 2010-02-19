@@ -16,9 +16,9 @@ public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 	/**
 	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
 	 */
-	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
+	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean unindexedByDefault, boolean collectionize)
 	{
-		super(fact, pathPrefix, field, forceUnindexed, collectionize);
+		super(fact, pathPrefix, field, unindexedByDefault, collectionize);
 		
 		assert field.getType().isArray();
 	}

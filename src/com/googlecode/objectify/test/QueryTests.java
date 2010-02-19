@@ -228,7 +228,7 @@ public class QueryTests extends TestBase
 		assert fred.getName().equals(fetched.getName()); 
 	}
 	
-	/** */
+	/** This is expected to fail without a kind: see http://code.google.com/p/googleappengine/issues/detail?id=2196 */
 	@Test
 	public void testFilteringByAncestor() throws Exception
 	{

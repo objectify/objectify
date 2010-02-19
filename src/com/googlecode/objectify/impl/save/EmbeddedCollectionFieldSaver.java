@@ -16,9 +16,9 @@ public class EmbeddedCollectionFieldSaver extends EmbeddedMultivalueFieldSaver
 	/**
 	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
 	 */
-	public EmbeddedCollectionFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean forceUnindexed, boolean collectionize)
+	public EmbeddedCollectionFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean unindexedByDefault, boolean collectionize)
 	{
-		super(fact, pathPrefix, field, forceUnindexed, collectionize);
+		super(fact, pathPrefix, field, unindexedByDefault, collectionize);
 		
 		assert Collection.class.isAssignableFrom(field.getType());
 	}
