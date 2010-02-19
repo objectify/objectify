@@ -35,9 +35,9 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 		if (embeddedPojo == null)
 		{
 			if (this.indexed)
-				entity.setUnindexedProperty(this.path, null);
-			else
 				entity.setProperty(this.path, null);
+			else
+				entity.setUnindexedProperty(this.path, null);
 		}
 		else
 		{
