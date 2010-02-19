@@ -18,6 +18,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.test.entity.Child;
+import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -208,6 +209,25 @@ public class QueryTests extends TestBase
     	assert keys != null;
 	}
 
+	/** */
+	@Test
+	public void testFilteringByKeyField() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Key<Employee> bobKey = new Key<Employee>(Employee.class, "bob");
+		
+		Employee fred = new Employee("fred", bobKey);
+		ofy.put(fred);
+		
+		Iterator<Employee> it = ofy.query(Employee.class).filter("manager", bobKey).iterator();
+
+		assert it.hasNext();
+		Employee fetched = it.next();
+		assert !it.hasNext();
+		assert fred.getName().equals(fetched.getName()); 
+	}
+	
 	/** */
 	@Test
 	public void testFilteringByAncestor() throws Exception
