@@ -25,7 +25,6 @@ import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Criminal;
-import com.googlecode.objectify.test.entity.EmbeddedIndexedPojo;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
@@ -33,12 +32,9 @@ import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HasOldNames;
 import com.googlecode.objectify.test.entity.HolderOfString;
 import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
-import com.googlecode.objectify.test.entity.IndexedDefaultPojo;
-import com.googlecode.objectify.test.entity.IndexedPojo;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.entity.UnindexedPojo;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -94,10 +90,6 @@ public class TestBase
 		this.fact.register(HolderOfStringAndLong.class);
 		this.fact.register(Town.class);
 		this.fact.register(Criminal.class);
-		this.fact.register(IndexedDefaultPojo.class);
-		this.fact.register(IndexedPojo.class);
-		this.fact.register(UnindexedPojo.class);
-		this.fact.register(EmbeddedIndexedPojo.class);
 	}
 
 	/** */

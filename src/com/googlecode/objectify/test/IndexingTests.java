@@ -5,21 +5,23 @@
 
 package com.googlecode.objectify.test;
 
+import javax.persistence.Embedded;
+import javax.persistence.Id;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.test.entity.EmbeddedIndexedPojo;
-import com.googlecode.objectify.test.entity.IndexedDefaultPojo;
-import com.googlecode.objectify.test.entity.IndexedPojo;
-import com.googlecode.objectify.test.entity.UnindexedPojo;
+import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Indexed;
+import com.googlecode.objectify.annotation.Unindexed;
 
 /**
- * Tests of various queries
+ * Tests of @Indexed and @Unindexed
  * 
- * @author Jeff Schnitzer <jeff@infohazard.org>
+ * @author Scott Hernandez
  */
 public class IndexingTests extends TestBase
 {
@@ -27,11 +29,76 @@ public class IndexingTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(IndexingTests.class);
 
+	@SuppressWarnings("unused")
+	@Cached
+	public static class EmbeddedIndexedPojo
+	{
+		@Id Long id;
+
+		@Unindexed 				private boolean aProp = true;
+		
+		@Indexed 	@Embedded 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
+		@Unindexed 	@Embedded 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
+					@Embedded 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
+
+	// Fundamentally broken; how to test bad-hetro behavior?
+
+//		@Indexed 	@Embedded 	private List indexedHetro = new ArrayList();
+//		@Unindexed 	@Embedded 	private List unindexedHetro = new ArrayList();
+//					@Embedded 	private List defHetro = new ArrayList();
+	//	
+//		public EmbeddedIndexedPojo(){
+//			indexedHetro.add(new IndexedDefaultPojo());
+//			indexedHetro.add(new IndexedPojo());
+//			
+//			unindexedHetro.addAll(indexedHetro);
+//			defHetro.addAll(indexedHetro);
+//		}
+	}
+
+	@SuppressWarnings("unused")
+	@Cached
+	@Unindexed
+	public static class UnindexedPojo
+	{
+		@Id Long id;
+		@Indexed private boolean indexed = true;
+		@Unindexed private boolean unindexed = true;
+		private boolean def = true;
+	}
+	
+	@SuppressWarnings("unused")
+	@Cached
+	@Indexed
+	public static class IndexedPojo
+	{
+		@Id Long id;
+		@Indexed private boolean indexed = true;
+		@Unindexed private boolean unindexed = true;
+		private boolean def = true;
+	}
+	
+	@SuppressWarnings("unused")
+	@Cached
+	public static class IndexedDefaultPojo
+	{
+		@Id Long id;
+		@Indexed private boolean indexed = true;
+		@Unindexed private boolean unindexed = true;
+		private boolean def = true;
+	}
+	
 	/** */
 	@BeforeMethod
 	public void setUp()
 	{
 		super.setUp();
+		
+		this.fact.register(IndexedDefaultPojo.class);
+		this.fact.register(IndexedPojo.class);
+		this.fact.register(UnindexedPojo.class);
+		this.fact.register(EmbeddedIndexedPojo.class);
+		
 		Objectify ofy = this.fact.begin();
 		ofy.put(new IndexedPojo());
 		ofy.put(new IndexedDefaultPojo());
