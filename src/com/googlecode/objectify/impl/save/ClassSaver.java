@@ -19,51 +19,62 @@ public class ClassSaver implements Saver
 	/** Classes are composed of fields, each of which could be a LeafSaver or an EmbeddedArraySaver etc */
 	List<Saver> fieldSavers = new ArrayList<Saver>();
 
-	/** Creates a ClassSaver for a root entity pojo class */
+	/**
+	 * Creates a ClassSaver for a root entity pojo class.  If nothing is specified otherwise, all
+	 * fields default to indexed
+	 */
 	public ClassSaver(ObjectifyFactory factory, Class<?> rootClazz)
 	{
-		this(factory, null, rootClazz, false, false);
+		this(factory, null, rootClazz, true, false);
 	}
 	
 	/**
+	 * @param pathPrefix is the entity path to this class, ie "field1.field2" for an embedded field1 containing a field2
+	 *  of the type of this class.  The root pathPrefix is null.
+	 * @param clazz is the class we want to save.
+	 * @param inheritedIndexed is the inherited default for whether fields should be indexed or not.  Will be overriden
+	 *  by class or field @Indexed and @Unindexed annotations.
 	 * @param collectionize causes all leaf setters to create and append to a simple list of
 	 *  values rather than to set the value directly.  After we hit an embedded array or
 	 *  an embedded collection, all subsequent savers are collectionized.
 	 */
-	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean unindexedByDefault, boolean collectionize)
+	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean inheritedIndexed, boolean collectionize)
 	{
+		if (clazz.isAnnotationPresent(Indexed.class) && clazz.isAnnotationPresent(Unindexed.class))
+			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same class: " + clazz.getName());
+		
+		// Check for the indexed annotations on the class and change the default for our children
+		if (clazz.isAnnotationPresent(Indexed.class))
+			inheritedIndexed = true;
+		else if (clazz.isAnnotationPresent(Unindexed.class))
+			inheritedIndexed = false;
+		
 		List<Field> fields = TypeUtils.getPesistentFields(clazz);
 
-		//check for the indexed annotations on the class and change the default for our children
-		unindexedByDefault = ((unindexedByDefault || clazz.isAnnotationPresent(Unindexed.class)) && !clazz.isAnnotationPresent(Indexed.class));
-		
 		for (Field field: fields)
 		{
-			//check for the indexed annotations on this field and change the default for our children
-			boolean unindexed = ((unindexedByDefault || field.isAnnotationPresent(Unindexed.class)) && !field.isAnnotationPresent(Indexed.class));
-
 			if (TypeUtils.isEmbedded(field))
 			{
 				if (field.getType().isArray())
 				{
-					Saver saver = new EmbeddedArrayFieldSaver(factory, pathPrefix, field, unindexed, collectionize);
+					Saver saver = new EmbeddedArrayFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedCollectionFieldSaver(factory, pathPrefix, field, unindexed, collectionize);
+					Saver saver = new EmbeddedCollectionFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else	// basic class
 				{
-					Saver saver = new EmbeddedClassFieldSaver(factory, pathPrefix, field, unindexed, collectionize);
+					Saver saver = new EmbeddedClassFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a leaf saver
-				Saver saver = new LeafFieldSaver(factory, pathPrefix, field, unindexed, collectionize);
+				Saver saver = new LeafFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
 				this.fieldSavers.add(saver);
 			}
 		}

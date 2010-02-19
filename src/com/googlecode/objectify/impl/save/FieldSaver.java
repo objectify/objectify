@@ -15,25 +15,33 @@ abstract public class FieldSaver implements Saver
 {
 	String path;
 	Field field;
-	boolean unindexed;
+	boolean indexed;
 	
 	/** */
-	public FieldSaver(String pathPrefix, Field field, boolean unindexedByDefault)
+	public FieldSaver(String pathPrefix, Field field, boolean inheritedIndexed)
 	{
+		if (field.isAnnotationPresent(Indexed.class) && field.isAnnotationPresent(Unindexed.class))
+			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
+		
 		this.field = field;
 		
 		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
-		this.unindexed = (unindexedByDefault || field.isAnnotationPresent(Unindexed.class)) && !field.isAnnotationPresent(Indexed.class);
+		
+		this.indexed = inheritedIndexed;
+		if (field.isAnnotationPresent(Indexed.class))
+			this.indexed = true;
+		else if (field.isAnnotationPresent(Unindexed.class))
+			this.indexed = false;
 	}
 	
 	/** 
-	 * Sets property on the entity correctly for the values of this.path and this.unindexed.
+	 * Sets property on the entity correctly for the values of this.path and this.indexed.
 	 */
 	protected void setEntityProperty(Entity entity, Object value)
 	{
-		if (this.unindexed)
-			entity.setUnindexedProperty(this.path, value);
-		else
+		if (this.indexed)
 			entity.setProperty(this.path, value);
+		else
+			entity.setUnindexedProperty(this.path, value);
 	}
 }

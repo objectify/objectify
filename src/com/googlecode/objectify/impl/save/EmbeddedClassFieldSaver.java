@@ -22,7 +22,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	{
 		super(pathPrefix, field, unindexedByDefault);
 		
-		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.unindexed, collectionize);
+		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.indexed, collectionize);
 	}
 	
 	/* (non-Javadoc)
@@ -34,7 +34,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 		Object embeddedPojo = TypeUtils.field_get(this.field, pojo);
 		if (embeddedPojo == null)
 		{
-			if (this.unindexed)
+			if (this.indexed)
 				entity.setUnindexedProperty(this.path, null);
 			else
 				entity.setProperty(this.path, null);

@@ -41,9 +41,9 @@ public class LeafFieldSaver extends FieldSaver
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean unindexedByDefault, boolean collectionize)
+	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
-		super(pathPrefix, field, unindexedByDefault);
+		super(pathPrefix, field, inheritedIndexed);
 		
 		this.factory = fact;
 		this.collectionize = collectionize;
