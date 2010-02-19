@@ -18,10 +18,11 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	
 	/**
 	 */
-	public EmbeddedClassFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean unindexedByDefault, boolean collectionize)
+	public EmbeddedClassFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean inheritedUnindexed, boolean collectionize)
 	{
-		super(pathPrefix, field, unindexedByDefault);
+		super(pathPrefix, field, inheritedUnindexed);
 		
+		// Must pass the indexed from our member field, not from the inherited value
 		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.indexed, collectionize);
 	}
 	
@@ -34,10 +35,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 		Object embeddedPojo = TypeUtils.field_get(this.field, pojo);
 		if (embeddedPojo == null)
 		{
-			if (this.indexed)
-				entity.setProperty(this.path, null);
-			else
-				entity.setUnindexedProperty(this.path, null);
+			this.setEntityProperty(entity, null);
 		}
 		else
 		{
