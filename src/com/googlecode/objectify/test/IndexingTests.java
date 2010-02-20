@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
 
@@ -29,8 +30,30 @@ public class IndexingTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(IndexingTests.class);
 
+	@Indexed
+	public static class LevelTwoIndexedClass 
+	{
+	   String bar="A";
+	}
+	public static class LevelTwoIndexedField 
+	{
+		@Indexed String bar="A"; 
+	}
+
+	public static class LevelOne {
+	    String foo = "1";
+	    @Embedded LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
+	    @Embedded LevelTwoIndexedField twoField = new LevelTwoIndexedField();
+	}
+
+	@Entity @Unindexed 
+ 	public static class EntityWithEmbedded {
+	    @Id Long id;
+	    @Embedded LevelOne one = new LevelOne();
+	    String prop = "A";
+	}
+
 	@SuppressWarnings("unused")
-	@Cached
 	public static class EmbeddedIndexedPojo
 	{
 		@Id Long id;
@@ -41,12 +64,11 @@ public class IndexingTests extends TestBase
 		@Unindexed 	@Embedded 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
 					@Embedded 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
 
-	// Fundamentally broken; how to test bad-hetro behavior?
+// 		Fundamentally broken; how to test bad-hetro behavior?
 
 //		@Indexed 	@Embedded 	private List indexedHetro = new ArrayList();
 //		@Unindexed 	@Embedded 	private List unindexedHetro = new ArrayList();
 //					@Embedded 	private List defHetro = new ArrayList();
-	//	
 //		public EmbeddedIndexedPojo(){
 //			indexedHetro.add(new IndexedDefaultPojo());
 //			indexedHetro.add(new IndexedPojo());
@@ -98,6 +120,7 @@ public class IndexingTests extends TestBase
 		this.fact.register(IndexedPojo.class);
 		this.fact.register(UnindexedPojo.class);
 		this.fact.register(EmbeddedIndexedPojo.class);
+		this.fact.register(EntityWithEmbedded.class);
 		
 		Objectify ofy = this.fact.begin();
 		ofy.put(new IndexedPojo());
@@ -156,5 +179,23 @@ public class IndexingTests extends TestBase
 		assert !ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).fetch().iterator().hasNext();
 		
 	}
+	/** */
+	@Test
+	public void testEmbeddedGraph() throws Exception
+	{
+		/*
+		 * one.twoClass.bar = "A"
+		 * one.twoField.bar = "A"
+		 * one.foo = "1"
+		 * id = ?
+		 * prop = "A"
+		 */
+		
+		Objectify ofy = this.fact.begin();
+		assert !ofy.query(EntityWithEmbedded.class).filter("prop =", "A").fetch().iterator().hasNext();
+		assert !ofy.query(EntityWithEmbedded.class).filter("one.foo =", "1").fetch().iterator().hasNext();
+		assert !ofy.query(EntityWithEmbedded.class).filter("one.twoClass =", "A").fetch().iterator().hasNext();
+		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoField =", "A").fetch().iterator().hasNext();
+	}	
 
 }
