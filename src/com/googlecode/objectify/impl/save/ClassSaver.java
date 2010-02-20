@@ -25,29 +25,33 @@ public class ClassSaver implements Saver
 	 */
 	public ClassSaver(ObjectifyFactory factory, Class<?> rootClazz)
 	{
-		this(factory, null, rootClazz, true, false);
+		this(factory, null, rootClazz, true, false, false);
 	}
 	
 	/**
 	 * @param pathPrefix is the entity path to this class, ie "field1.field2" for an embedded field1 containing a field2
 	 *  of the type of this class.  The root pathPrefix is null.
 	 * @param clazz is the class we want to save.
-	 * @param inheritedIndexed is the inherited default for whether fields should be indexed or not.  Will be overriden
-	 *  by class or field @Indexed and @Unindexed annotations.
+	 * @param inheritedIndexed is the inherited default for whether fields should be indexed or not.
+	 * @param forcedInherit if true, ignores local @Indexed or @Unindexed and uses the inherited value
 	 * @param collectionize causes all leaf setters to create and append to a simple list of
 	 *  values rather than to set the value directly.  After we hit an embedded array or
 	 *  an embedded collection, all subsequent savers are collectionized.
 	 */
-	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean inheritedIndexed, boolean collectionize)
+	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean inheritedIndexed, boolean forcedInherit, boolean collectionize)
 	{
 		if (clazz.isAnnotationPresent(Indexed.class) && clazz.isAnnotationPresent(Unindexed.class))
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same class: " + clazz.getName());
 		
-		// Check for the indexed annotations on the class and change the default for our children
-		if (clazz.isAnnotationPresent(Indexed.class))
-			inheritedIndexed = true;
-		else if (clazz.isAnnotationPresent(Unindexed.class))
-			inheritedIndexed = false;
+		// If we aren't forcing indexed inheritance because we're an embedded class and the
+		// field had an indexing annotation, we can look at our own indexing annotations.
+		if (!forcedInherit)
+		{
+			if (clazz.isAnnotationPresent(Indexed.class))
+				inheritedIndexed = true;
+			else if (clazz.isAnnotationPresent(Unindexed.class))
+				inheritedIndexed = false;
+		}
 		
 		List<Field> fields = TypeUtils.getPesistentFields(clazz);
 

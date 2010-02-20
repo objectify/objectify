@@ -34,7 +34,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 		
 		// Now we collectionize everything on down
 		// We use our indexed state to define everything below us
-		this.classSaver = new ClassSaver(fact, this.path, this.getComponentType(), this.indexed, true);
+		this.classSaver = new ClassSaver(fact, this.path, this.getComponentType(), this.indexed, this.forcedInherit, true);
 	}
 	
 	/** Gets the component type of the field */

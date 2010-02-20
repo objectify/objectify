@@ -23,7 +23,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 		super(pathPrefix, field, inheritedUnindexed);
 		
 		// Must pass the indexed from our member field, not from the inherited value
-		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.indexed, collectionize);
+		this.classSaver = new ClassSaver(fact, this.path, field.getType(), this.indexed, this.forcedInherit, collectionize);
 	}
 	
 	/* (non-Javadoc)

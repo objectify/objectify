@@ -16,6 +16,7 @@ abstract public class FieldSaver implements Saver
 	String path;
 	Field field;
 	boolean indexed;
+	boolean forcedInherit;	// will any child classes be forced to inherit this indexed state
 	
 	/** */
 	public FieldSaver(String pathPrefix, Field field, boolean inheritedIndexed)
@@ -29,9 +30,15 @@ abstract public class FieldSaver implements Saver
 		
 		this.indexed = inheritedIndexed;
 		if (field.isAnnotationPresent(Indexed.class))
+		{
 			this.indexed = true;
+			this.forcedInherit = true;
+		}
 		else if (field.isAnnotationPresent(Unindexed.class))
+		{
 			this.indexed = false;
+			this.forcedInherit = true;
+		}
 	}
 	
 	/** 
