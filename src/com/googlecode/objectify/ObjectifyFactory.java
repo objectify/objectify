@@ -50,6 +50,18 @@ public class ObjectifyFactory
 	protected boolean useCachingDatastoreService;
 	
 	/**
+	 * @param ds the DatastoreService
+	 * @param txn the Transaction
+	 * @return an instance of Objectify for use by the factory
+	 * 
+	 * Override this in your factory if you wish to use a different impl.
+	 */
+	protected Objectify createObjectify(DatastoreService ds, Transaction txn) 
+	{
+		return new ObjectifyImpl(this, ds, txn);
+	}
+	
+	/**
 	 * @return a DatastoreService which *might* be a caching version if any cached
 	 * entities have been registered.  Delegates to getRawDatastoreService() to
 	 * actually obtain the instance from appengine.
@@ -77,7 +89,7 @@ public class ObjectifyFactory
 	public Objectify begin()
 	{
 		DatastoreService ds = this.getDatastoreService();
-		Objectify impl = new ObjectifyImpl(this, ds, null);
+		Objectify impl = createObjectify(ds, null);
 
 		return this.maybeWrap(impl);
 	}
@@ -89,7 +101,7 @@ public class ObjectifyFactory
 	public Objectify beginTransaction()
 	{
 		DatastoreService ds = this.getDatastoreService();
-		Objectify impl = new ObjectifyImpl(this, ds, ds.beginTransaction());
+		Objectify impl = createObjectify(ds, ds.beginTransaction());
 		
 		return this.maybeWrap(impl);
 	}
@@ -104,7 +116,7 @@ public class ObjectifyFactory
 	public Objectify withTransaction(Transaction txn)
 	{
 		DatastoreService ds = this.getDatastoreService();
-		return this.maybeWrap(new ObjectifyImpl(this, ds, txn));
+		return this.maybeWrap(createObjectify(ds, txn));
 	}
 	
 	/**
