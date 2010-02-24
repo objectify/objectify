@@ -24,13 +24,13 @@ import com.googlecode.objectify.Query;
 public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
-	ObjectifyFactory factory;
+	protected ObjectifyFactory factory;
 	
 	/** The google object that does the actual heavy lifting */
-	DatastoreService ds;
+	protected DatastoreService ds;
 	
 	/** The transaction to use.  If null, do not use transactions. */
-	Transaction txn;
+	protected Transaction txn;
 	
 	/**
 	 * Protected constructor creates a wrapper on the datastore with
