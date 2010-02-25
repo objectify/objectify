@@ -278,7 +278,11 @@ public class QueryImpl<T> implements Query<T>
 	@Override
 	public QueryResultIterator<T> iterator()
 	{
-		return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(), false);
+		FetchOptions opts = this.fetchOptions();
+		if (opts == null)
+			return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(), false);
+		else
+			return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(opts), false);
 	}
 
 	/* (non-Javadoc)
@@ -293,6 +297,8 @@ public class QueryImpl<T> implements Query<T>
 		FetchOptions opts = FetchOptions.Builder.withLimit(1);
 		if (this.offset > 0)
 			opts = opts.offset(this.offset);
+		if (this.cursor != null)
+			opts = opts.cursor(this.cursor);
 		
 		Iterator<Entity> it = this.prepare().asIterator(opts);
 
