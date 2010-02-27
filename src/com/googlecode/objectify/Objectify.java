@@ -101,7 +101,19 @@ public interface Objectify
 	 * @see DatastoreService#delete(Iterable)
 	 */
 	void delete(Iterable<?> keysOrEntities);
+
+	/**
+	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
+	 */
+	@SuppressWarnings("unchecked")
+	void delete(Class clazz, long id);
 	
+	/**
+	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, name)); 
+	 */
+	@SuppressWarnings("unchecked")
+	void delete(Class clazz, String name);
+
 	/**
 	 * <p>Create a typesafe query across all kinds of entities.</p>
 	 */

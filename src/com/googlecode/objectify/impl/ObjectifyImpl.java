@@ -212,6 +212,26 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#delete(Class, Long)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public void delete(Class clazz, long id)
+	{
+		this.ds.delete(this.txn, this.factory.getRawKey(new Key(clazz, id)));
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#delete(Class, String)
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public void delete(Class clazz, String name)
+	{
+		this.ds.delete(this.txn, this.factory.getRawKey(new Key(clazz, name)));
+	}
+
+	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
 	 */
 	@Override
