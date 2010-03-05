@@ -37,13 +37,13 @@ public interface Objectify
 	<T> T get(Key<? extends T> key) throws EntityNotFoundException;
 	
 	/**
-	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
+	 * This is a convenience method, shorthand for creating a key and calling get() 
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 */
 	<T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException;
 	
 	/**
-	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, name)); 
+	 * This is a convenience method, shorthand for creating a key and calling get() 
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 */
 	<T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException;
@@ -103,16 +103,14 @@ public interface Objectify
 	void delete(Iterable<?> keysOrEntities);
 
 	/**
-	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, id)); 
+	 * This is a convenience method, shorthand for creating a key and deleting it. 
 	 */
-	@SuppressWarnings("unchecked")
-	void delete(Class clazz, long id);
+	<T> void delete(Class<T> clazz, long id);
 	
 	/**
-	 * This is a convenience method, shorthand for get(ObjectifyFactory.createKey(clazz, name)); 
+	 * This is a convenience method, shorthand for creating a key and deleting it. 
 	 */
-	@SuppressWarnings("unchecked")
-	void delete(Class clazz, String name);
+	<T> void delete(Class<T> clazz, String name);
 
 	/**
 	 * <p>Create a typesafe query across all kinds of entities.</p>
