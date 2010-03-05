@@ -12,8 +12,6 @@ import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 import com.googlecode.objectify.impl.TypeUtils.MethodMetadata;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
@@ -69,6 +67,9 @@ public class Transmog<T>
 	/** Needed to convert Key types */
 	ObjectifyFactory factory;
 	
+	/** Useful to have around for error logging purposes */
+	Class<T> clazz;
+	
 	/** Maps full "blah.blah.blah" property name to a particular Setter implementation */
 	Map<String, Setter> rootSetters = new HashMap<String, Setter>();
 	
@@ -91,21 +92,30 @@ public class Transmog<T>
 		String prefix;	// starts null for root
 		boolean embedded;
 		
+		Set<String> fieldPathsUsed;
+		Set<String> methodPathsUsed;
+		
 		/** Constructs a visitor for a top-level entity */
 		public Visitor()
 		{
 			this.setterChain = new RootSetter();
+			
+			this.fieldPathsUsed = new HashSet<String>();
+			this.methodPathsUsed = new HashSet<String>();
 		}
 		
 		/**
 		 * Constructs a visitor for an embedded object.
 		 * @param setterChain is the root of the setter chain
 		 */
-		public Visitor(Setter setterChain, String prefix)
+		public Visitor(Setter setterChain, String prefix, Set<String> fieldPathsUsed, Set<String> methodPathsUsed)
 		{
 			this.setterChain = setterChain;
 			this.prefix = prefix;
 			this.embedded = true;
+			
+			this.fieldPathsUsed = fieldPathsUsed;
+			this.methodPathsUsed = methodPathsUsed;
 		}
 		
 		/**
@@ -139,7 +149,7 @@ public class Transmog<T>
 			{
 				List<String> collisions = makeCollisions(paths, path);
 				LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), collisions);
-				this.addRootSetter(path, setter);
+				this.addRootSetter(path, setter, true);
 			}
 		}
 		
@@ -166,7 +176,7 @@ public class Transmog<T>
 						EmbeddedMultivalueSetter setter = new EmbeddedArraySetter(field, path, collisions);
 						this.addNullIndexSetter(setter, path, collisions);
 						
-						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path, this.fieldPathsUsed, this.methodPathsUsed);
 						visitor.visitClass(visitType);
 					}
 				}
@@ -180,7 +190,7 @@ public class Transmog<T>
 						EmbeddedMultivalueSetter setter = new EmbeddedCollectionSetter(field, path, collisions);
 						this.addNullIndexSetter(setter, path, collisions);
 						
-						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path, this.fieldPathsUsed, this.methodPathsUsed);
 						visitor.visitClass(visitType);
 					}
 				}
@@ -193,7 +203,7 @@ public class Transmog<T>
 						List<String> collisions = makeCollisions(paths, path);
 						Setter setter = new EmbeddedClassSetter(field, collisions);
 						
-						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path, this.fieldPathsUsed, this.methodPathsUsed);
 						visitor.visitClass(visitType);
 					}
 				}
@@ -204,7 +214,7 @@ public class Transmog<T>
 				{
 					List<String> collisions = makeCollisions(paths, path);
 					LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field), collisions);
-					this.addRootSetter(path, setter);
+					this.addRootSetter(path, setter, false);
 				}
 			}
 		}
@@ -250,19 +260,32 @@ public class Transmog<T>
 		void addNullIndexSetter(EmbeddedMultivalueSetter setter, String path, Collection<String> collisionPaths)
 		{
 			EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter(setter, path, collisionPaths);
-			this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
+			this.addRootSetter(TypeUtils.getNullIndexPath(path), nes, false);
 		}
 		
 		/**
 		 * Takes a final leaf setter, extends the setter chain so far, and 
 		 * Adds a final leaf setter to the setters collection.
 		 * @param fullPath is the whole "blah.blah.blah" path for this property
+		 * @param method is true if this is setting a method, false if setting a field
 		 */
-		void addRootSetter(String fullPath, Setter setter)
+		void addRootSetter(String fullPath, Setter setter, boolean method)
 		{
-			if (rootSetters.containsKey(fullPath))
-				throw new IllegalStateException("Attempting to create multiple associations for " + fullPath);
-
+			if (method)
+			{
+				if (this.methodPathsUsed.contains(fullPath))
+					throw new IllegalStateException("Attempting to create multiple associations on " + clazz + " for " + fullPath);
+				else
+					this.methodPathsUsed.add(fullPath);
+			}
+			else
+			{
+				if (this.fieldPathsUsed.contains(fullPath) || this.methodPathsUsed.contains(fullPath))
+					throw new IllegalStateException("Attempting to create multiple associations on " + clazz + " for " + fullPath);
+				else
+					this.fieldPathsUsed.add(fullPath);
+			}
+			
 			// Extend and strip off the unnecessary (at runtime) SetterRoot
 			Setter chain = this.setterChain.extend(setter).getNext();
 			rootSetters.put(fullPath, chain);
@@ -276,6 +299,7 @@ public class Transmog<T>
 	public Transmog(ObjectifyFactory fact, Class<T> clazz)
 	{
 		this.factory = fact;
+		this.clazz = clazz;
 		
 		// This creates the setters in the rootSetters collection and validates the pojo
 		new Visitor().visitClass(clazz);
