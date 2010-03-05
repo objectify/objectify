@@ -69,7 +69,8 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#filter(java.lang.String, java.lang.Object)
 	 */
-	public QueryImpl<T> filter(String condition, Object value)
+	@Override
+	public Query<T> filter(String condition, Object value)
 	{
 		String[] parts = condition.trim().split(" ");
 		if (parts.length < 1 || parts.length > 2)
@@ -133,6 +134,7 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#order(java.lang.String)
 	 */
+	@Override
 	public Query<T> order(String condition)
 	{
 		condition = condition.trim();
@@ -160,7 +162,8 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#ancestor(java.lang.Object)
 	 */
-	public QueryImpl<T> ancestor(Object keyOrEntity)
+	@Override
+	public Query<T> ancestor(Object keyOrEntity)
 	{
 		this.actual.setAncestor(this.factory.getRawKey(keyOrEntity));
 		return this;
@@ -169,6 +172,7 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#limit(int)
 	 */
+	@Override
 	public Query<T> limit(int value)
 	{
 		this.limit = value;
@@ -178,6 +182,7 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#offset(int)
 	 */
+	@Override
 	public Query<T> offset(int value)
 	{
 		this.offset = value;
@@ -197,6 +202,7 @@ public class QueryImpl<T> implements Query<T>
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
+	@Override
 	public String toString()
 	{
 		StringBuilder bld = new StringBuilder(this.getClass().getName());
