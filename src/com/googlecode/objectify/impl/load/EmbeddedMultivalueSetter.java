@@ -28,9 +28,9 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 	String path;
 	
 	/** */
-	public EmbeddedMultivalueSetter(Field field, String path, String collisionPath)
+	public EmbeddedMultivalueSetter(Field field, String path, Collection<String> collisionPaths)
 	{
-		super(collisionPath);
+		super(collisionPaths);
 		
 		assert TypeUtils.isEmbedded(field);
 		assert TypeUtils.isArrayOrCollection(field.getType());

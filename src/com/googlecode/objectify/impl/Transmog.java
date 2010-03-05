@@ -2,14 +2,20 @@ package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.OldName;
+import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
+import com.googlecode.objectify.impl.TypeUtils.MethodMetadata;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
@@ -111,26 +117,30 @@ public class Transmog<T>
 		public void visitClass(Class<?> clazz)
 		{
 			// Only good fields come back from this method call
-			List<Field> fields = TypeUtils.getPesistentFields(clazz);
-			for (Field field: fields)
-				this.visitField(field);
+			List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz);
+			for (FieldMetadata meta: fields)
+				this.visitField(meta.field, meta.names);
 
 			// Only good methods come back from this method call
-			Map<String, Method> methods = TypeUtils.getOldNameMethods(clazz);
-			for (Map.Entry<String, Method> method: methods.entrySet())
-				this.visitMethod(method.getKey(), method.getValue());
+			List<MethodMetadata> methods = TypeUtils.getAlsoLoadMethods(clazz);
+			for (MethodMetadata meta: methods)
+				this.visitMethod(meta.method, meta.names);
 		}
 		
 		/**
-		 * @param name is the oldName value
-		 * @param method must be a proper @OldName field.
+		 * @param method must be a proper @AlsoLoad method.
+		 * @param names are all the property names which should be used to call the method
 		 */
-		void visitMethod(String name, Method method)
+		void visitMethod(Method method, Collection<String> names)
 		{
-			String path = TypeUtils.extendPropertyPath(this.prefix, name);
-			LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), null);
+			List<String> paths = this.namesToPaths(names);
 			
-			this.addRootSetter(path, setter);
+			for (String path: paths)
+			{
+				List<String> collisions = makeCollisions(paths, path);
+				LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), collisions);
+				this.addRootSetter(path, setter);
+			}
 		}
 		
 		/**
@@ -140,81 +150,96 @@ public class Transmog<T>
 		 * 
 		 * @param field must be a proper persistable field.
 		 */
-		void visitField(Field field)
+		void visitField(Field field, Collection<String> names)
 		{
-			String path = TypeUtils.extendPropertyPath(this.prefix, field.getName());
-			
+			List<String> paths = this.namesToPaths(names);
+
 			if (TypeUtils.isEmbedded(field))
 			{
-				// Might have one of these,
-				OldName oldName = field.getAnnotation(OldName.class);
-				
 				if (field.getType().isArray())
 				{
 					Class<?> visitType = field.getType().getComponentType();
-					
-					EmbeddedMultivalueSetter setter = new EmbeddedArraySetter(field, path, null);
-					this.addNullIndexSetter(setter, path, null);
-					
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(visitType);
-					
-					if (oldName != null)
+
+					for (String path: paths)
 					{
-						EmbeddedMultivalueSetter oldNameSetter = new EmbeddedArraySetter(field, oldName.value(), path);
-						this.addNullIndexSetter(oldNameSetter, oldName.value(), path);
+						List<String> collisions = makeCollisions(paths, path);
+						EmbeddedMultivalueSetter setter = new EmbeddedArraySetter(field, path, collisions);
+						this.addNullIndexSetter(setter, path, collisions);
 						
-						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
-						oldNameVisitor.visitClass(visitType);
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						visitor.visitClass(visitType);
 					}
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
 					Class<?> visitType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-					
-					EmbeddedMultivalueSetter setter = new EmbeddedCollectionSetter(field, path, null);
-					this.addNullIndexSetter(setter, path, null);
-					
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(visitType);
-					
-					if (oldName != null)
+
+					for (String path: paths)
 					{
-						EmbeddedMultivalueSetter oldNameSetter = new EmbeddedCollectionSetter(field, oldName.value(), path);
-						this.addNullIndexSetter(oldNameSetter, oldName.value(), path);
+						List<String> collisions = makeCollisions(paths, path);
+						EmbeddedMultivalueSetter setter = new EmbeddedCollectionSetter(field, path, collisions);
+						this.addNullIndexSetter(setter, path, collisions);
 						
-						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
-						oldNameVisitor.visitClass(visitType);
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						visitor.visitClass(visitType);
 					}
 				}
 				else	// basic class
 				{
 					Class<?> visitType = field.getType();
-					Setter setter = new EmbeddedClassSetter(field, null);
 					
-					Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
-					visitor.visitClass(visitType);
-					
-					if (oldName != null)
+					for (String path: paths)
 					{
-						Visitor oldNameVisitor = new Visitor(this.setterChain.extend(setter), oldName.value());
-						oldNameVisitor.visitClass(visitType);
+						List<String> collisions = makeCollisions(paths, path);
+						Setter setter = new EmbeddedClassSetter(field, collisions);
+						
+						Visitor visitor = new Visitor(this.setterChain.extend(setter), path);
+						visitor.visitClass(visitType);
 					}
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
-				// Add a root setter based on the leaf setter
-				LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field), null);
-				
-				this.addRootSetter(path, setter);
-				
-				OldName oldName = field.getAnnotation(OldName.class);
-				if (oldName != null)
+				for (String path: paths)
 				{
-					LeafSetter oldNameSetter = new LeafSetter(factory, new FieldWrapper(field), path);
-					this.addRootSetter(TypeUtils.extendPropertyPath(this.prefix, oldName.value()), oldNameSetter);	// alternate path
+					List<String> collisions = makeCollisions(paths, path);
+					LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field), collisions);
+					this.addRootSetter(path, setter);
 				}
+			}
+		}
+		
+		/**
+		 * Translates names to paths based on the current path prefix.
+		 */
+		private List<String> namesToPaths(Collection<String> names)
+		{
+			List<String> paths = new ArrayList<String>();
+			for (String name: names)
+				paths.add(TypeUtils.extendPropertyPath(this.prefix, name));
+			
+			return paths;
+		}
+		
+		/** 
+		 * Make the list of collisions given the paths without the path; return null
+		 * if there is only one path (no collisions). Note that the return type
+		 * is always a list because at runtime we want fast iteration.
+		 */
+		private List<String> makeCollisions(Collection<String> paths, String forPath)
+		{
+			if (paths.size() > 1)
+			{
+				List<String> collisions = new ArrayList<String>(paths.size()-1);
+				for (String path: paths)
+					if (!path.equals(forPath))
+						collisions.add(path);
+
+				return collisions;
+			}
+			else
+			{
+				return null;
 			}
 		}
 		
@@ -222,9 +247,9 @@ public class Transmog<T>
 		 * Embedded collections need a null index setter to handle the case of an all-null
 		 * collection.
 		 */
-		void addNullIndexSetter(EmbeddedMultivalueSetter setter, String path, String collisionPath)
+		void addNullIndexSetter(EmbeddedMultivalueSetter setter, String path, Collection<String> collisionPaths)
 		{
-			EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter(setter, path, collisionPath);
+			EmbeddedNullIndexSetter nes = new EmbeddedNullIndexSetter(setter, path, collisionPaths);
 			this.addRootSetter(TypeUtils.getNullIndexPath(path), nes);
 		}
 		

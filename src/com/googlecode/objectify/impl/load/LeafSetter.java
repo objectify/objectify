@@ -112,9 +112,9 @@ public class LeafSetter extends CollisionDetectingSetter
 	boolean serialized;
 	
 	/** */
-	public LeafSetter(ObjectifyFactory fact, Wrapper field, String collisionPath)
+	public LeafSetter(ObjectifyFactory fact, Wrapper field, Collection<String> collisionPaths)
 	{
-		super(collisionPath);
+		super(collisionPaths);
 		
 		this.factory = fact;
 		this.field = field;

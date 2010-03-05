@@ -9,11 +9,10 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -23,6 +22,7 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialized;
@@ -34,6 +34,29 @@ public class TypeUtils
 {
 	/** We do not persist fields with any of these modifiers */
 	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
+	
+	/**
+	 * Simple container that groups the names associated with fields.  Names
+	 * will include the actual name of the field.
+	 */
+	public static class FieldMetadata
+	{
+		public Set<String> names = new HashSet<String>();
+		public Field field;
+		
+		public FieldMetadata(Field f) { this.field = f; }
+	}
+
+	/**
+	 * Simple container that groups the names associated with @AlsoLoad methods.
+	 */
+	public static class MethodMetadata
+	{
+		public Set<String> names = new HashSet<String>();
+		public Method method;
+		
+		public MethodMetadata(Method meth) { this.method = meth; }
+	}
 
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
@@ -281,9 +304,9 @@ public class TypeUtils
 	 *  All fields will be set accessable, and returned in order starting with superclass
 	 *  fields.
 	 */
-	public static List<Field> getPesistentFields(Class<?> clazz)
+	public static List<FieldMetadata> getPesistentFields(Class<?> clazz)
 	{
-		List<Field> goodFields = new ArrayList<Field>();
+		List<FieldMetadata> goodFields = new ArrayList<FieldMetadata>();
 
 		getPersistentFields(clazz, goodFields);
 		
@@ -291,7 +314,7 @@ public class TypeUtils
 	}
 	
 	/** Recursive implementation of getPersistentFields() */
-	private static void getPersistentFields(Class<?> clazz, List<Field> goodFields)
+	private static void getPersistentFields(Class<?> clazz, List<FieldMetadata> goodFields)
 	{
 		if (clazz == null || clazz == Object.class)
 			return;
@@ -306,69 +329,114 @@ public class TypeUtils
 			{
 				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialized.class))
 					throw new IllegalStateException("Cannot have @Embedded and @Serialized on the same field! Check " + field);
+
+				FieldMetadata metadata = new FieldMetadata(field);
+				metadata.names.add(field.getName());
+				
+				// Now any additional names, either @AlsoLoad or the deprecated @OldName
+				AlsoLoad alsoLoad = field.getAnnotation(AlsoLoad.class);
+				if (alsoLoad != null)
+					if (alsoLoad.value() == null || alsoLoad.value().length == 0)
+						throw new IllegalStateException("Illegal value '" + Arrays.toString(alsoLoad.value()) + "' in @AlsoLoad for " + field);
+					else
+						for (String value: alsoLoad.value())
+							if (value == null || value.trim().length() == 0)
+								throw new IllegalStateException("Illegal value '" + value + "' in @AlsoLoad for " + field);
+							else
+								metadata.names.add(value);
+
+				// TODO: delete this code in a subsequent version
+				OldName oldName = field.getAnnotation(OldName.class);
+				if (oldName != null)
+					if (oldName.value() == null || oldName.value().trim().length() == 0)
+						throw new IllegalStateException("Illegal value '" + oldName.value() + "' in @OldName for " + field);
+					else
+						metadata.names.add(oldName.value());
 				
 				field.setAccessible(true);
-				goodFields.add(field);
+				goodFields.add(metadata);
 			}
 		}
 	}
 	
 	/**
 	 * Get all the methods that are appropriate for saving into on this
-	 * class and all superclasses.  Validates that @OldName methods are
+	 * class and all superclasses.  Validates that @AlsoLoad methods are
 	 * properly created (one parameter, not @Embedded).
 	 * 
-	 * @return all the correctly specified @OldName methods.  Methods will be set accessable.
+	 * @return all the correctly specified @AlsoLoad and @OldName methods.
+	 *  Methods will be set accessable.  Key will be the immediate name in the annotation.
 	 */
-	public static Map<String, Method> getOldNameMethods(Class<?> clazz)
+	public static List<MethodMetadata> getAlsoLoadMethods(Class<?> clazz)
 	{
-		Map<String, Method> goodMethods = new HashMap<String, Method>();
+		List<MethodMetadata> goodMethods = new ArrayList<MethodMetadata>();
 
-		getOldNameMethods(clazz, goodMethods);
+		getAlsoLoadMethods(clazz, goodMethods);
 		
 		return goodMethods;
 	}
 	
-	/** Recursive implementation of getPersistentMethods() */
-	private static void getOldNameMethods(Class<?> clazz, Map<String, Method> goodMethods)
+	/** Recursive implementation of getAlsoLoadMethods() */
+	private static void getAlsoLoadMethods(Class<?> clazz, List<MethodMetadata> goodMethods)
 	{
 		if (clazz == null || clazz == Object.class)
 			return;
 		
-		getOldNameMethods(clazz.getSuperclass(), goodMethods);
+		getAlsoLoadMethods(clazz.getSuperclass(), goodMethods);
 		
 		for (Method method: clazz.getDeclaredMethods())
 		{
 			// This seems like a good idea
 			if (method.isAnnotationPresent(Embedded.class))
 				throw new IllegalStateException("@Embedded is not a legal annotation for methods");
+
+			MethodMetadata metadata = new MethodMetadata(method);
 			
 			for (Annotation[] paramAnnotations: method.getParameterAnnotations())
 			{
-				for (Annotation maybeOldName: paramAnnotations)
+				for (Annotation ann: paramAnnotations)
 				{
-					if (maybeOldName instanceof OldName)
+					if (ann instanceof OldName || ann instanceof AlsoLoad)
 					{
 						// Method must have only one parameter
 						if (method.getParameterTypes().length != 1)
-							throw new IllegalStateException("@OldName methods must have a single parameter. Can't use " + method);
+							throw new IllegalStateException("@AlsoLoad methods must have a single parameter. Can't use " + method);
 						
 						// Parameter cannot be @Embedded
 						for (Annotation maybeEmbedded: paramAnnotations)
 							if (maybeEmbedded instanceof Embedded)
-								throw new IllegalStateException("@Embedded cannot be used on @OldName methods. The offender is " + method);
+								throw new IllegalStateException("@Embedded cannot be used on @AlsoLoad methods. The offender is " + method);
 						
 						// It's good, let's add it
 						method.setAccessible(true);
 						
-						OldName oldName = (OldName)maybeOldName;
-						if (oldName.value() == null || oldName.value().length() == 0)
-							throw new IllegalStateException("@OldName must have a value on " + method);
-						
-						goodMethods.put(oldName.value(), method);
+						if (ann instanceof AlsoLoad)
+						{
+							AlsoLoad alsoLoad = (AlsoLoad)ann;
+							if (alsoLoad.value() == null || alsoLoad.value().length == 0)
+								throw new IllegalStateException("@AlsoLoad must have a value on " + method);
+							
+							for (String name: alsoLoad.value())
+							{
+								if (name == null || name.trim().length() == 0)
+									throw new IllegalStateException("Illegal value '" + name + "' in @AlsoLoad for " + method);
+								
+								metadata.names.add(name);
+							}
+						}
+						else if (ann instanceof OldName)
+						{
+							OldName oldName = (OldName)ann;
+							if (oldName.value() == null || oldName.value().trim().length() == 0)
+								throw new IllegalStateException("@OldName must have a value on " + method);
+							
+							metadata.names.add(oldName.value());
+						}
 					}
 				}
 			}
+			
+			goodMethods.add(metadata);
 		}
 	}
 }

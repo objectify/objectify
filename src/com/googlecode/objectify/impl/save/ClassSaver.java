@@ -8,8 +8,10 @@ import java.util.List;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Indexed;
+import com.googlecode.objectify.annotation.LoadOnly;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 
 /**
  * <p>Save which discovers how to save a class, either root pojo or embedded.</p>
@@ -53,10 +55,14 @@ public class ClassSaver implements Saver
 				inheritedIndexed = false;
 		}
 		
-		List<Field> fields = TypeUtils.getPesistentFields(clazz);
+		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz);
 
-		for (Field field: fields)
+		for (FieldMetadata metadata: fields)
 		{
+			Field field = metadata.field;
+			if (field.isAnnotationPresent(LoadOnly.class))
+				continue;
+			
 			if (TypeUtils.isEmbedded(field))
 			{
 				if (field.getType().isArray())

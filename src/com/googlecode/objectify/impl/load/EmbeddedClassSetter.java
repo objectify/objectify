@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.Collection;
 
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -17,9 +18,9 @@ public class EmbeddedClassSetter extends CollisionDetectingSetter
 	Constructor<?> ctor;
 
 	/** */
-	public EmbeddedClassSetter(Field field, String collisionPath)
+	public EmbeddedClassSetter(Field field, Collection<String> collisionPaths)
 	{
-		super(collisionPath);
+		super(collisionPaths);
 		
 		this.field = field;
 		this.ctor = TypeUtils.getNoArgConstructor(field.getType());

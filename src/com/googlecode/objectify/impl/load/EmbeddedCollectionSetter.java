@@ -19,9 +19,9 @@ public class EmbeddedCollectionSetter extends EmbeddedMultivalueSetter
 	Constructor<?> componentTypeCtor;
 
 	/** */
-	public EmbeddedCollectionSetter(Field field, String path, String collsionPath)
+	public EmbeddedCollectionSetter(Field field, String path, Collection<String> collsionPaths)
 	{
-		super(field, path, collsionPath);
+		super(field, path, collsionPaths);
 
 		assert Collection.class.isAssignableFrom(field.getType());
 		

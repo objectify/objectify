@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.load;
 
+import java.util.Collection;
 import java.util.Collections;
 
 import com.googlecode.objectify.impl.LoadContext;
@@ -18,9 +19,9 @@ public class EmbeddedNullIndexSetter extends CollisionDetectingSetter
 	EmbeddedMultivalueSetter implementation;
 	
 	/** */
-	public EmbeddedNullIndexSetter(EmbeddedMultivalueSetter impl, String basePath, String collisionPath)
+	public EmbeddedNullIndexSetter(EmbeddedMultivalueSetter impl, String basePath, Collection<String> collisionPaths)
 	{
-		super(collisionPath);
+		super(collisionPaths);
 		
 		this.implementation = impl;
 		this.basePath = basePath;

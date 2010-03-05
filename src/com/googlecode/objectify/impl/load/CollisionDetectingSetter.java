@@ -1,10 +1,12 @@
 package com.googlecode.objectify.impl.load;
 
+import java.util.Collection;
+
 import com.googlecode.objectify.impl.LoadContext;
 
 /**
  * <p>Base for setters which perform rudimentary collision detection.  This is how
- * {@code @OldName} values avoid stepping on the normally loaded values.</p> 
+ * {@code @AlsoLoad} values avoid stepping on the normally loaded values.</p> 
  */
 abstract public class CollisionDetectingSetter extends Setter
 {
@@ -12,14 +14,14 @@ abstract public class CollisionDetectingSetter extends Setter
 	 * If non-null check this field in the entity to see if we're stepping on someone
 	 * else's field.  This prevents {@code @OldName} values from overwriting normal ones.
 	 */
-	String collisionPath;
+	Collection<String> collisionPaths;
 	
 	/**
 	 * @param collisionPath can be null
 	 */
-	public CollisionDetectingSetter(String collisionPath)
+	public CollisionDetectingSetter(Collection<String> collisionPaths)
 	{
-		this.collisionPath = collisionPath;
+		this.collisionPaths = collisionPaths;
 	}
 	
 	/* (non-Javadoc)
@@ -27,9 +29,10 @@ abstract public class CollisionDetectingSetter extends Setter
 	 */
 	public final void set(Object toPojo, Object value, LoadContext context)
 	{
-		if (this.collisionPath != null)
-			if (context.getEntity().hasProperty(this.collisionPath))
-				throw new IllegalStateException("Tried to load the same field twice.  Check the path " + this.collisionPath + " in entity " + context.getEntity().toString());
+		if (this.collisionPaths != null)
+			for (String collPath: this.collisionPaths)
+				if (context.getEntity().hasProperty(collPath))
+					throw new IllegalStateException("Tried to load the same field twice.  Check the path " + collPath + " in entity " + context.getEntity().toString());
 
 		this.safeSet(toPojo, value, context);
 	}
