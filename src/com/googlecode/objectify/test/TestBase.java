@@ -26,6 +26,7 @@ import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Employee;
+import com.googlecode.objectify.test.entity.HasAlsoLoads;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.HasEnums;
@@ -79,6 +80,7 @@ public class TestBase
 		this.fact.register(Trivial.class);
 		this.fact.register(NamedTrivial.class);
 		this.fact.register(HasOldNames.class);
+		this.fact.register(HasAlsoLoads.class);
 		this.fact.register(Child.class);
 		this.fact.register(Employee.class);
 		this.fact.register(HasArrays.class);
