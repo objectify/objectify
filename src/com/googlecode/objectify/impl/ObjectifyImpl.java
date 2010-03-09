@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -58,13 +58,16 @@ public class ObjectifyImpl implements Objectify
 			rawKeys.add(this.factory.typedKeyToRawKey(obKey));
 			
 		Map<com.google.appengine.api.datastore.Key, Entity> entities = this.ds.get(this.txn, rawKeys);
-		Map<Key<T>, T> result = new HashMap<Key<T>, T>(entities.size() * 2);
-		
-		for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: entities.entrySet())
+		Map<Key<T>, T> result = new LinkedHashMap<Key<T>, T>(entities.size() * 2);
+
+		for (com.google.appengine.api.datastore.Key rawKey : rawKeys)
 		{
-			EntityMetadata metadata = this.factory.getMetadata(entry.getKey());
-			Key<T> obKey = this.factory.rawKeyToTypedKey(entry.getKey());
-			result.put(obKey, (T)metadata.toObject(entry.getValue()));
+			Entity entity = entities.get(rawKey);
+			if (entity != null) {
+				EntityMetadata metadata = this.factory.getMetadata(rawKey);
+				Key<T> obKey = this.factory.rawKeyToTypedKey(rawKey);
+				result.put(obKey, (T)metadata.toObject(entity));
+			}
 		}
 		
 		return result;

@@ -22,9 +22,15 @@ public interface Objectify
 	/**
 	 * Performs a batch get, returning your typed objects.  Yes, the generic
 	 * syntax is crazy, but it means you can pass in a list of OKeys.
-	 * 
+	 *
+	 * The iteration order of the result will match the order in the argument (although
+	 * it may not contain all the elements of the argument if they could not be found
+	 * in the datastore).
+	 *
 	 * @param keys are the keys to fetch; you can mix and match the types of objects.
-	 * @return a empty map if no keys are found in the datastore.
+	 * @return the keys that were found in the datastore, mapped to the related entity.
+	 * The iteration order of the map will match the order of the <code>keys</code> argument.
+	 * A empty map is returned if no keys are found in the datastore.
 	 * @see DatastoreService#get(Iterable)
 	 */
 	<T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys);
