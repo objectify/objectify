@@ -129,14 +129,15 @@ public interface Query<T> extends QueryResultIterable<T>
 	public QueryResultIterable<Key<T>> fetchKeys();
 	
 	/**
-	 * Execute the query as keys only and get the parent keys.
+	 * Execute a keys-only query and then extract parent keys, returning them as a Set.
 	 * 
 	 * @throws IllegalStateException if any member of the query result does not have a parent. 
 	 */
 	public <V> Set<Key<V>> fetchParentKeys();
 	
 	/**
-	 * Gets the parent keys and then fetches the actual 
+	 * Gets the parent keys and then fetches the actual entities.  This is the same
+	 * as calling {@code ofy.get(query.fetchParentKeys())}.
 	 * 
 	 * @throws IllegalStateException if any member of the query result does not have a parent. 
 	 */
