@@ -2,7 +2,10 @@ package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
@@ -376,6 +379,35 @@ public class QueryImpl<T> implements Query<T>
 			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(), true);
 		else
 			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(opts), true);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetchParentKeys()
+	 */
+	@Override
+	public <V> Set<Key<V>> fetchParentKeys()
+	{
+		Set<Key<V>> parentKeys = new HashSet<Key<V>>();
+		
+		for (Key<T> key: this.fetchKeys())
+		{
+			if (key.getParent() == null)
+				throw new IllegalStateException("Tried to fetch parent from a key that has no parent: " + key);
+			
+			parentKeys.add(key.<V>getParent());
+		}
+		
+		return parentKeys;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetchParents()
+	 */
+	@Override
+	public <V> Map<Key<V>, V> fetchParents()
+	{
+		Set<Key<V>> parentKeys = this.fetchParentKeys();
+		return this.ofy.get(parentKeys);
 	}
 
 	/**

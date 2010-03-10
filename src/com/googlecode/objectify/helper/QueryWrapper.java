@@ -1,5 +1,8 @@
 package com.googlecode.objectify.helper;
 
+import java.util.Map;
+import java.util.Set;
+
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
@@ -98,5 +101,17 @@ public class QueryWrapper<T> implements Query<T>
 	public QueryResultIterable<Key<T>> fetchKeys()
 	{
 		return this.base.fetchKeys();
+	}
+
+	@Override
+	public <V> Set<Key<V>> fetchParentKeys()
+	{
+		return this.base.fetchParentKeys();
+	}
+
+	@Override
+	public <V> Map<Key<V>, V> fetchParents()
+	{
+		return this.base.fetchParents();
 	}
 }

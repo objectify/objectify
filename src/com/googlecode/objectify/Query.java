@@ -1,5 +1,8 @@
 package com.googlecode.objectify;
 
+import java.util.Map;
+import java.util.Set;
+
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
 
@@ -124,6 +127,20 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * fetching the actual results.
 	 */
 	public QueryResultIterable<Key<T>> fetchKeys();
+	
+	/**
+	 * Execute the query as keys only and get the parent keys.
+	 * 
+	 * @throws IllegalStateException if any member of the query result does not have a parent. 
+	 */
+	public <V> Set<Key<V>> fetchParentKeys();
+	
+	/**
+	 * Gets the parent keys and then fetches the actual 
+	 * 
+	 * @throws IllegalStateException if any member of the query result does not have a parent. 
+	 */
+	public <V> Map<Key<V>, V> fetchParents();
 	
 	/**
 	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and <em>offset</em>.</p>
