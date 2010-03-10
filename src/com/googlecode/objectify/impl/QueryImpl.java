@@ -2,8 +2,8 @@ package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -387,7 +387,7 @@ public class QueryImpl<T> implements Query<T>
 	@Override
 	public <V> Set<Key<V>> fetchParentKeys()
 	{
-		Set<Key<V>> parentKeys = new HashSet<Key<V>>();
+		Set<Key<V>> parentKeys = new LinkedHashSet<Key<V>>();
 		
 		for (Key<T> key: this.fetchKeys())
 		{
