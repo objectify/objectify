@@ -84,7 +84,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.moreAliases = new ArrayList<Name>();
 		
 		Criminal fetched = this.putAndGet(crim);
-		assert fetched.aliases == null;
+		assert fetched.aliases == null;	// not valid with caching objectify
 		assert fetched.moreAliases == null;
 
 		// Now check the queries

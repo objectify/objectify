@@ -15,11 +15,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
 
-import com.google.appengine.api.datastore.Entity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasCollections;
@@ -40,7 +40,7 @@ public class CollectionTests extends TestBase
 	/** */
 	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass)
 	{
-		assert coll.getClass() == expectedClass;
+		assert coll.getClass() == expectedClass;	// will fail with caching objectify, this is ok
 
 		assert coll.size() == 3;
 		Iterator<Integer> it = coll.iterator();
@@ -203,7 +203,8 @@ public class CollectionTests extends TestBase
 
 		System.out.println(ofy.getDatastore().get(fact.getRawKey(hc)));
 
-		assert hc.integerList == null;	// not modified
+		// This isn't valid with the caching objectify turned on
+		assert hc.integerList == null;
 
 		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
 		// rule : never store an empty collection

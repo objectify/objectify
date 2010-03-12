@@ -40,7 +40,7 @@ public class LifecycleTests extends TestBase
 		
 		assert fetched.prePersisted;
 		assert fetched.prePersistedWithParam;
-		assert fetched.postLoaded;
+		assert fetched.postLoaded;	// will fail with caching objectify, this is ok
 		assert fetched.postLoadedWithParam;
 	}
 }

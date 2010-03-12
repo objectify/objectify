@@ -42,7 +42,7 @@ public class TransientTests extends TestBase
 
 		assert "saved".equals(o.name);
 		assert o.transientKeyword == 42;
-		assert o.transientAnnotation == 0;
+		assert o.transientAnnotation == 0;	// fails with caching objectify, this is ok
 
 		Entity e = ofy.getDatastore().get(fact.typedKeyToRawKey(k));
 

@@ -308,7 +308,7 @@ public class QueryTests extends TestBase
 		
 		Iterator<Child> it = ofy.<Child>query().ancestor(trivKey).iterator();
 
-		assert it.hasNext();
+		assert it.hasNext();	// fails due to known GAE SDK bug
 		Child fetched = it.next();
 		assert !it.hasNext();
 		assert child.getId().equals(fetched.getId()); 
