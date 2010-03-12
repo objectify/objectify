@@ -108,7 +108,8 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		Map<Key<Trivial>, Trivial> keys = ofy.put(objs);
+		Map<Key<Trivial>, Trivial> map = ofy.put(objs);
+		List<Key<Trivial>> keys = new ArrayList<Key<Trivial>>(map.keySet());
 
 		// Verify the put keys
 		assert keys.size() == objs.size();
@@ -118,7 +119,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy.get(keys.keySet());
+		Map<Key<Trivial>, Trivial> fetched = ofy.get(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
