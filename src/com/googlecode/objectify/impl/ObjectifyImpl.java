@@ -177,7 +177,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#put(java.lang.Iterable)
 	 */
 	@Override
-	public <T> List<Key<T>> put(Iterable<? extends T> objs)
+	public <T> Map<Key<T>, T> put(Iterable<? extends T> objs)
 	{
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (T obj: objs)
@@ -188,7 +188,7 @@ public class ObjectifyImpl implements Objectify
 		
 		List<com.google.appengine.api.datastore.Key> rawKeys = this.ds.put(this.txn, entityList);
 		
-		List<Key<T>> obKeys = new ArrayList<Key<T>>(rawKeys.size());
+		Map<Key<T>, T> result = new LinkedHashMap<Key<T>, T>(rawKeys.size() * 2);
 		
 		// Patch up any generated keys in the original objects while building new key list
 		Iterator<com.google.appengine.api.datastore.Key> keysIt = rawKeys.iterator();
@@ -199,10 +199,10 @@ public class ObjectifyImpl implements Objectify
 			metadata.setKey(obj, k);
 			
 			Key<T> obKey = this.factory.rawKeyToTypedKey(k);
-			obKeys.add(obKey);
+			result.put(obKey, obj);
 		}
 		
-		return obKeys;
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -283,6 +283,15 @@ public class ObjectifyImpl implements Objectify
 	public DatastoreService getDatastore()
 	{
 		return this.ds;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getFactory()
+	 */
+	@Override
+	public ObjectifyFactory getFactory()
+	{
+		return this.factory;
 	}
 
 }

@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -89,7 +88,7 @@ public interface Objectify
 	 * with that key.  You can mix and match the types of objects stored.
 	 * @see DatastoreService#put(Iterable) 
 	 */
-	<T> List<Key<T>> put(Iterable<? extends T> objs);
+	<T> Map<Key<T>, T> put(Iterable<? extends T> objs);
 	
 	/**
 	 * Deletes the specified entity.  The object passed in can be either a Key
@@ -144,5 +143,10 @@ public interface Objectify
 	 *  or examine thread local transactions.
 	 */
 	public DatastoreService getDatastore();
+	
+	/**
+	 * @return the ObjectifyFactory associated with this Objectify instance.
+	 */
+	public ObjectifyFactory getFactory();
 	
 }

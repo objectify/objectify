@@ -4,7 +4,6 @@
 
 package com.googlecode.objectify.helper;
 
-import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -12,6 +11,7 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
 
 
@@ -86,7 +86,7 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
-	public <T> List<Key<T>> put(Iterable<? extends T> objs)
+	public <T> Map<Key<T>, T> put(Iterable<? extends T> objs)
 	{
 		return this.base.put(objs);
 	}
@@ -137,5 +137,11 @@ public class ObjectifyWrapper implements Objectify
 	public DatastoreService getDatastore()
 	{
 		return this.base.getDatastore();
+	}
+
+	@Override
+	public ObjectifyFactory getFactory()
+	{
+		return this.base.getFactory();
 	}
 }

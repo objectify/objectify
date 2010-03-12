@@ -8,14 +8,15 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.QueryResultIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
@@ -53,7 +54,9 @@ public class QueryTests extends TestBase
 		trivs.add(this.triv2);
 		
 		Objectify ofy = this.fact.begin();
-		this.keys = ofy.put(trivs);
+		Map<Key<Trivial>, Trivial> result = ofy.put(trivs);
+
+		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
 	}	
 	
 	/** */

@@ -70,9 +70,9 @@ public class CachingTests extends TestBase
 		
 		Objectify ofy = this.fact.begin();
 		
-		List<Key<Object>> keys = ofy.put(entities);
+		Map<Key<Object>, Object> keys = ofy.put(entities);
 		
-		Map<Key<Object>, Object> fetched = ofy.get(keys);
+		Map<Key<Object>, Object> fetched = ofy.get(keys.keySet());
 		
 		assert fetched.size() == 4;
 		assert fetched.containsKey(this.fact.getKey(un1));
