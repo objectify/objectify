@@ -18,7 +18,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.test.entity.HasAlsoLoads;
 
 /**
  * More tests of using the @AlsoLoad annotation

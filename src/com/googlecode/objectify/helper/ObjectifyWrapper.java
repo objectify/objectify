@@ -56,7 +56,7 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
-	public <T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames)
+	public <S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> idsOrNames)
 	{
 		return this.base.get(clazz, idsOrNames);
 	}

@@ -108,7 +108,8 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, java.lang.Iterable)
 	 */
 	@Override
-	public <T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> ids)
+	@SuppressWarnings("unchecked")
+	public <S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> ids)
 	{
 		List<Key<? extends T>> keys = new ArrayList<Key<? extends T>>();
 		
@@ -122,7 +123,16 @@ public class ObjectifyImpl implements Objectify
 				throw new IllegalArgumentException("Only Long or String is allowed, not " + id.getClass().getName() + " (" + id + ")");
 		}
 		
-		return this.get(keys);
+		Map<Key<T>, T> fetched = this.get(keys);
+		Map<S, T> result = new LinkedHashMap<S, T>(fetched.size() * 2);
+		
+		for (Map.Entry<Key<T>, T> entry: fetched.entrySet())
+		{
+			Object mapKey = entry.getKey().getName() != null ? entry.getKey().getName() : entry.getKey().getId();
+			result.put((S)mapKey, entry.getValue());
+		}
+		
+		return result;
 	}
 	
 	/* (non-Javadoc)

@@ -56,13 +56,14 @@ public interface Objectify
 	/**
 	 * This is a convenience method that prevents you from having to assemble all the Keys
 	 * yourself and calling get(Iterable<Key>).  Note that unlike that method, this method
-	 * only deletes a homogeneous set of objects.
+	 * only gets a homogeneous set of objects.
 	 * 
 	 * @param idsOrNames <b>must</b> be of type Iterable<Long> (which translates to id keys)
 	 *  or of type Iterable<String> (which translates to name keys).
+	 * @return a map of the id/name to the entity pojo.
 	 * @throws IllegalArgumentException if ids is not Iterable<Long> or Iterable<String>
 	 */
-	<T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames);
+	<S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> idsOrNames);
 	
 	/** Identical to get(Key) but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Key<? extends T> key);

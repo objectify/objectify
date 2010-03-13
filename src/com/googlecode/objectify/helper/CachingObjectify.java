@@ -102,7 +102,8 @@ public class CachingObjectify extends ObjectifyWrapper
 		return this.get(new Key<T>(clazz, name));	}
 	
 	@Override
-	public <T> Map<Key<T>, T> get(Class<? extends T> clazz, Iterable<?> idsOrNames)
+	@SuppressWarnings("unchecked")
+	public <S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> idsOrNames)
 	{
 		List<Key<? extends T>> keys = new ArrayList<Key<? extends T>>();
 		
@@ -116,7 +117,16 @@ public class CachingObjectify extends ObjectifyWrapper
 				throw new IllegalArgumentException("Only Long or String is allowed, not " + id.getClass().getName() + " (" + id + ")");
 		}
 		
-		return this.get(keys);
+		Map<Key<T>, T> fetched = this.get(keys);
+		Map<S, T> result = new LinkedHashMap<S, T>(fetched.size() * 2);
+		
+		for (Map.Entry<Key<T>, T> entry: fetched.entrySet())
+		{
+			Object mapKey = entry.getKey().getName() != null ? entry.getKey().getName() : entry.getKey().getId();
+			result.put((S)mapKey, entry.getValue());
+		}
+		
+		return result;
 	}
 	
 	@Override

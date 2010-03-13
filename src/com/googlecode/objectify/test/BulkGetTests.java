@@ -16,7 +16,8 @@ import java.util.Map;
 public class BulkGetTests extends TestBase
 {
     /** */
-    @Test
+	@Test
+    @SuppressWarnings("unchecked")
     public void testOrderOfBulkGet()
     {
         Objectify ofy = this.fact.begin();
