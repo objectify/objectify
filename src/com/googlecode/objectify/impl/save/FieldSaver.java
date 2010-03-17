@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.annotation.Unsaved;
+import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.impl.TypeUtils;
 
@@ -23,7 +24,7 @@ abstract public class FieldSaver implements Saver
 	If<?>[] unsavedConditions;
 	
 	/** */
-	public FieldSaver(String pathPrefix, Field field, boolean inheritedIndexed)
+	public FieldSaver(String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
 		if (field.isAnnotationPresent(Indexed.class) && field.isAnnotationPresent(Unindexed.class))
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
@@ -45,14 +46,17 @@ abstract public class FieldSaver implements Saver
 		}
 		
 		// Now watch out for @Unsaved conditions
-		Unsaved lo = field.getAnnotation(Unsaved.class);
-		if (lo != null)
+		Unsaved unsaved = field.getAnnotation(Unsaved.class);
+		if (unsaved != null)
 		{
-			this.unsavedConditions = new If<?>[lo.value().length];
+			if (collectionize && (unsaved.value().length != 1 || unsaved.value()[0] != Always.class))
+				throw new IllegalStateException("You cannot use @Unsaved with a condition within @Embedded collections; check the field " + this.field);
 			
-			for (int i=0; i<lo.value().length; i++)
+			this.unsavedConditions = new If<?>[unsaved.value().length];
+			
+			for (int i=0; i<unsaved.value().length; i++)
 			{
-				Class<? extends If<?>> ifClass = lo.value()[i];
+				Class<? extends If<?>> ifClass = unsaved.value()[i];
 				Constructor<? extends If<?>> ctor = TypeUtils.getNoArgConstructor(ifClass);
 				this.unsavedConditions[i] = TypeUtils.newInstance(ctor);
 

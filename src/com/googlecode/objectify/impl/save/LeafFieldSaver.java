@@ -43,7 +43,7 @@ public class LeafFieldSaver extends FieldSaver
 	 */
 	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
-		super(pathPrefix, field, inheritedIndexed);
+		super(pathPrefix, field, inheritedIndexed, collectionize);
 		
 		this.factory = fact;
 		this.collectionize = collectionize;

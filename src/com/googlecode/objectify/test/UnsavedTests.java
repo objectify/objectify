@@ -5,6 +5,7 @@
 
 package com.googlecode.objectify.test;
 
+import javax.persistence.Embedded;
 import javax.persistence.Id;
 
 import org.slf4j.Logger;
@@ -17,6 +18,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unsaved;
+import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 
 /**
@@ -127,6 +129,14 @@ public class UnsavedTests extends TestBase
 		@Unsaved(DeeperIfTrue.class) String foo;
 	}
 	
+	/** Should not be registerable */
+	static class TryToEmbedMe { @Unsaved(IfNull.class) String bar; }
+	static class EmbeddedCollectionWithUnsaved
+	{
+		@Id Long id;
+		@Embedded TryToEmbedMe[] stuff;
+	}
+	
 	/** */
 	@Test
 	public void testNotRegisterable() throws Exception
@@ -141,6 +151,13 @@ public class UnsavedTests extends TestBase
 		try
 		{
 			this.fact.register(DeeperBadFieldType.class);
+			assert false;
+		}
+		catch (IllegalStateException ex) {}
+		
+		try
+		{
+			this.fact.register(EmbeddedCollectionWithUnsaved.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
