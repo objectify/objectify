@@ -59,13 +59,12 @@ public class LeafFieldSaver extends FieldSaver
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Saver#save(java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public void save(Object pojo, Entity entity)
+	public void saveValue(Object value, Entity entity)
 	{
-		Object value = TypeUtils.field_get(this.field, pojo);
 		value = this.prepareForSave(value);
 		
 		// Maybe we are supposed to ignore this

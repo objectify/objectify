@@ -4,7 +4,6 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>Saver which knows how to save simple embedded classes, not arrays or collections.</p>
@@ -27,19 +26,18 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Saver#save(java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
-	public void save(Object pojo, Entity entity)
+	public void saveValue(Object value, Entity entity)
 	{
-		Object embeddedPojo = TypeUtils.field_get(this.field, pojo);
-		if (embeddedPojo == null)
+		if (value == null)
 		{
 			this.setEntityProperty(entity, null);
 		}
 		else
 		{
-			this.classSaver.save(embeddedPojo, entity);
+			this.classSaver.save(value, entity);
 		}
 	}
 }

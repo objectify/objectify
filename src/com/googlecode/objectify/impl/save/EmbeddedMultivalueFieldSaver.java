@@ -44,12 +44,12 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	abstract protected Collection<Object> asCollection(Object arrayOrCollection);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Saver#save(java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
-	final public void save(Object pojo, Entity entity)
+	final public void saveValue(Object value, Entity entity)
 	{
-		Object arrayOrCollection = TypeUtils.field_get(this.field, pojo);
+		Object arrayOrCollection = value;
 		if (arrayOrCollection == null)
 		{
 			// We currently ignore null arrays or collections

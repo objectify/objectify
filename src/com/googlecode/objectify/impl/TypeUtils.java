@@ -163,7 +163,7 @@ public class TypeUtils
 		{
 			if (!collectionField.getType().isInterface())
 			{
-				coll = (Collection<Object>)TypeUtils.class_newInstance(collectionField.getType());
+				coll = (Collection<Object>)TypeUtils.newInstance(collectionField.getType());
 			}
 			else if (SortedSet.class.isAssignableFrom(collectionField.getType()))
 			{
@@ -253,7 +253,7 @@ public class TypeUtils
 	}
 	
 	/** Checked exceptions are LAME. */
-	private static <T> T class_newInstance(Class<T> clazz)
+	public static <T> T newInstance(Class<T> clazz)
 	{
 		try
 		{
