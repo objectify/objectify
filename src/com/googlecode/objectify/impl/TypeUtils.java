@@ -40,6 +40,18 @@ public class TypeUtils
 	/** We do not persist fields with any of these modifiers */
 	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 	
+	/** A map of the primitive types to their wrapper types */
+	static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>();
+	static {
+		PRIMITIVE_TO_WRAPPER.put(boolean.class, Boolean.class);
+		PRIMITIVE_TO_WRAPPER.put(byte.class, Byte.class);
+		PRIMITIVE_TO_WRAPPER.put(short.class, Short.class);
+		PRIMITIVE_TO_WRAPPER.put(int.class, Integer.class);
+		PRIMITIVE_TO_WRAPPER.put(long.class, Long.class);
+		PRIMITIVE_TO_WRAPPER.put(float.class, Float.class);
+		PRIMITIVE_TO_WRAPPER.put(double.class, Double.class);
+	}
+	
 	/**
 	 * Simple container that groups the names associated with fields.  Names
 	 * will include the actual name of the field.
@@ -481,8 +493,9 @@ public class TypeUtils
 	/**
 	 * Get the actual type arguments a child class has used to extend a generic base class.
 	 * See http://www.artima.com/weblogs/viewpost.jsp?thread=208860
+	 * This has additionally been modified to handle base interfaces.
 	 * 
-	 * @param baseClass the base class
+	 * @param baseClass the base class (or interface)
 	 * @param childClass the child class
 	 * @return a list of the raw classes for the actual type arguments.
 	 */
@@ -496,7 +509,29 @@ public class TypeUtils
 			if (type instanceof Class<?>)
 			{
 				// there is no useful information for us in raw types, so just keep going.
-				type = ((Class<?>)type).getGenericSuperclass();
+				Type superType = ((Class<?>)type).getGenericSuperclass();
+				
+				// It's possible that the baseClass is an interface, not part of the superclass hierarchy.
+				// Fortunately we can be guaranteed there is only one of them somewhere in the hierarchy,
+				// so we just need to check the type and all the superinterfaces.
+				Class<?> superClass = getClass(superType);
+				if (baseClass.isAssignableFrom(superClass))
+				{
+					type = superType;
+				}
+				else
+				{
+					// Need to find another option in the interfaces
+					Type[] interfaceTypes = ((Class<?>)type).getGenericInterfaces();
+					for (int i=0; i<interfaceTypes.length; i++)
+					{
+						if (baseClass.isAssignableFrom(getClass(interfaceTypes[i])))
+						{
+							type = interfaceTypes[i];
+							break;
+						}
+					}
+				}
 			}
 			else
 			{
@@ -543,5 +578,16 @@ public class TypeUtils
 		
 		return typeArgumentsAsClasses;
 	}
-
+	
+	/**
+	 * Just like Class.isAssignableFrom(), but does the right thing when considering autoboxing.
+	 */
+	public static boolean isAssignableFrom(Class<?> to, Class<?> from)
+	{
+		Class<?> notPrimitiveTo = to.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(to) : to;
+		Class<?> notPrimitiveFrom = from.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(from) : from;
+		
+		return notPrimitiveTo.isAssignableFrom(notPrimitiveFrom);
+	}
+	
 }

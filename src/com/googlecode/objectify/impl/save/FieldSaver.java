@@ -1,11 +1,12 @@
 package com.googlecode.objectify.impl.save;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unsaved;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Unsaved;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.impl.TypeUtils;
 
@@ -52,12 +53,14 @@ abstract public class FieldSaver implements Saver
 			for (int i=0; i<lo.value().length; i++)
 			{
 				Class<? extends If<?>> ifClass = lo.value()[i];
-				this.unsavedConditions[i] = TypeUtils.newInstance(ifClass);
+				Constructor<? extends If<?>> ctor = TypeUtils.getNoArgConstructor(ifClass);
+				this.unsavedConditions[i] = TypeUtils.newInstance(ctor);
 
 				// Sanity check the generic If class type to ensure that it matches the actual type of the field.
 				Class<?> typeArgument = TypeUtils.getTypeArguments(If.class, ifClass).get(0);
-				if (!typeArgument.isAssignableFrom(field.getType()))
-					throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field);
+				if (!TypeUtils.isAssignableFrom(typeArgument, field.getType()))
+					throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
+							+ " because you cannot assign " + field.getType().getName() + " to " + typeArgument.getName());
 			}
 		}
 	}

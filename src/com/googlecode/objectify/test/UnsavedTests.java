@@ -59,7 +59,7 @@ public class UnsavedTests extends TestBase
 		
 		Key<CompletelyUnsaved> key = this.fact.rawKeyToTypedKey(ent.getKey());
 		CompletelyUnsaved fetched = ofy.get(key);
-		assert fetched.foo == TEST_VALUE;
+		assert fetched.foo.equals(TEST_VALUE);
 		
 		fetched = putAndGet(fetched);
 		assert fetched.foo == null;
