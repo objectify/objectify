@@ -20,7 +20,7 @@ import com.googlecode.objectify.condition.If;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface LoadOnly
+public @interface Unsaved
 {
 	Class<? extends If<?>>[] value() default { Always.class };
 }

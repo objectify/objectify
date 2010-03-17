@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.LoadOnly;
+import com.googlecode.objectify.annotation.Unsaved;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -43,8 +43,8 @@ abstract public class FieldSaver implements Saver
 			this.forcedInherit = true;
 		}
 		
-		// Now watch out for LoadOnly conditions
-		LoadOnly lo = field.getAnnotation(LoadOnly.class);
+		// Now watch out for @Unsaved conditions
+		Unsaved lo = field.getAnnotation(Unsaved.class);
 		if (lo != null)
 		{
 			this.unsavedConditions = new If<?>[lo.value().length];
@@ -83,7 +83,7 @@ abstract public class FieldSaver implements Saver
 	
 	/**
 	 * Actually save the value in the entity.  This is the real value, already obtained
-	 * from the POJO and checked against the loadonly mechanism..
+	 * from the POJO and checked against the @Unsaved mechanism..
 	 */
 	abstract protected void saveValue(Object value, Entity entity);
 
