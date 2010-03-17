@@ -54,9 +54,10 @@ abstract public class FieldSaver implements Saver
 				Class<? extends If<?>> ifClass = lo.value()[i];
 				this.unsavedConditions[i] = TypeUtils.newInstance(ifClass);
 
-				// TODO:
-				// Sanity check the generic If class type to ensure that it matches the actual
-				// type of the field.
+				// Sanity check the generic If class type to ensure that it matches the actual type of the field.
+				Class<?> typeArgument = TypeUtils.getTypeArguments(If.class, ifClass).get(0);
+				if (!typeArgument.isAssignableFrom(field.getType()))
+					throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field);
 			}
 		}
 	}
