@@ -23,8 +23,14 @@ abstract public class FieldSaver implements Saver
 	boolean forcedInherit;	// will any child classes be forced to inherit this indexed state
 	If<?>[] unsavedConditions;
 	
-	/** */
-	public FieldSaver(String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
+	/**
+	 * @param examinedClass is the class which is being registered (or embedded).  It posesses the field,
+	 * but it is not necessarily the declaring class (which could be a base class).
+	 * @param inheritedIndexed is whther or not higher level instructions were to index this field.
+	 * @param collectionize is whether or not the elements of this field should be stored in a collection;
+	 * this is used for embedded collection class fields. 
+	 */
+	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
 		if (field.isAnnotationPresent(Indexed.class) && field.isAnnotationPresent(Unindexed.class))
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
@@ -57,14 +63,35 @@ abstract public class FieldSaver implements Saver
 			for (int i=0; i<unsaved.value().length; i++)
 			{
 				Class<? extends If<?>> ifClass = unsaved.value()[i];
-				Constructor<? extends If<?>> ctor = TypeUtils.getNoArgConstructor(ifClass);
-				this.unsavedConditions[i] = TypeUtils.newInstance(ctor);
+				this.unsavedConditions[i] = this.createIf(ifClass, examinedClass);
 
 				// Sanity check the generic If class type to ensure that it matches the actual type of the field.
 				Class<?> typeArgument = TypeUtils.getTypeArguments(If.class, ifClass).get(0);
 				if (!TypeUtils.isAssignableFrom(typeArgument, field.getType()))
 					throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
 							+ " because you cannot assign " + field.getType().getName() + " to " + typeArgument.getName());
+			}
+		}
+	}
+	
+	/** */
+	private If<?> createIf(Class<? extends If<?>> ifClass, Class<?> examinedClass)
+	{
+		try
+		{
+			Constructor<? extends If<?>> ctor = TypeUtils.getConstructor(ifClass, Class.class, Field.class);
+			return TypeUtils.newInstance(ctor, examinedClass, this.field);
+		}
+		catch (IllegalStateException ex)
+		{
+			try
+			{
+				Constructor<? extends If<?>> ctor = TypeUtils.getNoArgConstructor(ifClass);
+				return TypeUtils.newInstance(ctor);
+			}
+			catch (IllegalStateException ex2)
+			{
+				throw new IllegalStateException("The If<?> class " + ifClass.getName() + " must have a no-arg constructor or a constructor that takes one argument of type Field.");
 			}
 		}
 	}

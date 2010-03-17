@@ -6,6 +6,9 @@ package com.googlecode.objectify.condition;
  * you could have a class that tests an object value against null called IfNull.
  * This interface is used by the @Unsaved annotation.</p>
  * 
+ * <p>All concrete instances of this interface must have either a no-arg constructor
+ * or a constructor that takes {@code Class<?>, Field} parameters.</p>
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface If<T>

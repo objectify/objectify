@@ -14,11 +14,11 @@ import com.googlecode.objectify.ObjectifyFactory;
 public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ObjectifyFactory, String, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ObjectifyFactory, String, Class, Field, boolean, boolean)
 	 */
-	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
+	public EmbeddedArrayFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
-		super(fact, pathPrefix, field, inheritedIndexed, collectionize);
+		super(fact, pathPrefix, examinedClass, field, inheritedIndexed, collectionize);
 		
 		assert field.getType().isArray();
 	}

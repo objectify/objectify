@@ -25,9 +25,9 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedMultivalueFieldSaver(ObjectifyFactory fact, String pathPrefix, Field field, boolean inheritedIndexed, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean inheritedIndexed, boolean collectionize)
 	{
-		super(pathPrefix, field, inheritedIndexed, collectionize);
+		super(pathPrefix, examinedClass, field, inheritedIndexed, collectionize);
 		
 		if (collectionize)
 			throw new IllegalStateException("You cannot nest multiple @Embedded arrays or collections. A second was found at " + field);

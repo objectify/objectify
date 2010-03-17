@@ -88,7 +88,25 @@ public class TypeUtils
 		}
 		catch (NoSuchMethodException e)
 		{
-			throw new IllegalStateException("There must be a public no-arg constructor for " + clazz.getName(), e);
+			throw new IllegalStateException("There must be a no-arg constructor for " + clazz.getName(), e);
+		}
+	}
+	
+	/**
+	 * Gets a constructor that has the specified types of arguments.
+	 * Throw an IllegalStateException if the class does not have such a constructor.
+	 */
+	public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args)
+	{
+		try
+		{
+			Constructor<T> ctor = clazz.getDeclaredConstructor(args);
+			ctor.setAccessible(true);
+			return ctor;
+		}
+		catch (NoSuchMethodException e)
+		{
+			throw new IllegalStateException(clazz.getName() + " has no constructor with args " + Arrays.toString(args), e);
 		}
 	}
 	
@@ -281,11 +299,11 @@ public class TypeUtils
 	}
 	
 	/** Checked exceptions are LAME. */
-	public static <T> T newInstance(Constructor<T> ctor)
+	public static <T> T newInstance(Constructor<T> ctor, Object... params)
 	{
 		try
 		{
-			return ctor.newInstance();
+			return ctor.newInstance(params);
 		}
 		catch (InstantiationException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }

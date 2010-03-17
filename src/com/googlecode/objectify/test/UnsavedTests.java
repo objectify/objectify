@@ -18,6 +18,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unsaved;
+import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 
@@ -162,4 +163,33 @@ public class UnsavedTests extends TestBase
 		}
 		catch (IllegalStateException ex) {}
 	}
+	
+	/** */
+	@Cached
+	static class UnsavedDefaults
+	{
+		@Id Long id;
+		@Unsaved(IfDefault.class) boolean booleanDefault = true;
+		@Unsaved(IfDefault.class) String stringDefault = TEST_VALUE;
+		@Unsaved(IfDefault.class) int intDefault = 10;
+		@Unsaved(IfDefault.class) float floatDefault = 10f;
+	}
+	
+	/** */
+	@Test
+	public void testUnsavedDefaults() throws Exception
+	{
+		this.fact.register(UnsavedDefaults.class);
+		
+		Objectify ofy = this.fact.begin();
+		DatastoreService ds = ofy.getDatastore();
+		
+		UnsavedDefaults thing = new UnsavedDefaults();
+		Key<UnsavedDefaults> key = ofy.put(thing);
+		
+		// Now get the raw entity and verify that it doesn't have properties saved
+		Entity ent = ds.get(this.fact.getRawKey(key));
+		assert ent.getProperties().isEmpty();
+	}
+
 }

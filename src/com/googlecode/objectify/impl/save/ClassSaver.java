@@ -64,24 +64,24 @@ public class ClassSaver implements Saver
 			{
 				if (field.getType().isArray())
 				{
-					Saver saver = new EmbeddedArrayFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
+					Saver saver = new EmbeddedArrayFieldSaver(factory, pathPrefix, clazz, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedCollectionFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
+					Saver saver = new EmbeddedCollectionFieldSaver(factory, pathPrefix, clazz, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else	// basic class
 				{
-					Saver saver = new EmbeddedClassFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
+					Saver saver = new EmbeddedClassFieldSaver(factory, pathPrefix, clazz, field, inheritedIndexed, collectionize);
 					this.fieldSavers.add(saver);
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a leaf saver
-				Saver saver = new LeafFieldSaver(factory, pathPrefix, field, inheritedIndexed, collectionize);
+				Saver saver = new LeafFieldSaver(factory, pathPrefix, clazz, field, inheritedIndexed, collectionize);
 				this.fieldSavers.add(saver);
 			}
 		}
