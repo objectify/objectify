@@ -7,56 +7,62 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
- * <p>This interface is similar to DatastoreService, except that instead of working with
- * Entity you work with real typed objects.</p>
+ * <p>This is the main "business end" of Objectify.  It lets you get(), put(), delete(),
+ * and query() your typed POJO entities.</p>
  * 
- * <p>Unlike DatastoreService, none of these methods take a Transaction as a parameter.
- * Instead, a transaction (or lack thereof) is associated with a particular instance of
- * this interface when you create it.</p>
+ * <p>You can create an {@code Objectify} instance using {@code ObjectifyFactory.begin()}
+ * or {@code ObjectifyFactory.beginTransaction()}.  A transaction (or lack thereof)
+ * will be associated with the instance; by using multiple instances, you can interleave
+ * calls between several different transactions.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Objectify
 {
 	/**
-	 * Performs a batch get, returning your typed objects.  Yes, the generic
-	 * syntax is crazy, but it means you can pass in a list of OKeys.
+	 * <p>Performs a parallel batch get, returning your entities.  This is faster and
+	 * more efficient than fetching entities one at a time.</p>
 	 *
-	 * The iteration order of the result will match the order in the argument (although
-	 * it may not contain all the elements of the argument if they could not be found
-	 * in the datastore).
+	 * <p>You can fetch entities of many different kinds in a single call.
+	 * Entities not present in the datastore will be absent from the returned map.
+	 * Otherwise, the iteration order of the result will match the order in the parameter.</p>
 	 *
 	 * @param keys are the keys to fetch; you can mix and match the types of objects.
 	 * @return the keys that were found in the datastore, mapped to the related entity.
 	 * The iteration order of the map will match the order of the <code>keys</code> argument.
 	 * A empty map is returned if no keys are found in the datastore.
+	 * 
 	 * @see DatastoreService#get(Iterable)
 	 */
 	<T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys);
 	
 	/**
-	 * Gets one instance of your typed object.
+	 * <p>Gets one instance of your entity.</p>
+	 * 
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 * 
 	 * @see DatastoreService#get(Key) 
 	 */
 	<T> T get(Key<? extends T> key) throws EntityNotFoundException;
 	
 	/**
-	 * This is a convenience method, shorthand for creating a key and calling get() 
+	 * <p>A convenience method, shorthand for creating a key and calling get()</p> 
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 */
 	<T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException;
 	
 	/**
-	 * This is a convenience method, shorthand for creating a key and calling get() 
+	 * <p>A convenience method, shorthand for creating a key and calling get()</p> 
 	 * @throws EntityNotFoundException if the key does not exist in the datastore
 	 */
 	<T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException;
 	
 	/**
-	 * This is a convenience method that prevents you from having to assemble all the Keys
-	 * yourself and calling get(Iterable<Key>).  Note that unlike that method, this method
-	 * only gets a homogeneous set of objects.
+	 * <p>A convenience method that prevents you from having to assemble all the Keys
+	 * yourself and calling {@code get(Iterable<Key>)}.</p>
+	 * 
+	 * <p>Note that unlike the standard batch get method, this method only gets a
+	 * homogeneous set of objects.</p>
 	 * 
 	 * @param idsOrNames <b>must</b> be of type Iterable<Long> (which translates to id keys)
 	 *  or of type Iterable<String> (which translates to name keys).
@@ -65,56 +71,76 @@ public interface Objectify
 	 */
 	<S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> idsOrNames);
 	
-	/** Identical to get(Key) but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Key)} but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Key<? extends T> key);
 	
-	/** Identical to get(Class, long) but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Class, long)} but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Class<? extends T> clazz, long id);
 	
-	/** Identical to get(Class, name) but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Class, name)} but returns null instead of throwing EntityNotFoundException */ 
 	<T> T find(Class<? extends T> clazz, String name);
 
 	/**
-	 * Just like the DatastoreService method, but uses your typed object.
-	 * If the object has a null key, one will be created.  If the object
-	 * has a key, it will overwrite any value formerly stored with that key.
+	 * <p>Puts an entity in the datastore.</p>
+	 * 
+	 * <p>If your entity has a null Long id, a fresh id will be generated and
+	 * a new entity will be created in the database.  If your entity already
+	 * has an id (either long, Long, or String) value, any existing entity
+	 * in the datastore with that id will be overwritten.</p>
+	 * 
+	 * <p>Generated ids are stored in the entity itself.  If you put() an
+	 * entity with a null Long id, it will be set before the method returns.</p>
+	 * 
+	 * @param obj must be an object of a registered entity type.
+	 * @return the key associated with the object.
+	 * 
 	 * @see DatastoreService#put(com.google.appengine.api.datastore.Entity) 
 	 */
 	<T> Key<T> put(T obj);
 	
 	/**
-	 * Just like the DatastoreService method, but uses your typed objects.
-	 * If any of the objects have a null key, one will be created.  If any
-	 * of the objects has a key, it will overwrite any value formerly stored
-	 * with that key.  You can mix and match the types of objects stored.
+	 * <p>Saves multiple entities to the datastore in a single parallel batch
+	 * operation.</p>
+	 * 
+	 * <p>All the rules regarding generated ids in {@code put()} apply.</p>
+	 * 
+	 * <p>Note that the iteration order of the return value will be the same
+	 * as the order of the parameter.</p>
+	 * 
+	 * @param objs must all be objects of registered entity type
+	 * @return a map of the keys to the very same object instances passed in
+	 * 
 	 * @see DatastoreService#put(Iterable) 
 	 */
 	<T> Map<Key<T>, T> put(Iterable<? extends T> objs);
 	
 	/**
-	 * Deletes the specified entity.  The object passed in can be either a Key
-	 * or an entity object; if an entity, only the id fields are relevant.
+	 * Deletes the specified entity.
+	 * 
+	 * @param keyOrEntity can be either a Key<?>, a datastore Key, or a pojo entity.
+	 * If it is an entity, only the id fields are relevant.
 	 */
 	void delete(Object keyOrEntity);
 
 	/**
-	 * Deletes the specified keys or entities.  If the parameter is an iterable of
-	 * entity objects, only their key fields are relevant.
+	 * Deletes the specified entities in a parallel batch operation.  This is faster
+	 * and more efficient than deleting them one by one.
 	 * 
-	 * @param keysOrEntities can be either an iterable of Key objects or an iterable of entity
-	 *  objects.  They can even be mixed and matched. The result will be one batch delete.
+	 * @param keysOrEntities can contain any mix of Key<?>, datastore Key, or pojo
+	 * entities.  They need not be of the same type.  If a pojo is used, only its
+	 * id fields are relevant.
 	 * 
 	 * @see DatastoreService#delete(Iterable)
 	 */
 	void delete(Iterable<?> keysOrEntities);
 
 	/**
-	 * This is a convenience method, shorthand for creating a key and deleting it. 
+	 * A convenience method, shorthand for creating a key and deleting it. 
 	 */
 	<T> void delete(Class<T> clazz, long id);
 	
 	/**
-	 * This is a convenience method, shorthand for creating a key and deleting it. 
+	 * A convenience method, shorthand for creating a key and deleting it. 
 	 */
 	<T> void delete(Class<T> clazz, String name);
 
@@ -129,6 +155,8 @@ public interface Objectify
 	<T> Query<T> query(Class<T> clazz);
 	
 	/**
+	 * <p>Get the underlying transaction object associated with this Objectify instance.</p>
+	 * 
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
 	 * which uses implicit transaction management.  Objectify does not use implicit (thread
 	 * local) transactions.</p>
@@ -139,13 +167,16 @@ public interface Objectify
 	public Transaction getTxn();
 
 	/**
-	 * @return the underlying DatastoreService implementation so you can work
-	 *  with Entity objects if you so choose.  Also allows you to allocateIds
-	 *  or examine thread local transactions.
+	 * <p>Obtain the DatastoreService that underlies this Objectify instance.</p>
+	 * 
+	 * <p>This should not normally be necessary.  It allows you to work with
+	 * raw Entity objects, allocate ids, and examine thread local transactions.</p>
 	 */
 	public DatastoreService getDatastore();
 	
 	/**
+	 * Obtain the ObjectifyFactory from which this Objectify instance was created.
+	 * 
 	 * @return the ObjectifyFactory associated with this Objectify instance.
 	 */
 	public ObjectifyFactory getFactory();
