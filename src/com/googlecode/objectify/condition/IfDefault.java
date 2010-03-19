@@ -14,8 +14,8 @@ import com.googlecode.objectify.impl.TypeUtils;
  * 
  * <blockquote><pre>
  * public class MyEntity {
- *     @Id Long id;
- *     @Unsaved(IfDefault.class) String foo = "defaultFoo";
+ *     &#64;Id Long id;
+ *     &#64;Unsaved(IfDefault.class) String foo = "defaultFoo";
  * }
  * </pre></blockquote>
  * 

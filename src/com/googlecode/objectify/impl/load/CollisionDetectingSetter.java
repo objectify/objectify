@@ -17,7 +17,7 @@ abstract public class CollisionDetectingSetter extends Setter
 	Collection<String> collisionPaths;
 	
 	/**
-	 * @param collisionPath can be null
+	 * @param collisionPaths can be null
 	 */
 	public CollisionDetectingSetter(Collection<String> collisionPaths)
 	{
