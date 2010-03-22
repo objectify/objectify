@@ -29,14 +29,27 @@ public class LifecycleTests extends TestBase
 		@PostLoad void postLoad(Entity ent) { this.postLoadedWithParam = true; }
 	}
 
+	@Cached
+	public static class HasInheritedLifecycle extends HasLifecycle {}
+
+
 	/** */
 	@Test
 	public void testLifecycle() throws Exception
 	{
 		this.fact.register(HasLifecycle.class);
+		this.fact.register(HasInheritedLifecycle.class);
+		
+		HasLifecycle life1 = new HasLifecycle();
+		HasLifecycle fetched = this.putAndGet(life1);
+		
+		assert fetched.prePersisted;
+		assert fetched.prePersistedWithParam;
+		assert fetched.postLoaded;	// will fail with caching objectify, this is ok
+		assert fetched.postLoadedWithParam;
 
-		HasLifecycle start = new HasLifecycle();
-		HasLifecycle fetched = this.putAndGet(start);
+		HasLifecycle life2 = new HasInheritedLifecycle();
+		fetched = this.putAndGet(life2);
 		
 		assert fetched.prePersisted;
 		assert fetched.prePersistedWithParam;
