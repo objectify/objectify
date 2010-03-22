@@ -5,12 +5,25 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.googlecode.objectify.condition.Always;
+import com.googlecode.objectify.condition.If;
+
 /**
- * <p>When placed on an entity field (or class), the field(s) will be stored as an unindexed property in
- * the datastore. Classes annotated will have fields "unindexed by default" unless overridden at the field level.</p>
+ * <p>This annotation controls whether or not fields are indexed in the datastore.</p>
  * 
- * <p>The specific difference is that, if this annotation is present, fields will be stored
- * with Entity.setUnindexedProperty() instead of Entity.setProperty().</p>
+ * <p>When placed on a simple field, the field will be not be indexed.  If the field is
+ * an @Embedded class or a collection of @Embedded classes, the fields of those classes
+ * will be indexed as if the class had the @Unindexed annotation.</p>
+ * 
+ * <p>When placed on an entity class or an embedded class, this sets the default
+ * for all fields to be unindexed.  It can be overridden by field level annotations.</p>
+ * 
+ * <p>If an embedded class field is annotated with @Unindexed, any @Indexed or @Unindexed
+ * annotation on the class itself is ignored.</p>
+ * 
+ * <p>If passed one or more classes that implement the {@code If} interface, the
+ * value will be unindexed only if it tests positive for any of the conditions.  This
+ * allows "partial indexing" of only some categories of values (ie, true but not false).</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez <fullname@gmail)
@@ -19,4 +32,5 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Unindexed
 {
+	Class<? extends If<?>>[] value() default { Always.class };
 }

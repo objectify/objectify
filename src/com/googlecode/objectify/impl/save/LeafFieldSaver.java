@@ -41,9 +41,9 @@ public class LeafFieldSaver extends FieldSaver
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean inheritedIndexed, boolean collectionize)
+	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, inheritedIndexed, collectionize);
+		super(pathPrefix, examinedClass, field, collectionize);
 		
 		this.factory = fact;
 		this.collectionize = collectionize;
@@ -59,11 +59,11 @@ public class LeafFieldSaver extends FieldSaver
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity, boolean)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public void saveValue(Object value, Entity entity)
+	public void saveValue(Object value, Entity entity, boolean index)
 	{
 		value = this.prepareForSave(value);
 		
@@ -77,7 +77,7 @@ public class LeafFieldSaver extends FieldSaver
 			if (savedCollection == null)
 			{
 				savedCollection = new ArrayList<Object>();
-				this.setEntityProperty(entity, savedCollection);
+				this.setEntityProperty(entity, savedCollection, index);
 			}
 			
 			savedCollection.add(value);
@@ -91,7 +91,7 @@ public class LeafFieldSaver extends FieldSaver
 			}
 			else
 			{
-				this.setEntityProperty(entity, value);
+				this.setEntityProperty(entity, value, index);
 			}
 		}
 	}

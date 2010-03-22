@@ -19,37 +19,33 @@ abstract public class FieldSaver implements Saver
 {
 	String path;
 	Field field;
-	boolean indexed;
-	boolean forcedInherit;	// will any child classes be forced to inherit this indexed state
+	If<?>[] indexConditions;
+	If<?>[] unindexConditions;
 	If<?>[] unsavedConditions;
 	
 	/**
 	 * @param examinedClass is the class which is being registered (or embedded).  It posesses the field,
 	 * but it is not necessarily the declaring class (which could be a base class).
-	 * @param inheritedIndexed is whther or not higher level instructions were to index this field.
 	 * @param collectionize is whether or not the elements of this field should be stored in a collection;
 	 * this is used for embedded collection class fields. 
 	 */
-	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean inheritedIndexed, boolean collectionize)
+	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
 	{
-		if (field.isAnnotationPresent(Indexed.class) && field.isAnnotationPresent(Unindexed.class))
+		this.field = field;
+		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
+
+		// Check @Indexed and @Unindexed conditions
+		Indexed indexedAnn = field.getAnnotation(Indexed.class);
+		Unindexed unindexedAnn = field.getAnnotation(Unindexed.class);
+
+		if (indexedAnn != null && unindexedAnn != null)
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
 		
-		this.field = field;
+		if (indexedAnn != null)
+			this.indexConditions = this.generateIfConditions(indexedAnn.value(), examinedClass);
 		
-		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
-		
-		this.indexed = inheritedIndexed;
-		if (field.isAnnotationPresent(Indexed.class))
-		{
-			this.indexed = true;
-			this.forcedInherit = true;
-		}
-		else if (field.isAnnotationPresent(Unindexed.class))
-		{
-			this.indexed = false;
-			this.forcedInherit = true;
-		}
+		if (unindexedAnn != null)
+			this.unindexConditions = this.generateIfConditions(unindexedAnn.value(), examinedClass);
 		
 		// Now watch out for @Unsaved conditions
 		Unsaved unsaved = field.getAnnotation(Unsaved.class);
@@ -58,20 +54,28 @@ abstract public class FieldSaver implements Saver
 			if (collectionize && (unsaved.value().length != 1 || unsaved.value()[0] != Always.class))
 				throw new IllegalStateException("You cannot use @Unsaved with a condition within @Embedded collections; check the field " + this.field);
 			
-			this.unsavedConditions = new If<?>[unsaved.value().length];
-			
-			for (int i=0; i<unsaved.value().length; i++)
-			{
-				Class<? extends If<?>> ifClass = unsaved.value()[i];
-				this.unsavedConditions[i] = this.createIf(ifClass, examinedClass);
-
-				// Sanity check the generic If class type to ensure that it matches the actual type of the field.
-				Class<?> typeArgument = TypeUtils.getTypeArguments(If.class, ifClass).get(0);
-				if (!TypeUtils.isAssignableFrom(typeArgument, field.getType()))
-					throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
-							+ " because you cannot assign " + field.getType().getName() + " to " + typeArgument.getName());
-			}
+			this.unsavedConditions = this.generateIfConditions(unsaved.value(), examinedClass);
 		}
+	}
+	
+	/** */
+	private If<?>[] generateIfConditions(Class<? extends If<?>>[] ifClasses, Class<?> examinedClass)
+	{
+		If<?>[] result = new If<?>[ifClasses.length];
+		
+		for (int i=0; i<ifClasses.length; i++)
+		{
+			Class<? extends If<?>> ifClass = ifClasses[i];
+			result[i] = this.createIf(ifClass, examinedClass);
+
+			// Sanity check the generic If class type to ensure that it matches the actual type of the field.
+			Class<?> typeArgument = TypeUtils.getTypeArguments(If.class, ifClass).get(0);
+			if (!TypeUtils.isAssignableFrom(typeArgument, field.getType()))
+				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
+						+ " because you cannot assign " + field.getType().getName() + " to " + typeArgument.getName());
+		}
+		
+		return result;
 	}
 	
 	/** */
@@ -101,7 +105,7 @@ abstract public class FieldSaver implements Saver
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	final public void save(Object pojo, Entity entity)
+	final public void save(Object pojo, Entity entity, boolean index)
 	{
 		Object value = TypeUtils.field_get(this.field, pojo);
 		
@@ -112,21 +116,35 @@ abstract public class FieldSaver implements Saver
 					return;
 		}
 		
-		this.saveValue(value, entity);
+		if (this.indexConditions != null && !index)
+		{
+			for (int i=0; i<this.indexConditions.length; i++)
+				if (((If<Object>)this.indexConditions[i]).matches(value))
+					index = true;
+		}
+		
+		if (this.unindexConditions != null && index)
+		{
+			for (int i=0; i<this.unindexConditions.length; i++)
+				if (((If<Object>)this.unindexConditions[i]).matches(value))
+					index = false;
+		}
+		
+		this.saveValue(value, entity, index);
 	}
 	
 	/**
 	 * Actually save the value in the entity.  This is the real value, already obtained
 	 * from the POJO and checked against the @Unsaved mechanism..
 	 */
-	abstract protected void saveValue(Object value, Entity entity);
+	abstract protected void saveValue(Object value, Entity entity, boolean index);
 
 	/** 
 	 * Sets property on the entity correctly for the values of this.path and this.indexed.
 	 */
-	protected void setEntityProperty(Entity entity, Object value)
+	protected void setEntityProperty(Entity entity, Object value, boolean index)
 	{
-		if (this.indexed)
+		if (index)
 			entity.setProperty(this.path, value);
 		else
 			entity.setUnindexedProperty(this.path, value);

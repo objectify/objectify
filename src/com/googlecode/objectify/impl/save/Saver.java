@@ -15,6 +15,7 @@ public interface Saver
 	/**
 	 * Saves the part of a pojo that we are responsible for to an entity.
 	 * @param pojo might be a root pojo or it might be an embedded class.
+	 * @param index whether or not the parent thinks this value should be indexed when saved.
 	 */
-	public void save(Object pojo, Entity entity);
+	public void save(Object pojo, Entity entity, boolean index);
 }

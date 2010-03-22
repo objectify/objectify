@@ -338,6 +338,7 @@ public class Transmog<T>
 	 */
 	public void save(T fromPojo, Entity toEntity)
 	{
-		this.rootSaver.save(fromPojo, toEntity);
+		// The default is to index all fields
+		this.rootSaver.save(fromPojo, toEntity, true);
 	}
 }
