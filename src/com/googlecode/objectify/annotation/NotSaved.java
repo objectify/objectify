@@ -14,7 +14,7 @@ import com.googlecode.objectify.condition.If;
  * {@code @PostLoad} and {@code @PrePersist} to transform your data.</p>
  * 
  * <p>If passed one or more classes that implement the {@code If} interface, the
- * value will be unsaved only if it tests positive for any of the conditions.  This
+ * value will be NotSaved only if it tests positive for any of the conditions.  This
  * is a convenient way to prevent storing of default values, potentially saving
  * a significant amount of storage and indexing cost.</p>
  * 
@@ -22,7 +22,7 @@ import com.googlecode.objectify.condition.If;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD})
-public @interface Unsaved
+public @interface NotSaved
 {
 	Class<? extends If<?>>[] value() default { Always.class };
 }

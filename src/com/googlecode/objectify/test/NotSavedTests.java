@@ -17,21 +17,21 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Unsaved;
+import com.googlecode.objectify.annotation.NotSaved;
 import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 
 /**
- * Tests of using the @Unsaved annotation and its various conditions.
+ * Tests of using the @NotSaved annotation and its various conditions.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class UnsavedTests extends TestBase
+public class NotSavedTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(UnsavedTests.class);
+	private static Logger log = LoggerFactory.getLogger(NotSavedTests.class);
 	
 	/** */
 	public static final String TEST_VALUE = "blah";
@@ -44,7 +44,7 @@ public class UnsavedTests extends TestBase
 	static class CompletelyUnsaved
 	{
 		@Id Long id;
-		@Unsaved String foo;
+		@NotSaved String foo;
 	}
 	
 	/** */
@@ -73,7 +73,7 @@ public class UnsavedTests extends TestBase
 	static class UnsavedWhenTrue
 	{
 		@Id Long id;
-		@Unsaved(IfTrue.class) boolean foo;
+		@NotSaved(IfTrue.class) boolean foo;
 		boolean bar;
 	}
 	
@@ -97,7 +97,7 @@ public class UnsavedTests extends TestBase
 	static class DeeperUnsavedWhenTrue
 	{
 		@Id Long id;
-		@Unsaved(IfTrue.class) boolean foo;
+		@NotSaved(IfTrue.class) boolean foo;
 		boolean bar;
 	}
 	
@@ -120,18 +120,18 @@ public class UnsavedTests extends TestBase
 	static class BadFieldType
 	{
 		@Id Long id;
-		@Unsaved(IfTrue.class) String foo;
+		@NotSaved(IfTrue.class) String foo;
 	}
 	
 	/** Should not be registerable */
 	static class DeeperBadFieldType
 	{
 		@Id Long id;
-		@Unsaved(DeeperIfTrue.class) String foo;
+		@NotSaved(DeeperIfTrue.class) String foo;
 	}
 	
 	/** Should not be registerable */
-	static class TryToEmbedMe { @Unsaved(IfNull.class) String bar; }
+	static class TryToEmbedMe { @NotSaved(IfNull.class) String bar; }
 	static class EmbeddedCollectionWithUnsaved
 	{
 		@Id Long id;
@@ -169,10 +169,10 @@ public class UnsavedTests extends TestBase
 	static class UnsavedDefaults
 	{
 		@Id Long id;
-		@Unsaved(IfDefault.class) boolean booleanDefault = true;
-		@Unsaved(IfDefault.class) String stringDefault = TEST_VALUE;
-		@Unsaved(IfDefault.class) int intDefault = 10;
-		@Unsaved(IfDefault.class) float floatDefault = 10f;
+		@NotSaved(IfDefault.class) boolean booleanDefault = true;
+		@NotSaved(IfDefault.class) String stringDefault = TEST_VALUE;
+		@NotSaved(IfDefault.class) int intDefault = 10;
+		@NotSaved(IfDefault.class) float floatDefault = 10f;
 	}
 	
 	/** */

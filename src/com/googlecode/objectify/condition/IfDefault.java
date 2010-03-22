@@ -15,11 +15,11 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <blockquote><pre>
  * public class MyEntity {
  *     &#64;Id Long id;
- *     &#64;Unsaved(IfDefault.class) String foo = "defaultFoo";
+ *     &#64;NotSaved(IfDefault.class) String foo = "defaultFoo";
  * }
  * </pre></blockquote>
  * 
- * <p>The {@code foo} field will be unsaved when it has the value "defaultFoo".</p>
+ * <p>The {@code foo} field will be left unsaved when it has the value "defaultFoo".</p>
  * 
  * <p>Specifically, this conditional constructs an instance of your entity class
  * using the default (no-arg) constructor and stores the default field value for

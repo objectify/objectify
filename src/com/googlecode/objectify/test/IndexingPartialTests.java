@@ -18,7 +18,7 @@ import com.googlecode.objectify.condition.IfFalse;
 
 /**
  * Tests of partial indexing.  Doesn't stress test the If mechanism; that is
- * checked in the UnsavedTests.
+ * checked in the NotSavedTests.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

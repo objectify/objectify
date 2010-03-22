@@ -6,7 +6,7 @@ import java.lang.reflect.Field;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
-import com.googlecode.objectify.annotation.Unsaved;
+import com.googlecode.objectify.annotation.NotSaved;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -21,7 +21,7 @@ abstract public class FieldSaver implements Saver
 	Field field;
 	If<?>[] indexConditions;
 	If<?>[] unindexConditions;
-	If<?>[] unsavedConditions;
+	If<?>[] notSavedConditions;
 	
 	/**
 	 * @param examinedClass is the class which is being registered (or embedded).  It posesses the field,
@@ -47,14 +47,14 @@ abstract public class FieldSaver implements Saver
 		if (unindexedAnn != null)
 			this.unindexConditions = this.generateIfConditions(unindexedAnn.value(), examinedClass);
 		
-		// Now watch out for @Unsaved conditions
-		Unsaved unsaved = field.getAnnotation(Unsaved.class);
-		if (unsaved != null)
+		// Now watch out for @NotSaved conditions
+		NotSaved notSaved = field.getAnnotation(NotSaved.class);
+		if (notSaved != null)
 		{
-			if (collectionize && (unsaved.value().length != 1 || unsaved.value()[0] != Always.class))
-				throw new IllegalStateException("You cannot use @Unsaved with a condition within @Embedded collections; check the field " + this.field);
+			if (collectionize && (notSaved.value().length != 1 || notSaved.value()[0] != Always.class))
+				throw new IllegalStateException("You cannot use @NotSaved with a condition within @Embedded collections; check the field " + this.field);
 			
-			this.unsavedConditions = this.generateIfConditions(unsaved.value(), examinedClass);
+			this.notSavedConditions = this.generateIfConditions(notSaved.value(), examinedClass);
 		}
 	}
 	
@@ -109,10 +109,10 @@ abstract public class FieldSaver implements Saver
 	{
 		Object value = TypeUtils.field_get(this.field, pojo);
 		
-		if (this.unsavedConditions != null)
+		if (this.notSavedConditions != null)
 		{
-			for (int i=0; i<this.unsavedConditions.length; i++)
-				if (((If<Object>)this.unsavedConditions[i]).matches(value))
+			for (int i=0; i<this.notSavedConditions.length; i++)
+				if (((If<Object>)this.notSavedConditions[i]).matches(value))
 					return;
 		}
 		

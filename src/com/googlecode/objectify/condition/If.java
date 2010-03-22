@@ -4,7 +4,7 @@ package com.googlecode.objectify.condition;
 /**
  * <p>A simple interface that defines a condition test for a value.  For example,
  * you could have a class that tests an object value against null called IfNull.
- * This interface is used by the @Unsaved annotation.</p>
+ * This interface is used by the @NotSaved, @Indexed, and @Unindexed annotations.</p>
  * 
  * <p>All concrete instances of this interface must have either a no-arg constructor
  * or a constructor that takes {@code Class<?>, Field} parameters.</p>
