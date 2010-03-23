@@ -7,7 +7,7 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfTrue implements If<Boolean>
+public class IfTrue extends ValueIf<Boolean>
 {
 	@Override
 	public boolean matches(Boolean value)

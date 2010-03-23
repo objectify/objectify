@@ -28,7 +28,7 @@ import com.googlecode.objectify.impl.TypeUtils;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfDefault implements If<Object>
+public class IfDefault extends ValueIf<Object>
 {
 	Object defaultValue;
 	

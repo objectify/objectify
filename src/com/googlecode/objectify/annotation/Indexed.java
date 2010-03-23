@@ -33,5 +33,5 @@ import com.googlecode.objectify.condition.If;
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Indexed
 {
-	Class<? extends If<?>>[] value() default { Always.class };
+	Class<? extends If<?, ?>>[] value() default { Always.class };
 }

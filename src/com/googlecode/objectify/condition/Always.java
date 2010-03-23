@@ -6,10 +6,10 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Always implements If<Object>
+public class Always implements If<Object, Object>
 {
 	@Override
-	public boolean matches(Object value)
+	public boolean matches(Object value, Object onPojo)
 	{
 		return true;
 	}

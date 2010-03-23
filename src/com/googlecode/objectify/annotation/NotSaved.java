@@ -24,5 +24,5 @@ import com.googlecode.objectify.condition.If;
 @Target({ElementType.FIELD})
 public @interface NotSaved
 {
-	Class<? extends If<?>>[] value() default { Always.class };
+	Class<? extends If<?, ?>>[] value() default { Always.class };
 }

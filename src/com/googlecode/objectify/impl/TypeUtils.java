@@ -526,30 +526,7 @@ public class TypeUtils
 		{
 			if (type instanceof Class<?>)
 			{
-				// there is no useful information for us in raw types, so just keep going.
-				Type superType = ((Class<?>)type).getGenericSuperclass();
-				
-				// It's possible that the baseClass is an interface, not part of the superclass hierarchy.
-				// Fortunately we can be guaranteed there is only one of them somewhere in the hierarchy,
-				// so we just need to check the type and all the superinterfaces.
-				Class<?> superClass = getClass(superType);
-				if (baseClass.isAssignableFrom(superClass))
-				{
-					type = superType;
-				}
-				else
-				{
-					// Need to find another option in the interfaces
-					Type[] interfaceTypes = ((Class<?>)type).getGenericInterfaces();
-					for (int i=0; i<interfaceTypes.length; i++)
-					{
-						if (baseClass.isAssignableFrom(getClass(interfaceTypes[i])))
-						{
-							type = interfaceTypes[i];
-							break;
-						}
-					}
-				}
+				type = climbTypeHierarchy(((Class<?>)type), baseClass);
 			}
 			else
 			{
@@ -565,7 +542,7 @@ public class TypeUtils
 
 				if (!rawType.equals(baseClass))
 				{
-					type = rawType.getGenericSuperclass();
+					type = climbTypeHierarchy(rawType, baseClass);
 				}
 			}
 		}
@@ -595,6 +572,41 @@ public class TypeUtils
 		}
 		
 		return typeArgumentsAsClasses;
+	}
+	
+	/**
+	 * Climb the type hierarchy in the direction of parentClass.  Gets the immediate
+	 * superclass/superinterface.
+	 * 
+	 * @return null if parentClass is not in the parent hierarchy of here.
+	 */
+	public static Type climbTypeHierarchy(Class<?> here, Class<?> parentClass)
+	{
+		// there is no useful information for us in raw types, so just keep going.
+		Type superType = here.getGenericSuperclass();
+		
+		// It's possible that the baseClass is an interface, not part of the superclass hierarchy.
+		// Fortunately we can be guaranteed there is only one of them somewhere in the hierarchy,
+		// so we just need to check the type and all the superinterfaces.
+		Class<?> superClass = getClass(superType);
+		if (parentClass.isAssignableFrom(superClass))
+		{
+			return superType;
+		}
+		else
+		{
+			// Need to find another option in the interfaces
+			Type[] interfaceTypes = here.getGenericInterfaces();
+			for (int i=0; i<interfaceTypes.length; i++)
+			{
+				if (parentClass.isAssignableFrom(getClass(interfaceTypes[i])))
+				{
+					return interfaceTypes[i];
+				}
+			}
+		}
+		
+		return null;
 	}
 	
 	/**

@@ -7,7 +7,7 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfZero implements If<Number>
+public class IfZero extends ValueIf<Number>
 {
 	@Override
 	public boolean matches(Number value)

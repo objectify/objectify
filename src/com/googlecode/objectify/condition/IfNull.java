@@ -6,7 +6,7 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfNull implements If<Object>
+public class IfNull extends ValueIf<Object>
 {
 	@Override
 	public boolean matches(Object value)

@@ -7,7 +7,7 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfEmptyString implements If<String>
+public class IfEmptyString extends ValueIf<String>
 {
 	@Override
 	public boolean matches(String value)
