@@ -7,6 +7,7 @@ import java.lang.String;
  * GWT emulation class. Will not have the same hashCode() value as the non-emulated version.
  * This class will not have the same toString() value as the non-emulated version.
  */
+@SuppressWarnings("serial")
 public final class Cursor implements Serializable
 {
 	private final String webString;
