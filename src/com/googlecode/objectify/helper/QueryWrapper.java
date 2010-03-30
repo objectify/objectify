@@ -1,5 +1,6 @@
 package com.googlecode.objectify.helper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -92,6 +93,7 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
+	@Deprecated
 	public QueryResultIterable<T> fetch()
 	{
 		return this.base.fetch();
@@ -113,5 +115,17 @@ public class QueryWrapper<T> implements Query<T>
 	public <V> Map<Key<V>, V> fetchParents()
 	{
 		return this.base.fetchParents();
+	}
+
+	@Override
+	public List<T> list()
+	{
+		return this.base.list();
+	}
+
+	@Override
+	public List<Key<T>> listKeys()
+	{
+		return this.base.listKeys();
 	}
 }

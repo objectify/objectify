@@ -1,5 +1,6 @@
 package com.googlecode.objectify;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -117,14 +118,15 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Key<T> getKey();
 	
 	/**
-	 * Execute the query and get the results.  This method is provided for orthogonality;
-	 * Query.fetch().iterator() is identical to Query.iterator().
+	 * Implemented as "return this;".  No point, really.
 	 */
+	@Deprecated
 	public QueryResultIterable<T> fetch();
 	
 	/**
-	 * Execute the query and get the keys of the results.  This is more efficient than
-	 * fetching the actual results.
+	 * Prepares an Iterable that will obtain the keys of the results.  This is more efficient than
+	 * fetching the actual results.  Note that every time iterator() is called on the Iterable,
+	 * a fresh query is executed; calling this method does not cause a datastore operation.
 	 */
 	public QueryResultIterable<Key<T>> fetchKeys();
 	
@@ -148,4 +150,23 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <p>This is somewhat faster than fetching, but the time still grows with the number of results.</p>
 	 */
 	public int countAll();
+
+	/**
+	 * <p>Execute the query and get the results as a List.  The list will be equivalent to a simple ArrayList;
+	 * you can iterate through it multiple times without incurring additional datastore cost.</p>
+	 * 
+	 * <p>Note that you must be careful about limit()ing the size of the list returned; you can
+	 * easily exceed the practical memory limits of Appengine by querying for a very large dataset.</p> 
+	 */
+	public List<T> list();
+	
+	/**
+	 * <p>Execute a keys-only query and get the results as a List.  This is more efficient than
+	 * fetching the actual results.</p>
+	 * 
+	 * <p>The size and scope considerations of list() apply; don't fetch more data than you
+	 * can fit in a simple ArrayList.</p>
+	 */
+	public List<Key<T>> listKeys();
+	
 }

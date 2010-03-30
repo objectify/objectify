@@ -1,9 +1,11 @@
 package com.googlecode.objectify.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -408,6 +410,33 @@ public class QueryImpl<T> implements Query<T>
 	{
 		Set<Key<V>> parentKeys = this.fetchParentKeys();
 		return this.ofy.get(parentKeys);
+	}
+
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#list()
+	 */
+	@Override
+	public List<T> list()
+	{
+		List<T> result = new ArrayList<T>();
+		for (T obj: this)
+			result.add(obj);
+		
+		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#listKeys()
+	 */
+	@Override
+	public List<Key<T>> listKeys()
+	{
+		List<Key<T>> result = new ArrayList<Key<T>>();
+		for (Key<T> key: this.fetchKeys())
+			result.add(key);
+		
+		return result;
 	}
 
 	/**
