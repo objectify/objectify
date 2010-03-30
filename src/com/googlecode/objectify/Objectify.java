@@ -3,7 +3,6 @@ package com.googlecode.objectify;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
@@ -39,23 +38,23 @@ public interface Objectify
 	/**
 	 * <p>Gets one instance of your entity.</p>
 	 * 
-	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 * @throws NotFoundException if the key does not exist in the datastore
 	 * 
 	 * @see DatastoreService#get(Key) 
 	 */
-	<T> T get(Key<? extends T> key) throws EntityNotFoundException;
+	<T> T get(Key<? extends T> key) throws NotFoundException;
 	
 	/**
 	 * <p>A convenience method, shorthand for creating a key and calling get()</p> 
-	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 * @throws NotFoundException if the key does not exist in the datastore
 	 */
-	<T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException;
+	<T> T get(Class<? extends T> clazz, long id) throws NotFoundException;
 	
 	/**
 	 * <p>A convenience method, shorthand for creating a key and calling get()</p> 
-	 * @throws EntityNotFoundException if the key does not exist in the datastore
+	 * @throws NotFoundException if the key does not exist in the datastore
 	 */
-	<T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException;
+	<T> T get(Class<? extends T> clazz, String name) throws NotFoundException;
 	
 	/**
 	 * <p>A convenience method that prevents you from having to assemble all the Keys
@@ -71,13 +70,13 @@ public interface Objectify
 	 */
 	<S, T> Map<S, T> get(Class<? extends T> clazz, Iterable<S> idsOrNames);
 	
-	/** Same as {@code get(Key)} but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Key)} but returns null instead of throwing NotFoundException */ 
 	<T> T find(Key<? extends T> key);
 	
-	/** Same as {@code get(Class, long)} but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Class, long)} but returns null instead of throwing NotFoundException */ 
 	<T> T find(Class<? extends T> clazz, long id);
 	
-	/** Same as {@code get(Class, name)} but returns null instead of throwing EntityNotFoundException */ 
+	/** Same as {@code get(Class, name)} but returns null instead of throwing NotFoundException */ 
 	<T> T find(Class<? extends T> clazz, String name);
 
 	/**

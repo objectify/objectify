@@ -11,6 +11,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
@@ -77,18 +78,24 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#get(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
-	public <T> T get(Key<? extends T> key) throws EntityNotFoundException
+	public <T> T get(Key<? extends T> key) throws NotFoundException
 	{
-		Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
-		
-		return this.factory.getMetadata(key).toObject(ent);
+		try
+		{
+			Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
+			return this.factory.getMetadata(key).toObject(ent);
+		}
+		catch (EntityNotFoundException e)
+		{
+			throw new NotFoundException(key);
+		}	
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, long)
 	 */
 	@Override
-	public <T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, long id) throws NotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
 		return (T)this.get(new Key<T>(clazz, id));
@@ -98,7 +105,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, java.lang.String)
 	 */
 	@Override
-	public <T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, String name) throws NotFoundException
 	{
 		// The cast gets rid of "no unique maximal instance exists" compiler error
 		return (T)this.get(new Key<T>(clazz, name));
@@ -142,7 +149,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T find(Key<? extends T> key)
 	{
 		try { return (T)this.get(key); }
-		catch (EntityNotFoundException e) { return null; }
+		catch (NotFoundException e) { return null; }
 	}
 
 	/* (non-Javadoc)
@@ -152,7 +159,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T find(Class<? extends T> clazz, long id)
 	{
 		try { return this.get(clazz, id); }
-		catch (EntityNotFoundException e) { return null; }
+		catch (NotFoundException e) { return null; }
 	}
 
 	/* (non-Javadoc)
@@ -162,7 +169,7 @@ public class ObjectifyImpl implements Objectify
 	public <T> T find(Class<? extends T> clazz, String name)
 	{
 		try { return this.get(clazz, name); }
-		catch (EntityNotFoundException e) { return null; }
+		catch (NotFoundException e) { return null; }
 	}
 
 	/* (non-Javadoc)

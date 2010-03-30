@@ -7,9 +7,9 @@ package com.googlecode.objectify.helper;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
@@ -38,19 +38,19 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
-	public <T> T get(Key<? extends T> key) throws EntityNotFoundException
+	public <T> T get(Key<? extends T> key) throws NotFoundException
 	{
 		return this.base.get(key);
 	}
 	
 	@Override
-	public <T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, long id) throws NotFoundException
 	{
 		return this.base.get(clazz, id);
 	}
 	
 	@Override
-	public <T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, String name) throws NotFoundException
 	{
 		return this.base.get(clazz, name);
 	}

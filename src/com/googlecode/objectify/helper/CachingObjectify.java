@@ -10,10 +10,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 
@@ -81,23 +81,23 @@ public class CachingObjectify extends ObjectifyWrapper
 	}
 	
 	@Override
-	public <T> T get(Key<? extends T> key) throws EntityNotFoundException
+	public <T> T get(Key<? extends T> key) throws NotFoundException
 	{
 		T t = this.find(key);
 		if (t == null)
-			throw new EntityNotFoundException(this.getFactory().getRawKey(key));
+			throw new NotFoundException(key);
 		else
 			return t;
 	}
 	
 	@Override
-	public <T> T get(Class<? extends T> clazz, long id) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, long id) throws NotFoundException
 	{
 		return this.get(new Key<T>(clazz, id));
 	}
 	
 	@Override
-	public <T> T get(Class<? extends T> clazz, String name) throws EntityNotFoundException
+	public <T> T get(Class<? extends T> clazz, String name) throws NotFoundException
 	{
 		return this.get(new Key<T>(clazz, name));	}
 	
