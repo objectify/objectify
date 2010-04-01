@@ -21,7 +21,6 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.CachingDatastoreService;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
@@ -65,17 +64,17 @@ public class TestBase
 	{
 		this.helper.setUp();
 		
-		final boolean enableCache = true;
+		//final boolean enableCache = true;
 		
 		this.fact = new ObjectifyFactory() {
-			@Override
-			protected DatastoreService getDatastoreService()
-			{
-				if (enableCache)
-					return new CachingDatastoreService(this, this.getRawDatastoreService());
-				else
-					return this.getRawDatastoreService();
-			}
+//			@Override
+//			protected DatastoreService getDatastoreService()
+//			{
+//				if (enableCache)
+//					return new CachingDatastoreService(this, this.getRawDatastoreService());
+//				else
+//					return this.getRawDatastoreService();
+//			}
 			
 			@Override
 			protected Objectify createObjectify(DatastoreService ds, Transaction txn)

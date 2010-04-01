@@ -270,8 +270,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> Query<T> query()
 	{
-		Query<T> query = new QueryImpl<T>(this.factory, this);
-		return this.factory.maybeWrap(query);
+		return new QueryImpl<T>(this.factory, this);
 	}
 	
 	/* (non-Javadoc)
@@ -280,8 +279,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> Query<T> query(Class<T> clazz)
 	{
-		Query<T> query = new QueryImpl<T>(this.factory, this, clazz);
-		return this.factory.maybeWrap(query);
+		return new QueryImpl<T>(this.factory, this, clazz);
 	}
 	
 	/* (non-Javadoc)

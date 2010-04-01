@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import com.google.appengine.api.datastore.Transaction;
 
 
 /**
@@ -32,15 +31,9 @@ public class ObjectifyService
 	/** @see ObjectifyFactory#beginTransaction() */
 	public static Objectify beginTransaction() { return factory().beginTransaction(); }
 	
-	/** @see ObjectifyFactory#withTransaction(Transaction) */
-	public static Objectify withTransaction(Transaction txn) { return factory().withTransaction(txn); }
-
+	/** @see ObjectifyFactory#begin(ObjectifyOpts) */
+	public static Objectify begin(ObjectifyOpts opts) { return factory().begin(opts); }
+	
 	/** @see ObjectifyFactory#register(Class) */
 	public static void register(Class<?> clazz) { factory().register(clazz); }
-	
-	/** @see ObjectifyFactory#setDatastoreTimeoutRetryCount(int) */
-	public static void setDatastoreTimeoutRetryCount(int value) { factory().setDatastoreTimeoutRetryCount(value); }
-
-	/** @see ObjectifyFactory#getDatastoreTimeoutRetryCount() */
-	public static int getDatastoreTimeoutRetryCount() { return factory().getDatastoreTimeoutRetryCount(); }
 }

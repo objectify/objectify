@@ -259,22 +259,6 @@ public class QueryTests extends TestBase
 		assert q.get() == null;
 	}
 
-	/**
-	 * Tests issue #3:  http://code.google.com/p/objectify-appengine/issues/detail?id=3 
-	 */
-	@Test
-	public void testFetchOptionsWithTimeoutRetries() throws Exception
-	{
-		this.fact.setDatastoreTimeoutRetryCount(1);
-		Objectify ofy = this.fact.begin();
-		
-		// This used to throw an exception when wrapping the ArrayList in the retry wrapper
-		// because we used the wrong classloader to produce the proxy.  Fixed.
-    	Iterable<Key<Trivial>> keys = ofy.query(Trivial.class).limit(10).fetchKeys();
-    	
-    	assert keys != null;
-	}
-
 	/** */
 	@Test
 	public void testFilteringByKeyField() throws Exception

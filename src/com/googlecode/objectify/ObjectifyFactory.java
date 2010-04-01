@@ -4,11 +4,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.impl.CachingDatastoreService;
-import com.googlecode.objectify.impl.DatastoreTimeoutRetryProxy;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 
@@ -43,11 +44,8 @@ public class ObjectifyFactory
 	/** */
 	protected Map<String, EntityMetadata<?>> types = new ConcurrentHashMap<String, EntityMetadata<?>>();
 	
-	/** If >0, uses a proxy to retry DatastoreTimeoutExceptions */
-	protected int datastoreTimeoutRetryCount;
-	
-	/** If nothing is {@code @Cached}, leave as false to eliminate proxy overhead */
-	protected boolean useCachingDatastoreService;
+	/** True if any @Cached entities have been registered */
+	protected boolean hasCachedEntities;
 	
 	/**
 	 * @param ds the DatastoreService
@@ -66,32 +64,48 @@ public class ObjectifyFactory
 	 * entities have been registered.  Delegates to getRawDatastoreService() to
 	 * actually obtain the instance from appengine.
 	 */
-	protected DatastoreService getDatastoreService()
+	protected DatastoreService getDatastoreService(ObjectifyOpts opts)
 	{
-		if (this.useCachingDatastoreService)
-			return new CachingDatastoreService(this, this.getRawDatastoreService());
+		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(opts.getConsistency()));
+		
+		if (opts.getDeadline() != null)
+			cfg.deadline(opts.getDeadline());
+		
+		if (opts.getMemCache() && this.hasCachedEntities)
+			return new CachingDatastoreService(this, this.getRawDatastoreService(cfg));
 		else
-			return this.getRawDatastoreService();
+			return this.getRawDatastoreService(cfg);
 	}
 	
 	/**
 	 * You can override this to add behavior at the raw datastoreservice level.
 	 */
-	protected DatastoreService getRawDatastoreService()
+	protected DatastoreService getRawDatastoreService(DatastoreServiceConfig cfg)
 	{
-		return DatastoreServiceFactory.getDatastoreService();
+		return DatastoreServiceFactory.getDatastoreService(cfg);
 	}
 	
 	/**
-	 * @return an Objectify from the DatastoreService which does NOT use
-	 *  transactions.  This is a lightweight operation and can be used freely.
+	 * Create a lightweight Objectify instance with the default options.
+	 * Equivalent to begin(new ObjectifyOpts()).
 	 */
 	public Objectify begin()
 	{
-		DatastoreService ds = this.getDatastoreService();
-		Objectify impl = createObjectify(ds, null);
-
-		return this.maybeWrap(impl);
+		return this.begin(new ObjectifyOpts());
+	}
+	
+	/**
+	 * @return an Objectify from the DatastoreService with the specified options.
+	 * This is a lightweight operation and can be used freely.
+	 */
+	public Objectify begin(ObjectifyOpts opts)
+	{
+		DatastoreService ds = this.getDatastoreService(opts);
+		
+		if (opts.getBeginTransaction())
+			return createObjectify(ds, ds.beginTransaction());
+		else
+			return createObjectify(ds, null);
 	}
 	
 	/**
@@ -100,23 +114,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify beginTransaction()
 	{
-		DatastoreService ds = this.getDatastoreService();
-		Objectify impl = createObjectify(ds, ds.beginTransaction());
-		
-		return this.maybeWrap(impl);
-	}
-	
-	/**
-	 * Use this method when you already have a Transaction object, say one
-	 * that was created by using the raw DatastoreService.  This method should
-	 * not commonly be used.
-	 * 
-	 * @return an Objectify which uses the specified transaction.
-	 */
-	public Objectify withTransaction(Transaction txn)
-	{
-		DatastoreService ds = this.getDatastoreService();
-		return this.maybeWrap(createObjectify(ds, txn));
+		return this.begin(new ObjectifyOpts().setBeginTransaction(true));
 	}
 	
 	/**
@@ -136,50 +134,7 @@ public class ObjectifyFactory
 		this.types.put(kind, meta);
 		
 		if (meta.getCached() != null)
-			this.useCachingDatastoreService = true;
-	}
-	
-	/**
-	 * <p>If this value is set to something greater than zero, Objectify will
-	 * retry all calls to the datastore whenever the it throws a
-	 * DatastoreTimeoutException.  The datastore produces a trickle
-	 * of these errors *all the time*, even in good health.  They can be
-	 * retried without ill effect.</p>
-	 * 
-	 * <p>If you want more fine grained control of retries, you can leave this
-	 * value at 0 and manually wrap Objectify, ObjPreparedQuery, and Iterator
-	 * instances by calling DatastoreTimeoutRetryProxy.wrap() directly.</p>
-	 * 
-	 * <p>Beware setting this value to something large; sometimes the datastore
-	 * starts choking and returning timeout errors closer to 100% of the time
-	 * rather than the usual 0.1%-1%. A low number like 2 is safe and effective.</p>
-	 * 
-	 * @param value is the number of retries to attempt; ie 1 means two total tries
-	 *  before giving up and propagating the DatastoreTimeoutException.
-	 */
-	public void setDatastoreTimeoutRetryCount(int value)
-	{
-		this.datastoreTimeoutRetryCount = value;
-	}
-
-	/**
-	 * @return the current setting for datastore timeout retry count
-	 */
-	public int getDatastoreTimeoutRetryCount()
-	{
-		return this.datastoreTimeoutRetryCount;
-	}
-	
-	/**
-	 * Wraps impl in a proxy that detects DatastoreTimeoutException if
-	 * datastoreTimeoutRetryCount > 0.
-	 */
-	public <T> T maybeWrap(T impl)
-	{
-		if (this.datastoreTimeoutRetryCount > 0)
-			return DatastoreTimeoutRetryProxy.wrap(impl, this.datastoreTimeoutRetryCount);
-		else
-			return impl;
+			this.hasCachedEntities = true;
 	}
 	
 	//

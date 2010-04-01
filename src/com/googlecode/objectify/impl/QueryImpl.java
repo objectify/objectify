@@ -465,29 +465,30 @@ public class QueryImpl<T> implements Query<T>
 	 */
 	private FetchOptions fetchOptions()
 	{
-		// The FetchOptions builder interface is really, really awful
+		FetchOptions opts = null;
+		
 		if (this.cursor != null)
 		{
-			FetchOptions opts = FetchOptions.Builder.withCursor(this.cursor);
-			if (this.limit != 0) opts = opts.limit(this.limit);
-			if (this.offset != 0) opts = opts.offset(this.offset);
-			return opts;
+			opts = FetchOptions.Builder.withCursor(this.cursor);
 		}
-		else if (this.limit != 0)
+		
+		if (this.limit != 0)
 		{
-			FetchOptions opts = FetchOptions.Builder.withLimit(this.limit);
-			if (this.offset != 0) opts = opts.offset(this.offset);
-			return opts;
+			if (opts == null)
+				opts = FetchOptions.Builder.withLimit(this.limit);
+			else
+				opts = opts.limit(this.limit);
 		}
-		else if (this.offset != 0)
+		
+		if (this.offset != 0)
 		{
-			FetchOptions opts = FetchOptions.Builder.withOffset(this.offset);
-			return opts;
+			if (opts == null)
+				opts = FetchOptions.Builder.withOffset(this.offset);
+			else
+				opts = opts.offset(this.offset);
 		}
-		else
-		{
-			return null;
-		}
+
+		return opts;
 	}
 	
 	/**
@@ -520,7 +521,7 @@ public class QueryImpl<T> implements Query<T>
 
 		public ToObjectIterable(QueryResultIterable<Entity> source, boolean keysOnly)
 		{
-			this.source = factory.maybeWrap(source);
+			this.source = source;
 			this.keysOnly = keysOnly;
 		}
 
@@ -541,7 +542,7 @@ public class QueryImpl<T> implements Query<T>
 
 		public ToObjectIterator(QueryResultIterator<Entity> source, boolean keysOnly)
 		{
-			this.source = factory.maybeWrap(source);
+			this.source = source;
 			this.keysOnly = keysOnly;
 		}
 
