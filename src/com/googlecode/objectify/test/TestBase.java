@@ -68,7 +68,7 @@ public class TestBase
 			public Objectify begin(ObjectifyOpts opts)
 			{
 				// This can be used to enable/disable the memory cache globally.
-				opts.setMemCache(true);
+				opts.setGlobalCache(true);
 				
 				// This can be used to enable/disable the session caching objectify
 				// Note that it will break several unit tests that check for transmutation

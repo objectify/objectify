@@ -78,7 +78,7 @@ public class ObjectifyFactory
 		if (opts.getDeadline() != null)
 			cfg.deadline(opts.getDeadline());
 		
-		if (opts.getMemCache() && this.hasCachedEntities)
+		if (opts.getGlobalCache() && this.hasCachedEntities)
 			return new CachingDatastoreService(this, this.getRawDatastoreService(cfg));
 		else
 			return this.getRawDatastoreService(cfg);

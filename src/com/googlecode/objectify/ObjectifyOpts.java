@@ -9,8 +9,8 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
  * 
  * <ul>
  * <li>Do NOT begin a transaction.</li>
- * <li>Do NOT use a session cache.</li>
- * <li>DO use a 2nd-level memcache.</li>
+ * <li>DO use a session cache.</li>
+ * <li>DO use a global cache.</li>
  * <li>Use STRONG consistency.</li>
  * <li>Apply no deadline to calls.</li>
  * </ul>
@@ -20,8 +20,8 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 public class ObjectifyOpts
 {
 	boolean beginTransaction;
-	boolean sessionCache;
-	boolean memCache = true;
+	boolean sessionCache = true;
+	boolean globalCache = true;
 	Consistency consistency = Consistency.STRONG;
 	Double deadline;
 	
@@ -55,7 +55,7 @@ public class ObjectifyOpts
 	}
 	
 	/** Gets whether or not the Objectify instance will use a 2nd-level memcache */
-	public boolean getMemCache() { return this.memCache; }
+	public boolean getGlobalCache() { return this.globalCache; }
 	
 	/**
 	 * Sets whether or not the Objectify instance will use a 2nd-level memcache.
@@ -65,9 +65,9 @@ public class ObjectifyOpts
 	 * is shared across all versions of your application across the entire GAE
 	 * cluster.
 	 */
-	public ObjectifyOpts setMemCache(boolean value)
+	public ObjectifyOpts setGlobalCache(boolean value)
 	{
-		this.memCache = value;
+		this.globalCache = value;
 		return this;
 	}
 	
