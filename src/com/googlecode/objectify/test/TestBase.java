@@ -74,7 +74,7 @@ public class TestBase
 				// Note that it will break several unit tests that check for transmutation
 				// when entities are run through the DB (ie, unknown List types become
 				// ArrayList).  These failures are ok.
-				opts.setSessionCache(true);
+				opts.setSessionCache(false);
 				
 				return super.begin(opts);
 			}
