@@ -80,15 +80,12 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> T get(Key<? extends T> key) throws NotFoundException
 	{
-		try
-		{
-			Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
-			return this.factory.getMetadata(key).toObject(ent);
-		}
-		catch (EntityNotFoundException e)
-		{
+		// The actual implementation is find().
+		T value = this.find(key);
+		if (value != null)
+			return value;
+		else
 			throw new NotFoundException(key);
-		}	
 	}
 
 	/* (non-Javadoc)
@@ -148,8 +145,15 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> T find(Key<? extends T> key)
 	{
-		try { return (T)this.get(key); }
-		catch (NotFoundException e) { return null; }
+		try
+		{
+			Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
+			return this.factory.getMetadata(key).toObject(ent);
+		}
+		catch (EntityNotFoundException e)
+		{
+			return null;
+		}	
 	}
 
 	/* (non-Javadoc)
@@ -158,8 +162,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> T find(Class<? extends T> clazz, long id)
 	{
-		try { return this.get(clazz, id); }
-		catch (NotFoundException e) { return null; }
+		return this.find(new Key<T>(clazz, id));
 	}
 
 	/* (non-Javadoc)
@@ -168,8 +171,7 @@ public class ObjectifyImpl implements Objectify
 	@Override
 	public <T> T find(Class<? extends T> clazz, String name)
 	{
-		try { return this.get(clazz, name); }
-		catch (NotFoundException e) { return null; }
+		return this.find(new Key<T>(clazz, name));
 	}
 
 	/* (non-Javadoc)

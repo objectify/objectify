@@ -12,6 +12,7 @@ import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.impl.CachingDatastoreService;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
+import com.googlecode.objectify.impl.SessionCachingObjectifyImpl;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -48,15 +49,21 @@ public class ObjectifyFactory
 	protected boolean hasCachedEntities;
 	
 	/**
-	 * @param ds the DatastoreService
-	 * @param txn the Transaction
-	 * @return an instance of Objectify for use by the factory
+	 * Override this in your factory if you wish to use a different impl, say,
+	 * one based on the ObjectifyWrapper.
 	 * 
-	 * Override this in your factory if you wish to use a different impl.
+	 * @param ds the DatastoreService
+	 * @param opts the options for creating this Objectify
+	 * @return an instance of Objectify configured appropriately
 	 */
-	protected Objectify createObjectify(DatastoreService ds, Transaction txn) 
+	protected Objectify createObjectify(DatastoreService ds, ObjectifyOpts opts) 
 	{
-		return new ObjectifyImpl(this, ds, txn);
+		Transaction txn = (opts.getBeginTransaction()) ? ds.beginTransaction() : null;
+		
+		if (opts.getSessionCache())
+			return new SessionCachingObjectifyImpl(this, ds, txn);
+		else
+			return new ObjectifyImpl(this, ds, txn);
 	}
 	
 	/**
@@ -101,11 +108,7 @@ public class ObjectifyFactory
 	public Objectify begin(ObjectifyOpts opts)
 	{
 		DatastoreService ds = this.getDatastoreService(opts);
-		
-		if (opts.getBeginTransaction())
-			return createObjectify(ds, ds.beginTransaction());
-		else
-			return createObjectify(ds, null);
+		return this.createObjectify(ds, opts);
 	}
 	
 	/**

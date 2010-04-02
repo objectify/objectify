@@ -24,6 +24,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.helper.TranslatingQueryResultIterator;
 
 /**
  * Implementation of Query.
@@ -291,9 +292,9 @@ public class QueryImpl<T> implements Query<T>
 	{
 		FetchOptions opts = this.fetchOptions();
 		if (opts == null)
-			return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(), false);
+			return new ToObjectIterator(this.prepare().asQueryResultIterator());
 		else
-			return new ToObjectIterator<T>(this.prepare().asQueryResultIterator(opts), false);
+			return new ToObjectIterator(this.prepare().asQueryResultIterator(opts));
 	}
 
 	/* (non-Javadoc)
@@ -303,26 +304,20 @@ public class QueryImpl<T> implements Query<T>
 	public T get()
 	{
 		// The underlying datastore is basically doing this for PreparedQuery.asSingleEntity(),
-		// so let's do it ourselves and integrate offset()
-
-		FetchOptions opts = FetchOptions.Builder.withLimit(1);
-		if (this.offset > 0)
-			opts = opts.offset(this.offset);
-		if (this.cursor != null)
-			opts = opts.cursor(this.cursor);
+		// so we can do it by faking the limit
 		
-		Iterator<Entity> it = this.prepare().asIterator(opts);
-
+		int oldLimit = this.limit;
+		
+		Iterator<T> it = this.iterator();
+		
+		T result = null;
+		
 		if (it.hasNext())
-		{
-			Entity ent = it.next();
-			EntityMetadata<T> metadata = this.factory.getMetadata(ent.getKey());
-			return metadata.toObject(ent);
-		}
-		else
-		{
-			return null;
-		}
+			result = it.next();
+		
+		this.limit = oldLimit;
+		
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -331,21 +326,18 @@ public class QueryImpl<T> implements Query<T>
 	@Override
 	public Key<T> getKey()
 	{
-		FetchOptions opts = FetchOptions.Builder.withLimit(1);
-		if (this.offset > 0)
-			opts = opts.offset(this.offset);
+		int oldLimit = this.limit;
 		
-		Iterator<Entity> it = this.prepareKeysOnly().asIterator(opts);
-
+		Iterator<Key<T>> it = this.fetchKeys().iterator();
+		
+		Key<T> result = null;
+		
 		if (it.hasNext())
-		{
-			Entity ent = it.next();
-			return this.factory.rawKeyToTypedKey(ent.getKey());
-		}
-		else
-		{
-			return null;
-		}
+			result = it.next();
+		
+		this.limit = oldLimit;
+		
+		return result;
 	}
 
 	/* (non-Javadoc)
@@ -363,11 +355,7 @@ public class QueryImpl<T> implements Query<T>
 	@Override
 	public QueryResultIterable<T> fetch()
 	{
-		FetchOptions opts = this.fetchOptions();
-		if (opts == null)
-			return this;	// We are already iterable
-		else
-			return new ToObjectIterable<T>(this.prepare().asQueryResultIterable(opts), false);
+		return this;
 	}
 
 	/* (non-Javadoc)
@@ -378,9 +366,9 @@ public class QueryImpl<T> implements Query<T>
 	{
 		FetchOptions opts = this.fetchOptions();
 		if (opts == null)
-			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(), true);
+			return new ToKeyIterable(this.prepareKeysOnly().asQueryResultIterable());
 		else
-			return new ToObjectIterable<Key<T>>(this.prepareKeysOnly().asQueryResultIterable(opts), true);
+			return new ToKeyIterable(this.prepareKeysOnly().asQueryResultIterable(opts));
 	}
 
 	/* (non-Javadoc)
@@ -512,73 +500,57 @@ public class QueryImpl<T> implements Query<T>
 	}
 	
 	/**
-	 * Iterable that translates from datastore Entity to types Objects
+	 * Iterable that translates from datastore Entity to Keys
 	 */
-	class ToObjectIterable<S> implements QueryResultIterable<S>
+	protected class ToKeyIterable implements QueryResultIterable<Key<T>>
 	{
 		QueryResultIterable<Entity> source;
-		boolean keysOnly;
 
-		public ToObjectIterable(QueryResultIterable<Entity> source, boolean keysOnly)
+		public ToKeyIterable(QueryResultIterable<Entity> source)
 		{
 			this.source = source;
-			this.keysOnly = keysOnly;
 		}
 
 		@Override
-		public QueryResultIterator<S> iterator()
+		public QueryResultIterator<Key<T>> iterator()
 		{
-			return new ToObjectIterator<S>(this.source.iterator(), this.keysOnly);
+			return new ToKeyIterator(this.source.iterator());
+		}
+	}
+
+	/**
+	 * Iterator that translates from datastore Entity to Keys
+	 */
+	protected class ToKeyIterator extends TranslatingQueryResultIterator<Entity, Key<T>>
+	{
+		public ToKeyIterator(QueryResultIterator<Entity> source)
+		{
+			super(source);
+		}
+
+		@Override
+		@SuppressWarnings("unchecked")
+		protected Key<T> translate(Entity from)
+		{
+			return (Key<T>)factory.rawKeyToTypedKey(from.getKey());
 		}
 	}
 
 	/**
 	 * Iterator that translates from datastore Entity to typed Objects
 	 */
-	class ToObjectIterator<S> implements QueryResultIterator<S>
+	protected class ToObjectIterator extends TranslatingQueryResultIterator<Entity, T>
 	{
-		QueryResultIterator<Entity> source;
-		boolean keysOnly;
-
-		public ToObjectIterator(QueryResultIterator<Entity> source, boolean keysOnly)
+		public ToObjectIterator(QueryResultIterator<Entity> source)
 		{
-			this.source = source;
-			this.keysOnly = keysOnly;
+			super(source);
 		}
 
 		@Override
-		public boolean hasNext()
+		protected T translate(Entity from)
 		{
-			return this.source.hasNext();
-		}
-
-		@Override
-		@SuppressWarnings("unchecked")
-		public S next()
-		{
-			Entity nextEntity = this.source.next();
-			if (keysOnly)
-			{
-				// This will be a ToObjectIterator<Key<T>>
-				return (S)factory.rawKeyToTypedKey(nextEntity.getKey());
-			}
-			else
-			{
-				EntityMetadata<S> meta = factory.getMetadata(nextEntity.getKey());
-				return meta.toObject(nextEntity);
-			}
-		}
-
-		@Override
-		public void remove()
-		{
-			this.source.remove();
-		}
-
-		@Override
-		public Cursor getCursor()
-		{
-			return this.source.getCursor();
+			EntityMetadata<T> meta = factory.getMetadata(from.getKey());
+			return meta.toObject(from);
 		}
 	}
 }

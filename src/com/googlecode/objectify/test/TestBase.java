@@ -10,10 +10,8 @@ import org.slf4j.LoggerFactory;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -21,6 +19,7 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
@@ -64,27 +63,20 @@ public class TestBase
 	{
 		this.helper.setUp();
 		
-		//final boolean enableCache = true;
-		
 		this.fact = new ObjectifyFactory() {
-//			@Override
-//			protected DatastoreService getDatastoreService()
-//			{
-//				if (enableCache)
-//					return new CachingDatastoreService(this, this.getRawDatastoreService());
-//				else
-//					return this.getRawDatastoreService();
-//			}
-			
 			@Override
-			protected Objectify createObjectify(DatastoreService ds, Transaction txn)
+			public Objectify begin(ObjectifyOpts opts)
 			{
+				// This can be used to enable/disable the memory cache globally.
+				opts.setMemCache(true);
+				
 				// This can be used to enable/disable the session caching objectify
 				// Note that it will break several unit tests that check for transmutation
 				// when entities are run through the DB (ie, unknown List types become
 				// ArrayList).  These failures are ok.
-				return super.createObjectify(ds, txn);
-				//return new CachingObjectify(super.createObjectify(ds, txn));
+				opts.setSessionCache(true);
+				
+				return super.begin(opts);
 			}
 		};
 		

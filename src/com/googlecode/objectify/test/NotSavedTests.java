@@ -65,7 +65,7 @@ public class NotSavedTests extends TestBase
 		assert fetched.foo.equals(TEST_VALUE);
 		
 		fetched = putAndGet(fetched);
-		assert fetched.foo == null;
+		assert fetched.foo == null;	// will fail if session caching objectify is turned on
 	}
 	
 	/** */
@@ -88,7 +88,7 @@ public class NotSavedTests extends TestBase
 		thing.bar = true;
 		
 		UnsavedWhenTrue fetched = putAndGet(thing);
-		assert fetched.foo == false;
+		assert fetched.foo == false;	// will fail with session caching turned on
 		assert fetched.bar == true;
 	}
 
@@ -112,7 +112,7 @@ public class NotSavedTests extends TestBase
 		thing.bar = true;
 		
 		DeeperUnsavedWhenTrue fetched = putAndGet(thing);
-		assert fetched.foo == false;
+		assert fetched.foo == false;	// will fail with session caching objectify turned on
 		assert fetched.bar == true;
 	}
 
