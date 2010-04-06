@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
  * 
  * <ul>
  * <li>Do NOT begin a transaction.</li>
- * <li>DO use a session cache.</li>
+ * <li>Do NOT use a session cache.</li>
  * <li>DO use a global cache.</li>
  * <li>Use STRONG consistency.</li>
  * <li>Apply no deadline to calls.</li>
@@ -20,7 +20,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 public class ObjectifyOpts
 {
 	boolean beginTransaction;
-	boolean sessionCache = true;
+	boolean sessionCache = false;
 	boolean globalCache = true;
 	Consistency consistency = Consistency.STRONG;
 	Double deadline;
