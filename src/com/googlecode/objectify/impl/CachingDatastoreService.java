@@ -64,17 +64,16 @@ public class CachingDatastoreService implements DatastoreService
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
 		public void commit()
 		{
 			this.raw.commit();
 			
 			// Only after successful commit should we modify the cache
 			if (this.deferredDeletes != null)
-				getMemcache().deleteAll((Set)deferredDeletes);
+				deleteFromCache(this.deferredDeletes);
 			
 			if (this.deferredPuts != null)
-				getMemcache().putAll((Map)this.deferredPuts);
+				putInCache(this.deferredPuts);
 		}
 
 		@Override
