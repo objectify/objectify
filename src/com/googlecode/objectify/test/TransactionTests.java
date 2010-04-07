@@ -144,7 +144,6 @@ public class TransactionTests extends TestBase
 			this.id = id;
 			this.simpleParentKey = SimpleParent.getSimpleParentKey(id);
 		}
-		
 	}
 
 	/** */
@@ -183,8 +182,8 @@ public class TransactionTests extends TestBase
 		// Need to register it so the entity kind becomes cacheable
 		this.fact.register(SimpleEntity.class);
 		
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		ds = new CachingDatastoreService(this.fact, ds);
+		DatastoreService ods = DatastoreServiceFactory.getDatastoreService();
+		DatastoreService ds = new CachingDatastoreService(this.fact, ods);
 
 		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.
 		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
@@ -195,7 +194,23 @@ public class TransactionTests extends TestBase
 		ent1.setProperty("foo", "original");
 		ds.put(ent1);
 
+		// Weirdly, this will solve the problem too
+		//MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
+		//cs.clearAll();
+		
 		// Start transaction
+//		Transaction txn = ds.beginTransaction();
+//		Entity ent2;
+//		try {
+//			ent2 = ds.get(txn, childKey);
+//			ent2.setProperty("foo", "changed");
+//			ds.put(txn, ent2);
+//			txn.commit();
+//		} finally {
+//			if (txn.isActive())
+//				txn.rollback();
+//		}
+		
 		Transaction txn = ds.beginTransaction();
 		Entity ent2;
 		try {
@@ -217,26 +232,35 @@ public class TransactionTests extends TestBase
 	@SuppressWarnings("unchecked")
 	@Test
 	public void testRawCaching() throws Exception {
+		// I can not for the life of me figure out why this test passes when the
+		// previous test fails.
 
-		MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
-		cs.setNamespace("blah");
+		MemcacheService cs1 = MemcacheServiceFactory.getMemcacheService();
+		cs1.setNamespace("blah");
 		
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-
+		
 		Entity ent = new Entity(childKey);
 		ent.setProperty("foo", "original");
-		cs.put(childKey, ent);
+		cs1.put(childKey, ent);
+
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		Transaction txn = ds.beginTransaction();
+		ds.put(txn, ent);
 		
-		Entity ent2 = (Entity)cs.get(childKey);
+		MemcacheService cs2 = MemcacheServiceFactory.getMemcacheService();
+		cs2.setNamespace("blah");
+		
+		Entity ent2 = (Entity)cs2.get(childKey);
 		assert ent2.getProperty("foo").equals("original");
 		ent2.setProperty("foo", "changed");
 		
 		Map<Object, Object> holder = new HashMap<Object, Object>();
 		holder.put(childKey, ent2);
-		cs.putAll(holder);
+		cs2.putAll(holder);
 		
-		Map<Object, Object> fetched = cs.getAll((Collection)Collections.singleton(childKey));
+		Map<Object, Object> fetched = cs1.getAll((Collection)Collections.singleton(childKey));
 		Entity ent3 = (Entity)fetched.get(childKey);
 		assert ent3.getProperty("foo").equals("changed");
 	}
