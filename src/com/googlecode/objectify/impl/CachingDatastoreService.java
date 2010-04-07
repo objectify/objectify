@@ -232,7 +232,16 @@ public class CachingDatastoreService implements DatastoreService
 		for (Key key: keys)
 			keysColl.add(KeyFactory.keyToString(key));
 		
-		Map<String, Entity> rawResults = (Map)this.getMemcache().getAll((Collection)keysColl);
+		Map<String, Entity> rawResults;
+		try {
+			rawResults = (Map)this.getMemcache().getAll((Collection)keysColl);
+		}
+		catch (Exception ex) {
+			// This should only be an issue if Google changes the serialization
+			// format of an Entity.  It's possible, but this is just a cache so we
+			// can safely ignore the error.
+			return new HashMap<Key, Entity>();
+		}
 		
 		Map<Key, Entity> keyMapped = new HashMap<Key, Entity>((int)(rawResults.size() * 1.5));
 		for(Map.Entry<String, Entity> entry: rawResults.entrySet())
