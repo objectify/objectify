@@ -221,18 +221,17 @@ public class CachingDatastoreService implements DatastoreService
 	@SuppressWarnings("unchecked")
 	private Map<Key, Entity> getFromCacheRaw(Iterable<Key> keys)
 	{
-		Collection<Key> keysColl;
+		Collection<String> keysColl = new ArrayList<String>();
+		for (Key key: keys)
+			keysColl.add(key.toString());
 		
-		if (keys instanceof Collection<?>)
-			keysColl = (Collection<Key>)keys;
-		else
-		{
-			keysColl = new ArrayList<Key>();
-			for (Key key: keys)
-				keysColl.add(key);
+		Map<String, Entity> rawResults = (Map)this.getMemcache().getAll((Collection)keysColl);
+		Map<Key, Entity> keyMapped = new HashMap<Key, Entity>(rawResults.size());
+		for(Entity e : rawResults.values()) {
+			keyMapped.put(e.getKey(), e);
 		}
+		return keyMapped;
 		
-		return (Map)this.getMemcache().getAll((Collection)keysColl);
 	}
 	
 	/**
@@ -256,10 +255,14 @@ public class CachingDatastoreService implements DatastoreService
 	@SuppressWarnings("unchecked")
 	private void putInCache(Map<Key, Entity> entities, int expirationSeconds)
 	{
+		Map<String, Entity> rawMap = new HashMap<String, Entity>(entities.size());
+		for(Entity e : entities.values())
+			rawMap.put(e.getKey().toString(), e);
+		
 		if (expirationSeconds < 0)
-			this.getMemcache().putAll((Map)entities);
+			this.getMemcache().putAll((Map)rawMap);
 		else
-			this.getMemcache().putAll((Map)entities, Expiration.byDeltaSeconds(expirationSeconds));
+			this.getMemcache().putAll((Map)rawMap, Expiration.byDeltaSeconds(expirationSeconds));
 	}
 	
 	/**
@@ -279,11 +282,11 @@ public class CachingDatastoreService implements DatastoreService
 	@SuppressWarnings("unchecked")
 	private void deleteFromCache(Iterable<Key> keys)
 	{
-		Collection<Key> cacheables = new ArrayList<Key>();
+		Collection<String> cacheables = new ArrayList<String>();
 		
 		for (Key key: keys)
 			if (this.fact.getMetadata(key).getCached() != null)
-				cacheables.add(key);
+				cacheables.add(key.toString());
 		
 		if (!cacheables.isEmpty())
 			this.getMemcache().deleteAll((Collection)cacheables);
