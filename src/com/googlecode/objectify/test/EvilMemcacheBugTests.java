@@ -218,29 +218,23 @@ public class EvilMemcacheBugTests extends TestBase
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
 		ms.setNamespace("testing1423");
-		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.
-		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
+
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-		
+
+		//save a test entity
 		Entity ent1 = new Entity(childKey);
 		ent1.setProperty("foo", "original");
 		ds.put(ent1);
 		ms.put(ent1.getKey(), ent1);
 
-		Transaction txn = ds.beginTransaction();
-		Entity ent2;
-		try {
-			ent2 = ds.get(txn, childKey);
-			ent2.setProperty("foo", "changed");
-			ds.put(txn, ent2);
-			ms.put(ent2.getKey(), ent2);
-			txn.commit();
-		} finally {
-			if (txn.isActive())
-				txn.rollback();
-		}
-		
+		//load it, and change the value.
+		Entity ent1loaded = ds.get(ent1.getKey());
+		ent1loaded.setProperty("foo", "changed");
+		//save it to the datastore and memcache
+		ds.put(ent1loaded);
+		ms.put(ent1loaded.getKey(), ent1loaded);
+
 		//dump memcache -- silly GAE can't hide this method from me!
 		Method meth = ms.getClass().getMethod("grabTail", int.class);
 		meth.setAccessible(true);
