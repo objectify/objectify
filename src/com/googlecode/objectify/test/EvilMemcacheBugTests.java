@@ -208,7 +208,10 @@ public class EvilMemcacheBugTests extends TestBase
 
 		Entity entB2 = ds.get(childKeyB);
 
+		// This works
 		assert new String(MemcacheSerialization.makePbKey(entB1.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
+		
+		// This fails!
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 	}
 	
