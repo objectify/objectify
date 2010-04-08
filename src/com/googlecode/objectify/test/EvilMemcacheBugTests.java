@@ -5,9 +5,11 @@
 
 package com.googlecode.objectify.test;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.Id;
@@ -38,7 +40,6 @@ import com.googlecode.objectify.impl.CachingDatastoreService;
 public class EvilMemcacheBugTests extends TestBase
 {
 	/** */
-	@SuppressWarnings("unused")
 	private static Logger log = LoggerFactory.getLogger(EvilMemcacheBugTests.class);
 	
 	/** */
@@ -209,5 +210,48 @@ public class EvilMemcacheBugTests extends TestBase
 
 		assert new String(MemcacheSerialization.makePbKey(entB1.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
+	}
+	
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testWithoutObjectify()  throws Exception {
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
+		ms.setNamespace("testing1423");
+		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.
+		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
+		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
+		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
+		
+		Entity ent1 = new Entity(childKey);
+		ent1.setProperty("foo", "original");
+		ds.put(ent1);
+		ms.put(ent1.getKey(), ent1);
+
+		Transaction txn = ds.beginTransaction();
+		Entity ent2;
+		try {
+			ent2 = ds.get(txn, childKey);
+			ent2.setProperty("foo", "changed");
+			ds.put(txn, ent2);
+			ms.put(ent2.getKey(), ent2);
+			txn.commit();
+		} finally {
+			if (txn.isActive())
+				txn.rollback();
+		}
+		
+		//dump memcache -- silly GAE can't hide this method from me!
+		Method meth = ms.getClass().getMethod("grabTail", int.class);
+		meth.setAccessible(true);
+		List dump = (List)meth.invoke(ms, 100);
+		for(Object obj : dump)
+			log.info(obj.toString());
+		
+		assert (dump.size() == 1);
+//		Entity ent3 = (Entity) ms.getAll((Collection)Collections.singleton(childKey)).values().toArray()[0];
+		
+//		assert "changed".equals(ent3.getProperty("foo"));
+		
 	}
 }
