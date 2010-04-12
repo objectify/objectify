@@ -5,6 +5,8 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.Arrays;
+
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
@@ -141,5 +143,27 @@ public class ConversionTests extends TestBase
 		{
 			// Correct
 		}
+	}
+	
+	/** */
+	@Cached
+	public static class Blobby
+	{
+		public @Id Long id;
+		public byte[] stuff;
+	}
+	
+	/** */
+	@Test
+	public void testBlobConversion() throws Exception
+	{
+		this.fact.register(Blobby.class);
+
+		Blobby b = new Blobby();
+		b.stuff = new byte[] { 1, 2, 3 };
+		
+		Blobby c = this.putAndGet(b);
+		
+		assert Arrays.equals(b.stuff, c.stuff);
 	}
 }

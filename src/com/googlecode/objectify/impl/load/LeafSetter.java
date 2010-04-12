@@ -122,7 +122,11 @@ public class LeafSetter extends CollisionDetectingSetter
 
 		if (!this.serialized && field.getType().isArray())
 		{
-			this.next = new ForArray();
+			// byte[] is a special case because it gets converted to and from blob
+			if (field.getType().getComponentType() == Byte.TYPE)
+				this.next = new ForBasic();
+			else
+				this.next = new ForArray();
 		}
 		else if (!this.serialized && Collection.class.isAssignableFrom(field.getType()))
 		{
@@ -202,6 +206,10 @@ public class LeafSetter extends CollisionDetectingSetter
 		else if (Key.class.isAssignableFrom(toType) && fromValue instanceof com.google.appengine.api.datastore.Key)
 		{
 			return this.factory.rawKeyToTypedKey((com.google.appengine.api.datastore.Key) fromValue);
+		}
+		else if (fromValue instanceof Blob && toType.isArray() && toType.getComponentType() == Byte.TYPE)
+		{
+			return ((Blob)fromValue).getBytes();
 		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + fromValue.getClass() + " to " + toType);
