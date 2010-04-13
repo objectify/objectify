@@ -211,7 +211,8 @@ public class EvilMemcacheBugTests extends TestBase
 		// This works
 		assert new String(MemcacheSerialization.makePbKey(entB1.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 		
-		// This fails!
+		// This fails!  It is a bug in the datastore.  See http://code.google.com/p/googleappengine/issues/detail?id=2088
+		// Objectify works around this problem, so it is not a serious issue.
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 	}
 	
