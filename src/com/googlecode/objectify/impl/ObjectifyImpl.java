@@ -67,7 +67,7 @@ public class ObjectifyImpl implements Objectify
 			if (entity != null) {
 				EntityMetadata metadata = this.factory.getMetadata(rawKey);
 				Key<T> obKey = this.factory.rawKeyToTypedKey(rawKey);
-				result.put(obKey, (T)metadata.toObject(entity));
+				result.put(obKey, (T)metadata.toObject(entity, this));
 			}
 		}
 		
@@ -148,7 +148,7 @@ public class ObjectifyImpl implements Objectify
 		try
 		{
 			Entity ent = this.ds.get(this.txn, this.factory.typedKeyToRawKey(key));
-			return this.factory.getMetadata(key).toObject(ent);
+			return this.factory.getMetadata(key).toObject(ent, this);
 		}
 		catch (EntityNotFoundException e)
 		{
@@ -182,7 +182,7 @@ public class ObjectifyImpl implements Objectify
 	{
 		EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
 		
-		Entity ent = metadata.toEntity(obj);
+		Entity ent = metadata.toEntity(obj, this);
 		
 		com.google.appengine.api.datastore.Key rawKey = this.ds.put(this.txn, ent);
 
@@ -202,7 +202,7 @@ public class ObjectifyImpl implements Objectify
 		for (T obj: objs)
 		{
 			EntityMetadata<T> metadata = this.factory.getMetadataForEntity(obj);
-			entityList.add(metadata.toEntity(obj));
+			entityList.add(metadata.toEntity(obj, this));
 		}
 		
 		List<com.google.appengine.api.datastore.Key> rawKeys = this.ds.put(this.txn, entityList);

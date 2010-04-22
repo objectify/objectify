@@ -14,6 +14,7 @@ import javax.persistence.PrePersist;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Parent;
@@ -171,8 +172,9 @@ public class EntityMetadata<T>
 				
 				Class<?>[] ptypes = method.getParameterTypes();
 				
-				if (ptypes.length > 1 || (ptypes.length == 1 && !Entity.class.isAssignableFrom(ptypes[0])))
-					throw new IllegalStateException("@PrePersist and @PostLoad methods can have at most one parameter of type Entity");
+				for (int i=0; i<ptypes.length; i++)
+					if (ptypes[i] != Objectify.class && ptypes[i] != Entity.class)
+						throw new IllegalStateException("@PrePersist and @PostLoad methods can only have parameters of type Objectify or Entity");
 				
 				if (method.isAnnotationPresent(PrePersist.class))
 				{
@@ -199,7 +201,7 @@ public class EntityMetadata<T>
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
-	public T toObject(Entity ent)
+	public T toObject(Entity ent, Objectify ofy)
 	{
 		T pojo = TypeUtils.newInstance(this.entityClassConstructor);
 
@@ -209,7 +211,7 @@ public class EntityMetadata<T>
 		this.transmog.load(ent, pojo);
 		
 		// If there are any @PostLoad methods, call them
-		this.invokeLifecycleCallbacks(this.postLoadMethods, pojo, ent);
+		this.invokeLifecycleCallbacks(this.postLoadMethods, pojo, ent, ofy);
 
 		return pojo;
 	}
@@ -218,12 +220,12 @@ public class EntityMetadata<T>
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
-	public Entity toEntity(T pojo)
+	public Entity toEntity(T pojo, Objectify ofy)
 	{
 		Entity ent = this.initEntity(pojo);
 
 		// If there are any @PrePersist methods, call them
-		this.invokeLifecycleCallbacks(this.prePersistMethods, pojo, ent);
+		this.invokeLifecycleCallbacks(this.prePersistMethods, pojo, ent, ofy);
 		
 		this.transmog.save(pojo, ent);
 		
@@ -235,7 +237,7 @@ public class EntityMetadata<T>
 	 * 
 	 * @param callbacks can be null if there are no callbacks
 	 */
-	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Entity ent)
+	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Entity ent, Objectify ofy)
 	{
 		try
 		{
@@ -244,7 +246,21 @@ public class EntityMetadata<T>
 					if (method.getParameterTypes().length == 0)
 						method.invoke(pojo);
 					else
-						method.invoke(pojo, ent);
+					{
+						Object[] params = new Object[method.getParameterTypes().length];
+						for (int i=0; i<method.getParameterTypes().length; i++)
+						{
+							Class<?> ptype = method.getParameterTypes()[i];
+							if (ptype == Objectify.class)
+								params[i] = ofy;
+							else if (ptype == Entity.class)
+								params[i] = ent;
+							else
+								throw new IllegalStateException("Lifecycle callback cannot have parameter type " + ptype);
+						}
+						
+						method.invoke(pojo, params);
+					}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 		catch (InvocationTargetException e) { throw new RuntimeException(e); }

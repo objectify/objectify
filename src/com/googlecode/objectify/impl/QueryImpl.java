@@ -580,7 +580,7 @@ public class QueryImpl<T> implements Query<T>
 		protected T translate(Entity from)
 		{
 			EntityMetadata<T> meta = factory.getMetadata(from.getKey());
-			return meta.toObject(from);
+			return meta.toObject(from, ofy);
 		}
 	}
 }
