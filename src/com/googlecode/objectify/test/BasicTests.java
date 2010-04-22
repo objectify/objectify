@@ -13,8 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -159,6 +161,16 @@ public class BasicTests extends TestBase
 			count++;
 		}
 		assert count == 1100;
+	}
+
+	/** */
+	@Test
+	public void testConsistencySetting() throws Exception
+	{
+		Objectify ofy = this.fact.begin(new ObjectifyOpts().setConsistency(Consistency.EVENTUAL));
+
+		Trivial triv = new Trivial("foo", 5);
+		ofy.put(triv);
 	}
 
 }
