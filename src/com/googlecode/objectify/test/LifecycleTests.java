@@ -7,6 +7,7 @@ import javax.persistence.PrePersist;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 
 /**
@@ -19,14 +20,22 @@ public class LifecycleTests extends TestBase
 	{
 		@Id Long id;
 		boolean prePersisted;
-		boolean prePersistedWithParam;
+		boolean prePersistedWithObjectify;
+		boolean prePersistedWithEntity;
+		boolean prePersistedWithBoth;
 		boolean postLoaded;
-		boolean postLoadedWithParam;
+		boolean postLoadedWithObjectify;
+		boolean postLoadedWithEntity;
+		boolean postLoadedWithBoth;
 
 		@PrePersist void prePersist() { this.prePersisted = true; }
-		@PrePersist void prePersist(Entity ent) { this.prePersistedWithParam = true; }
+		@PrePersist void prePersist(Objectify ofy) { this.prePersistedWithObjectify = true; }
+		@PrePersist void prePersist(Entity ent) { this.prePersistedWithEntity = true; }
+		@PrePersist void prePersist(Objectify ofy, Entity ent) { this.prePersistedWithBoth = true; }
 		@PostLoad void postLoad() { this.postLoaded = true; }
-		@PostLoad void postLoad(Entity ent) { this.postLoadedWithParam = true; }
+		@PostLoad void postLoad(Objectify ofy) { this.postLoadedWithObjectify = true; }
+		@PostLoad void postLoad(Entity ent) { this.postLoadedWithEntity = true; }
+		@PostLoad void postLoad(Objectify ofy, Entity ent) { this.postLoadedWithBoth = true; }
 	}
 
 	@Cached
@@ -44,16 +53,24 @@ public class LifecycleTests extends TestBase
 		HasLifecycle fetched = this.putAndGet(life1);
 		
 		assert fetched.prePersisted;
-		assert fetched.prePersistedWithParam;
+		assert fetched.prePersistedWithObjectify;
+		assert fetched.prePersistedWithEntity;
+		assert fetched.prePersistedWithBoth;
 		assert fetched.postLoaded;	// will fail with caching objectify, this is ok
-		assert fetched.postLoadedWithParam;
+		assert fetched.postLoadedWithObjectify;
+		assert fetched.postLoadedWithEntity;
+		assert fetched.postLoadedWithBoth;
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
 		fetched = this.putAndGet(life2);
 		
 		assert fetched.prePersisted;
-		assert fetched.prePersistedWithParam;
+		assert fetched.prePersistedWithObjectify;
+		assert fetched.prePersistedWithEntity;
+		assert fetched.prePersistedWithBoth;
 		assert fetched.postLoaded;	// will fail with caching objectify, this is ok
-		assert fetched.postLoadedWithParam;
+		assert fetched.postLoadedWithObjectify;
+		assert fetched.postLoadedWithEntity;
+		assert fetched.postLoadedWithBoth;
 	}
 }
