@@ -6,9 +6,12 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +25,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
+import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -92,18 +96,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testLimitAndCursorUsingFetch() throws Exception {
-		subtestLimitAndCursorUsingIterator(true);
-	}
-
-	/** */
-	@Test
 	public void testLimitAndCursorUsingIterator() throws Exception {
-		subtestLimitAndCursorUsingIterator(false);
-	}
-
-	private void subtestLimitAndCursorUsingIterator(boolean useFetch)
-	{
 		// create 30 objects with someString=foo,
 		// then search for limit 20 (finding cursor at 15th position)
 		// then search for limit 20 using that cursor
@@ -116,7 +109,7 @@ public class QueryTests extends TestBase
 
 		Query<Trivial> q1 = ofy.query(Trivial.class).filter("someString", "foo");
 		q1.limit(20);
-		QueryResultIterator<Trivial> i1 = useFetch ? q1.fetch().iterator() : q1.iterator();
+		QueryResultIterator<Trivial> i1 = q1.iterator();
 		List<Trivial> l1 = new ArrayList<Trivial>();
 		Cursor cursor = null;
 		Trivial objectAfterCursor = null;
@@ -138,7 +131,7 @@ public class QueryTests extends TestBase
 
 		Query<Trivial> q2 = ofy.query(Trivial.class).filter("someString =", "foo");
 		q2.limit(20).cursor(cursor);
-		QueryResultIterator<Trivial> i2 = useFetch ? q2.fetch().iterator() : q2.iterator();
+		QueryResultIterator<Trivial> i2 = q2.iterator();
 		List<Trivial> l2 = new ArrayList<Trivial>();
 		while (i2.hasNext())
 		{
@@ -296,5 +289,86 @@ public class QueryTests extends TestBase
 		Child fetched = it.next();
 		assert !it.hasNext();
 		assert child.getId().equals(fetched.getId()); 
+	}
+	
+	/** */
+	@Test
+	public void testIN() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Trivial triv1 = new Trivial("foo", 3);
+		Trivial triv2 = new Trivial("bar", 3);
+		ofy.put(triv1);
+		ofy.put(triv2);
+
+		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
+
+		List<Trivial> result = ofy.query(Trivial.class).filter("someString in", conditions).list();
+		assert result.size() == 2;
+		
+		long id1 = result.get(0).getId();
+		long id2 = result.get(1).getId();
+		
+		assert id1 == triv1.getId() || id1 == triv2.getId(); 
+		assert id2 == triv1.getId() || id2 == triv2.getId(); 
+	}
+
+	/** */
+	@Test
+	public void testINfilteringOnStringName() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		NamedTrivial triv1 = new NamedTrivial("foo", null, 3);
+		NamedTrivial triv2 = new NamedTrivial("bar", null, 3);
+		ofy.put(triv1);
+		ofy.put(triv2);
+
+		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
+
+		List<NamedTrivial> result = ofy.query(NamedTrivial.class).filter("name in", conditions).list();
+		assert result.size() == 2;
+		
+		String id1 = result.get(0).getName();
+		String id2 = result.get(1).getName();
+		
+		assert id1.equals("foo") || id1.equals("bar"); 
+		assert id2.equals("foo") || id2.equals("bar"); 
+	}
+
+	/** */
+	@Test
+	public void testINfilteringWithKeySpecial() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Trivial triv1 = new Trivial("foo", 3);
+		Key<Trivial> key1 = ofy.put(triv1);
+		Set<Key<Trivial>> singleton = Collections.singleton(key1);
+
+		List<Trivial> result = ofy.query(Trivial.class).filter("__key__ in", singleton).list();
+		assert result.size() == 1;
+		
+		assert  triv1.getId().equals(result.get(0).getId()); 
+	}
+
+	/** */
+	@Test
+	public void testINfilteringWithKeyField() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Key<Employee> bobKey = new Key<Employee>(Employee.class, "bob");
+		Employee fred = new Employee("fred", bobKey);
+		
+		ofy.put(fred);
+		
+		Set<Key<Employee>> singleton = Collections.singleton(bobKey);
+
+		List<Employee> result = ofy.query(Employee.class).filter("manager in", singleton).list();
+		assert result.size() == 1;
+		
+		assert  result.get(0).getName().equals("fred"); 
 	}
 }

@@ -1,5 +1,9 @@
 package com.googlecode.objectify;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -309,6 +313,21 @@ public class ObjectifyFactory
 		else if (keyOrEntityOrOther instanceof Key<?>)
 		{
 			return this.typedKeyToRawKey((Key<?>)keyOrEntityOrOther);
+		}
+		else if (keyOrEntityOrOther instanceof Iterable<?>)
+		{
+			List<Object> all = (keyOrEntityOrOther instanceof Collection<?>)
+				? new ArrayList<Object>(((Collection<?>)keyOrEntityOrOther).size())
+				: new ArrayList<Object>(); 
+				
+			for (Object obj: ((Iterable<?>)keyOrEntityOrOther))
+				all.add(this.makeFilterable(obj));
+			
+			return all;
+		}
+		else if (keyOrEntityOrOther instanceof Object[])
+		{
+			return this.makeFilterable(Arrays.asList((Object[])keyOrEntityOrOther));
 		}
 		else
 		{

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -93,11 +94,40 @@ public class QueryImpl<T> implements Query<T>
 			{
 				if (meta.hasParentField())
 					throw new IllegalStateException("Cannot (yet) filter by @Id fields on entities which have @Parent fields. Tried '" + prop + "' on " + this.classRestriction.getName() + ".");
+
+				boolean isNumericId = meta.isIdField(prop);
 				
-				if (meta.isIdField(prop))
-					value = KeyFactory.createKey(meta.getKind(), ((Number)value).longValue());
+				if (op == FilterOperator.IN)
+				{
+					if (!(value instanceof Iterable<?> || value instanceof Object[]))
+						throw new IllegalStateException("IN operator requires a collection value.  Value was " + value);
+
+					if (value instanceof Object[])
+						value = Arrays.asList(((Object[])value));
+					
+					// This is a bit complicated - we need to make a list of vanilla datastore Key objects.
+					
+					List<Object> keys = (value instanceof Collection<?>)
+						? new ArrayList<Object>(((Collection<?>)value).size())
+						: new ArrayList<Object>();
+						
+					for (Object obj: (Iterable<?>)value)
+					{
+						if (isNumericId)
+							keys.add(KeyFactory.createKey(meta.getKind(), ((Number)obj).longValue()));
+						else
+							keys.add(KeyFactory.createKey(meta.getKind(), obj.toString()));
+					}
+					
+					value = keys;
+				}
 				else
-					value = KeyFactory.createKey(meta.getKind(), value.toString());
+				{
+					if (isNumericId)
+						value = KeyFactory.createKey(meta.getKind(), ((Number)value).longValue());
+					else
+						value = KeyFactory.createKey(meta.getKind(), value.toString());
+				}
 				
 				prop = "__key__";
 			}
