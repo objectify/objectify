@@ -173,4 +173,16 @@ public class BasicTests extends TestBase
 		ofy.put(triv);
 	}
 
+	/** */
+	@Test
+	public void testKeyToString() throws Exception
+	{
+		Key<Trivial> trivKey = new Key<Trivial>(Trivial.class, 123);
+		
+		String stringified = this.fact.keyToString(trivKey);
+		
+		Key<Trivial> andBack = this.fact.stringToKey(stringified);
+		
+		assert trivKey.equals(andBack);
+	}
 }
