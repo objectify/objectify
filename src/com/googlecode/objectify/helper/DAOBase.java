@@ -6,6 +6,7 @@ package com.googlecode.objectify.helper;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.ObjectifyService;
 
 
@@ -25,7 +26,7 @@ import com.googlecode.objectify.ObjectifyService;
 public class DAOBase
 {
 	/** Need to create the lazy Objectify object */
-	private boolean transactional;
+	private ObjectifyOpts opts;
 	
 	/** A single objectify interface, lazily created */
 	private Objectify lazyOfy;
@@ -33,7 +34,7 @@ public class DAOBase
 	/** Creates a DAO without a transaction */
 	public DAOBase()
 	{
-		this(false);
+		this.opts = new ObjectifyOpts();
 	}
 	
 	/**
@@ -41,7 +42,15 @@ public class DAOBase
 	 */
 	public DAOBase(boolean transactional)
 	{
-		this.transactional = transactional;
+		this.opts = new ObjectifyOpts().setBeginTransaction(transactional);
+	}
+	
+	/**
+	 * Creates a DAO with a certain set of options
+	 */
+	public DAOBase(ObjectifyOpts opts)
+	{
+		this.opts = opts;
 	}
 	
 	/**
@@ -59,12 +68,7 @@ public class DAOBase
 	public Objectify ofy()
 	{
 		if (this.lazyOfy == null)
-		{
-			if (this.transactional)
-				this.lazyOfy = ObjectifyService.factory().beginTransaction();
-			else
-				this.lazyOfy = ObjectifyService.factory().begin();
-		}
+			this.lazyOfy = ObjectifyService.factory().begin(this.opts);
 
 		return this.lazyOfy;
 	}
