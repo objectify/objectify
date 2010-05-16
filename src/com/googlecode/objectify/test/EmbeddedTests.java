@@ -1,8 +1,12 @@
 package com.googlecode.objectify.test;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.persistence.Embedded;
+import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import org.testng.annotations.Test;
@@ -15,6 +19,7 @@ import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
 import com.googlecode.objectify.test.entity.Town;
+import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  */
@@ -212,4 +217,42 @@ public class EmbeddedTests extends TestBase
 	}
 
 
+	@SuppressWarnings({"serial", "unused"})
+	public static class KensMailingListEntry implements Serializable
+	{
+		private Key<Trivial> clientKey;
+		private String emailAddr;
+		private Integer mailOffset;
+		public KensMailingListEntry() {}
+	}
+
+	@SuppressWarnings({"serial", "unused"})
+	@Entity
+	public static class KensClientListName implements Serializable
+	{
+		@Id
+		private Long id;
+		private Key<Trivial> orgKey;
+		private String listName;
+		private @Embedded
+		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
+		public KensClientListName() {}
+	}
+	
+	@Test
+	public void kensTest() throws Exception
+	{
+		this.fact.register(KensClientListName.class);
+
+		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();              
+		KensMailingListEntry mle = new KensMailingListEntry();
+		listMembers.add(mle);
+		               
+		KensClientListName clientlistname = new KensClientListName();
+		clientlistname.listMembers = listMembers;
+
+		Objectify ofy = this.fact.begin();
+		
+		ofy.put(clientlistname);
+	}
 }
