@@ -62,6 +62,12 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
+	public <S, T> Map<S, T> get(Class<? extends T> clazz, S... idsOrNames)
+	{
+		return this.base.get(clazz, idsOrNames);
+	}
+
+	@Override
 	public <T> T find(Key<? extends T> key)
 	{
 		return this.base.find(key);

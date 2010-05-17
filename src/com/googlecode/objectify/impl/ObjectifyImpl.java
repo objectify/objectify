@@ -141,6 +141,15 @@ public class ObjectifyImpl implements Objectify
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#get(java.lang.Class, S[])
+	 */
+	@Override
+	public <S, T> Map<S, T> get(Class<? extends T> clazz, S... idsOrNames)
+	{
+		return this.get(clazz, Arrays.asList(idsOrNames));
+	}
+
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
