@@ -92,6 +92,12 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
+	public <T> Map<Key<T>, T> put(T... objs)
+	{
+		return this.base.put(objs);
+	}
+
+	@Override
 	public void delete(Object keyOrEntity)
 	{
 		this.base.delete(keyOrEntity);

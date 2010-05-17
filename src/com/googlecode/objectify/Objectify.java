@@ -112,6 +112,11 @@ public interface Objectify
 	 * @see DatastoreService#put(Iterable) 
 	 */
 	<T> Map<Key<T>, T> put(Iterable<? extends T> objs);
+
+	/**
+	 * A convenient varargs alias for put(Iterable<?>)
+	 */
+	<T> Map<Key<T>, T> put(T... objs);
 	
 	/**
 	 * Deletes the specified entity.

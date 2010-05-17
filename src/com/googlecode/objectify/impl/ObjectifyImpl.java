@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -225,6 +226,15 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#put(T[])
+	 */
+	@Override
+	public <T> Map<Key<T>, T> put(T... objs)
+	{
+		return this.put(Arrays.asList(objs));
+	}
+
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object)
 	 */
 	@Override
@@ -310,5 +320,4 @@ public class ObjectifyImpl implements Objectify
 	{
 		return this.factory;
 	}
-
 }
