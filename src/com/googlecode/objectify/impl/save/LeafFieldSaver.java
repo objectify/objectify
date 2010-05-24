@@ -139,7 +139,7 @@ public class LeafFieldSaver extends FieldSaver
 		}
 		else if (value instanceof Enum<?>)
 		{
-			return value.toString();
+			return ((Enum<?>)value).name();
 		}
 		else if (value.getClass().isArray())
 		{
