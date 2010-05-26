@@ -8,43 +8,17 @@ import com.google.appengine.api.datastore.QueryResultIterator;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class TranslatingQueryResultIterator<F, T> implements QueryResultIterator<T>
+abstract public class TranslatingQueryResultIterator<F, T> extends TranslatingIterator<F, T> implements QueryResultIterator<T>
 {
-	/** */
-	QueryResultIterator<F> base;
-	
 	/** */
 	public TranslatingQueryResultIterator(QueryResultIterator<F> base) 
 	{
-		this.base = base;
+		super(base);
 	}
 	
-	/**
-	 * You implement this - convert from one object to the other
-	 */
-	abstract protected T translate(F from); 
-
 	@Override
 	public Cursor getCursor()
 	{
-		return this.base.getCursor();
-	}
-
-	@Override
-	public boolean hasNext()
-	{
-		return this.base.hasNext();
-	}
-
-	@Override
-	public T next()
-	{
-		return this.translate(this.base.next());
-	}
-
-	@Override
-	public void remove()
-	{
-		this.base.remove();
+		return ((QueryResultIterator<F>)this.base).getCursor();
 	}
 }
