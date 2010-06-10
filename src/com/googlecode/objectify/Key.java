@@ -100,6 +100,21 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
+	 * Gets the root of a parent graph of keys.  If a Key has no parent, it is the root.
+	 *  
+	 * @return the topmost parent key, or this object itself if it is the root.
+	 * Note that the root key could potentially have any type. 
+	 */
+	@SuppressWarnings("unchecked")
+	public <V> Key<V> getRoot()
+	{
+		if (this.parent == null)
+			return (Key<V>)this;
+		else
+			return this.parent.getRoot();
+	}
+
+	/**
 	 * <p>Compares based on the following traits, in order:</p>
 	 * <ol>
 	 * <li>kind</li>
