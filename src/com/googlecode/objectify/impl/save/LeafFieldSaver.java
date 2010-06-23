@@ -175,6 +175,10 @@ public class LeafFieldSaver extends FieldSaver
 		{
 			return this.factory.typedKeyToRawKey((Key<?>)value);
 		}
+		else if (value instanceof java.sql.Date)
+		{
+			return new java.util.Date(((java.sql.Date)value).getTime());
+		}
 
 		// Usually we just want to return the value
 		return value;

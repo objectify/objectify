@@ -211,6 +211,10 @@ public class LeafSetter extends CollisionDetectingSetter
 		{
 			return ((Blob)fromValue).getBytes();
 		}
+		else if (fromValue instanceof java.util.Date && toType == java.sql.Date.class)
+		{
+			return new java.sql.Date(((java.util.Date)fromValue).getTime());
+		}
 
 		throw new IllegalArgumentException("Don't know how to convert " + fromValue.getClass() + " to " + toType);
 	}

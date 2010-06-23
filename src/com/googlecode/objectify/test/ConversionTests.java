@@ -166,4 +166,26 @@ public class ConversionTests extends TestBase
 		
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
+	
+	/** For testSqlDateConversion() */
+	@Cached
+	public static class HasSqlDate
+	{
+		public @Id Long id;
+		public java.sql.Date when;
+	}
+	
+	/** */
+	@Test
+	public void testSqlDateConversion() throws Exception
+	{
+		this.fact.register(HasSqlDate.class);
+
+		HasSqlDate hasDate = new HasSqlDate();
+		hasDate.when = new java.sql.Date(System.currentTimeMillis());
+		
+		HasSqlDate fetched = this.putAndGet(hasDate);
+		
+		assert hasDate.when.equals(fetched.when);
+	}
 }
