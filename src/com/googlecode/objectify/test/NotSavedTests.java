@@ -5,11 +5,11 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.logging.Logger;
+
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -31,7 +31,7 @@ public class NotSavedTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(NotSavedTests.class);
+	private static Logger log = Logger.getLogger(NotSavedTests.class.getName());
 	
 	/** */
 	public static final String TEST_VALUE = "blah";

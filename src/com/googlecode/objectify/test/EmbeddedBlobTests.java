@@ -6,11 +6,10 @@
 package com.googlecode.objectify.test;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Blob;
@@ -26,7 +25,7 @@ public class EmbeddedBlobTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(EmbeddedBlobTests.class);
+	private static Logger log = Logger.getLogger(EmbeddedBlobTests.class.getName());
 	
 	/** */
 	public static class EmbeddedText

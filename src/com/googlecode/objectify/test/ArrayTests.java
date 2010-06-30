@@ -6,9 +6,8 @@
 package com.googlecode.objectify.test;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -24,7 +23,7 @@ public class ArrayTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ArrayTests.class);
+	private static Logger log = Logger.getLogger(ArrayTests.class.getName());
 	
 	/** */
 	@Test

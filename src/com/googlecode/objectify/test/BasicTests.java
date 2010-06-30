@@ -8,9 +8,8 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
@@ -30,7 +29,7 @@ public class BasicTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(BasicTests.class);
+	private static Logger log = Logger.getLogger(BasicTests.class.getName());
 
 	/** */
 	@Test

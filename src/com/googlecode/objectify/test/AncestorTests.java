@@ -5,8 +5,8 @@
 
 package com.googlecode.objectify.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
+
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -23,7 +23,7 @@ public class AncestorTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(AncestorTests.class);
+	private static Logger log = Logger.getLogger(AncestorTests.class.getName());
 	
 	/** */
 	@Test

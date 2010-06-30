@@ -14,9 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
@@ -35,7 +34,7 @@ public class CollectionTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(CollectionTests.class);
+	private static Logger log = Logger.getLogger(CollectionTests.class.getName());
 
 	/** */
 	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass)

@@ -7,11 +7,10 @@ package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -30,7 +29,7 @@ public class TransactionTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(TransactionTests.class);
+	private static Logger log = Logger.getLogger(TransactionTests.class.getName());
 	
 	/** */
 	@Test

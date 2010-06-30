@@ -6,14 +6,14 @@
 package com.googlecode.objectify.test;
 
 import java.util.Iterator;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.KeyRange;
 import com.googlecode.objectify.test.entity.Child;
+import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Trivial;
 
 /**
@@ -24,8 +24,7 @@ import com.googlecode.objectify.test.entity.Trivial;
 public class AllocateTests extends TestBase
 {
 	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(AllocateTests.class);
+	private static Logger log = Logger.getLogger(AllocateTests.class.getName());
 	
 	/** */
 	@Test
@@ -72,5 +71,26 @@ public class AllocateTests extends TestBase
 		this.fact.begin().put(ch);
 		
 		assert ch.getId() > previousId;
+	}
+
+	/** */
+	@Test
+	public void testKindNamespaceAllocation() throws Exception
+	{
+		KeyRange<Trivial> rangeTrivial = this.fact.allocateIds(Trivial.class, 1);
+		KeyRange<Criminal> rangeCriminal = this.fact.allocateIds(Criminal.class, 1);
+		
+		Iterator<Key<Trivial>> itTrivial = rangeTrivial.iterator();
+		Key<Trivial> trivialKey = itTrivial.next();
+		
+		Iterator<Key<Criminal>> itCriminal = rangeCriminal.iterator();
+		Key<Criminal> criminalKey = itCriminal.next();
+
+		log.warning("Trivial key is " + trivialKey);
+		log.warning("Criminal key is " + criminalKey);
+		
+		// This test is apparently not valid
+		//assert trivialKey.getId() == 1;
+		//assert criminalKey.getId() == 1;
 	}
 }

@@ -11,11 +11,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -40,7 +39,7 @@ import com.googlecode.objectify.impl.CachingDatastoreService;
 public class EvilMemcacheBugTests extends TestBase
 {
 	/** */
-	private static Logger log = LoggerFactory.getLogger(EvilMemcacheBugTests.class);
+	private static Logger log = Logger.getLogger(EvilMemcacheBugTests.class.getName());
 	
 	/** */
 	static class SimpleParent
@@ -154,8 +153,7 @@ public class EvilMemcacheBugTests extends TestBase
 		// I can not for the life of me figure out why this test passes when the
 		// previous test fails.
 
-		MemcacheService cs1 = MemcacheServiceFactory.getMemcacheService();
-		cs1.setNamespace("blah");
+		MemcacheService cs1 = MemcacheServiceFactory.getMemcacheService("blah");
 		
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
@@ -220,8 +218,7 @@ public class EvilMemcacheBugTests extends TestBase
 	@Test
 	public void testWithoutObjectify()  throws Exception {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
-		ms.setNamespace("testing1423");
+		MemcacheService ms = MemcacheServiceFactory.getMemcacheService("testing1423");
 
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");

@@ -5,11 +5,11 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.logging.Logger;
+
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -29,7 +29,7 @@ public class IndexingTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(IndexingTests.class);
+	private static Logger log = Logger.getLogger(IndexingTests.class.getName());
 
 	@Indexed
 	public static class LevelTwoIndexedClass 
@@ -131,9 +131,9 @@ public class IndexingTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		ofy.put(new IndexedPojo());
 
-		assert ofy.query(IndexedPojo.class).filter("indexed =", true).fetch().iterator().hasNext();
-		assert ofy.query(IndexedPojo.class).filter("def =", true).fetch().iterator().hasNext();
-		assert !ofy.query(IndexedPojo.class).filter("unindexed =", true).fetch().iterator().hasNext();
+		assert ofy.query(IndexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert ofy.query(IndexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.query(IndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 	}
 	/** */
 	@Test
@@ -142,9 +142,9 @@ public class IndexingTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		ofy.put(new UnindexedPojo());
 
-		assert ofy.query(UnindexedPojo.class).filter("indexed =", true).fetch().iterator().hasNext();
-		assert !ofy.query(UnindexedPojo.class).filter("def =", true).fetch().iterator().hasNext();
-		assert !ofy.query(UnindexedPojo.class).filter("unindexed =", true).fetch().iterator().hasNext();
+		assert ofy.query(UnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy.query(UnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.query(UnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 		
 	}
 	/** */
@@ -154,9 +154,9 @@ public class IndexingTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		ofy.put(new IndexedDefaultPojo());
 
-		assert ofy.query(IndexedDefaultPojo.class).filter("indexed =", true).fetch().iterator().hasNext();
-		assert ofy.query(IndexedDefaultPojo.class).filter("def =", true).fetch().iterator().hasNext();
-		assert !ofy.query(IndexedDefaultPojo.class).filter("unindexed =", true).fetch().iterator().hasNext();
+		assert ofy.query(IndexedDefaultPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert ofy.query(IndexedDefaultPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.query(IndexedDefaultPojo.class).filter("unindexed =", true).iterator().hasNext();
 		
 	}
 	/** */
@@ -166,15 +166,15 @@ public class IndexingTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		ofy.put(new EmbeddedIndexedPojo());
 
-		assert  ofy.query(EmbeddedIndexedPojo.class).filter("indexed.indexed =", true).fetch().iterator().hasNext();
-		assert  ofy.query(EmbeddedIndexedPojo.class).filter("indexed.def =", true).fetch().iterator().hasNext();
-		assert !ofy.query(EmbeddedIndexedPojo.class).filter("indexed.unindexed=", true).fetch().iterator().hasNext();
-		assert  ofy.query(EmbeddedIndexedPojo.class).filter("def.indexed =", true).fetch().iterator().hasNext();
-		assert !ofy.query(EmbeddedIndexedPojo.class).filter("def.unindexed =", true).fetch().iterator().hasNext();
-		assert  ofy.query(EmbeddedIndexedPojo.class).filter("def.def =", true).fetch().iterator().hasNext();
-		assert !ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).fetch().iterator().hasNext();
-		assert  ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).fetch().iterator().hasNext();
-		assert !ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).fetch().iterator().hasNext();
+		assert  ofy.query(EmbeddedIndexedPojo.class).filter("indexed.indexed =", true).iterator().hasNext();
+		assert  ofy.query(EmbeddedIndexedPojo.class).filter("indexed.def =", true).iterator().hasNext();
+		assert !ofy.query(EmbeddedIndexedPojo.class).filter("indexed.unindexed=", true).iterator().hasNext();
+		assert  ofy.query(EmbeddedIndexedPojo.class).filter("def.indexed =", true).iterator().hasNext();
+		assert !ofy.query(EmbeddedIndexedPojo.class).filter("def.unindexed =", true).iterator().hasNext();
+		assert  ofy.query(EmbeddedIndexedPojo.class).filter("def.def =", true).iterator().hasNext();
+		assert !ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).iterator().hasNext();
+		assert  ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).iterator().hasNext();
+		assert !ofy.query(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).iterator().hasNext();
 		
 	}
 	/** */
@@ -191,10 +191,10 @@ public class IndexingTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		ofy.put(new EntityWithEmbedded());
 		
-		assert !ofy.query(EntityWithEmbedded.class).filter("prop =", "A").fetch().iterator().hasNext();
-		assert !ofy.query(EntityWithEmbedded.class).filter("one.foo =", "1").fetch().iterator().hasNext();
-		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoClass.bar =", "A").fetch().iterator().hasNext();
-		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoField.bar =", "A").fetch().iterator().hasNext();
+		assert !ofy.query(EntityWithEmbedded.class).filter("prop =", "A").iterator().hasNext();
+		assert !ofy.query(EntityWithEmbedded.class).filter("one.foo =", "1").iterator().hasNext();
+		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoClass.bar =", "A").iterator().hasNext();
+		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoField.bar =", "A").iterator().hasNext();
 	}	
 
 }

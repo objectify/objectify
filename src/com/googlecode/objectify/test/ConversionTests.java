@@ -6,12 +6,11 @@
 package com.googlecode.objectify.test;
 
 import java.util.Arrays;
+import java.util.logging.Logger;
 
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -32,7 +31,7 @@ public class ConversionTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(ConversionTests.class);
+	private static Logger log = Logger.getLogger(ConversionTests.class.getName());
 	
 	/** Used for some of the tests here */
 	@Cached

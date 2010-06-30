@@ -5,10 +5,10 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.logging.Logger;
+
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -28,7 +28,7 @@ public class AlsoLoadMoreTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(AlsoLoadMoreTests.class);
+	private static Logger log = Logger.getLogger(AlsoLoadMoreTests.class.getName());
 	
 	/** */
 	public static final String TEST_VALUE = "blah";

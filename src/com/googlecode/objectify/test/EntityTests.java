@@ -5,8 +5,8 @@
 
 package com.googlecode.objectify.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
+
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -25,7 +25,7 @@ public class EntityTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(EntityTests.class);
+	private static Logger log = Logger.getLogger(EntityTests.class.getName());
 
 	/** */
 	@Test

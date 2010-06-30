@@ -5,8 +5,8 @@
 
 package com.googlecode.objectify.test;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
+
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -46,7 +46,7 @@ public class TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(TestBase.class);
+	private static Logger log = Logger.getLogger(TestBase.class.getName());
 	
 	/** */
 	protected ObjectifyFactory fact;

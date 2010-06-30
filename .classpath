@@ -3,8 +3,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/build-only/geronimo-jpa_3.0_spec-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/testng-5.11-jdk15.jar"/>
-	<classpathentry kind="lib" path="lib/build-only/slf4j-api-1.5.6.jar"/>
-	<classpathentry kind="lib" path="lib/build-only/slf4j-jdk14-1.5.6.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/gwt-user-2.0.0.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/appengine-testing/appengine-api.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/appengine-testing/appengine-api-labs.jar"/>

@@ -8,11 +8,10 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.persistence.Id;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -30,7 +29,7 @@ public class CachingTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = LoggerFactory.getLogger(CachingTests.class);
+	private static Logger log = Logger.getLogger(CachingTests.class.getName());
 
 	/** */
 	static class Uncached
