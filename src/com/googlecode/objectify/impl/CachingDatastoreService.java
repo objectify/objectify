@@ -48,7 +48,7 @@ import com.googlecode.objectify.annotation.Cached;
 public class CachingDatastoreService implements DatastoreService
 {
 	/** Our memcache namespace */
-	public static final String MEMCACHE_NAMESPACE = "Objectify Cache";
+	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 	
 	/**
 	 * This is necessary to track writes and update the cache only on successful commit. 
@@ -169,10 +169,7 @@ public class CachingDatastoreService implements DatastoreService
 	protected MemcacheService getMemcache()
 	{
 		if (this.memcache == null)
-		{
-			this.memcache = MemcacheServiceFactory.getMemcacheService();
-			this.memcache.setNamespace(MEMCACHE_NAMESPACE);
-		}
+			this.memcache = MemcacheServiceFactory.getMemcacheService(MEMCACHE_NAMESPACE);
 		
 		return this.memcache;
 	}
