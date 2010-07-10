@@ -117,7 +117,8 @@ public class TypeUtils
 	public static boolean isSaveable(Field field)
 	{
 		return !field.isAnnotationPresent(Transient.class)
-			&& ((field.getModifiers() & NOT_SAVED_MODIFIERS) == 0);
+			&& ((field.getModifiers() & NOT_SAVED_MODIFIERS) == 0)
+			&& !field.isSynthetic();
 	}
 
 	/**
