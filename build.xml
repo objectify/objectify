@@ -114,6 +114,21 @@
 		</jar>
 	</target>
 
+	<target name="annotation-jar" depends="classes">
+		<property name="build.annotation-jar.file" location="${build.dir}/${name}-annotations-${build.version}.jar" />
+
+		<jar destfile="${build.annotation-jar.file}">
+			<manifest>
+				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Implementation-Version" value="${TODAY}" />
+			</manifest>
+			
+			<fileset dir="${build.classes.dir}">
+				<include name="**/annotation/**"/>
+			</fileset>
+		</jar>
+	</target>
+
 	<target name="init-version">
 		<input addproperty="build.version" message="Version number?" />
 	</target>
@@ -153,7 +168,7 @@
 		</testng>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar, build-docs, maven">
+	<target name="dist" depends="clean, init-version, jar, annotation-jar, build-docs, maven">
 		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
         <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
 
