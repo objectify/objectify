@@ -6,6 +6,7 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -183,5 +184,18 @@ public class BasicTests extends TestBase
 		Key<Trivial> andBack = this.fact.stringToKey(stringified);
 		
 		assert trivKey.equals(andBack);
+	}
+	
+	/**
+	 * Note that this produces an exception (and thus test failure), but it is the
+	 * low-level api that produces the error.  This bug should be fixed in the GAE
+	 * code rather than Objectify.
+	 */
+	@Test
+	public void testPutNothing() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		ofy.put(Collections.emptyList());
 	}
 }

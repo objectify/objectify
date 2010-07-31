@@ -11,6 +11,7 @@
 	<property file="user.properties" />
 	<property file="${user.home}/build.properties" />
 	<property file="build.properties" />
+	<property file="edit-this-to-build.properties" />
 
 	<property name="build.debug" value="on" />
 	<property name="build.deprecation" value="on" />
@@ -37,6 +38,13 @@
 	<path id="master.classpath">		
 		<fileset dir="${lib.dir}">
 			<include name="**/*.jar" />
+		</fileset>
+		<fileset dir="${gae.sdk.dir}/lib">
+			<include name="user/appengine-api-1.0-sdk-*.jar" />
+			<include name="user/appengine-api-labs-*.jar" />
+			<include name="user/orm/geronimo-jpa_3.0_spec-*.jar" />
+			<include name="testing/appengine-testing.jar" />
+			<include name="impl/**/*.jar" />
 		</fileset>
 	</path>
 
@@ -175,8 +183,9 @@
 		<copy todir="${build.dist.dir}">
 	        <fileset dir=".">
 	        	<include name="license.txt"/>
-			<include name="src/**"/>
+				<include name="src/**"/>
 	        	<include name="javadoc/**"/>
+	        	<include name="edit-this-to-build.properties"/>
 	        </fileset>
         </copy>
 
