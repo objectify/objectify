@@ -23,6 +23,7 @@
 	<property name="build.classes.dir" location="${build.dir}/classes" />
 	<property name="build.super.dir" location="${build.dir}/super" />
 	<property name="build.javadoc.dir" location="${build.dir}/javadoc" />
+	<property name="build.extract.dir" location="${build.dir}/extract" />
 
 	<property name="docs.dir" value="${build.dir}/docs" />
 	<property name="javadoc.dir" value="javadoc" />
@@ -34,11 +35,46 @@
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
 	<property name="super.src.dir" location="super" />
+	
+	<patternset id="sdk.client.files">
+		<!-- Datastore data classes -->
+		<include name="com/google/appengine/api/datastore/AppIdNamespace.class"/>
+		<include name="com/google/appengine/api/datastore/Blob.class"/>
+		<include name="com/google/appengine/api/datastore/Category.class"/>
+		<include name="com/google/appengine/api/datastore/Cursor.class"/>
+		<include name="com/google/appengine/api/datastore/DataTypeUtils.class"/>
+		<include name="com/google/appengine/api/datastore/Email.class"/>
+		<include name="com/google/appengine/api/datastore/EntityNotFoundException.class"/>
+		<include name="com/google/appengine/api/datastore/GeoPt.class"/>
+		<include name="com/google/appengine/api/datastore/IMHandle.class"/>
+		<include name="com/google/appengine/api/datastore/Key.class"/>
+		<include name="com/google/appengine/api/datastore/KeyFactory.class"/>
+		<include name="com/google/appengine/api/datastore/Link.class"/>
+		<include name="com/google/appengine/api/datastore/PhoneNumber.class"/>
+		<include name="com/google/appengine/api/datastore/PostalAddress.class"/>
+		<include name="com/google/appengine/api/datastore/Rating.class"/>
+		<include name="com/google/appengine/api/datastore/ShortBlob.class"/>
+		<include name="com/google/appengine/api/datastore/Text.class"/>
+		<include name="com/google/appengine/api/users/User.class"/>
+		
+		<!-- JPA Annotations we use -->
+		<include name="javax/persistence/Entity.class"/>
+		<include name="javax/persistence/Id.class"/>
+		<include name="javax/persistence/Embedded.class"/>
+		<include name="javax/persistence/PostLoad.class"/>
+		<include name="javax/persistence/PrePersist.class"/>
+		<include name="javax/persistence/Transient.class"/>
+	</patternset>
+	
+	<patternset id="objectify.client.files">
+		<include name="com/googlecode/objectify/Key.class"/>
+		<include name="com/googlecode/objectify/KeyRange.class"/>
+		<include name="com/googlecode/objectify/NotFoundException.class"/>
+		<include name="com/googlecode/objectify/annotation/**/*.class"/>
+	</patternset>
 
-	<path id="master.classpath">		
-		<fileset dir="${lib.dir}">
-			<include name="**/*.jar" />
-		</fileset>
+	<!-- Used for building as well as for extracting sdk client files -->
+	<path id="sdk.classpath">
 		<fileset dir="${gae.sdk.dir}/lib">
 			<include name="user/appengine-api-1.0-sdk-*.jar" />
 			<include name="user/appengine-api-labs-*.jar" />
@@ -47,7 +83,16 @@
 			<include name="impl/**/*.jar" />
 		</fileset>
 	</path>
+	
+	<!-- Used for building -->
+	<path id="master.classpath">		
+		<path refid="sdk.classpath" />
+		<fileset dir="${lib.dir}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
 
+	<!-- Used for running unit tests via ant -->
 	<path id="run.classpath">
 		<pathelement location="${build.classes.dir}" />
 		<path refid="master.classpath" />
@@ -122,18 +167,24 @@
 		</jar>
 	</target>
 
-	<target name="annotation-jar" depends="classes">
-		<property name="build.annotation-jar.file" location="${build.dir}/${name}-annotations-${build.version}.jar" />
+	<target name="client-jar" depends="classes">
+		<property name="build.client-jar.file" location="${build.dir}/${name}-client-${build.version}.jar" />
 
-		<jar destfile="${build.annotation-jar.file}">
+		<unjar dest="${build.extract.dir}">
+			<patternset refid="sdk.client.files"/>
+			<path refid="sdk.classpath" />
+		</unjar>
+		
+		<jar destfile="${build.client-jar.file}">
 			<manifest>
 				<attribute name="Specification-Version" value="${build.version}" />
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
 			
 			<fileset dir="${build.classes.dir}">
-				<include name="**/annotation/**"/>
+				<patternset refid="objectify.client.files"/>
 			</fileset>
+			<fileset dir="${build.extract.dir}"/>
 		</jar>
 	</target>
 
@@ -176,7 +227,7 @@
 		</testng>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar, annotation-jar, build-docs, maven">
+	<target name="dist" depends="clean, init-version, jar, client-jar, build-docs, maven">
 		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
         <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
 
