@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.users.User;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 
@@ -63,5 +64,32 @@ public class QueryExoticTypesTests extends TestBase
 		
 		assert result.size() == 1;
 		assert result.get(0).when.equals(hd.when);
+	}
+	
+	/** */
+	public static class HasUser
+	{
+		@Id Long id;
+		User who;
+	}
+	
+	/** */
+	@Test
+	public void testUserFiltering() throws Exception
+	{
+		this.fact.register(HasUser.class);
+		Objectify ofy = this.fact.begin();
+		
+		HasUser hd = new HasUser();
+		hd.who = new User("samiam@gmail.com", "gmail.com");
+		
+		ofy.put(hd);
+			
+		Query<HasUser> q = ofy.query(HasUser.class).filter("who", hd.who);
+		
+		List<HasUser> result = q.list();
+		
+		assert result.size() == 1;
+		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 }
