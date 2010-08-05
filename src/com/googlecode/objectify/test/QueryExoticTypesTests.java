@@ -14,7 +14,6 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.users.User;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
 
@@ -70,7 +69,7 @@ public class QueryExoticTypesTests extends TestBase
 	public static class HasUser
 	{
 		@Id Long id;
-		User who;
+		com.google.appengine.api.users.User who;
 	}
 	
 	/** */
@@ -81,7 +80,34 @@ public class QueryExoticTypesTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		
 		HasUser hd = new HasUser();
-		hd.who = new User("samiam@gmail.com", "gmail.com");
+		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
+		
+		ofy.put(hd);
+			
+		Query<HasUser> q = ofy.query(HasUser.class).filter("who", hd.who);
+		
+		List<HasUser> result = q.list();
+		
+		assert result.size() == 1;
+		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+	}
+
+	/** Deliberately confusing name */
+	public static class User
+	{
+		@Id Long id;
+		com.google.appengine.api.users.User who;
+	}
+	
+	/** */
+	@Test
+	public void testBadlyNamedUserFiltering() throws Exception
+	{
+		this.fact.register(User.class);
+		Objectify ofy = this.fact.begin();
+		
+		QueryExoticTypesTests.User hd = new QueryExoticTypesTests.User();
+		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 		
 		ofy.put(hd);
 			
