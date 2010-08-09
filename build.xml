@@ -71,6 +71,8 @@
 		<include name="com/googlecode/objectify/KeyRange.class"/>
 		<include name="com/googlecode/objectify/NotFoundException.class"/>
 		<include name="com/googlecode/objectify/annotation/**/*.class"/>
+		<include name="com/googlecode/objectify/condition/**/*.class"/>
+		<include name="com/googlecode/objectify/impl/TypeUtils.class"/>
 	</patternset>
 
 	<!-- Used for building as well as for extracting sdk client files -->
@@ -227,7 +229,7 @@
 		</testng>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar, client-jar, build-docs, maven">
+	<target name="dist" depends="clean, init-version, jar, build-docs, maven">
 		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
         <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
 
