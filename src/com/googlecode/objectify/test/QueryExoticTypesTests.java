@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.test.entity.User;
 
 /**
  * Tests of queries of odd field types.
@@ -92,13 +93,6 @@ public class QueryExoticTypesTests extends TestBase
 		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 
-	/** Deliberately confusing name */
-	public static class User
-	{
-		@Id Long id;
-		com.google.appengine.api.users.User who;
-	}
-	
 	/** */
 	@Test
 	public void testBadlyNamedUserFiltering() throws Exception
@@ -106,14 +100,14 @@ public class QueryExoticTypesTests extends TestBase
 		this.fact.register(User.class);
 		Objectify ofy = this.fact.begin();
 		
-		QueryExoticTypesTests.User hd = new QueryExoticTypesTests.User();
+		User hd = new User();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 		
 		ofy.put(hd);
 			
-		Query<HasUser> q = ofy.query(HasUser.class).filter("who", hd.who);
+		Query<User> q = ofy.query(User.class).filter("who", hd.who);
 		
-		List<HasUser> result = q.list();
+		List<User> result = q.list();
 		
 		assert result.size() == 1;
 		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
