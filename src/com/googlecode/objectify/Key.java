@@ -196,7 +196,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 	
 	/** */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private static int compareNullable(Comparable o1, Comparable o2)
 	{
 		if (o1 == null && o2 == null)
