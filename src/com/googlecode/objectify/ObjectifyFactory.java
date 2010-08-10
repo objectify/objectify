@@ -46,8 +46,11 @@ import com.googlecode.objectify.impl.SessionCachingObjectifyImpl;
  */
 public class ObjectifyFactory
 {
-	/** */
-	protected Map<String, EntityMetadata<?>> types = new ConcurrentHashMap<String, EntityMetadata<?>>();
+	/** This maps full package + classname to EntityMetadata */
+	protected Map<String, EntityMetadata<?>> byClassName = new ConcurrentHashMap<String, EntityMetadata<?>>();
+	
+	/** This maps kind to EntityMetadata */
+	protected Map<String, EntityMetadata<?>> byKind = new ConcurrentHashMap<String, EntityMetadata<?>>();
 	
 	/** True if any @Cached entities have been registered */
 	protected boolean hasCachedEntities;
@@ -135,10 +138,10 @@ public class ObjectifyFactory
 	 */
 	public <T> void register(Class<T> clazz)
 	{
-		String kind = getKind(clazz);
 		EntityMetadata<T> meta = new EntityMetadata<T>(this, clazz);
 		
-		this.types.put(kind, meta);
+		this.byClassName.put(clazz.getName(), meta);
+		this.byKind.put(getKind(clazz), meta);
 		
 		if (meta.getCached() != null)
 			this.hasCachedEntities = true;
@@ -184,7 +187,7 @@ public class ObjectifyFactory
 	 */
 	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key)
 	{
-		return this.getMetadata(key.getKind());
+		return this.getMetadataForKind(key.getKind());
 	}
 	
 	/**
@@ -194,8 +197,7 @@ public class ObjectifyFactory
 	@SuppressWarnings("unchecked")
 	public <T> EntityMetadata<T> getMetadata(Key<T> key)
 	{
-		// I would love to know why this produces a warning
-		return (EntityMetadata<T>)this.getMetadata(this.getKind(key.getKindClassName()));
+		return (EntityMetadata<T>)this.getMetadataForClassName(key.getKindClassName());
 	}
 	
 	/**
@@ -204,7 +206,7 @@ public class ObjectifyFactory
 	 */
 	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz)
 	{
-		return this.getMetadata(this.getKind(clazz));
+		return this.getMetadataForClassName(clazz.getName());
 	}
 	
 	/**
@@ -221,11 +223,22 @@ public class ObjectifyFactory
 	
 	/** */
 	@SuppressWarnings("unchecked")
-	protected <T> EntityMetadata<T> getMetadata(String kind)
+	protected <T> EntityMetadata<T> getMetadataForClassName(String classname)
 	{
-		EntityMetadata<T> metadata = (EntityMetadata<T>)types.get(kind);
+		EntityMetadata<T> metadata = (EntityMetadata<T>)this.byClassName.get(classname);
 		if (metadata == null)
-			throw new IllegalArgumentException("No registered type for kind " + kind);
+			throw new IllegalArgumentException("Class '" + classname + "' was not registered");
+		else
+			return metadata;
+	}
+
+	/** */
+	@SuppressWarnings("unchecked")
+	protected <T> EntityMetadata<T> getMetadataForKind(String kind)
+	{
+		EntityMetadata<T> metadata = (EntityMetadata<T>)this.byKind.get(kind);
+		if (metadata == null)
+			throw new IllegalArgumentException("No class with kind '" + kind + "' was registered");
 		else
 			return metadata;
 	}
@@ -331,9 +344,8 @@ public class ObjectifyFactory
 		}
 		else
 		{
-			// Unfortunately we can't use getRawKey() because it throws IllegalArgumentException
-			String kind = this.getKind(keyOrEntityOrOther.getClass());
-			EntityMetadata<?> meta = this.types.get(kind);
+			// We shouldn't use the other methods that throw exceptions
+			EntityMetadata<?> meta = this.byClassName.get(keyOrEntityOrOther.getClass().getName());
 			if (meta == null)
 				return keyOrEntityOrOther;
 			else
