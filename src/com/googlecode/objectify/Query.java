@@ -170,7 +170,8 @@ public interface Query<T> extends QueryResultIterable<T>
 	public List<Key<T>> listKeys();
 	
 	/**
-	 * @return a clone of this query object at its current state.
+	 * @return a clone of this query object at its current state.  You can then modify
+	 * the clone without modifying the original query.
 	 */
 	public Query<T> clone();
 }
