@@ -15,12 +15,12 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.QueryResultIterable;
-import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
+import com.google.appengine.api.datastore.QueryResultIterable;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -32,7 +32,7 @@ import com.googlecode.objectify.helper.TranslatingQueryResultIterator;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryImpl<T> implements Query<T>
+public class QueryImpl<T> implements Query<T>, Cloneable
 {
 	/** */
 	ObjectifyFactory factory;
@@ -455,6 +455,25 @@ public class QueryImpl<T> implements Query<T>
 			result.add(key);
 		
 		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@SuppressWarnings("unchecked")
+	public Query<T> clone()
+	{
+		try
+		{
+			QueryImpl<T> impl = (QueryImpl<T>)super.clone();
+			impl.actual = this.cloneRawQuery(this.actual);
+			return impl;
+		}
+		catch (CloneNotSupportedException e)
+		{
+			// impossible
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**

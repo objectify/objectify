@@ -128,4 +128,10 @@ public class QueryWrapper<T> implements Query<T>
 	{
 		return this.base.listKeys();
 	}
+	
+	@Override
+	public Query<T> clone()
+	{
+		return new QueryWrapper<T>(this.base.clone());
+	}
 }

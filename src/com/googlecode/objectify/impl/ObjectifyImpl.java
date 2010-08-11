@@ -51,7 +51,6 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.google.code.objectify.Objectify#get(java.lang.Iterable)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys)
 	{
 		// First we need to turn the keys into raw keys
@@ -66,7 +65,7 @@ public class ObjectifyImpl implements Objectify
 		{
 			Entity entity = entities.get(rawKey);
 			if (entity != null) {
-				EntityMetadata metadata = this.factory.getMetadata(rawKey);
+				EntityMetadata<T> metadata = this.factory.getMetadata(rawKey);
 				Key<T> obKey = this.factory.rawKeyToTypedKey(rawKey);
 				result.put(obKey, (T)metadata.toObject(entity, this));
 			}

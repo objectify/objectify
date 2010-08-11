@@ -222,7 +222,7 @@ public class CachingDatastoreService implements DatastoreService
 	}
 
 	/** Hides the ugly casting and deals with String/Key conversion */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private Map<Key, Entity> getFromCacheRaw(Iterable<Key> keys)
 	{
 		Collection<String> keysColl = new ArrayList<String>();
@@ -265,7 +265,7 @@ public class CachingDatastoreService implements DatastoreService
 	 * Puts entries in the cache with the specified expiration.
 	 * @param expirationSeconds can be -1 to indicate "keep as long as possible". 
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	private void putInCache(Map<Key, Entity> entities, int expirationSeconds)
 	{
 		Map<String, Entity> rawMap = new HashMap<String, Entity>((int)(entities.size() * 1.5));
@@ -293,7 +293,7 @@ public class CachingDatastoreService implements DatastoreService
 	/**
 	 * Deletes from the cache, ignoring any noncacheable keys
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void deleteFromCache(Iterable<Key> keys)
 	{
 		Collection<String> cacheables = new ArrayList<String>();

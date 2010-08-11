@@ -169,4 +169,8 @@ public interface Query<T> extends QueryResultIterable<T>
 	 */
 	public List<Key<T>> listKeys();
 	
+	/**
+	 * @return a clone of this query object at its current state.
+	 */
+	public Query<T> clone();
 }
