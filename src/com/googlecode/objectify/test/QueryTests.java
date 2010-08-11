@@ -370,4 +370,17 @@ public class QueryTests extends TestBase
 		
 		assert  result.get(0).getName().equals("fred"); 
 	}
+	
+	/** */
+	@Test
+	public void testCloningQuery() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Query<Trivial> f12 = ofy.query(Trivial.class).filter("someString >", "a");
+		Query<Trivial> f1 = f12.clone().filter("someString <", "foo2");
+		
+		assert f12.list().size() == 2;
+		assert f1.list().size() == 1;
+	}
 }
