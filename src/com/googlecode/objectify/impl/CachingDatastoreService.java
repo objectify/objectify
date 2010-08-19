@@ -325,6 +325,15 @@ public class CachingDatastoreService implements DatastoreService
 	}
 
 	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.DatastoreService#allocateIdRange(com.google.appengine.api.datastore.KeyRange)
+	 */
+	@Override
+	public KeyRangeState allocateIdRange(KeyRange range)
+	{
+		return this.raw.allocateIdRange(range);
+	}
+
+	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.DatastoreService#beginTransaction()
 	 */
 	@Override

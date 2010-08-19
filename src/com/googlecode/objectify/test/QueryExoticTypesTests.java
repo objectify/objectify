@@ -5,6 +5,8 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -111,5 +113,58 @@ public class QueryExoticTypesTests extends TestBase
 		
 		assert result.size() == 1;
 		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+	}
+
+	/**
+	 * @author aswath satrasala
+	 */
+	public static class HasFromThruDate
+	{
+		@Id
+		Long id;
+		List<Date> dateList = new ArrayList<Date>();
+	}
+
+	/**
+	 * @author aswath satrasala
+	 */
+	@Test
+	public void testFromThruDateFiltering() throws Exception
+	{
+		this.fact.register(HasFromThruDate.class);
+		Objectify ofy = this.fact.begin();
+
+		HasFromThruDate h1 = new HasFromThruDate();
+		Calendar cal1 = Calendar.getInstance();
+		cal1.set(2010, 7, 25);
+		h1.dateList.add(cal1.getTime());
+		cal1.set(2010, 7, 25);
+		h1.dateList.add(cal1.getTime());
+
+		HasFromThruDate h2 = new HasFromThruDate();
+		cal1.set(2010, 7, 26);
+		h2.dateList.add(cal1.getTime());
+		cal1.set(2010, 7, 26);
+		h2.dateList.add(cal1.getTime());
+
+		HasFromThruDate h3 = new HasFromThruDate();
+		cal1.set(2010, 7, 27);
+		h3.dateList.add(cal1.getTime());
+		cal1.set(2010, 7, 27);
+		h3.dateList.add(cal1.getTime());
+
+		ofy.put(h1, h2, h3);
+
+		cal1.set(2010, 7, 25);
+		Date fromDate = cal1.getTime();
+
+		cal1.set(2010, 7, 26);
+		Date thruDate = cal1.getTime();
+
+		Query<HasFromThruDate> q = ofy.query(HasFromThruDate.class);
+		q.filter("dateList >=", fromDate).filter("dateList <=", thruDate);
+
+		List<HasFromThruDate> listresult = q.list();
+		assert listresult.size() == 2;
 	}
 }
