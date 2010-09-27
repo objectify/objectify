@@ -17,7 +17,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyOpts
+public class ObjectifyOpts implements Cloneable
 {
 	boolean beginTransaction;
 	boolean sessionCache = false;
@@ -102,5 +102,19 @@ public class ObjectifyOpts
 	{
 		this.deadline = value;
 		return this;
+	}
+
+	/** Make a copy of this object as-is. */
+	@Override
+	protected ObjectifyOpts clone()
+	{
+		try
+		{
+			return (ObjectifyOpts)super.clone();
+		}
+		catch (CloneNotSupportedException e)
+		{
+			throw new RuntimeException(e);	// impossible
+		}
 	}
 }

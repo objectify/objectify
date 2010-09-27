@@ -56,6 +56,15 @@ public class ObjectifyFactory
 	protected boolean hasCachedEntities;
 	
 	/**
+	 * Creates the default options for begin() and beginTransaction().  You can
+	 * override this if, for example, you wanted to enable session caching by default.
+	 */
+	protected ObjectifyOpts createDefaultOpts()
+	{
+		return new ObjectifyOpts();
+	}
+	
+	/**
 	 * Override this in your factory if you wish to use a different impl, say,
 	 * one based on the ObjectifyWrapper.
 	 * 
@@ -105,7 +114,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify begin()
 	{
-		return this.begin(new ObjectifyOpts());
+		return this.begin(this.createDefaultOpts());
 	}
 	
 	/**
@@ -124,7 +133,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify beginTransaction()
 	{
-		return this.begin(new ObjectifyOpts().setBeginTransaction(true));
+		return this.begin(this.createDefaultOpts().setBeginTransaction(true));
 	}
 	
 	/**
