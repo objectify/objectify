@@ -255,4 +255,24 @@ public class EmbeddedTests extends TestBase
 		
 		ofy.put(clientlistname);
 	}
+	
+	public static class EntityEmbedsOtherEntity
+	{
+		@Id Long id;
+		@Embedded Trivial other;
+	}
+
+	@Test
+	public void testEntityEmbedsOtherEntity() throws Exception
+	{
+		this.fact.register(EntityEmbedsOtherEntity.class);
+		
+		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
+		embeds.other = new Trivial(123L, "blah", 7);
+		
+		EntityEmbedsOtherEntity fetched = this.putAndGet(embeds);
+		
+		assert embeds.other.getId().equals(fetched.other.getId());
+		assert embeds.other.getSomeString().equals(fetched.other.getSomeString());
+	}
 }

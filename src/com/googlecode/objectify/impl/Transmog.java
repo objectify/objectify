@@ -127,7 +127,7 @@ public class Transmog<T>
 		public void visitClass(Class<?> clazz)
 		{
 			// Only good fields come back from this method call
-			List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz);
+			List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, this.embedded);
 			for (FieldMetadata meta: fields)
 				this.visitField(meta.field, meta.names);
 

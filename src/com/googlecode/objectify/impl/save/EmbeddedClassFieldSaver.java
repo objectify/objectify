@@ -27,7 +27,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 			this.field.isAnnotationPresent(Indexed.class) || this.field.isAnnotationPresent(Unindexed.class);
 		
 		// Must pass the indexed from our member field, not from the inherited value
-		this.classSaver = new ClassSaver(fact, this.path, field.getType(), ignoreClassIndexingAnnotations, collectionize);
+		this.classSaver = new ClassSaver(fact, this.path, field.getType(), ignoreClassIndexingAnnotations, collectionize, true);
 	}
 	
 	/* (non-Javadoc)

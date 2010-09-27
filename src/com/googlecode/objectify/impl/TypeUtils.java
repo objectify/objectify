@@ -336,32 +336,34 @@ public class TypeUtils
 	/**
 	 * Get all the persistent fields on a class, checking the superclasses as well.
 	 * 
+	 * @param embedded will add fields marked with @Id and @Parent to the persistent fields.
+	 *  You only do this when you are embedding entities within other entities.
+	 * 
 	 * @return the fields we load and save, *not* including @Id & @Parent fields.
 	 *  All fields will be set accessable, and returned in order starting with superclass
 	 *  fields.
 	 */
-	public static List<FieldMetadata> getPesistentFields(Class<?> clazz)
+	public static List<FieldMetadata> getPesistentFields(Class<?> clazz, boolean embedded)
 	{
 		List<FieldMetadata> goodFields = new ArrayList<FieldMetadata>();
 
-		getPersistentFields(clazz, goodFields);
+		getPersistentFields(clazz, goodFields, embedded);
 		
 		return goodFields;
 	}
 	
 	/** Recursive implementation of getPersistentFields() */
-	private static void getPersistentFields(Class<?> clazz, List<FieldMetadata> goodFields)
+	private static void getPersistentFields(Class<?> clazz, List<FieldMetadata> goodFields, boolean embedded)
 	{
 		if (clazz == null || clazz == Object.class)
 			return;
 		
-		getPersistentFields(clazz.getSuperclass(), goodFields);
+		getPersistentFields(clazz.getSuperclass(), goodFields, embedded);
 		
 		for (Field field: clazz.getDeclaredFields())
 		{
-			if (TypeUtils.isSaveable(field)
-					&& !field.isAnnotationPresent(Id.class)
-					&& !field.isAnnotationPresent(Parent.class))
+			if (TypeUtils.isSaveable(field) &&
+					(embedded || (!field.isAnnotationPresent(Id.class) && !field.isAnnotationPresent(Parent.class))))
 			{
 				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialized.class))
 					throw new IllegalStateException("Cannot have @Embedded and @Serialized on the same field! Check " + field);

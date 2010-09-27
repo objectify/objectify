@@ -30,7 +30,7 @@ public class ClassSaver implements Saver
 	 */
 	public ClassSaver(ObjectifyFactory factory, Class<?> rootClazz)
 	{
-		this(factory, null, rootClazz, false, false);
+		this(factory, null, rootClazz, false, false, false);
 	}
 	
 	/**
@@ -41,8 +41,10 @@ public class ClassSaver implements Saver
 	 * @param collectionize causes all leaf setters to create and append to a simple list of
 	 *  values rather than to set the value directly.  After we hit an embedded array or
 	 *  an embedded collection, all subsequent savers are collectionized.
+	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
+	 *  persistent fields rather than real ids.
 	 */
-	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean ignoreIndexingAnnotations, boolean collectionize)
+	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean ignoreIndexingAnnotations, boolean collectionize, boolean embedding)
 	{
 		Indexed indexedAnn = clazz.getAnnotation(Indexed.class);
 		Unindexed unindexedAnn = clazz.getAnnotation(Unindexed.class);
@@ -64,7 +66,7 @@ public class ClassSaver implements Saver
 				this.indexed = false;
 		}
 		
-		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz);
+		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, embedding);
 
 		for (FieldMetadata metadata: fields)
 		{
