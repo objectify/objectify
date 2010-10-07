@@ -47,7 +47,8 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	/** */
 	int limit;
 	int offset;
-	Cursor cursor;
+	Cursor startCursor;
+	Cursor endCursor;
 	
 	/** */
 	public QueryImpl(ObjectifyFactory fact, Objectify objectify) 
@@ -231,7 +232,26 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	@Override
 	public Query<T> cursor(Cursor value)
 	{
-		this.cursor = value;
+		return this.startCursor(value);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#startCursor(com.google.appengine.api.datastore.Cursor)
+	 */
+	@Override
+	public Query<T> startCursor(Cursor value)
+	{
+		this.startCursor = value;
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#endCursor(com.google.appengine.api.datastore.Cursor)
+	 */
+	@Override
+	public Query<T> endCursor(Cursor value)
+	{
+		this.endCursor = value;
 		return this;
 	}
 
@@ -306,8 +326,11 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		if (this.offset > 0)
 			bld.append(",offset=").append(this.offset);
 		
-		if (this.cursor != null)
-			bld.append(",cursor=").append(this.cursor.toWebSafeString());
+		if (this.startCursor != null)
+			bld.append(",startCursor=").append(this.startCursor.toWebSafeString());
+
+		if (this.endCursor != null)
+			bld.append(",endCursor=").append(this.endCursor.toWebSafeString());
 
 		bld.append('}');
 		
@@ -321,10 +344,7 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	public QueryResultIterator<T> iterator()
 	{
 		FetchOptions opts = this.fetchOptions();
-		if (opts == null)
-			return new ToObjectIterator(this.prepare().asQueryResultIterator());
-		else
-			return new ToObjectIterator(this.prepare().asQueryResultIterator(opts));
+		return new ToObjectIterator(this.prepare().asQueryResultIterator(opts));
 	}
 
 	/* (non-Javadoc)
@@ -395,10 +415,7 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	public QueryResultIterable<Key<T>> fetchKeys()
 	{
 		FetchOptions opts = this.fetchOptions();
-		if (opts == null)
-			return new ToKeyIterable(this.prepareKeysOnly().asQueryResultIterable());
-		else
-			return new ToKeyIterable(this.prepareKeysOnly().asQueryResultIterable(opts));
+		return new ToKeyIterable(this.prepareKeysOnly().asQueryResultIterable(opts));
 	}
 
 	/* (non-Javadoc)
@@ -497,33 +514,24 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	}
 	
 	/**
-	 * @return a set of fetch options for the current limit and offset, or null if
-	 *  there is no limit or offset.
+	 * @return a set of fetch options for the current limit, offset, and cursors,
+	 *  based on the default fetch options.  There will always be options even if default.
 	 */
 	private FetchOptions fetchOptions()
 	{
-		FetchOptions opts = null;
+		FetchOptions opts = FetchOptions.Builder.withDefaults();
 		
-		if (this.cursor != null)
-		{
-			opts = FetchOptions.Builder.withCursor(this.cursor);
-		}
+		if (this.startCursor != null)
+			opts = opts.startCursor(this.startCursor);
+		
+		if (this.endCursor != null)
+			opts = opts.endCursor(this.endCursor);
 		
 		if (this.limit != 0)
-		{
-			if (opts == null)
-				opts = FetchOptions.Builder.withLimit(this.limit);
-			else
-				opts = opts.limit(this.limit);
-		}
+			opts = opts.limit(this.limit);
 		
 		if (this.offset != 0)
-		{
-			if (opts == null)
-				opts = FetchOptions.Builder.withOffset(this.offset);
-			else
-				opts = opts.offset(this.offset);
-		}
+			opts = opts.offset(this.offset);
 
 		return opts;
 	}
