@@ -282,13 +282,9 @@ public class EntityMetadata<T>
 		{
 			com.google.appengine.api.datastore.Key parentKey = null;
 
-			// First thing, get the parentKey (if appropriate)
+			// First thing, get the parentKey (if appropriate). It could still be null.
 			if (this.parentField != null)
-			{
 				parentKey = this.getRawKey(this.parentField, obj);
-				if (parentKey == null)
-					throw new IllegalStateException("Missing parent of " + obj);
-			}
 
 			if (this.idField != null)
 			{
