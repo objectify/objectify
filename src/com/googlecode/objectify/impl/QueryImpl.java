@@ -391,9 +391,19 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#count()
+	 */
+	@Override
+	public int count()
+	{
+		return this.prepare().countEntities(this.fetchOptions());
+	}
+
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#countAll()
 	 */
 	@Override
+	@Deprecated
 	public int countAll()
 	{
 		return this.prepare().countEntities();

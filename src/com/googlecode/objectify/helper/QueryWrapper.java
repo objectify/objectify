@@ -99,6 +99,13 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
+	public int count()
+	{
+		return this.base.count();
+	}
+
+	@Override
+	@Deprecated
 	public int countAll()
 	{
 		return this.base.countAll();

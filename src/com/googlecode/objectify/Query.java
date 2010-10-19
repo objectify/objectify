@@ -164,9 +164,17 @@ public interface Query<T> extends QueryResultIterable<T>
 	public <V> Map<Key<V>, V> fetchParents();
 	
 	/**
-	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and <em>offset</em>.</p>
-	 * <p>This is somewhat faster than fetching, but the time still grows with the number of results.</p>
+	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.</p>
+	 * <p>This is somewhat faster than fetching, but the time still grows with the number of results.
+	 * The datastore actually walks through the result set and counts for you.</p>
 	 */
+	public int count();
+
+	/**
+	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and <em>offset</em>.</p>
+	 * <p>This method is limited to 1000 results.  Use count() instead.</p>
+	 */
+	@Deprecated
 	public int countAll();
 
 	/**
