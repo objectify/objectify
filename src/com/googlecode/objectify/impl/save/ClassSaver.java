@@ -46,25 +46,7 @@ public class ClassSaver implements Saver
 	 */
 	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean ignoreIndexingAnnotations, boolean collectionize, boolean embedding)
 	{
-		Indexed indexedAnn = clazz.getAnnotation(Indexed.class);
-		Unindexed unindexedAnn = clazz.getAnnotation(Unindexed.class);
-		
-		if (indexedAnn != null && unindexedAnn != null)
-			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same class: " + clazz.getName());
-		
-		if (indexedAnn != null && (indexedAnn.value().length != 1 || indexedAnn.value()[0] != Always.class)
-				|| unindexedAnn != null && (unindexedAnn.value().length != 1 || unindexedAnn.value()[0] != Always.class))
-			throw new IllegalStateException("Class-level @Indexed and @Unindexed annotations cannot have If conditions: " + clazz.getName());
-		
-		// If we aren't ignoring our annotations we're an embedded class and the
-		// field had an indexing annotation, we can look at our own indexing annotations.
-		if (!ignoreIndexingAnnotations)
-		{
-			if (indexedAnn != null)
-				this.indexed = true;
-			else if (unindexedAnn != null)
-				this.indexed = false;
-		}
+		this.processClassLevelIndexingAnnotations(clazz, ignoreIndexingAnnotations);
 		
 		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, embedding);
 
@@ -96,6 +78,45 @@ public class ClassSaver implements Saver
 				Saver saver = new LeafFieldSaver(factory, pathPrefix, clazz, field, collectionize);
 				this.fieldSavers.add(saver);
 			}
+		}
+	}
+
+	/**
+	 * Recursive function which walks up the superclass hierarchy looking
+	 * for Indexed or Unindexed class-level annotations.
+	 * 
+	 * @param validateOnly when true will only validate the annotations;
+	 *  they won't have any actual effect on the indexed or unindexed character of the class.
+	 *  This is useful when an @Embedded field was explicitly annotated as indexed/unindexed. 
+	 */
+	private void processClassLevelIndexingAnnotations(Class<?> clazz, boolean validateOnly)
+	{
+		// First thing to do is start at the root of the hierarchy
+		if (clazz == Object.class)
+			return;
+		else
+			this.processClassLevelIndexingAnnotations(clazz.getSuperclass(), validateOnly);
+		
+		Indexed indexedAnn = clazz.getAnnotation(Indexed.class);
+		Unindexed unindexedAnn = clazz.getAnnotation(Unindexed.class);
+		
+		if (indexedAnn != null && unindexedAnn != null)
+		{
+			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same class: " + clazz.getName());
+		}
+		
+		if (indexedAnn != null && (indexedAnn.value().length != 1 || indexedAnn.value()[0] != Always.class)
+				|| unindexedAnn != null && (unindexedAnn.value().length != 1 || unindexedAnn.value()[0] != Always.class))
+		{
+			throw new IllegalStateException("Class-level @Indexed and @Unindexed annotations cannot have If conditions: " + clazz.getName());
+		}
+		
+		if (!validateOnly)
+		{
+			if (indexedAnn != null)
+				this.indexed = true;
+			else if (unindexedAnn != null)
+				this.indexed = false;
 		}
 	}
 	

@@ -111,6 +111,43 @@ public class IndexingTests extends TestBase
 		private boolean def = true;
 	}
 	
+
+	@SuppressWarnings("unused")
+	@Cached
+	public static class DefaultIndexedChildFromUnindexedPojo extends UnindexedPojo
+	{
+		@Indexed
+		private boolean indexedChild = true;
+		@Unindexed
+		private boolean unindexedChild = true;
+		private boolean defChild = true;
+	}
+
+	@SuppressWarnings("unused")
+	@Cached
+	public static class DefaultIndexedGrandChildFromUnindexedPojo extends DefaultIndexedChildFromUnindexedPojo
+	{
+		@Indexed
+		private boolean indexedGrandChild = true;
+		@Unindexed
+		private boolean unindexedGrandChild = true;
+		private boolean defGrandChild = true;
+	}
+	
+	/** Switches the default from unindexed to indexed */
+	@Cached
+	@Indexed
+	public static class DerivedAndIndexed extends UnindexedPojo
+	{
+	}
+
+	/** Switches the default back to indexed from unindexed! */
+	@Cached
+	@Unindexed
+	public static class UnindexedAgain extends DerivedAndIndexed
+	{
+	}
+	
 	/** */
 	@BeforeMethod
 	public void setUp()
@@ -122,6 +159,10 @@ public class IndexingTests extends TestBase
 		this.fact.register(UnindexedPojo.class);
 		this.fact.register(EmbeddedIndexedPojo.class);
 		this.fact.register(EntityWithEmbedded.class);
+		this.fact.register(DefaultIndexedChildFromUnindexedPojo.class);
+		this.fact.register(DefaultIndexedGrandChildFromUnindexedPojo.class);
+		this.fact.register(DerivedAndIndexed.class);
+		this.fact.register(UnindexedAgain.class);
 	}	
 	
 	/** */
@@ -197,4 +238,57 @@ public class IndexingTests extends TestBase
 		assert  ofy.query(EntityWithEmbedded.class).filter("one.twoField.bar =", "A").iterator().hasNext();
 	}	
 
+	@Test
+	public void testDefaultIndexedChildFromUnindexedPojo() throws Exception
+	{
+		Objectify ofy = fact.begin();
+		ofy.put(new DefaultIndexedChildFromUnindexedPojo());
+
+		assert ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+
+		assert ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
+	}
+
+	@Test
+	public void testDefaultIndexedGrandChildFromUnindexedPojo() throws Exception
+	{
+		Objectify ofy = fact.begin();
+		ofy.put(new DefaultIndexedGrandChildFromUnindexedPojo());
+
+		assert ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+
+		assert ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
+
+		assert ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedGrandChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defGrandChild =", true).iterator().hasNext();
+		assert !ofy.query(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedGrandChild =", true).iterator().hasNext();
+	}
+	
+	/** */
+	@Test
+	public void testDerivedAndIndexed() throws Exception
+	{
+		Objectify ofy = fact.begin();
+		ofy.put(new DerivedAndIndexed());
+		
+		assert ofy.query(DerivedAndIndexed.class).filter("def", true).iterator().hasNext();
+	}
+
+	/** */
+	@Test
+	public void testUnindexedAgain() throws Exception
+	{
+		Objectify ofy = fact.begin();
+		ofy.put(new UnindexedAgain());
+		
+		assert !ofy.query(UnindexedAgain.class).filter("def", true).iterator().hasNext();
+	}
 }
