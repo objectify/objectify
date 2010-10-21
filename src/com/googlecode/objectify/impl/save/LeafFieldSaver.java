@@ -62,7 +62,7 @@ public class LeafFieldSaver extends FieldSaver
 	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity, boolean)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void saveValue(Object value, Entity entity, boolean index)
 	{
 		value = this.prepareForSave(value);

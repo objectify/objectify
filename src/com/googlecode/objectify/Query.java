@@ -136,12 +136,6 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Key<T> getKey();
 	
 	/**
-	 * Implemented as "return this;".  No point, really.
-	 */
-	@Deprecated
-	public QueryResultIterable<T> fetch();
-	
-	/**
 	 * Prepares an Iterable that will obtain the keys of the results.  This is more efficient than
 	 * fetching the actual results.  Note that every time iterator() is called on the Iterable,
 	 * a fresh query is executed; calling this method does not cause a datastore operation.
@@ -169,13 +163,6 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * The datastore actually walks through the result set and counts for you.</p>
 	 */
 	public int count();
-
-	/**
-	 * <p>Count the total number of values in the result, <strong>ignoring <em>limit</em> and <em>offset</em>.</p>
-	 * <p>This method is limited to 1000 results.  Use count() instead.</p>
-	 */
-	@Deprecated
-	public int countAll();
 
 	/**
 	 * <p>Execute the query and get the results as a List.  The list will be equivalent to a simple ArrayList;

@@ -28,7 +28,6 @@ import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.OldName;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialized;
 
@@ -383,14 +382,6 @@ public class TypeUtils
 							else
 								metadata.names.add(value);
 
-				// TODO: delete this code in a subsequent version
-				OldName oldName = field.getAnnotation(OldName.class);
-				if (oldName != null)
-					if (oldName.value() == null || oldName.value().trim().length() == 0)
-						throw new IllegalStateException("Illegal value '" + oldName.value() + "' in @OldName for " + field);
-					else
-						metadata.names.add(oldName.value());
-				
 				field.setAccessible(true);
 				goodFields.add(metadata);
 			}
@@ -434,7 +425,7 @@ public class TypeUtils
 			{
 				for (Annotation ann: paramAnnotations)
 				{
-					if (ann instanceof OldName || ann instanceof AlsoLoad)
+					if (ann instanceof AlsoLoad)
 					{
 						// Method must have only one parameter
 						if (method.getParameterTypes().length != 1)
@@ -461,14 +452,6 @@ public class TypeUtils
 								
 								metadata.names.add(name);
 							}
-						}
-						else if (ann instanceof OldName)
-						{
-							OldName oldName = (OldName)ann;
-							if (oldName.value() == null || oldName.value().trim().length() == 0)
-								throw new IllegalStateException("@OldName must have a value on " + method);
-							
-							metadata.names.add(oldName.value());
 						}
 					}
 				}

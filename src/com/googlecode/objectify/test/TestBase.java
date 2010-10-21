@@ -29,7 +29,6 @@ import com.googlecode.objectify.test.entity.HasAlsoLoads;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.HasEnums;
-import com.googlecode.objectify.test.entity.HasOldNames;
 import com.googlecode.objectify.test.entity.HolderOfString;
 import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
 import com.googlecode.objectify.test.entity.NamedTrivial;
@@ -82,7 +81,6 @@ public class TestBase
 		
 		this.fact.register(Trivial.class);
 		this.fact.register(NamedTrivial.class);
-		this.fact.register(HasOldNames.class);
 		this.fact.register(HasAlsoLoads.class);
 		this.fact.register(Child.class);
 		this.fact.register(Employee.class);

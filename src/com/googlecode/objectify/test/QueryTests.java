@@ -79,7 +79,7 @@ public class QueryTests extends TestBase
 		assert count == keys.size();
 		
 		// Just for the hell of it, test the other methods
-		assert q.countAll() == keys.size();
+		assert q.count() == keys.size();
 		
 		q.limit(2);
 		for (Key<Trivial> k: q.fetchKeys())
@@ -129,7 +129,7 @@ public class QueryTests extends TestBase
 		assert l1.size() == 20;
 
 		Query<Trivial> q2 = ofy.query(Trivial.class).filter("someString =", "foo");
-		q2.limit(20).cursor(cursor);
+		q2.limit(20).startCursor(cursor);
 		QueryResultIterator<Trivial> i2 = q2.iterator();
 		List<Trivial> l2 = new ArrayList<Trivial>();
 		while (i2.hasNext())

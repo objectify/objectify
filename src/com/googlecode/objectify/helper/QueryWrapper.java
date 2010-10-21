@@ -105,20 +105,6 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
-	@Deprecated
-	public int countAll()
-	{
-		return this.base.countAll();
-	}
-
-	@Override
-	@Deprecated
-	public QueryResultIterable<T> fetch()
-	{
-		return this.base.fetch();
-	}
-
-	@Override
 	public QueryResultIterable<Key<T>> fetchKeys()
 	{
 		return this.base.fetchKeys();
