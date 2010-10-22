@@ -5,6 +5,7 @@
 
 package com.googlecode.objectify.test;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
@@ -19,6 +20,9 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.impl.conv.Converter;
+import com.googlecode.objectify.impl.conv.ConverterLoadContext;
+import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
 
@@ -186,5 +190,53 @@ public class ConversionTests extends TestBase
 		HasSqlDate fetched = this.putAndGet(hasDate);
 		
 		assert hasDate.when.equals(fetched.when);
+	}
+
+	/** */
+	@Cached
+	public static class HasBigDecimal
+	{
+		public @Id Long id;
+		public BigDecimal data;
+	}
+	
+	/** */
+	@Test
+	public void testAddedConversion() throws Exception
+	{
+		this.fact.register(HasBigDecimal.class);
+
+		HasBigDecimal hbd = new HasBigDecimal();
+		hbd.data = new BigDecimal(1.0);
+		
+		try
+		{
+			this.putAndGet(hbd);
+			assert false;	// shouldn't be possible without registering converter
+		}
+		catch (IllegalArgumentException ex) {}
+		
+		this.fact.getConversions().add(new Converter() {
+			@Override
+			public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+			{
+				if (fieldType == BigDecimal.class && value instanceof String)
+					return new BigDecimal((String)value);
+				else
+					return null;
+			}
+			
+			@Override
+			public Object toDatastore(Object value, ConverterSaveContext ctx)
+			{
+				if (value instanceof BigDecimal)
+					return value.toString();
+				else
+					return null;
+			}
+		});
+		
+		HasBigDecimal fetched = this.putAndGet(hbd);
+		assert hbd.data.equals(fetched.data);
 	}
 }
