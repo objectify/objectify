@@ -19,6 +19,9 @@ public interface Converter
 {
 	/** 
 	 * Convert the value into an object suitable for storage in the datastore.
+	 * The first thing converters should do is test whether they are appropriate
+	 * for the input data; if not, return null.
+	 * 
 	 * @param value will never be null
 	 * @return null to indicate that this converter does nothing with the value
 	 */
@@ -27,6 +30,9 @@ public interface Converter
 	/**
 	 * Convert the value into an object suitable for setting on a field with
 	 * the specified type.
+	 * The first thing converters should do is test whether they are appropriate
+	 * for the input data; if not, return null.
+	 * 
 	 * @param value will never be null
 	 * @param fieldType is the type that the value should be converted to
 	 * @return null to indicate that this converter does nothing with the value
