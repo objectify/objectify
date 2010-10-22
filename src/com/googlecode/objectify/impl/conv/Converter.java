@@ -12,6 +12,8 @@ package com.googlecode.objectify.impl.conv;
  * the value.  This is because some converters cover broad ranges of subclasses
  * (eg, Enum) and a simple hashmap lookup is inadequate.  The first converter
  * that returns a non-null value "wins".</p>
+ * 
+ * <p>THIS API IS EXPERIMENTAL.  It may change significantly in minor point releases.</p>
  */
 public interface Converter
 {

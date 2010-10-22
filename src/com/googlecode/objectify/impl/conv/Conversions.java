@@ -1,21 +1,27 @@
 package com.googlecode.objectify.impl.conv;
 
 import java.util.LinkedList;
+import java.util.ListIterator;
 
 import com.googlecode.objectify.ObjectifyFactory;
 
 
 /** 
- * Manages all the converters used to translate between POJO fields and the
+ * <p>Manages all the converters used to translate between POJO fields and the
  * types that the Datastore can actually persist.  Essentially acts as an
- * aggregator for all the Converter objects.
+ * aggregator for all the Converter objects.</p>
  * 
- * Note that this implements Converter just for convenience; the return values
- * of the methods are not the same when a conversion is not found. 
+ * <p>Note that this implements Converter just for convenience; the return values
+ * of the methods are not the same when a conversion is not found.</p>
+ * 
+ * <p>THIS API IS EXPERIMENTAL.  It may change significantly in minor point releases.</p>
  */
 public class Conversions implements Converter
 {
 	LinkedList<Converter> converters = new LinkedList<Converter>();
+	
+	/** This lets us insert in order at the head of the list*/
+	ListIterator<Converter> inserter;
 	
 	/**
 	 * Initialize the default set of converters.
@@ -30,11 +36,25 @@ public class Conversions implements Converter
 		this.converters.add(new ArrayConverter(this));
 		this.converters.add(new CollectionConverter(this));
 		this.converters.add(new SqlDateConverter());
+		
+		this.inserter = this.converters.listIterator();
+	}
+	
+	/**
+	 * Add a new converter to the list.  Converters are added in order but
+	 * before the builtin conversions.
+	 */
+	public void add(Converter cvt)
+	{
+		this.inserter.add(cvt);
 	}
 
 	/**
-	 * Run it through all the converters.
-	 * @return the original value if no hits
+	 * Run the value through all the converters; the first converter that returns
+	 * a non-null value produces the response for this method.
+	 * 
+	 * @return the original value if no hits.  This is different than the normal
+	 * return value defined by the Converter interface.
 	 */
 	@Override
 	public Object toDatastore(Object value, ConverterSaveContext ctx)
@@ -53,7 +73,10 @@ public class Conversions implements Converter
 	}
 
 	/**
-	 * Run it through all the converters.
+	 * Run the value through all the converters; the first converter that returns
+	 * a non-null value produces the response for this method.
+	 * 
+	 * @return the converted object
 	 * @throws IllegalArgumentException if we weren't able to find a proper conversion
 	 */
 	@Override
