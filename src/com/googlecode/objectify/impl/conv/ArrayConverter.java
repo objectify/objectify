@@ -31,7 +31,7 @@ public class ArrayConverter implements Converter
 		if (!value.getClass().isArray())
 			return null;
 
-		if (ctx.isCollectionizing())
+		if (ctx.inEmbeddedCollection())
 			throw new IllegalStateException("You cannot have arrays within @Embedded arrays or collections");
 		
 		if (value.getClass().getComponentType() == Byte.TYPE)

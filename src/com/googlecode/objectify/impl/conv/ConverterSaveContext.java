@@ -9,10 +9,9 @@ import java.lang.reflect.Field;
 public interface ConverterSaveContext
 {
 	/**
-	 * @return true if we are collectionizing the field, as in the case of POJOs
-	 * that are part of an embedded collection. 
+	 * @return true if the field we are converting data for is inside an embedded collection.
 	 */
-	boolean isCollectionizing();
+	boolean inEmbeddedCollection();
 	
 	/**
 	 * @return the field that is being saved.

@@ -130,7 +130,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	 * @see com.googlecode.objectify.impl.conv.ConverterContext#isCollectionizing()
 	 */
 	@Override
-	public boolean isCollectionizing()
+	public boolean inEmbeddedCollection()
 	{
 		return this.collectionize;
 	}

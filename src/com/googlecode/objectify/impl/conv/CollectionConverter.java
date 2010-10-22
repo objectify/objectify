@@ -29,7 +29,7 @@ public class CollectionConverter implements Converter
 	{
 		if (value instanceof Collection<?>)
 		{
-			if (ctx.isCollectionizing())
+			if (ctx.inEmbeddedCollection())
 				throw new IllegalStateException("You cannot have collections inside @Embedded arrays or collections");
 			
 			// All collections get turned into a List that preserves the order.  We must
