@@ -3,25 +3,23 @@ package com.googlecode.objectify.impl.save;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Serialized;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
  * <p>Saver which knows how to save basic leaf values. Leaf values are things that
  * go into the datastore: basic types or collections of basic types.  Basically
  * anything except an @Embedded.</p>
  */
-public class LeafFieldSaver extends FieldSaver
+public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 {
 	/** We need this to translate keys */
 	ObjectifyFactory factory;
@@ -107,11 +105,8 @@ public class LeafFieldSaver extends FieldSaver
 	 */
 	protected Object prepareForSave(Object value)
 	{
-		if (value == null)
-		{
-			return null;
-		}
-		else if (this.serialize)
+		// For now, special case serialization
+		if (this.serialize && value != null)
 		{
 			// If it's @Serialized, we serialize it no matter what it looks like
 			try
@@ -124,63 +119,28 @@ public class LeafFieldSaver extends FieldSaver
 			}
 			catch (IOException ex) { throw new RuntimeException(ex); }
 		}
-		else if (value instanceof String)
+		else
 		{
-			// Check to see if it's too long and needs to be Text instead
-			if (((String)value).length() > 500)
-			{
-				if (this.collectionize)
-					throw new IllegalStateException("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embedded collections." +
-							"  You must use Text for the field type instead." +
-							"  This is what you tried to save into " + this.field + ": " + value);
-				
-				return new Text((String)value);
-			}
+			// Run it through the conversions.
+			return this.factory.getConversions().toDatastore(value, this);
 		}
-		else if (value instanceof Enum<?>)
-		{
-			return ((Enum<?>)value).name();
-		}
-		else if (value.getClass().isArray())
-		{
-			if (value.getClass().getComponentType() == Byte.TYPE)
-			{
-				// Special case!  byte[] gets turned into Blob.
-				return new Blob((byte[])value);
-			}
-			else
-			{
-				// The datastore cannot persist arrays, but it can persist ArrayList
-				int length = Array.getLength(value);
-				ArrayList<Object> list = new ArrayList<Object>(length);
-				
-				for (int i=0; i<length; i++)
-					list.add(this.prepareForSave(Array.get(value, i)));
-				
-				return list;
-			}
-		}
-		else if (value instanceof Collection<?>)
-		{
-			// All collections get turned into a List that preserves the order.  We must
-			// also be sure to convert anything contained in the collection
-			ArrayList<Object> list = new ArrayList<Object>(((Collection<?>)value).size());
+	}
 
-			for (Object obj: (Collection<?>)value)
-				list.add(this.prepareForSave(obj));
-			
-			return list;
-		}
-		else if (value instanceof Key<?>)
-		{
-			return this.factory.typedKeyToRawKey((Key<?>)value);
-		}
-		else if (value instanceof java.sql.Date)
-		{
-			return new java.util.Date(((java.sql.Date)value).getTime());
-		}
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.conv.ConverterContext#isCollectionizing()
+	 */
+	@Override
+	public boolean isCollectionizing()
+	{
+		return this.collectionize;
+	}
 
-		// Usually we just want to return the value
-		return value;
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.conv.ConverterSaveContext#getField()
+	 */
+	@Override
+	public Field getField()
+	{
+		return this.field;
 	}
 }

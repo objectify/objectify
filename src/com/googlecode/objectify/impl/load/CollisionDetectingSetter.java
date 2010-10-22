@@ -12,7 +12,7 @@ abstract public class CollisionDetectingSetter extends Setter
 {
 	/**
 	 * If non-null check this field in the entity to see if we're stepping on someone
-	 * else's field.  This prevents {@code @OldName} values from overwriting normal ones.
+	 * else's field.  This prevents {@code AlsoLoad} values from overwriting normal ones.
 	 */
 	Collection<String> collisionPaths;
 	

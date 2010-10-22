@@ -169,54 +169,67 @@ public class TypeUtils
 	
 	/**
 	 * <p>Prepare a collection of the appropriate type and place it on the pojo's field.
-	 * The rules are thus:</p>
-	 * <ul>
-	 * <li>If the field already contains a collection object, it will be returned.
-	 * A new instance will not be created.</li>
-	 * <li>If the field is a concrete collection type, an instance of the concrete type
-	 * will be created.</li>
-	 * <li>If the field is Set, a HashSet will be created.</li>  
-	 * <li>If the field is SortedSet, a TreeSet will be created.</li>  
-	 * <li>If the field is List, an ArrayList will be created.</li>  
-	 * </ul>
+	 * The rules are described in createCollection(), with the addition that any
+	 * collection already found in the object's field will be returned as-is; a new
+	 * collection will not be created.</p>
 	 * 
 	 * @param collectionField is a Collection-derived field on the pojo.
 	 * @param onPojo is the object whose field should be set 
 	 */
-	@SuppressWarnings("unchecked")
 	public static Collection<Object> prepareCollection(Object onPojo, Wrapper collectionField, int size)
 	{
 		assert Collection.class.isAssignableFrom(collectionField.getType());
 		
+		@SuppressWarnings("unchecked")
 		Collection<Object> coll = (Collection<Object>)collectionField.get(onPojo);
 
 		if (coll != null)
-		{
 			return coll;
-		}
 		else
-		{
-			if (!collectionField.getType().isInterface())
-			{
-				coll = (Collection<Object>)TypeUtils.newInstance(collectionField.getType());
-			}
-			else if (SortedSet.class.isAssignableFrom(collectionField.getType()))
-			{
-				coll = new TreeSet<Object>();
-			}
-			else if (Set.class.isAssignableFrom(collectionField.getType()))
-			{
-				coll = new HashSet<Object>((int)(size * 1.5));
-			}
-			else if (List.class.isAssignableFrom(collectionField.getType()) || collectionField.getType().isAssignableFrom(ArrayList.class))
-			{
-				coll = new ArrayList<Object>(size);
-			}
-		}
+			coll = createCollection(collectionField.getType(), size);
 		
 		collectionField.set(onPojo, coll);
 		
 		return coll;
+	}
+	
+	/**
+	 * <p>Create a collection of the appropriate type.  The rules are thus:</p>
+	 * <ul>
+	 * <li>If the type is a concrete collection type, an instance of the concrete type
+	 * will be created.</li>
+	 * <li>If the type is Set, a HashSet will be created.</li>  
+	 * <li>If the type is SortedSet, a TreeSet will be created.</li>  
+	 * <li>If the type is List, an ArrayList will be created.</li>  
+	 * </ul>
+	 * 
+	 * @param type is a Collection-derived type
+	 */
+	@SuppressWarnings("unchecked")
+	public static Collection<Object> createCollection(Class<?> type, int size)
+	{
+		assert Collection.class.isAssignableFrom(type);
+		
+		if (!type.isInterface())
+		{
+			return (Collection<Object>)TypeUtils.newInstance(type);
+		}
+		else if (SortedSet.class.isAssignableFrom(type))
+		{
+			return new TreeSet<Object>();
+		}
+		else if (Set.class.isAssignableFrom(type))
+		{
+			return new HashSet<Object>((int)(size * 1.5));
+		}
+		else if (List.class.isAssignableFrom(type) || type.isAssignableFrom(ArrayList.class))
+		{
+			return new ArrayList<Object>(size);
+		}
+		else
+		{
+			throw new IllegalStateException("Don't know how to create a collection of type " + type);
+		}
 	}
 
 	/**

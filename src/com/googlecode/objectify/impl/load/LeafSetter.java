@@ -4,104 +4,22 @@ package com.googlecode.objectify.impl.load;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.lang.reflect.Array;
 import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.LoadContext;
-import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.Wrapper;
+import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 
 /**
  * <p>Setter which knows how to set any kind of leaf value.  This could be any basic type
  * or a collection of basic types; basically anything except an @Embedded.</p>
  * 
- * <p>This class is a little weird.  It is a termination setter which itself cannot be
- * extended.  However, when constructed, it actually sets its next value to be a more-specific
- * type of setter defined by the three inner classes:  ForBasic, ForArray, and ForCollection.
- * This allows us to break up the logic a bit better.</p>
- * 
  * <p>This is always the termination of a setter chain; the {@code next} value is ignored.</p>
  */
-public class LeafSetter extends CollisionDetectingSetter
+public class LeafSetter extends CollisionDetectingSetter implements ConverterLoadContext
 {
-	/** Knows how to set basic noncollection and nonarray values */
-	class ForBasic extends Setter
-	{
-		@Override
-		public void set(Object toPojo, Object value, LoadContext context)
-		{
-			field.set(toPojo, importBasic(value, field.getType()));
-		}
-	}
-	
-	/** Knows how to set arrays of basic types */
-	class ForArray extends Setter
-	{
-		Class<?> componentType = field.getType().getComponentType();
-		
-		@Override
-		public void set(Object toPojo, Object value, LoadContext context)
-		{
-			if (value == null)
-			{
-				field.set(toPojo, null);
-			}
-			else
-			{
-				if (!(value instanceof Collection<?>))
-					throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
-	
-				Collection<?> datastoreCollection = (Collection<?>)value;
-	
-				Object array = Array.newInstance(this.componentType, datastoreCollection.size());
-	
-				int index = 0;
-				for (Object componentValue: datastoreCollection)
-				{
-					componentValue = importBasic(componentValue, this.componentType);
-					Array.set(array, index++, componentValue);
-				}
-	
-				field.set(toPojo, array);
-			}
-		}
-	}
-
-	/**
-	 * <p>Deals with collections of basic types.</p>
-	 * 
-	 * <p>The special considerations for collections follows
-	 * {@link TypeUtils#prepareCollection(Object, Wrapper)}</p>
-	 */
-	class ForCollection extends Setter
-	{
-		Class<?> componentType = TypeUtils.getComponentType(field.getType(), field.getGenericType());
-		
-		@Override
-		public void set(Object toPojo, Object value, LoadContext context)
-		{
-			if (value == null)
-			{
-				field.set(toPojo, null);
-			}
-			else
-			{
-				if (!(value instanceof Collection<?>))
-					throw new IllegalStateException("Cannot load non-collection value '" + value + "' into " + field);
-	
-				Collection<?> datastoreCollection = (Collection<?>)value;
-				Collection<Object> target = TypeUtils.prepareCollection(toPojo, field, datastoreCollection.size());
-	
-				for (Object datastoreValue: datastoreCollection)
-					target.add(importBasic(datastoreValue, componentType));
-			}
-		}
-	}
-	
 	/** Need one of these to convert keys */
 	ObjectifyFactory factory;
 	
@@ -119,23 +37,6 @@ public class LeafSetter extends CollisionDetectingSetter
 		this.factory = fact;
 		this.field = field;
 		this.serialized = field.isSerialized();
-
-		if (!this.serialized && field.getType().isArray())
-		{
-			// byte[] is a special case because it gets converted to and from blob
-			if (field.getType().getComponentType() == Byte.TYPE)
-				this.next = new ForBasic();
-			else
-				this.next = new ForArray();
-		}
-		else if (!this.serialized && Collection.class.isAssignableFrom(field.getType()))
-		{
-			this.next = new ForCollection();
-		}
-		else
-		{
-			this.next = new ForBasic();
-		}
 	}
 	
 	/* (non-Javadoc)
@@ -144,7 +45,7 @@ public class LeafSetter extends CollisionDetectingSetter
 	@Override
 	protected void safeSet(Object obj, Object value, LoadContext context)
 	{
-		this.next.set(obj, value, context);
+		this.field.set(obj, importBasic(value, this.field.getType()));
 	}
 
 	/**
@@ -156,14 +57,10 @@ public class LeafSetter extends CollisionDetectingSetter
 	 * @param fromValue	is the property value that came out of the datastore Entity
 	 * @param toType	is the type to convert it to.
 	 */
-	@SuppressWarnings("unchecked")
 	Object importBasic(Object fromValue, Class<?> toType)
 	{
-		if (fromValue == null)
-		{
-			return null;
-		}
-		else if (this.serialized)
+		// For now, special case serialization
+		if (this.serialized && fromValue != null)
 		{
 			// Above all others, if we're serialized, take the Blob and deserialize it.
 			if (!(fromValue instanceof Blob))
@@ -179,68 +76,25 @@ public class LeafSetter extends CollisionDetectingSetter
 			catch (IOException ex) { throw new RuntimeException(ex); }
 			catch (ClassNotFoundException ex) { throw new IllegalStateException("Unable to deserialize " + fromValue + " on field " + this.field + ": " + ex); }
 		}
-		else if (toType.isAssignableFrom(fromValue.getClass()))
+		else
 		{
-			return fromValue;
+			return this.factory.getConversions().toPojo(fromValue, toType, this);
 		}
-		else if (toType == String.class)
-		{
-			if (fromValue instanceof Text)
-				return ((Text) fromValue).getValue();
-			else
-				return fromValue.toString();
-		}
-		else if (Enum.class.isAssignableFrom(toType))
-		{
-			// Anyone have any idea how to avoid this generics warning?
-			return Enum.valueOf((Class<Enum>) toType, fromValue.toString());
-		}
-		else if ((toType == Boolean.TYPE) && (fromValue instanceof Boolean))
-		{
-			return fromValue;
-		}
-		else if (fromValue instanceof Number)
-		{
-			return coerceNumber((Number) fromValue, toType);
-		}
-		else if (Key.class.isAssignableFrom(toType) && fromValue instanceof com.google.appengine.api.datastore.Key)
-		{
-			return this.factory.rawKeyToTypedKey((com.google.appengine.api.datastore.Key) fromValue);
-		}
-		else if (fromValue instanceof Blob && toType.isArray() && toType.getComponentType() == Byte.TYPE)
-		{
-			return ((Blob)fromValue).getBytes();
-		}
-		else if (fromValue instanceof java.util.Date && toType == java.sql.Date.class)
-		{
-			return new java.sql.Date(((java.util.Date)fromValue).getTime());
-		}
-
-		throw new IllegalArgumentException("Don't know how to convert " + fromValue.getClass() + " to " + toType);
 	}
 
-	/**
-	 * Coerces the value to be a number of the specified type; needed because
-	 * all numbers come back from the datastore as Long and this screws up
-	 * any type that expects something smaller.  Also does toString just for the
-	 * hell of it.
-	 */
-	Object coerceNumber(Number value, Class<?> type)
-	{
-		if ((type == Byte.class) || (type == Byte.TYPE)) return value.byteValue();
-		else if ((type == Short.class) || (type == Short.TYPE)) return value.shortValue();
-		else if ((type == Integer.class) || (type == Integer.TYPE)) return value.intValue();
-		else if ((type == Long.class) || (type == Long.TYPE)) return value.longValue();
-		else if ((type == Float.class) || (type == Float.TYPE)) return value.floatValue();
-		else if ((type == Double.class) || (type == Double.TYPE)) return value.doubleValue();
-		else if (type == String.class) return value.toString();
-		else throw new IllegalArgumentException("Don't know how to convert " + value.getClass() + " to " + type);
-	}
-	
 	/** Ensure that nobody tries to extend the leaf nodes. */
 	@Override
 	final public Setter extend(Setter tail)
 	{
 		throw new UnsupportedOperationException("Objectify bug - cannot extend Leaf setters");
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.conv.ConverterLoadContext#getField()
+	 */
+	@Override
+	public Wrapper getField()
+	{
+		return this.field;
 	}
 }

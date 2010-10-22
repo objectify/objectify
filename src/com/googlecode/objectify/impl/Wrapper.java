@@ -4,7 +4,7 @@ import java.lang.reflect.Type;
 
 /** 
  * Basic interface so we can wrap fields and methods so they look more or less the same.
- * This makes @OldName methods look just like fields. 
+ * This makes @AlsoLoad methods look just like fields. 
  */
 public interface Wrapper
 {

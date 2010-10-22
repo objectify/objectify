@@ -147,7 +147,7 @@ public class EvilMemcacheBugTests extends TestBase
 	}
 
 	/** */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	public void testRawCaching() throws Exception {
 		// I can not for the life of me figure out why this test passes when the
@@ -214,7 +214,7 @@ public class EvilMemcacheBugTests extends TestBase
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 	}
 	
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void testWithoutObjectify()  throws Exception {
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();

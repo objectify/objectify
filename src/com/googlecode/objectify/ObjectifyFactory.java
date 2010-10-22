@@ -17,6 +17,7 @@ import com.googlecode.objectify.impl.CachingDatastoreService;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.SessionCachingObjectifyImpl;
+import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -54,6 +55,9 @@ public class ObjectifyFactory
 	
 	/** True if any @Cached entities have been registered */
 	protected boolean hasCachedEntities;
+	
+	/** All the various converters */
+	protected Conversions conversions = new Conversions(this);
 	
 	/**
 	 * Creates the default options for begin() and beginTransaction().  You can
@@ -426,5 +430,13 @@ public class ObjectifyFactory
 		com.google.appengine.api.datastore.Key rawParent = this.typedKeyToRawKey(parent);
 		String kind = this.getKind(clazz);
 		return new KeyRange<T>(this, DatastoreServiceFactory.getDatastoreService().allocateIds(rawParent, kind, num));
+	}
+	
+	/**
+	 * @return the repository of Converter objects
+	 */
+	public Conversions getConversions()
+	{
+		return this.conversions;
 	}
 }
