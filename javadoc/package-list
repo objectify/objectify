@@ -3,5 +3,6 @@ com.googlecode.objectify.annotation
 com.googlecode.objectify.condition
 com.googlecode.objectify.helper
 com.googlecode.objectify.impl
+com.googlecode.objectify.impl.conv
 com.googlecode.objectify.impl.load
 com.googlecode.objectify.impl.save
