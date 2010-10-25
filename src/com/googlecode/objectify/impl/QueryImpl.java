@@ -357,17 +357,23 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		// so we can do it by faking the limit
 		
 		int oldLimit = this.limit;
+		try
+		{
+			this.limit = 1;
+			Iterator<T> it = this.iterator();
+			
+			T result = null;
+			
+			if (it.hasNext())
+				result = it.next();
+			
+			return result;
+		}
+		finally
+		{
+			this.limit = oldLimit;
+		}
 		
-		Iterator<T> it = this.iterator();
-		
-		T result = null;
-		
-		if (it.hasNext())
-			result = it.next();
-		
-		this.limit = oldLimit;
-		
-		return result;
 	}
 
 	/* (non-Javadoc)
@@ -377,17 +383,22 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	public Key<T> getKey()
 	{
 		int oldLimit = this.limit;
-		
-		Iterator<Key<T>> it = this.fetchKeys().iterator();
-		
-		Key<T> result = null;
-		
-		if (it.hasNext())
-			result = it.next();
-		
-		this.limit = oldLimit;
-		
-		return result;
+		try
+		{
+			this.limit = 1;
+			Iterator<Key<T>> it = this.fetchKeys().iterator();
+			
+			Key<T> result = null;
+			
+			if (it.hasNext())
+				result = it.next();
+			
+			return result;
+		}
+		finally
+		{
+			this.limit = oldLimit;
+		}
 	}
 
 	/* (non-Javadoc)
