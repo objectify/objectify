@@ -132,18 +132,6 @@ public class SessionCachingObjectifyImpl extends ObjectifyImpl
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#delete(java.lang.Object)
-	 */
-	@Override
-	public void delete(Object keyOrEntity)
-	{
-		super.delete(keyOrEntity);
-		
-		Key<?> key = this.getFactory().getKey(keyOrEntity);
-		this.cache.put(key, NEGATIVE_RESULT);
-	}
-
-	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#delete(java.lang.Iterable)
 	 */
 	@Override

@@ -126,10 +126,10 @@ public interface Objectify
 	/**
 	 * Deletes the specified entity.
 	 * 
-	 * @param keyOrEntity can be either a Key<?>, a datastore Key, or a pojo entity.
-	 * If it is an entity, only the id fields are relevant.
+	 * @param keyOrEntities can be either Key<?>, a datastore Key, or a pojo entity.
+	 * If it includes entities, only the id fields are relevant.
 	 */
-	void delete(Object keyOrEntity);
+	void delete(Object... keysOrEntities);
 
 	/**
 	 * Deletes the specified entities in a parallel batch operation.  This is faster

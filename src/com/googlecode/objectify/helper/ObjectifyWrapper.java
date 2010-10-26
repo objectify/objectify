@@ -104,9 +104,9 @@ public class ObjectifyWrapper implements Objectify
 	}
 
 	@Override
-	public void delete(Object keyOrEntity)
+	public void delete(Object... keysOrEntities)
 	{
-		this.base.delete(keyOrEntity);
+		this.base.delete(keysOrEntities);
 	}
 
 	@Override
