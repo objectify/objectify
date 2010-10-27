@@ -4,6 +4,8 @@
 
 package com.googlecode.objectify.helper;
 
+import java.lang.reflect.Field;
+
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Objectify;
@@ -65,7 +67,9 @@ public class Monotonic
 		{
 			try
 			{
-				return TypeUtils.getDeclaredField(entityClass, fieldName).getLong(thing);
+				Field f = TypeUtils.getDeclaredField(entityClass, fieldName);
+				f.setAccessible(true);
+				return f.getLong(thing);
 			}
 			catch (Exception e) { throw new IllegalStateException(e); }
 		}
