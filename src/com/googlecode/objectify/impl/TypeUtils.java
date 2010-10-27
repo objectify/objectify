@@ -473,6 +473,24 @@ public class TypeUtils
 			goodMethods.add(metadata);
 		}
 	}
+	
+	/**
+	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking  
+	 */
+	public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException
+	{
+		try
+		{
+			return clazz.getDeclaredField(fieldName);
+		}
+		catch (NoSuchFieldException ex)
+		{
+			if (clazz.getSuperclass() == Object.class)
+				throw ex;
+			else
+				return getDeclaredField(clazz.getSuperclass(), fieldName);
+		}
+	}
 
 	/**
 	 * Get the underlying class for a type, or null if the type is a variable type.

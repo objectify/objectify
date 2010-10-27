@@ -7,6 +7,7 @@ package com.googlecode.objectify.helper;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.impl.TypeUtils;
 
 /**
  * <p>Provides a method for generating contiguous, monotonically increasing values.</p>
@@ -64,7 +65,7 @@ public class Monotonic
 		{
 			try
 			{
-				return entityClass.getField(fieldName).getLong(thing);
+				return TypeUtils.getDeclaredField(entityClass, fieldName).getLong(thing);
 			}
 			catch (Exception e) { throw new IllegalStateException(e); }
 		}
