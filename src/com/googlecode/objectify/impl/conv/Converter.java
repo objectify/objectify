@@ -25,7 +25,7 @@ public interface Converter
 	 * @param value will never be null
 	 * @return null to indicate that this converter does nothing with the value
 	 */
-	Object toDatastore(Object value, ConverterSaveContext ctx);
+	Object forDatastore(Object value, ConverterSaveContext ctx);
 
 	/**
 	 * Convert the value into an object suitable for setting on a field with
@@ -35,7 +35,8 @@ public interface Converter
 	 * 
 	 * @param value will never be null
 	 * @param fieldType is the type that the value should be converted to
+	 * @param onPojo is the actual pojo object that this value will eventually be set upon
 	 * @return null to indicate that this converter does nothing with the value
 	 */
-	Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx);
+	Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo);
 }

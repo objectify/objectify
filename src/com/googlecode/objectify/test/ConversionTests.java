@@ -218,7 +218,7 @@ public class ConversionTests extends TestBase
 		
 		this.fact.getConversions().add(new Converter() {
 			@Override
-			public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+			public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 			{
 				if (fieldType == BigDecimal.class && value instanceof String)
 					return new BigDecimal((String)value);
@@ -227,7 +227,7 @@ public class ConversionTests extends TestBase
 			}
 			
 			@Override
-			public Object toDatastore(Object value, ConverterSaveContext ctx)
+			public Object forDatastore(Object value, ConverterSaveContext ctx)
 			{
 				if (value instanceof BigDecimal)
 					return value.toString();

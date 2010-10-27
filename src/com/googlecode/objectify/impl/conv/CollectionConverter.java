@@ -21,11 +21,8 @@ public class CollectionConverter implements Converter
 		this.conversions = conv;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value instanceof Collection<?>)
 		{
@@ -37,7 +34,7 @@ public class CollectionConverter implements Converter
 			ArrayList<Object> list = new ArrayList<Object>(((Collection<?>)value).size());
 
 			for (Object obj: (Collection<?>)value)
-				list.add(this.conversions.toDatastore(obj, ctx));
+				list.add(this.conversions.forDatastore(obj, ctx));
 			
 			return list;
 		}
@@ -45,21 +42,18 @@ public class CollectionConverter implements Converter
 			return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class)
-	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (Collection.class.isAssignableFrom(fieldType) && value instanceof Collection<?>)
 		{
 			Class<?> componentType = TypeUtils.getComponentType(fieldType, ctx.getField().getGenericType());
 
 			Collection<?> datastoreCollection = (Collection<?>)value;
-			Collection<Object> target = TypeUtils.createCollection(fieldType, datastoreCollection.size());
+			Collection<Object> target = TypeUtils.prepareCollection(onPojo, ctx.getField(), datastoreCollection.size());
 
 			for (Object datastoreValue: datastoreCollection)
-				target.add(this.conversions.toPojo(datastoreValue, componentType, ctx));
+				target.add(this.conversions.forPojo(datastoreValue, componentType, ctx, onPojo));
 			
 			return target;
 		}

@@ -13,11 +13,8 @@ package com.googlecode.objectify.impl.conv;
  */
 public class NumberConverter implements Converter
 {
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value instanceof Number)
 			return value;
@@ -25,11 +22,8 @@ public class NumberConverter implements Converter
 			return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class)
-	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (value instanceof Number)
 			return coerceNumber((Number)value, fieldType);

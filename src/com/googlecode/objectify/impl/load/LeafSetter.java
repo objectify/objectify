@@ -45,7 +45,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 	@Override
 	protected void safeSet(Object obj, Object value, LoadContext context)
 	{
-		this.field.set(obj, importBasic(value, this.field.getType()));
+		this.field.set(obj, importBasic(value, this.field.getType(), obj));
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 	 * @param fromValue	is the property value that came out of the datastore Entity
 	 * @param toType	is the type to convert it to.
 	 */
-	Object importBasic(Object fromValue, Class<?> toType)
+	Object importBasic(Object fromValue, Class<?> toType, Object onPojo)
 	{
 		// For now, special case serialization
 		if (this.serialized && fromValue != null)
@@ -78,7 +78,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 		}
 		else
 		{
-			return this.factory.getConversions().toPojo(fromValue, toType, this);
+			return this.factory.getConversions().forPojo(fromValue, toType, this, onPojo);
 		}
 	}
 

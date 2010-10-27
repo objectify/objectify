@@ -122,7 +122,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		else
 		{
 			// Run it through the conversions.
-			return this.factory.getConversions().toDatastore(value, this);
+			return this.factory.getConversions().forDatastore(value, this);
 		}
 	}
 

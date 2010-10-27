@@ -22,11 +22,8 @@ public class ArrayConverter implements Converter
 		this.conversions = conv;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterSaveContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (!value.getClass().isArray())
 			return null;
@@ -46,17 +43,14 @@ public class ArrayConverter implements Converter
 			ArrayList<Object> list = new ArrayList<Object>(length);
 			
 			for (int i=0; i<length; i++)
-				list.add(this.conversions.toDatastore(Array.get(value, i), ctx));
+				list.add(this.conversions.forDatastore(Array.get(value, i), ctx));
 			
 			return list;
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class, com.googlecode.objectify.impl.conv.ConverterLoadContext)
-	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (fieldType.isArray())
 		{
@@ -74,7 +68,7 @@ public class ArrayConverter implements Converter
 				int index = 0;
 				for (Object componentValue: datastoreCollection)
 				{
-					componentValue = this.conversions.toPojo(componentValue, componentType, ctx);
+					componentValue = this.conversions.forPojo(componentValue, componentType, ctx, onPojo);
 					Array.set(array, index++, componentValue);
 				}
 

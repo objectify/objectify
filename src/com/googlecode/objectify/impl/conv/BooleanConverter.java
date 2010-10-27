@@ -11,11 +11,8 @@ package com.googlecode.objectify.impl.conv;
  */
 public class BooleanConverter implements Converter
 {
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value instanceof Boolean)
 			return value;
@@ -23,11 +20,8 @@ public class BooleanConverter implements Converter
 			return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class)
-	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if ((fieldType == Boolean.TYPE) && (value instanceof Boolean))
 			return value;

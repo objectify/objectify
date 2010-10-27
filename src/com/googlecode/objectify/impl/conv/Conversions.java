@@ -57,14 +57,14 @@ public class Conversions implements Converter
 	 * return value defined by the Converter interface.
 	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value == null)
 			return null;
 		
 		for (Converter cvt: this.converters)
 		{
-			Object soFar = cvt.toDatastore(value, ctx);
+			Object soFar = cvt.forDatastore(value, ctx);
 			if (soFar != null)
 				return soFar;
 		}
@@ -80,14 +80,14 @@ public class Conversions implements Converter
 	 * @throws IllegalArgumentException if we weren't able to find a proper conversion
 	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (value == null)
 			return null;
 		
 		for (Converter cvt: this.converters)
 		{
-			Object soFar = cvt.toPojo(value, fieldType, ctx);
+			Object soFar = cvt.forPojo(value, fieldType, ctx, onPojo);
 			if (soFar != null)
 				return soFar;
 		}

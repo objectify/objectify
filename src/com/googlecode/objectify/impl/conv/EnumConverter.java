@@ -6,11 +6,8 @@ package com.googlecode.objectify.impl.conv;
  */
 public class EnumConverter implements Converter
 {
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value instanceof Enum<?>)
 			return ((Enum<?>)value).name();
@@ -18,12 +15,9 @@ public class EnumConverter implements Converter
 			return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (Enum.class.isAssignableFrom(fieldType))
 			// Anyone have any idea how to avoid this generics warning?

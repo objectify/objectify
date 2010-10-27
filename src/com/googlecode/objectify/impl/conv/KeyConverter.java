@@ -18,11 +18,8 @@ public class KeyConverter implements Converter
 		this.factory = fact;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toDatastore(java.lang.Object, com.googlecode.objectify.impl.conv.ConverterContext)
-	 */
 	@Override
-	public Object toDatastore(Object value, ConverterSaveContext ctx)
+	public Object forDatastore(Object value, ConverterSaveContext ctx)
 	{
 		if (value instanceof Key<?>)
 			return this.factory.typedKeyToRawKey((Key<?>)value);
@@ -30,11 +27,8 @@ public class KeyConverter implements Converter
 			return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.conv.Converter#toPojo(java.lang.Object, java.lang.Class)
-	 */
 	@Override
-	public Object toPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx)
+	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (Key.class.isAssignableFrom(fieldType) && value instanceof com.google.appengine.api.datastore.Key)
 			return this.factory.rawKeyToTypedKey((com.google.appengine.api.datastore.Key)value);
