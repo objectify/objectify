@@ -16,14 +16,17 @@ import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
+import javax.persistence.Id;
+import javax.persistence.Transient;
+
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasCollections;
-import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.entity.HasCollections.CustomSet;
+import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  * Tests of various collection types
@@ -211,5 +214,36 @@ public class CollectionTests extends TestBase
 
 		assert hc.initializedList != null;
 		assert hc.initializedList instanceof LinkedList<?>;
+	}
+
+	/** */
+	public static class HasInitializedCollection
+	{
+		public @Id Long id;
+		public List<String> initialized = new ArrayList<String>();
+		@Transient public List<String> copyOf;
+		
+		public HasInitializedCollection()
+		{
+			this.copyOf = initialized;
+		}
+	}
+	
+	/**
+	 * Make sure that Objectify doesn't overwrite an already initialized concrete collection
+	 */
+	@Test
+	public void testInitializedCollections() throws Exception
+	{
+		this.fact.register(HasInitializedCollection.class);
+		
+		HasInitializedCollection has = new HasInitializedCollection();
+		HasInitializedCollection fetched = this.putAndGet(has);
+		assert fetched.initialized == fetched.copyOf;	// should be same object
+		
+		has = new HasInitializedCollection();
+		has.initialized.add("blah");
+		fetched = this.putAndGet(has);
+		assert fetched.initialized == fetched.copyOf;	// should be same object
 	}
 }
