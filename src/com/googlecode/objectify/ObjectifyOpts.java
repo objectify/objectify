@@ -106,7 +106,7 @@ public class ObjectifyOpts implements Cloneable
 
 	/** Make a copy of this object as-is. */
 	@Override
-	protected ObjectifyOpts clone()
+	public ObjectifyOpts clone()
 	{
 		try
 		{
