@@ -1,9 +1,6 @@
 package com.googlecode.objectify;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +15,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.SessionCachingObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -324,6 +322,12 @@ public class ObjectifyFactory
 			return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
 	}
 
+	/** This is used just for makeFilterable() */
+	private static final ConverterSaveContext NO_CONTEXT = new ConverterSaveContext() {
+		@Override public boolean inEmbeddedCollection() { return false; }
+		@Override public Field getField() { return null; }
+	};
+	
 	/**
 	 * Translate Key<?> or Entity objects into something that can be used in a filter clause.
 	 * Anything unknown (including null) is simply returned as-is and we hope that the filter works.
@@ -333,37 +337,13 @@ public class ObjectifyFactory
 	public Object makeFilterable(Object keyOrEntityOrOther)
 	{
 		if (keyOrEntityOrOther == null)
-		{
 			return null;
-		}
-		else if (keyOrEntityOrOther instanceof Key<?>)
-		{
-			return this.typedKeyToRawKey((Key<?>)keyOrEntityOrOther);
-		}
-		else if (keyOrEntityOrOther instanceof Iterable<?>)
-		{
-			List<Object> all = (keyOrEntityOrOther instanceof Collection<?>)
-				? new ArrayList<Object>(((Collection<?>)keyOrEntityOrOther).size())
-				: new ArrayList<Object>(); 
-				
-			for (Object obj: ((Iterable<?>)keyOrEntityOrOther))
-				all.add(this.makeFilterable(obj));
-			
-			return all;
-		}
-		else if (keyOrEntityOrOther instanceof Object[])
-		{
-			return this.makeFilterable(Arrays.asList((Object[])keyOrEntityOrOther));
-		}
+		
+		EntityMetadata<?> meta = this.byClassName.get(keyOrEntityOrOther.getClass().getName());
+		if (meta == null)
+			return this.getConversions().forDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else
-		{
-			// We shouldn't use the other methods that throw exceptions
-			EntityMetadata<?> meta = this.byClassName.get(keyOrEntityOrOther.getClass().getName());
-			if (meta == null)
-				return keyOrEntityOrOther;
-			else
-				return meta.getKey(keyOrEntityOrOther);
-		}
+			return meta.getKey(keyOrEntityOrOther);
 	}
 	
 	/**

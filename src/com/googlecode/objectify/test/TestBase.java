@@ -28,7 +28,6 @@ import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.HasAlsoLoads;
 import com.googlecode.objectify.test.entity.HasArrays;
 import com.googlecode.objectify.test.entity.HasCollections;
-import com.googlecode.objectify.test.entity.HasEnums;
 import com.googlecode.objectify.test.entity.HolderOfString;
 import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
 import com.googlecode.objectify.test.entity.NamedTrivial;
@@ -85,7 +84,6 @@ public class TestBase
 		this.fact.register(Child.class);
 		this.fact.register(Employee.class);
 		this.fact.register(HasArrays.class);
-		this.fact.register(HasEnums.class);
 		this.fact.register(HasCollections.class);
 		this.fact.register(Apple.class);
 		this.fact.register(Banana.class);

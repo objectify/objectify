@@ -6,14 +6,18 @@
 package com.googlecode.objectify.test;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Logger;
 
+import javax.persistence.Id;
+
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.test.entity.HasEnums;
-import com.googlecode.objectify.test.entity.HasEnums.Color;
+import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.test.EnumTests.HasEnums.Color;
 
 /**
  * Tests of Enums, including Enums in arrays and lists
@@ -25,6 +29,31 @@ public class EnumTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(EnumTests.class.getName());
+
+	/** */
+	@Cached
+	public static class HasEnums
+	{
+		public enum Color {
+			RED,
+			GREEN
+		}
+		
+		public @Id Long id;
+		
+		public Color color;
+		public List<Color> colors;
+		public Color[] colorsArray;
+	}
+
+	/** */
+	@Override
+	@BeforeMethod
+	public void setUp()
+	{
+		super.setUp();
+		this.fact.register(HasEnums.class);
+	}
 	
 	/** */
 	@Test
@@ -68,5 +97,19 @@ public class EnumTests extends TestBase
 		he = ofy.get(key);
 		assert he.colorsArray[0] == Color.RED;
 		assert he.colorsArray[1] == Color.GREEN;
+	}
+	
+	/** */
+	@Test
+	public void testFilterByEnum() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+
+		HasEnums he = new HasEnums();
+		he.color = Color.GREEN;
+		ofy.put(he);
+		
+		HasEnums fetched = ofy.query(HasEnums.class).filter("color =", Color.GREEN).get();
+		assert fetched.id.equals(he.id);
 	}
 }
