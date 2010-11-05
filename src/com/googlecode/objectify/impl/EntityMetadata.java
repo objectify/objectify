@@ -263,7 +263,13 @@ public class EntityMetadata<T>
 					}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-		catch (InvocationTargetException e) { throw new RuntimeException(e); }
+		catch (InvocationTargetException e)
+		{
+			if (e.getCause() instanceof RuntimeException)
+				throw (RuntimeException)e.getCause();
+			else
+				throw new RuntimeException(e.getCause());
+		}
 	}
 
 	/**
