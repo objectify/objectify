@@ -41,7 +41,6 @@ public class LifecycleTests extends TestBase
 	@Cached
 	public static class HasInheritedLifecycle extends HasLifecycle {}
 
-
 	/** */
 	@Test
 	public void testLifecycle() throws Exception
@@ -72,5 +71,29 @@ public class LifecycleTests extends TestBase
 		assert fetched.postLoadedWithObjectify;
 		assert fetched.postLoadedWithEntity;
 		assert fetched.postLoadedWithBoth;
+	}
+	
+	@Cached
+	public static class HasExceptionThrowingLifecycle
+	{
+		@Id Long id;
+		@PrePersist void prePersist() { throw new UnsupportedOperationException(); }
+	}
+
+	/** */
+	@Test
+	public void testExceptionInLifecycle() throws Exception
+	{
+		this.fact.register(HasExceptionThrowingLifecycle.class);
+		
+		try
+		{
+			this.putAndGet(new HasExceptionThrowingLifecycle());
+			assert false;
+		}
+		catch (UnsupportedOperationException ex)
+		{
+			// this is correct
+		}
 	}
 }
