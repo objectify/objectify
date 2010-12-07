@@ -10,7 +10,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import com.google.appengine.api.datastore.DatastoreAttributes;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -105,6 +110,29 @@ public class CachingDatastoreService implements DatastoreService
 		public String getApp()
 		{
 			return this.raw.getApp();
+		}
+
+		@Override
+		public Future<Void> commitAsync()
+		{
+			// This is impossible; we get no callback when the operation completed, so we can't
+			// perform cache operations on success.  For now, just call through to the raw commit.
+			this.commit();
+			
+			// Return a bogus one of these
+			return new Future<Void>() {
+				@Override public boolean cancel(boolean mayInterruptIfRunning) { return false; }
+				@Override public boolean isCancelled() { return false; }
+				@Override public boolean isDone() { return true; }
+				@Override public Void get() throws InterruptedException, ExecutionException { return null; }
+				@Override public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException { return null; }
+			};
+		}
+
+		@Override
+		public Future<Void> rollbackAsync()
+		{
+			return this.raw.rollbackAsync();
 		}
 
 		/**
@@ -597,6 +625,15 @@ public class CachingDatastoreService implements DatastoreService
 		}
 		
 		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.DatastoreService#getDatastoreAttributes()
+	 */
+	@Override
+	public DatastoreAttributes getDatastoreAttributes()
+	{
+		return this.raw.getDatastoreAttributes();
 	}
 }
 
