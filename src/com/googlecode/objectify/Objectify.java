@@ -126,7 +126,7 @@ public interface Objectify
 	/**
 	 * Deletes the specified entity.
 	 * 
-	 * @param keyOrEntities can be either Key<?>, a datastore Key, or a pojo entity.
+	 * @param keysOrEntities can be Key<?>s, datastore Keys, or pojo entities.
 	 * If it includes entities, only the id fields are relevant.
 	 */
 	void delete(Object... keysOrEntities);
