@@ -4,16 +4,22 @@ import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.Transaction;
-import com.googlecode.objectify.impl.CachingDatastoreService;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
+import com.googlecode.objectify.cache.CachingDatastoreService;
+import com.googlecode.objectify.helper.FutureHelper;
+import com.googlecode.objectify.impl.AsyncObjectifyImpl;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
-import com.googlecode.objectify.impl.SessionCachingObjectifyImpl;
+import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
@@ -45,6 +51,9 @@ import com.googlecode.objectify.impl.conv.ConverterSaveContext;
  */
 public class ObjectifyFactory
 {
+	/** Default memcache namespace; override getRawMemcacheService() to change */
+	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
+	
 	/** This maps full package + classname to EntityMetadata */
 	protected Map<String, EntityMetadata<?>> byClassName = new ConcurrentHashMap<String, EntityMetadata<?>>();
 	
@@ -74,32 +83,71 @@ public class ObjectifyFactory
 	 * @param opts the options for creating this Objectify
 	 * @return an instance of Objectify configured appropriately
 	 */
-	protected Objectify createObjectify(DatastoreService ds, ObjectifyOpts opts) 
+	protected Objectify createObjectify(AsyncDatastoreService ds, ObjectifyOpts opts) 
 	{
-		Transaction txn = (opts.getBeginTransaction()) ? ds.beginTransaction() : null;
+		Transaction txn = (opts.getBeginTransaction()) ? FutureHelper.quietGet(ds.beginTransaction()) : null;
 		
 		if (opts.getSessionCache())
-			return new SessionCachingObjectifyImpl(this, ds, txn);
+			return new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn));
 		else
-			return new ObjectifyImpl(this, ds, txn);
+			return new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
 	}
 	
 	/**
-	 * @return a DatastoreService which *might* be a caching version if any cached
-	 * entities have been registered.  Delegates to getRawDatastoreService() to
-	 * actually obtain the instance from appengine.
+	 * Make a datastore service config that corresponds to the specified options.
+	 * Note that not all options are defined by the config; some options (e.g. caching)
+	 * have no analogue in the native datastore.
 	 */
-	protected DatastoreService getDatastoreService(ObjectifyOpts opts)
+	protected DatastoreServiceConfig makeConfig(ObjectifyOpts opts)
 	{
 		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(opts.getConsistency()));
 		
 		if (opts.getDeadline() != null)
 			cfg.deadline(opts.getDeadline());
+
+		return cfg;
+	}
+	
+	/**
+	 * Get a DatastoreService facade appropriate to the options.  Note that
+	 * Objectify does not itself use DatastoreService; this method solely
+	 * exists to support Objectify.getDatastore().
+	 * 
+	 * @return a DatastoreService configured per the specified options.
+	 */
+	public DatastoreService getDatastoreService(ObjectifyOpts opts)
+	{
+		DatastoreServiceConfig cfg = this.makeConfig(opts);
+		DatastoreService ds = this.getRawDatastoreService(cfg);
 		
 		if (opts.getGlobalCache() && this.hasCachedEntities)
-			return new CachingDatastoreService(this, this.getRawDatastoreService(cfg));
+		{
+			CachingAsyncDatastoreService async = new CachingAsyncDatastoreService(this, this.getRawAsyncDatastoreService(cfg), this.getRawMemcacheService());
+			return new CachingDatastoreService(ds, async);
+		}
 		else
-			return this.getRawDatastoreService(cfg);
+		{
+			return ds;
+		}
+	}
+	
+	/**
+	 * Get an AsyncDatastoreService facade appropriate to the options.  All Objectify
+	 * datastore interaction goes through an AsyncDatastoreService, even the synchronous
+	 * methods.  The GAE SDK works the same way; DatastoreService is a facade around
+	 * AsyncDatastoreService.
+	 * 
+	 * @return an AsyncDatastoreService configured per the specified options.
+	 */
+	public AsyncDatastoreService getAsyncDatastoreService(ObjectifyOpts opts)
+	{
+		DatastoreServiceConfig cfg = this.makeConfig(opts);
+		AsyncDatastoreService ads = this.getRawAsyncDatastoreService(cfg);
+
+		if (opts.getGlobalCache() && this.hasCachedEntities)
+			return new CachingAsyncDatastoreService(this, ads, this.getRawMemcacheService());
+		else
+			return ads;
 	}
 	
 	/**
@@ -108,6 +156,22 @@ public class ObjectifyFactory
 	protected DatastoreService getRawDatastoreService(DatastoreServiceConfig cfg)
 	{
 		return DatastoreServiceFactory.getDatastoreService(cfg);
+	}
+	
+	/**
+	 * You can override this to add behavior at the raw datastoreservice level.
+	 */
+	protected AsyncDatastoreService getRawAsyncDatastoreService(DatastoreServiceConfig cfg)
+	{
+		return DatastoreServiceFactory.getAsyncDatastoreService(cfg);
+	}
+	
+	/**
+	 * You can override this to change behavior, such as change (or remove) a scope
+	 */
+	protected MemcacheService getRawMemcacheService()
+	{
+		return MemcacheServiceFactory.getMemcacheService(MEMCACHE_NAMESPACE);
 	}
 	
 	/**
@@ -125,7 +189,7 @@ public class ObjectifyFactory
 	 */
 	public Objectify begin(ObjectifyOpts opts)
 	{
-		DatastoreService ds = this.getDatastoreService(opts);
+		AsyncDatastoreService ds = this.getAsyncDatastoreService(opts);
 		return this.createObjectify(ds, opts);
 	}
 	

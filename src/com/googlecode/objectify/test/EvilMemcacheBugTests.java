@@ -27,9 +27,9 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.CachingDatastoreService;
 
 /**
  * Tests of a bizarre bug in Google's memcache serialization of Key objects.
@@ -112,8 +112,8 @@ public class EvilMemcacheBugTests extends TestBase
 		// Need to register it so the entity kind becomes cacheable
 		this.fact.register(SimpleEntity.class);
 		
-		DatastoreService ods = DatastoreServiceFactory.getDatastoreService();
-		DatastoreService ds = new CachingDatastoreService(this.fact, ods);
+		DatastoreService ods = this.fact.getDatastoreService(new ObjectifyOpts().setGlobalCache(false));
+		DatastoreService ds = this.fact.getDatastoreService(new ObjectifyOpts().setGlobalCache(true));
 
 		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.
 		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
@@ -226,14 +226,14 @@ public class EvilMemcacheBugTests extends TestBase
 		//save a test entity
 		Entity ent1 = new Entity(childKey);
 		ent1.setProperty("foo", "original");
-		ds.put(ent1);
+		ds.put(null, ent1);
 		ms.put(ent1.getKey(), ent1);
 
 		//load it, and change the value.
-		Entity ent1loaded = ds.get(ent1.getKey());
+		Entity ent1loaded = ds.get(null, ent1.getKey());
 		ent1loaded.setProperty("foo", "changed");
 		//save it to the datastore and memcache
-		ds.put(ent1loaded);
+		ds.put(null, ent1loaded);
 		ms.put(ent1loaded.getKey(), ent1loaded);
 
 		//dump memcache -- silly GAE can't hide this method from me!

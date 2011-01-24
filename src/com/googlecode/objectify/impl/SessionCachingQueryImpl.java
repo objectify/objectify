@@ -57,7 +57,7 @@ public class SessionCachingQueryImpl<T> extends QueryImpl<T>
 			Key<T> key = factory.getKey(t);
 			T cached = (T)cache.get(key);
 			
-			if (cached == null || cached == SessionCachingObjectifyImpl.NEGATIVE_RESULT)
+			if (cached == null || cached == SessionCachingAsyncObjectifyImpl.NEGATIVE_RESULT)
 			{
 				cache.put(key, t);
 				cached = t;

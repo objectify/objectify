@@ -8,6 +8,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.AsyncObjectify;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
@@ -146,14 +147,20 @@ public class ObjectifyWrapper implements Objectify
 	}
 
 	@Override
-	public DatastoreService getDatastore()
-	{
-		return this.base.getDatastore();
-	}
-
-	@Override
 	public ObjectifyFactory getFactory()
 	{
 		return this.base.getFactory();
+	}
+
+	@Override
+	public AsyncObjectify async()
+	{
+		return this.base.async();
+	}
+
+	@Override
+	public DatastoreService getDatastore()
+	{
+		return this.base.getDatastore();
 	}
 }

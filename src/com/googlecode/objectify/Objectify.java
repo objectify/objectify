@@ -176,10 +176,14 @@ public interface Objectify
 	public Transaction getTxn();
 
 	/**
-	 * <p>Obtain the DatastoreService that underlies this Objectify instance.</p>
+	 * <p>Obtain a DatastoreService with parameters roughly equivalent to this Objectify instance.</p>
 	 * 
 	 * <p>This should not normally be necessary.  It allows you to work with
 	 * raw Entity objects, allocate ids, and examine thread local transactions.</p>
+	 * 
+	 * <p>Note that Objectify does not actually use this DatastoreService in any way;
+	 * all requests go through an AsyncDatastoreService.  Also, even Google's DatastoreService
+	 * implementation is just a facade around AsyncDatastoreService.</p>
 	 */
 	public DatastoreService getDatastore();
 	
@@ -189,5 +193,11 @@ public interface Objectify
 	 * @return the ObjectifyFactory associated with this Objectify instance.
 	 */
 	public ObjectifyFactory getFactory();
-	
+
+	/**
+	 * Obtain the asynchronous version of the Objectify interface.  Provides async
+	 * versions of get/put/delete calls.  Note that all queries are automatically
+	 * asynchronous; just create multiple Iterators before iterating them.
+	 */
+	public AsyncObjectify async();
 }

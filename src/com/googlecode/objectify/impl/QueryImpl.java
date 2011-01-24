@@ -227,15 +227,6 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#cursor(com.google.appengine.api.datastore.Cursor)
-	 */
-	@Override
-	public Query<T> cursor(Cursor value)
-	{
-		return this.startCursor(value);
-	}
-
-	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#startCursor(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
@@ -500,7 +491,7 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	 */
 	private PreparedQuery prepare()
 	{
-		return this.ofy.getDatastore().prepare(this.ofy.getTxn(), this.actual);
+		return this.ofy.async().getAsyncDatastore().prepare(this.ofy.getTxn(), this.actual);
 	}
 
 	/**
@@ -512,7 +503,7 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		com.google.appengine.api.datastore.Query cloned = this.cloneRawQuery(this.actual);
 		cloned.setKeysOnly();
 		
-		return this.ofy.getDatastore().prepare(this.ofy.getTxn(), cloned);
+		return this.ofy.async().getAsyncDatastore().prepare(this.ofy.getTxn(), cloned);
 	}
 	
 	/**

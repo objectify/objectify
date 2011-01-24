@@ -89,12 +89,6 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Query<T> offset(int value);
 	
 	/**
-	 * Equivalent to calling startCursor().
-	 */
-	@Deprecated
-	public Query<T> cursor(Cursor value);
-	
-	/**
 	 * Starts query results at the specified Cursor.  You can obtain a Cursor from
 	 * a QueryResultIterator by calling the getCursor() method.
 	 * 

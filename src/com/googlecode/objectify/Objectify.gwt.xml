@@ -6,4 +6,7 @@
 		<include name="Key.java" />
 		<include name="NotFoundException.java" />
 	</source>
+	<source path="condition">
+		<exclude name="IfDefault.java" />
+	</source>
 </module>
