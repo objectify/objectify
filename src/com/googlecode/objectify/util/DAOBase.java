@@ -2,7 +2,7 @@
  * $Id$
  */
 
-package com.googlecode.objectify.helper;
+package com.googlecode.objectify.util;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;

@@ -6,7 +6,7 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.helper.QueryResultIteratorWrapper;
+import com.googlecode.objectify.util.QueryResultIteratorWrapper;
 
 /**
  * Extends the QueryImpl to add a session cache.  Note that it only needs

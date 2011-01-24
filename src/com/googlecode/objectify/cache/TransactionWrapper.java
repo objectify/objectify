@@ -12,7 +12,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.helper.FutureHelper;
+import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * This is necessary to track writes and update the cache only on successful commit. 

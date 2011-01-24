@@ -25,7 +25,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
-import com.googlecode.objectify.helper.TranslatingQueryResultIterator;
+import com.googlecode.objectify.util.TranslatingQueryResultIterator;
 
 /**
  * Implementation of Query.

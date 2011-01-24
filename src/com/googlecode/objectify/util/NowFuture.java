@@ -1,4 +1,4 @@
-package com.googlecode.objectify.helper;
+package com.googlecode.objectify.util;
 
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;

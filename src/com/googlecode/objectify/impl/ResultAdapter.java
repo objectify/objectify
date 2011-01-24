@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl;
 import java.util.concurrent.Future;
 
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.helper.FutureHelper;
+import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * Adapts a Future object to a (much more convenient) Result object.

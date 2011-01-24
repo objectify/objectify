@@ -25,8 +25,8 @@ import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.helper.FutureHelper;
-import com.googlecode.objectify.impl.SimpleFutureWrapper;
+import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional

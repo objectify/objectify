@@ -16,7 +16,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.cache.ListenableFuture;
-import com.googlecode.objectify.helper.FutureHelper;
+import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * Tests of the ListenableFuture

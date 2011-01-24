@@ -2,7 +2,7 @@
  * $Id$
  */
 
-package com.googlecode.objectify.helper;
+package com.googlecode.objectify.util;
 
 import java.lang.reflect.UndeclaredThrowableException;
 import java.util.concurrent.ExecutionException;

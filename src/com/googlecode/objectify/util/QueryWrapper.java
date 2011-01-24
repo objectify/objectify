@@ -1,4 +1,4 @@
-package com.googlecode.objectify.helper;
+package com.googlecode.objectify.util;
 
 import java.util.List;
 import java.util.Map;

@@ -3,7 +3,7 @@ package com.googlecode.objectify;
 import java.io.Serializable;
 import java.util.Iterator;
 
-import com.googlecode.objectify.helper.TranslatingIterator;
+import com.googlecode.objectify.util.TranslatingIterator;
 
 /**
  * <p>This is a typesafe version of the KeyRange object.  It represents a number

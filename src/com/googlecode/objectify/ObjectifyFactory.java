@@ -15,13 +15,13 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
-import com.googlecode.objectify.helper.FutureHelper;
 import com.googlecode.objectify.impl.AsyncObjectifyImpl;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
+import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.

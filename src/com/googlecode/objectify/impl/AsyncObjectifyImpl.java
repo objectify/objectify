@@ -19,6 +19,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService

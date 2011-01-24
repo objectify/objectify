@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.util;
 
 import java.util.concurrent.Future;
 

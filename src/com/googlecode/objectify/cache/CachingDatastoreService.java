@@ -14,7 +14,7 @@ import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
-import com.googlecode.objectify.helper.FutureHelper;
+import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional

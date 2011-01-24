@@ -1,4 +1,4 @@
-package com.googlecode.objectify.helper;
+package com.googlecode.objectify.util;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;

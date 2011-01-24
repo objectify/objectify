@@ -14,8 +14,9 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cache.ListenableFuture;
-import com.googlecode.objectify.helper.FutureHelper;
-import com.googlecode.objectify.helper.NowFuture;
+import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.util.NowFuture;
+import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
  * Extends the AsyncObjectifyImpl to add a session cache.  Note that it only needs

@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.helper.Monotonic;
+import com.googlecode.objectify.util.Monotonic;
 
 /**
  */
