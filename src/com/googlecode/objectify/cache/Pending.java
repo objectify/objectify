@@ -2,8 +2,8 @@ package com.googlecode.objectify.cache;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-
-import org.testng.log4testng.Logger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>This is the state maintained on a per-thread basis for all of the oustanding Future<?> objects
@@ -20,7 +20,7 @@ import org.testng.log4testng.Logger;
 public class Pending
 {
 	/** */
-	private static final Logger log = Logger.getLogger(Pending.class);
+	private static final Logger log = Logger.getLogger(Pending.class.getName());
 	
 	/**
 	 * We use this not for concurrency but because it is a HashMap that doesn't throw
@@ -100,7 +100,7 @@ public class Pending
 				}
 				catch (Exception e)
 				{
-					log.error(e);
+					log.log(Level.SEVERE, "Error cleaning up pending Future", e);
 				}
 			}
 		}
