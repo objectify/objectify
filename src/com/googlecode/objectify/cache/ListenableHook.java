@@ -1,11 +1,11 @@
 package com.googlecode.objectify.cache;
 
-import java.util.Map;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.util.concurrent.Future;
 
-import com.google.appengine.tools.development.ApiProxyLocal;
-import com.google.appengine.tools.development.Clock;
-import com.google.appengine.tools.development.LocalRpcService;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
@@ -28,14 +28,13 @@ import com.google.apphosting.api.ApiProxy.LogRecord;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-// TODO: REMOVE ApiProxyLocal FROM INTERFACE LIST BEFORE RELEASE
-public class ListenableHook implements Delegate<Environment>, ApiProxyLocal
+public class ListenableHook implements Delegate<Environment>
 {
 	/** */
 	static {
 		@SuppressWarnings("unchecked")
 		ListenableHook hook = new ListenableHook(ApiProxy.getDelegate());
-		ApiProxy.setDelegate(hook);
+		ApiProxy.setDelegate(wrapPartially(ApiProxy.getDelegate(), hook));
 	}
 	
 	/** The thread local value will be removed (null) if there are none pending */
@@ -132,46 +131,40 @@ public class ListenableHook implements Delegate<Environment>, ApiProxyLocal
 			pend.completeAllPendingFutures();
 	}
 
-	//
-	//
-	// ALL THE FOLLOWING METHODS ARE TEMPORARY FROM ApiProxyLocal
-	// THE INTERFACE MUST BE REMOVED PRIOR TO PRODUCTION
-	//
-	//
-	
-	@Override
-	public void setProperty(String paramString1, String paramString2)
+	/**
+	 * This is a bit of cleverness from Max Ross (Google) to work around the problem
+	 * that the local unit testing framework explicitly casts the delegate to ApiProxyLocal.
+	 * Until that bug is removed, this method uses a dynamic proxy to fake the interface.
+	 * 
+	 * Create a proxy that implements all the interfaces that the original
+	 * implements. Whenever a method is called that the wrapper supports, the
+	 * wrapper will be called. Otherwise, the method will be invoked on the
+	 * original object.
+	 */
+	@SuppressWarnings("unchecked")
+	static <S, T extends S> S wrapPartially(final S original, final T wrapper)
 	{
-		((ApiProxyLocal)this.parent).setProperty(paramString1, paramString2);
-	}
-
-	@Override
-	public void setProperties(Map<String, String> paramMap)
-	{
-		((ApiProxyLocal)this.parent).setProperties(paramMap);
-	}
-
-	@Override
-	public void stop()
-	{
-		((ApiProxyLocal)this.parent).stop();
-	}
-
-	@Override
-	public LocalRpcService getService(String paramString)
-	{
-		return ((ApiProxyLocal)this.parent).getService(paramString);
-	}
-
-	@Override
-	public Clock getClock()
-	{
-		return ((ApiProxyLocal)this.parent).getClock();
-	}
-
-	@Override
-	public void setClock(Clock paramClock)
-	{
-		((ApiProxyLocal)this.parent).setClock(paramClock);
+		Class<?>[] interfaces = original.getClass().getInterfaces();
+		InvocationHandler handler = new InvocationHandler() {
+			@Override
+			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable
+			{
+				Method wrapperMethod = null;
+				try
+				{
+					wrapperMethod = wrapper.getClass().getMethod(method.getName(), method.getParameterTypes());
+				}
+				catch (NoSuchMethodException e)
+				{
+					try { return method.invoke(original, args); }
+					catch (InvocationTargetException ex) { throw ex.getTargetException(); }
+				}
+				
+				try { return wrapperMethod.invoke(wrapper, args); }
+				catch (InvocationTargetException ex) { throw ex.getTargetException(); }
+			}
+		};
+		
+		return (S)Proxy.newProxyInstance(original.getClass().getClassLoader(), interfaces, handler);
 	}
 }
