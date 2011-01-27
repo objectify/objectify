@@ -69,7 +69,11 @@ public class Monotonic
 			{
 				Field f = TypeUtils.getDeclaredField(entityClass, fieldName);
 				f.setAccessible(true);
-				return f.getLong(thing);
+				Number n = (Number)f.get(thing);
+				if (n == null)
+					return 0;
+				else
+					return n.longValue();
 			}
 			catch (Exception e) { throw new IllegalStateException(e); }
 		}
