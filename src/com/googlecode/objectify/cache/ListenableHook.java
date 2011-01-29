@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.concurrent.Future;
 
+import com.google.appengine.api.utils.SystemProperty;
 import com.google.apphosting.api.ApiProxy;
 import com.google.apphosting.api.ApiProxy.ApiConfig;
 import com.google.apphosting.api.ApiProxy.ApiProxyException;
@@ -34,7 +35,11 @@ public class ListenableHook implements Delegate<Environment>
 	static {
 		@SuppressWarnings("unchecked")
 		ListenableHook hook = new ListenableHook(ApiProxy.getDelegate());
-		ApiProxy.setDelegate(wrapPartially(ApiProxy.getDelegate(), hook));
+		
+		if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production)
+			ApiProxy.setDelegate(hook);
+		else
+			ApiProxy.setDelegate(wrapPartially(ApiProxy.getDelegate(), hook));
 	}
 	
 	/** The thread local value will be removed (null) if there are none pending */
@@ -140,6 +145,9 @@ public class ListenableHook implements Delegate<Environment>
 	 * implements. Whenever a method is called that the wrapper supports, the
 	 * wrapper will be called. Otherwise, the method will be invoked on the
 	 * original object.
+	 * 
+	 * CAREFUL!  The call to getClassLoader() throws a security exception on prod GAE,
+	 * so only use this mechanism when not on prod.
 	 */
 	@SuppressWarnings("unchecked")
 	static <S, T extends S> S wrapPartially(final S original, final T wrapper)
