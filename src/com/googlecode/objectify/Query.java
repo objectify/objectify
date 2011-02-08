@@ -42,6 +42,11 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <li>{@code filter("age in", ageList)}</li>
 	 * </ul>
 	 * 
+	 * <p><strong>The space is required.</strong>  Filtering a condition of
+	 * {@code "age>="} will perform an <em>equality</em> test on an entity property
+	 * with that exact name.  You can't create properties like this with Objectify,
+	 * but you can with the Low-Level API.</p>
+	 * 
 	 * <p>You can filter on id properties <strong>if</strong> this query is
 	 * restricted to a Class<T> and the entity has no @Parent.  If you are
 	 * having trouble working around this limitation, please consult the
