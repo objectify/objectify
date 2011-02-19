@@ -20,8 +20,7 @@ import com.google.appengine.api.datastore.QueryResultIterable;
  * 
  * <p>Construct this class by calling {@code Objectify.query()}</p>
  * 
- * <p>Note that this class is Iterable itself; you do not need to call the
- * fetch() method, but it is available if you like it.</p>
+ * <p>Note that this class is Iterable; to get results, call iterator().</p>
  * 
  * <p>To obtain a {@code Cursor} call {@code Query.iterator().getCursor()}.
  * This cursor can be resumed with {@code Query.cursor()}.</p>
