@@ -113,8 +113,7 @@ class TransactionWrapper implements Transaction
 	 */
 	public void deferCacheDelete(Key key)
 	{
-		Cached cachedAnno = this.cache.fact.getMetadata(key).getCached();
-		if (cachedAnno == null)
+		if (!this.cache.fact.getMetadata(key).mightBeInCache())
 			return;
 			
 		// If there was a put, we must not put it!
@@ -132,7 +131,7 @@ class TransactionWrapper implements Transaction
 	 */
 	public void deferCachePut(Entity entity)
 	{
-		Cached cachedAnno = this.cache.fact.getMetadata(entity.getKey()).getCached();
+		Cached cachedAnno = this.cache.fact.getMetadata(entity.getKey()).getCached(entity);
 		if (cachedAnno == null)
 			return;
 		

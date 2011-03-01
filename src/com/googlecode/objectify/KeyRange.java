@@ -16,15 +16,11 @@ public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 	private static final long serialVersionUID = 1L;
 	
 	/** */
-	ObjectifyFactory fact;
-	
-	/** */
 	com.google.appengine.api.datastore.KeyRange raw;
 	
 	/** */
-	KeyRange(ObjectifyFactory fact, com.google.appengine.api.datastore.KeyRange raw)
+	KeyRange(com.google.appengine.api.datastore.KeyRange raw)
 	{
-		this.fact = fact;
 		this.raw = raw;
 	}
 
@@ -38,7 +34,7 @@ public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 			@Override
 			protected Key<T> translate(com.google.appengine.api.datastore.Key from)
 			{
-				return fact.rawKeyToTypedKey(from);
+				return new Key<T>(from);
 			}
 		};
 	}

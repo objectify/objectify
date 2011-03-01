@@ -35,7 +35,7 @@ public class PolymorphicQueryTests extends TestBase
 	Dog dog;
 	
 	/** */
-	@BeforeMethod
+//	@BeforeMethod
 	public void setUp()
 	{
 		super.setUp();
@@ -70,7 +70,7 @@ public class PolymorphicQueryTests extends TestBase
 	}
 	
 	/** */
-	@Test
+	//@Test
 	public void testQueryAll() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
@@ -92,7 +92,7 @@ public class PolymorphicQueryTests extends TestBase
 	}
 
 	/** */
-	@Test
+	//@Test
 	public void testQueryMammal() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
@@ -111,7 +111,7 @@ public class PolymorphicQueryTests extends TestBase
 	}
 
 	/** */
-	@Test
+	//@Test
 	public void testQueryCat() throws Exception
 	{
 		Objectify ofy = this.fact.begin();

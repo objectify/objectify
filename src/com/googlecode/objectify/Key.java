@@ -2,13 +2,11 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
+import com.google.appengine.api.datastore.KeyFactory;
+import com.googlecode.objectify.annotation.Subclass;
+
 /**
- * <p>This is a typesafe version of the Key object.  It is also Serializable
- * and GWT-safe, enabling your entity objects to be used for GWT RPC should
- * you so desire.</p>
- * 
- * <p>You may use normal Key objects as relationships in your entities if you
- * desire neither type safety nor GWTability.</p>
+ * <p>A typesafe wrapper for the datastore Key object.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez
@@ -16,61 +14,62 @@ import java.io.Serializable;
 public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = 1L;
-	
-	/** 
-	 * The name of the class which represents the kind.  As much as
-	 * we'd like to use the normal String kind value here, translating
-	 * back to a Class for getKind() would then require a link to the
-	 * OFactory, making this object non-serializable.
-	 */
-	protected String kindClassName;
-	
-	/** Null if there is no parent */
-	protected Key<?> parent;
-	
-	/** Either id or name will be valid */
-	protected long id;
 
-	/** Either id or name will be valid */
-	protected String name;
+	/** */
+	com.google.appengine.api.datastore.Key raw;
+	
+	/** Cache the instance of the parent wrapper to avoid unnecessary garbage */
+	transient protected Key<?> parent;
 	
 	/** For GWT serialization */
 	protected Key() {}
-	
-	/** Create a key with a long id */
-	public Key(Class<? extends T> kind, long id)
+
+	/** Wrap a raw Key */
+	public Key(com.google.appengine.api.datastore.Key raw)
 	{
-		this(null, kind, id);
+		this.raw = raw;
+	}
+
+	/** Create a key with a long id */
+	public Key(Class<? extends T> kindClass, long id)
+	{
+		this(null, kindClass, id);
 	}
 	
 	/** Create a key with a String name */
-	public Key(Class<? extends T> kind, String name)
+	public Key(Class<? extends T> kindClass, String name)
 	{
-		this(null, kind, name);
+		this(null, kindClass, name);
 	}
 	
 	/** Create a key with a parent and a long id */
-	public Key(Key<?> parent, Class<? extends T> kind, long id)
+	public Key(Key<?> parent, Class<? extends T> kindClass, long id)
 	{
+		this.raw = KeyFactory.createKey(raw(parent), getKind(kindClass), id);
 		this.parent = parent;
-		this.kindClassName = kind.getName();
-		this.id = id;
 	}
 	
 	/** Create a key with a parent and a String name */
-	public Key(Key<?> parent, Class<? extends T> kind, String name)
+	public Key(Key<?> parent, Class<? extends T> kindClass, String name)
 	{
+		this.raw = KeyFactory.createKey(raw(parent), getKind(kindClass), name);
 		this.parent = parent;
-		this.kindClassName = kind.getName();
-		this.name = name;
 	}
-
+	
+	/**
+	 * @return the raw datastore version of this key
+	 */
+	public com.google.appengine.api.datastore.Key getRaw()
+	{
+		return this.raw;
+	}
+	
 	/**
 	 * @return the id associated with this key, or 0 if this key has a name.
 	 */
 	public long getId()
 	{
-		return this.id;
+		return this.raw.getId();
 	}
 	
 	/**
@@ -78,15 +77,15 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 */
 	public String getName()
 	{
-		return this.name;
+		return this.raw.getName();
 	}
 	
 	/**
-	 * @return the name of the Class associated with this key.
+	 * @return the low-level datastore kind associated with this Key
 	 */
-	public String getKindClassName()
+	public String getKind()
 	{
-		return this.kindClassName;
+		return this.raw.getKind();
 	}
 	
 	/**
@@ -96,6 +95,9 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	@SuppressWarnings("unchecked")
 	public <V> Key<V> getParent()
 	{
+		if (this.parent == null && this.raw.getParent() != null)
+			this.parent = new Key<V>(this.raw.getParent());
+		
 		return (Key<V>)this.parent;
 	}
 
@@ -108,44 +110,19 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	@SuppressWarnings("unchecked")
 	public <V> Key<V> getRoot()
 	{
-		if (this.parent == null)
+		if (this.getParent() == null)
 			return (Key<V>)this;
 		else
-			return this.parent.getRoot();
+			return this.getParent().getRoot();
 	}
 
 	/**
-	 * <p>Compares based on the following traits, in order:</p>
-	 * <ol>
-	 * <li>kind</li>
-	 * <li>parent</li>
-	 * <li>id or name</li>
-	 * </ol>
+	 * <p>Compares based on comparison of the raw key</p>
 	 */
 	@Override
 	public int compareTo(Key<?> other)
 	{
-		// First kind
-		int cmp = this.kindClassName.compareTo(other.kindClassName);
-		if (cmp != 0)
-			return cmp;
-
-		// Then parent
-		cmp = compareNullable(this.parent, other.parent);
-		if (cmp != 0)
-			return cmp;
-		
-		// Then either id or name, whichever exists - but they might be different
-		cmp = compareNullable(this.name, other.name);
-		if (cmp != 0)
-			return cmp;
-
-		if (this.id < other.id)
-			return -1;
-		else if (this.id > other.id)
-			return 1;
-		else
-			return 0;
+		return this.raw.compareTo(other.raw);
 	}
 
 	/** */
@@ -165,47 +142,105 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	@Override
 	public int hashCode()
 	{
-		if (this.name != null)
-			return this.name.hashCode();
-		else
-			return (int)this.id;
+		return this.raw.hashCode();
 	}
 
 	/** Creates a human-readable version of this key */
 	@Override
 	public String toString()
 	{
-		StringBuilder bld = new StringBuilder();
-		bld.append("Key{kindClassName=");
-		bld.append(this.kindClassName);
-		bld.append(", parent=");
-		bld.append(this.parent);
-		if (this.name != null)
-		{
-			bld.append(", name=");
-			bld.append(this.name);
-		}
-		else
-		{
-			bld.append(", id=");
-			bld.append(this.id);
-		}
-		bld.append("}");
-		
-		return bld.toString();
+		return "Key<?>(" + this.raw + ")";
 	}
 	
-	/** */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private static int compareNullable(Comparable o1, Comparable o2)
+	/**
+	 * Easy null-safe conversion of the raw key.
+	 */
+	public static <V> Key<V> typed(com.google.appengine.api.datastore.Key raw)
 	{
-		if (o1 == null && o2 == null)
-			return 0;
-		if (o1 == null && o2 != null)
-			return -1;
-		else if (o1 != null && o2 == null)
-			return 1;
+		if (raw == null)
+			return null;
 		else
-			return o1.compareTo(o2);
+			return new Key<V>(raw);
+	}
+	
+	/**
+	 * Easy null-safe conversion of the typed key.
+	 */
+	public static com.google.appengine.api.datastore.Key raw(Key<?> typed)
+	{
+		if (typed == null)
+			return null;
+		else
+			return typed.getRaw();
+	}
+	
+	/**
+	 * <p>Determines the kind for a Class, as understood by the datastore.  The logic for this
+	 * is approximately:</p>
+	 * 
+	 * <ul>
+	 * <li>If the class has an @Entity (either JPA or Objectify) annotation, the kind is the "name" attribute of the annotation.</li>
+	 * <li>If the class has no @Entity, or the "name" attribute is empty, the kind is the simplename of the class.</li>
+	 * <li>If the class has @Subclass, the kind is drawn from the first parent class that has an @Entity annotation.</li>
+	 * </ul>
+	 * 
+	 * @throws IllegalArgumentException if a kind cannot be determined (ie @Subclass with invalid hierarchy).
+	 */
+	public static String getKind(Class<?> clazz)
+	{
+		// Check this one directly
+		String kind = getKindHere(clazz);
+		if (kind != null)
+			return kind;
+		
+		// @Subclass is treated differently, a superclass must have a mandatory @Entity
+		if (clazz.getAnnotation(Subclass.class) != null)
+		{
+			kind = getRequiredEntityKind(clazz.getSuperclass());
+			if (kind != null)
+				return kind;
+			else
+				throw new IllegalArgumentException("@Subclass entity " + clazz.getName() + " must have a superclass with @Entity");
+		}
+		
+		return clazz.getSimpleName();
+	}
+	
+	/**
+	 * Recursively climbs the class hierarchy looking for the first @Entity annotation.
+	 * @return the kind of the first @Entity found, or null if nothing can be found 
+	 */
+	private static String getRequiredEntityKind(Class<?> clazz)
+	{
+		if (clazz == Object.class)
+			return null;
+		
+		String kind = getKindHere(clazz);
+		if (kind != null)
+			return kind;
+		else
+			return getRequiredEntityKind(clazz.getSuperclass());
+	}
+
+	/**
+	 * Get the kind from the class if the class has an @Entity annotation, otherwise return null.
+	 */
+	private static String getKindHere(Class<?> clazz)
+	{
+		com.googlecode.objectify.annotation.Entity ourAnn = clazz.getAnnotation(com.googlecode.objectify.annotation.Entity.class);
+		if (ourAnn != null)
+			if (ourAnn.name() != null && ourAnn.name().length() != 0)
+				return ourAnn.name();
+			else
+				return clazz.getSimpleName();
+		
+		javax.persistence.Entity jpaAnn = clazz.getAnnotation(javax.persistence.Entity.class);
+		if (jpaAnn != null)
+			if (jpaAnn.name() != null && jpaAnn.name().length() != 0)
+				return jpaAnn.name();
+			else
+				return clazz.getSimpleName();
+		
+		return null;
 	}
 }

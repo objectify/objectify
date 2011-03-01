@@ -144,7 +144,7 @@ public class ExampleDocoTests extends TestBase
 
 	private Town loadTown(Entity e) throws EntityNotFoundException
 	{
-		Key<Town> k = fact.rawKeyToTypedKey(e.getKey());
+		Key<Town> k = new Key<Town>(e.getKey());
 		return fact.begin().get(k);
 	}
 

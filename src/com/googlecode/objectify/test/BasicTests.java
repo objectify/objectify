@@ -42,7 +42,7 @@ public class BasicTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> k = ofy.put(triv);
 
-		assert k.getKindClassName().equals(triv.getClass().getName());
+		assert k.getKind().equals(triv.getClass().getSimpleName());
 		assert k.getId() == triv.getId();
 
 		Key<Trivial> created = new Key<Trivial>(Trivial.class, k.getId());

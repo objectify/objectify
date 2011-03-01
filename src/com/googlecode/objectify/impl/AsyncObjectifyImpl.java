@@ -63,7 +63,7 @@ public class AsyncObjectifyImpl implements AsyncObjectify
 		// First we need to turn the keys into raw keys
 		final List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Key<? extends T> obKey: keys)
-			rawKeys.add(this.factory.typedKeyToRawKey(obKey));
+			rawKeys.add(obKey.getRaw());
 			
 		Future<Map<com.google.appengine.api.datastore.Key, Entity>> futureEntities = this.ads.get(this.txn, rawKeys);
 		Future<Map<Key<T>, T>> wrapped = new SimpleFutureWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<T>, T>>(futureEntities) {
@@ -79,8 +79,7 @@ public class AsyncObjectifyImpl implements AsyncObjectify
 					if (entity != null)
 					{
 						EntityMetadata<T> metadata = factory.getMetadata(rawKey);
-						Key<T> obKey = factory.rawKeyToTypedKey(rawKey);
-						result.put(obKey, (T)metadata.toObject(entity, sync()));
+						result.put(new Key<T>(rawKey), (T)metadata.toObject(entity, sync()));
 					}
 				}
 				
@@ -268,8 +267,7 @@ public class AsyncObjectifyImpl implements AsyncObjectify
 					EntityMetadata<T> metadata = factory.getMetadataForEntity(obj);
 					metadata.setKey(obj, k);
 					
-					Key<T> obKey = factory.rawKeyToTypedKey(k);
-					result.put(obKey, obj);
+					result.put(new Key<T>(k), obj);
 				}
 				
 				return result;

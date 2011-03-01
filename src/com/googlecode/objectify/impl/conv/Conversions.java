@@ -32,7 +32,7 @@ public class Conversions implements Converter
 		this.converters.add(new NumberConverter());
 		this.converters.add(new BooleanConverter());
 		this.converters.add(new EnumConverter());
-		this.converters.add(new KeyConverter(fact));
+		this.converters.add(new KeyConverter());
 		this.converters.add(new ArrayConverter(this));
 		this.converters.add(new CollectionConverter(this));
 		this.converters.add(new SqlDateConverter());

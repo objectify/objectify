@@ -83,7 +83,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		
 		for (Map.Entry<Key, Entity> entry: entities.entrySet())
 		{
-			Cached cachedAnno = this.fact.getMetadata(entry.getKey()).getCached();
+			Cached cachedAnno = this.fact.getMetadata(entry.getKey()).getCached(entry.getValue());
 			if (cachedAnno != null)
 			{
 				Integer expiry = cachedAnno.expirationSeconds();
@@ -159,7 +159,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		Collection<Key> fetch = new ArrayList<Key>();
 		
 		for (Key key: keys)
-			if (this.fact.getMetadata(key).getCached() != null)
+			if (this.fact.getMetadata(key).mightBeInCache())
 				fetch.add(key);
 		
 		return this.getFromCacheRaw(fetch);
@@ -203,7 +203,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		Collection<String> cacheables = new ArrayList<String>();
 		
 		for (Key key: keys)
-			if (this.fact.getMetadata(key).getCached() != null)
+			if (this.fact.getMetadata(key).mightBeInCache())
 				cacheables.add(KeyFactory.keyToString(key));
 		
 		if (!cacheables.isEmpty())

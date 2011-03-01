@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.utils.SystemProperty;
@@ -174,5 +175,23 @@ public class ListenableHook implements Delegate<Environment>
 		};
 		
 		return (S)Proxy.newProxyInstance(original.getClass().getClassLoader(), interfaces, handler);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.apphosting.api.ApiProxy.Delegate#flushLogs(com.google.apphosting.api.ApiProxy.Environment)
+	 */
+	@Override
+	public void flushLogs(Environment paramE)
+	{
+		parent.flushLogs(paramE);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.apphosting.api.ApiProxy.Delegate#getRequestThreads(com.google.apphosting.api.ApiProxy.Environment)
+	 */
+	@Override
+	public List<Thread> getRequestThreads(Environment paramE)
+	{
+		return parent.getRequestThreads(paramE);
 	}
 }

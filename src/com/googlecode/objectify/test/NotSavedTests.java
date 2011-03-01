@@ -56,11 +56,11 @@ public class NotSavedTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(this.fact.getKind(CompletelyUnsaved.class));
+		Entity ent = new Entity(Key.getKind(CompletelyUnsaved.class));
 		ent.setProperty("foo", TEST_VALUE);
 		ds.put(ent);
 		
-		Key<CompletelyUnsaved> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		Key<CompletelyUnsaved> key = new Key<CompletelyUnsaved>(ent.getKey());
 		CompletelyUnsaved fetched = ofy.get(key);
 		assert fetched.foo.equals(TEST_VALUE);
 		

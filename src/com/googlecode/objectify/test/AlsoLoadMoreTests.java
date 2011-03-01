@@ -80,11 +80,11 @@ public class AlsoLoadMoreTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(this.fact.getKind(MethodOverridesField.class));
+		Entity ent = new Entity(Key.getKind(MethodOverridesField.class));
 		ent.setProperty("foo", TEST_VALUE);
 		ds.put(ent);
 		
-		Key<MethodOverridesField> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		Key<MethodOverridesField> key = new Key<MethodOverridesField>(ent.getKey());
 		MethodOverridesField fetched = ofy.get(key);
 		
 		assert fetched.foo == null;

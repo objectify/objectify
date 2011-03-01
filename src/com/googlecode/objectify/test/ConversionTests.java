@@ -83,12 +83,12 @@ public class ConversionTests extends TestBase
 		Objectify ofy = this.fact.begin();
 		DatastoreService ds = ofy.getDatastore();
 		
-		Entity ent = new Entity(this.fact.getKind(Trivial.class));
+		Entity ent = new Entity(Key.getKind(Trivial.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		Key<Trivial> key = this.fact.rawKeyToTypedKey(ent.getKey());
+		Key<Trivial> key = new Key<Trivial>(ent.getKey());
 		Trivial fetched = ofy.get(key);
 		
 		assert fetched.getSomeNumber() == 1;

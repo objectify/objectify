@@ -63,7 +63,7 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	{
 		this.factory = fact;
 		this.ofy = objectify;
-		this.actual = new com.google.appengine.api.datastore.Query(this.factory.getKind(clazz));
+		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
 		
 		this.classRestriction = clazz;
 	}
@@ -579,10 +579,9 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		}
 
 		@Override
-		@SuppressWarnings("unchecked")
 		protected Key<T> translate(Entity from)
 		{
-			return (Key<T>)factory.rawKeyToTypedKey(from.getKey());
+			return new Key<T>(from.getKey());
 		}
 	}
 

@@ -16,6 +16,7 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.impl.AsyncObjectifyImpl;
+import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
@@ -54,11 +55,11 @@ public class ObjectifyFactory
 	/** Default memcache namespace; override getRawMemcacheService() to change */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 	
-	/** This maps full package + classname to EntityMetadata */
-	protected Map<String, EntityMetadata<?>> byClassName = new ConcurrentHashMap<String, EntityMetadata<?>>();
-	
 	/** This maps kind to EntityMetadata */
 	protected Map<String, EntityMetadata<?>> byKind = new ConcurrentHashMap<String, EntityMetadata<?>>();
+	
+	/** This maps full package + classname to EntityMetadata */
+	protected Map<String, EntityMetadata<?>> byClassName = new ConcurrentHashMap<String, EntityMetadata<?>>();
 	
 	/** True if any @Cached entities have been registered */
 	protected boolean hasCachedEntities;
@@ -203,58 +204,24 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * <p>Registers a class with the system so that we can recompose an
-	 * object from its key kind.  The default kind is the simplename
-	 * of the class, overridden by the @Entity annotation.</p>
-	 * 
-	 * <p>This method must be called in a single-threaded mode, around the
-	 * time of app initialization.  After all types are registered, the
-	 * get() method can be called.</p>
+	 * <p>All POJO entity classes which are to be managed by Objectify
+	 * must be registered first.  This method must be called in a single-threaded
+	 * mode sometime around application initialization.</p> 
 	 */
 	public <T> void register(Class<T> clazz)
 	{
-		EntityMetadata<T> meta = new EntityMetadata<T>(this, clazz);
+		EntityMetadata<T> meta = new ConcreteEntityMetadata<T>(this, clazz);
 		
+		this.byKind.put(Key.getKind(clazz), meta);
 		this.byClassName.put(clazz.getName(), meta);
-		this.byKind.put(getKind(clazz), meta);
 		
-		if (meta.getCached() != null)
+		if (meta.mightBeInCache())
 			this.hasCachedEntities = true;
 	}
 	
 	//
 	// Stuff which should only be necessary internally, but might be useful to others.
 	//
-	
-	/**
-	 * @return the kind associated with a particular entity class, checking both @Entity
-	 *  annotations and defaulting to the class' simplename.
-	 */
-	public String getKind(Class<?> clazz)
-	{
-		com.googlecode.objectify.annotation.Entity ourAnn = clazz.getAnnotation(com.googlecode.objectify.annotation.Entity.class);
-		if (ourAnn != null && ourAnn.name() != null && ourAnn.name().length() != 0)
-			return ourAnn.name();
-		
-		javax.persistence.Entity jpaAnn = clazz.getAnnotation(javax.persistence.Entity.class);
-		if (jpaAnn != null && jpaAnn.name() != null && jpaAnn.name().length() != 0)
-			return jpaAnn.name();
-		
-		return clazz.getSimpleName();
-	}
-	
-	/**
-	 * @return the kind associated with a particular entity class
-	 */
-	public String getKind(String className)
-	{
-		try
-		{
-			Class<?> clazz = Class.forName(className);
-			return this.getKind(clazz);
-		}
-		catch (ClassNotFoundException e) { throw new RuntimeException(e); }
-	}
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
@@ -272,7 +239,7 @@ public class ObjectifyFactory
 	@SuppressWarnings("unchecked")
 	public <T> EntityMetadata<T> getMetadata(Key<T> key)
 	{
-		return (EntityMetadata<T>)this.getMetadataForClassName(key.getKindClassName());
+		return (EntityMetadata<T>)this.getMetadataForKind(key.getKind());
 	}
 	
 	/**
@@ -281,7 +248,7 @@ public class ObjectifyFactory
 	 */
 	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz)
 	{
-		return this.getMetadataForClassName(clazz.getName());
+		return this.getMetadataForKind(Key.getKind(clazz));
 	}
 	
 	/**
@@ -298,17 +265,6 @@ public class ObjectifyFactory
 	
 	/** */
 	@SuppressWarnings("unchecked")
-	protected <T> EntityMetadata<T> getMetadataForClassName(String classname)
-	{
-		EntityMetadata<T> metadata = (EntityMetadata<T>)this.byClassName.get(classname);
-		if (metadata == null)
-			throw new IllegalArgumentException("Class '" + classname + "' was not registered");
-		else
-			return metadata;
-	}
-
-	/** */
-	@SuppressWarnings("unchecked")
 	protected <T> EntityMetadata<T> getMetadataForKind(String kind)
 	{
 		EntityMetadata<T> metadata = (EntityMetadata<T>)this.byKind.get(kind);
@@ -318,39 +274,6 @@ public class ObjectifyFactory
 			return metadata;
 	}
 
-	/** 
-	 * Converts a typed Key<?> into a raw datastore Key.
-	 * @param typedKey can be null, resulting in a null Key
-	 */
-	public com.google.appengine.api.datastore.Key typedKeyToRawKey(Key<?> typedKey)
-	{
-		if (typedKey == null)
-			return null;
-		
-		if (typedKey.getName() != null)
-			return KeyFactory.createKey(this.typedKeyToRawKey(typedKey.getParent()), this.getKind(typedKey.getKindClassName()), typedKey.getName());
-		else
-			return KeyFactory.createKey(this.typedKeyToRawKey(typedKey.getParent()), this.getKind(typedKey.getKindClassName()), typedKey.getId());
-	}
-	
-	/** 
-	 * Converts a raw datastore Key into a typed Key<?>.
-	 * @param rawKey can be null, resulting in a null Key
-	 */
-	public <T> Key<T> rawKeyToTypedKey(com.google.appengine.api.datastore.Key rawKey)
-	{
-		if (rawKey == null)
-			return null;
-		
-		EntityMetadata<T> meta = this.getMetadata(rawKey);
-		Class<T> entityClass = meta.getEntityClass();
-		
-		if (rawKey.getName() != null)
-			return new Key<T>(this.rawKeyToTypedKey(rawKey.getParent()), entityClass, rawKey.getName());
-		else
-			return new Key<T>(this.rawKeyToTypedKey(rawKey.getParent()), entityClass, rawKey.getId());
-	}
-	
 	/**
 	 * <p>Gets the Key<T> given an object that might be a Key, Key<T>, or entity.</p>
 	 * 
@@ -361,12 +284,12 @@ public class ObjectifyFactory
 	@SuppressWarnings("unchecked")
 	public <T> Key<T> getKey(Object keyOrEntity)
 	{
-		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
-			return this.rawKeyToTypedKey((com.google.appengine.api.datastore.Key)keyOrEntity);
-		else if (keyOrEntity instanceof Key<?>)
+		if (keyOrEntity instanceof Key<?>)
 			return (Key<T>)keyOrEntity;
+		else if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
+			return new Key<T>((com.google.appengine.api.datastore.Key)keyOrEntity);
 		else
-			return this.rawKeyToTypedKey(this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity));
+			return new Key<T>(this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity));
 	}
 	
 	/**
@@ -381,9 +304,9 @@ public class ObjectifyFactory
 		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return (com.google.appengine.api.datastore.Key)keyOrEntity;
 		else if (keyOrEntity instanceof Key<?>)
-			return this.typedKeyToRawKey((Key<?>)keyOrEntity);
+			return ((Key<?>)keyOrEntity).getRaw();
 		else
-			return this.getMetadataForEntity(keyOrEntity).getKey(keyOrEntity);
+			return this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity);
 	}
 
 	/** This is used just for makeFilterable() */
@@ -403,11 +326,15 @@ public class ObjectifyFactory
 		if (keyOrEntityOrOther == null)
 			return null;
 		
+		// Unfortunately we can't use calculated Kind here because plenty of unregistered classes
+		// will collide with real kinds, eg User vs User.  We need to check against only the
+		// classes we know are entities.
+		
 		EntityMetadata<?> meta = this.byClassName.get(keyOrEntityOrOther.getClass().getName());
 		if (meta == null)
 			return this.getConversions().forDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else
-			return meta.getKey(keyOrEntityOrOther);
+			return meta.getRawKey(keyOrEntityOrOther);
 	}
 	
 	/**
@@ -424,7 +351,7 @@ public class ObjectifyFactory
 	 */
 	public String keyToString(Key<?> key)
 	{
-		return KeyFactory.keyToString(this.typedKeyToRawKey(key));
+		return KeyFactory.keyToString(key.getRaw());
 	}
 	
 	/**
@@ -437,7 +364,7 @@ public class ObjectifyFactory
 	 */
 	public <T> Key<T> stringToKey(String stringifiedKey)
 	{
-		return this.rawKeyToTypedKey(KeyFactory.stringToKey(stringifiedKey));
+		return new Key<T>(KeyFactory.stringToKey(stringifiedKey));
 	}
 	
 	/**
@@ -452,8 +379,8 @@ public class ObjectifyFactory
 	{
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
-		String kind = this.getKind(clazz);
-		return new KeyRange<T>(this, DatastoreServiceFactory.getDatastoreService().allocateIds(kind, num));
+		String kind = Key.getKind(clazz);
+		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(kind, num));
 	}
 
 	/**
@@ -471,9 +398,8 @@ public class ObjectifyFactory
 	{
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
-		com.google.appengine.api.datastore.Key rawParent = this.typedKeyToRawKey(parent);
-		String kind = this.getKind(clazz);
-		return new KeyRange<T>(this, DatastoreServiceFactory.getDatastoreService().allocateIds(rawParent, kind, num));
+		String kind = Key.getKind(clazz);
+		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(parent.getRaw(), kind, num));
 	}
 	
 	/**
