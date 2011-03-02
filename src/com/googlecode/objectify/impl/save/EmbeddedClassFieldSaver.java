@@ -3,9 +3,9 @@ package com.googlecode.objectify.impl.save;
 import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
  * <p>Saver which knows how to save simple embedded classes, not arrays or collections.</p>
@@ -19,7 +19,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	
 	/**
 	 */
-	public EmbeddedClassFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public EmbeddedClassFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
 	{
 		super(pathPrefix, examinedClass, field, collectionize);
 		
@@ -27,7 +27,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 			this.field.isAnnotationPresent(Indexed.class) || this.field.isAnnotationPresent(Unindexed.class);
 		
 		// Must pass the indexed from our member field, not from the inherited value
-		this.classSaver = new ClassSaver(fact, this.path, field.getType(), ignoreClassIndexingAnnotations, collectionize, true);
+		this.classSaver = new ClassSaver(conv, this.path, field.getType(), ignoreClassIndexingAnnotations, collectionize, true);
 	}
 	
 	/* (non-Javadoc)

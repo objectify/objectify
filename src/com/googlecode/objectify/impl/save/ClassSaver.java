@@ -6,12 +6,12 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
+import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
  * <p>Save which discovers how to save a class, either root pojo or embedded.</p>
@@ -28,9 +28,9 @@ public class ClassSaver implements Saver
 	 * Creates a ClassSaver for a root entity pojo class.  If nothing is specified otherwise, all
 	 * fields default to indexed
 	 */
-	public ClassSaver(ObjectifyFactory factory, Class<?> rootClazz)
+	public ClassSaver(Conversions conv, Class<?> rootClazz)
 	{
-		this(factory, null, rootClazz, false, false, false);
+		this(conv, null, rootClazz, false, false, false);
 	}
 	
 	/**
@@ -44,7 +44,7 @@ public class ClassSaver implements Saver
 	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
 	 *  persistent fields rather than real ids.
 	 */
-	public ClassSaver(ObjectifyFactory factory, String pathPrefix, Class<?> clazz, boolean ignoreIndexingAnnotations, boolean collectionize, boolean embedding)
+	public ClassSaver(Conversions conv, String pathPrefix, Class<?> clazz, boolean ignoreIndexingAnnotations, boolean collectionize, boolean embedding)
 	{
 		this.processClassLevelIndexingAnnotations(clazz, ignoreIndexingAnnotations);
 		
@@ -58,24 +58,24 @@ public class ClassSaver implements Saver
 			{
 				if (field.getType().isArray())
 				{
-					Saver saver = new EmbeddedArrayFieldSaver(factory, pathPrefix, clazz, field, collectionize);
+					Saver saver = new EmbeddedArrayFieldSaver(conv, pathPrefix, clazz, field, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedCollectionFieldSaver(factory, pathPrefix, clazz, field, collectionize);
+					Saver saver = new EmbeddedCollectionFieldSaver(conv, pathPrefix, clazz, field, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else	// basic class
 				{
-					Saver saver = new EmbeddedClassFieldSaver(factory, pathPrefix, clazz, field, collectionize);
+					Saver saver = new EmbeddedClassFieldSaver(conv, pathPrefix, clazz, field, collectionize);
 					this.fieldSavers.add(saver);
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a leaf saver
-				Saver saver = new LeafFieldSaver(factory, pathPrefix, clazz, field, collectionize);
+				Saver saver = new LeafFieldSaver(conv, pathPrefix, clazz, field, collectionize);
 				this.fieldSavers.add(saver);
 			}
 		}

@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 import com.googlecode.objectify.impl.TypeUtils.MethodMetadata;
+import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
@@ -64,8 +64,8 @@ import com.googlecode.objectify.impl.save.ClassSaver;
  */
 public class Transmog<T>
 {
-	/** Needed to convert Key types */
-	ObjectifyFactory factory;
+	/** */
+	Conversions conversions;
 	
 	/** Useful to have around for error logging purposes */
 	Class<T> clazz;
@@ -148,7 +148,7 @@ public class Transmog<T>
 			for (String path: paths)
 			{
 				List<String> collisions = makeCollisions(paths, path);
-				LeafSetter setter = new LeafSetter(factory, new MethodWrapper(method), collisions);
+				LeafSetter setter = new LeafSetter(conversions, new MethodWrapper(method), collisions);
 				this.addRootSetter(path, setter, true);
 			}
 		}
@@ -213,7 +213,7 @@ public class Transmog<T>
 				for (String path: paths)
 				{
 					List<String> collisions = makeCollisions(paths, path);
-					LeafSetter setter = new LeafSetter(factory, new FieldWrapper(field), collisions);
+					LeafSetter setter = new LeafSetter(conversions, new FieldWrapper(field), collisions);
 					this.addRootSetter(path, setter, false);
 				}
 			}
@@ -296,16 +296,16 @@ public class Transmog<T>
 	 * Creats a transmog for the specified class, introspecting it and discovering
 	 * how to load/save its properties.
 	 */
-	public Transmog(ObjectifyFactory fact, Class<T> clazz)
+	public Transmog(Conversions conversions, Class<T> clazz)
 	{
-		this.factory = fact;
+		this.conversions = conversions;
 		this.clazz = clazz;
 		
 		// This creates the setters in the rootSetters collection and validates the pojo
 		new Visitor().visitClass(clazz);
 		
 		// Construction of the savers is relatively straighforward
-		this.rootSaver = new ClassSaver(fact, clazz);
+		this.rootSaver = new ClassSaver(conversions, clazz);
 	}
 	
 	/**

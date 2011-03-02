@@ -9,9 +9,9 @@ import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Serialized;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
@@ -21,8 +21,8 @@ import com.googlecode.objectify.impl.conv.ConverterSaveContext;
  */
 public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 {
-	/** We need this to translate keys */
-	ObjectifyFactory factory;
+	/** */
+	Conversions conversions;
 	
 	/** If true, we add values to a collection inside the entity */
 	boolean collectionize;
@@ -39,11 +39,11 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public LeafFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
 	{
 		super(pathPrefix, examinedClass, field, collectionize);
 		
-		this.factory = fact;
+		this.conversions = conv;
 		this.collectionize = collectionize;
 		this.serialize = field.isAnnotationPresent(Serialized.class);
 		
@@ -122,7 +122,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		else
 		{
 			// Run it through the conversions.
-			return this.factory.getConversions().forDatastore(value, this);
+			return this.conversions.forDatastore(value, this);
 		}
 	}
 

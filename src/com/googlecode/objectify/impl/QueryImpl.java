@@ -25,6 +25,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.util.TranslatingQueryResultIterator;
 
 /**
@@ -64,6 +65,14 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		this.factory = fact;
 		this.ofy = objectify;
 		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
+		
+		// If this is a polymorphic subclass, add an extra filter
+		Subclass sub = clazz.getAnnotation(Subclass.class);
+		if (sub != null)
+		{
+			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
+			this.actual.addFilter(PolymorphicEntityMetadata.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
+		}
 		
 		this.classRestriction = clazz;
 	}

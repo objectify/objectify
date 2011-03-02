@@ -1,8 +1,6 @@
 package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -16,9 +14,9 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.impl.AsyncObjectifyImpl;
-import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
+import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
@@ -55,14 +53,8 @@ public class ObjectifyFactory
 	/** Default memcache namespace; override getRawMemcacheService() to change */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 	
-	/** This maps kind to EntityMetadata */
-	protected Map<String, EntityMetadata<?>> byKind = new ConcurrentHashMap<String, EntityMetadata<?>>();
-	
-	/** This maps full package + classname to EntityMetadata */
-	protected Map<String, EntityMetadata<?>> byClassName = new ConcurrentHashMap<String, EntityMetadata<?>>();
-	
-	/** True if any @Cached entities have been registered */
-	protected boolean hasCachedEntities;
+	/** Encapsulates entity registration info */
+	protected Registrar registrar = new Registrar(this);
 	
 	/** All the various converters */
 	protected Conversions conversions = new Conversions(this);
@@ -121,7 +113,7 @@ public class ObjectifyFactory
 		DatastoreServiceConfig cfg = this.makeConfig(opts);
 		DatastoreService ds = this.getRawDatastoreService(cfg);
 		
-		if (opts.getGlobalCache() && this.hasCachedEntities)
+		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
 		{
 			CachingAsyncDatastoreService async = new CachingAsyncDatastoreService(this, this.getRawAsyncDatastoreService(cfg), this.getRawMemcacheService());
 			return new CachingDatastoreService(ds, async);
@@ -145,7 +137,7 @@ public class ObjectifyFactory
 		DatastoreServiceConfig cfg = this.makeConfig(opts);
 		AsyncDatastoreService ads = this.getRawAsyncDatastoreService(cfg);
 
-		if (opts.getGlobalCache() && this.hasCachedEntities)
+		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastoreService(this, ads, this.getRawMemcacheService());
 		else
 			return ads;
@@ -210,13 +202,7 @@ public class ObjectifyFactory
 	 */
 	public <T> void register(Class<T> clazz)
 	{
-		EntityMetadata<T> meta = new ConcreteEntityMetadata<T>(this, clazz);
-		
-		this.byKind.put(Key.getKind(clazz), meta);
-		this.byClassName.put(clazz.getName(), meta);
-		
-		if (meta.mightBeInCache())
-			this.hasCachedEntities = true;
+		this.registrar.register(clazz);
 	}
 	
 	//
@@ -229,17 +215,16 @@ public class ObjectifyFactory
 	 */
 	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key)
 	{
-		return this.getMetadataForKind(key.getKind());
+		return this.getMetadata(key.getKind());
 	}
 	
 	/**
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	@SuppressWarnings("unchecked")
 	public <T> EntityMetadata<T> getMetadata(Key<T> key)
 	{
-		return (EntityMetadata<T>)this.getMetadataForKind(key.getKind());
+		return this.getMetadata(key.getKind());
 	}
 	
 	/**
@@ -248,9 +233,25 @@ public class ObjectifyFactory
 	 */
 	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz)
 	{
-		return this.getMetadataForKind(Key.getKind(clazz));
+		EntityMetadata<T> metadata = this.registrar.getMetadata(clazz);
+		if (metadata == null)
+			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
+		else
+			return metadata;
 	}
 	
+	/**
+	 * Gets metadata for the specified kind, or throws an exception if the kind is unknown
+	 */
+	public <T> EntityMetadata<T> getMetadata(String kind)
+	{
+		EntityMetadata<T> metadata = this.registrar.getMetadata(kind);
+		if (metadata == null)
+			throw new IllegalArgumentException("No class with kind '" + kind + "' was registered");
+		else
+			return metadata;
+	}
+
 	/**
 	 * Named differently so you don't accidentally use the Object form
 	 * @return the metadata for a kind of typed object.
@@ -263,17 +264,6 @@ public class ObjectifyFactory
 		return (EntityMetadata<T>)this.getMetadata(obj.getClass());
 	}
 	
-	/** */
-	@SuppressWarnings("unchecked")
-	protected <T> EntityMetadata<T> getMetadataForKind(String kind)
-	{
-		EntityMetadata<T> metadata = (EntityMetadata<T>)this.byKind.get(kind);
-		if (metadata == null)
-			throw new IllegalArgumentException("No class with kind '" + kind + "' was registered");
-		else
-			return metadata;
-	}
-
 	/**
 	 * <p>Gets the Key<T> given an object that might be a Key, Key<T>, or entity.</p>
 	 * 
@@ -325,12 +315,10 @@ public class ObjectifyFactory
 	{
 		if (keyOrEntityOrOther == null)
 			return null;
-		
-		// Unfortunately we can't use calculated Kind here because plenty of unregistered classes
-		// will collide with real kinds, eg User vs User.  We need to check against only the
-		// classes we know are entities.
-		
-		EntityMetadata<?> meta = this.byClassName.get(keyOrEntityOrOther.getClass().getName());
+
+		// Very important that we use the class rather than the Kind; many unregistered
+		// classes would otherwise collide with real kinds eg User vs User.
+		EntityMetadata<?> meta = this.registrar.getMetadata(keyOrEntityOrOther.getClass());
 		if (meta == null)
 			return this.getConversions().forDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else

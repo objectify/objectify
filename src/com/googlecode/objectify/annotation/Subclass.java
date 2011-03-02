@@ -31,6 +31,20 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 public @interface Subclass
 {
-	/** Optionally define the discriminator value for the subclass; default is Class.getSimpleName() */
+	/** 
+	 * Optionally define the discriminator value for the subclass; default is Class.getSimpleName() 
+	 */
 	String name() default "";
+	
+	/** 
+	 * If true, the discriminator will not be indexed, and a query for the specific subclass will
+	 * not return results.  However, superclasses and further subclasses may be indexed.
+	 */
+	boolean unindexed() default false;
+	
+	/**
+	 * Additional discriminators which, when encountered, will be interpreted as indicating
+	 * this subclass.  Facilitates schema changes in a way analagous to @AlsoLoad.
+	 */
+	String[] alsoLoad() default {};
 }

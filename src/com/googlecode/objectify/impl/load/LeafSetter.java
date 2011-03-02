@@ -7,9 +7,9 @@ import java.io.ObjectInputStream;
 import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Wrapper;
+import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 
 /**
@@ -20,8 +20,8 @@ import com.googlecode.objectify.impl.conv.ConverterLoadContext;
  */
 public class LeafSetter extends CollisionDetectingSetter implements ConverterLoadContext
 {
-	/** Need one of these to convert keys */
-	ObjectifyFactory factory;
+	/** */
+	Conversions conversions;
 	
 	/** The field or method we set */
 	Wrapper field;
@@ -30,11 +30,11 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 	boolean serialized;
 	
 	/** */
-	public LeafSetter(ObjectifyFactory fact, Wrapper field, Collection<String> collisionPaths)
+	public LeafSetter(Conversions conv, Wrapper field, Collection<String> collisionPaths)
 	{
 		super(collisionPaths);
 		
-		this.factory = fact;
+		this.conversions = conv;
 		this.field = field;
 		this.serialized = field.isSerialized();
 	}
@@ -78,7 +78,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 		}
 		else
 		{
-			return this.factory.getConversions().forPojo(fromValue, toType, this, onPojo);
+			return this.conversions.forPojo(fromValue, toType, this, onPojo);
 		}
 	}
 

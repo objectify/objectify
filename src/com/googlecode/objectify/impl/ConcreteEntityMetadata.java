@@ -15,9 +15,9 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.impl.conv.Conversions;
 
 
 /**
@@ -28,9 +28,6 @@ import com.googlecode.objectify.annotation.Parent;
  */
 public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 {
-	/** Needed for key translation */
-	protected ObjectifyFactory factory;
-
 	/** */
 	protected Class<T> entityClass;
 	protected Constructor<T> entityClassConstructor;
@@ -61,9 +58,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * Inspects and stores the metadata for a particular entity class.
 	 * @param clazz must be a properly-annotated Objectify entity class.
 	 */
-	public ConcreteEntityMetadata(ObjectifyFactory fact, Class<T> clazz)
+	public ConcreteEntityMetadata(Conversions conversions, Class<T> clazz)
 	{
-		this.factory = fact;
 		this.entityClass = clazz;
 		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);
 		this.kind = Key.getKind(clazz);
@@ -76,29 +72,24 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.processLifecycleCallbacks(clazz);
 		
 		// Now figure out how to handle normal properties
-		this.transmog = new Transmog<T>(fact, clazz);
+		this.transmog = new Transmog<T>(conversions, clazz);
 		
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + this.entityClass.getName());
 	}
 
-	/**
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getKind()
 	 */
-	public Class<T> getEntityClass()
-	{
-		return this.entityClass;
-	}
-
-	/** @return the datastore kind associated with this metadata */
 	@Override
 	public String getKind()
 	{
 		return this.kind;
 	}
 	
-	/**
-	 * @return the Cached instruction for this entity, or null if it should not be cached.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getCached(com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
 	public Cached getCached(Entity ent)
@@ -207,10 +198,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		}
 	}
 
-	/**
-	 * Converts an entity to an object of the appropriate type for this metadata structure.
-	 * Does not check that the entity is appropriate; that should be done when choosing
-	 * which EntityMetadata to call.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
 	@Override
 	public T toObject(Entity ent, Objectify ofy)
@@ -228,9 +217,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		return pojo;
 	}
 
-
-	/**
-	 * Converts an object to a datastore Entity with the appropriate Key type.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#toEntity(java.lang.Object, com.googlecode.objectify.Objectify)
 	 */
 	@Override
 	public Entity toEntity(T pojo, Objectify ofy)
@@ -338,9 +326,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 	}
 
-	/**
-	 * Sets the relevant id and parent fields of the object to the values stored in the key.
-	 * @param obj must be of the entityClass type for this metadata.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#setKey(java.lang.Object, com.google.appengine.api.datastore.Key)
 	 */
 	@Override
 	public void setKey(T obj, com.google.appengine.api.datastore.Key key)
@@ -380,11 +367,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 
-	/**
-	 * Gets a key composed of the relevant id and parent fields in the object.
-	 * 
-	 * @param obj must be of the entityClass type for this metadata.
-	 * @throws IllegalArgumentException if obj has a null id
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getRawKey(java.lang.Object)
 	 */
 	@Override
 	public com.google.appengine.api.datastore.Key getRawKey(Object obj)
@@ -440,9 +424,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 			return ((Key<?>)key).getRaw();
 	}
 
-	/**
-	 * @return true if the property name corresponds to a Long/long @Id
-	 *  field.  If the entity has a String name @Id, this will return false.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#isIdField(java.lang.String)
 	 */
 	@Override
 	public boolean isIdField(String propertyName)
@@ -450,9 +433,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		return this.idField != null && this.idField.getName().equals(propertyName);
 	}
 
-	/**
-	 * @return true if the property name corresponds to a String @Id
-	 *  field.  If the entity has a Long/long @Id, this will return false.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#isNameField(java.lang.String)
 	 */
 	@Override
 	public boolean isNameField(String propertyName)
@@ -460,8 +442,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		return this.nameField != null && this.nameField.getName().equals(propertyName);
 	}
 
-	/**
-	 * @return true if the entity has a parent field
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#hasParentField()
 	 */
 	@Override
 	public boolean hasParentField()

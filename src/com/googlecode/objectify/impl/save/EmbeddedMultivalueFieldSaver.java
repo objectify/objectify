@@ -6,10 +6,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
  * <p>Base class for EmbeddedArrayFieldSaver and EmbeddedCollectionFieldSaver
@@ -27,7 +27,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedMultivalueFieldSaver(ObjectifyFactory fact, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
 	{
 		super(pathPrefix, examinedClass, field, collectionize);
 		
@@ -39,7 +39,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 		
 		// Now we collectionize everything on down
 		// We use our indexed state to define everything below us
-		this.classSaver = new ClassSaver(fact, this.path, this.getComponentType(), ignoreClassIndexingAnnotations, true, true);
+		this.classSaver = new ClassSaver(conv, this.path, this.getComponentType(), ignoreClassIndexingAnnotations, true, true);
 	}
 	
 	/** Gets the component type of the field */
