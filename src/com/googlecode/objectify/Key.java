@@ -13,7 +13,7 @@ import com.googlecode.objectify.annotation.Subclass;
  */
 public class Key<T> implements Serializable, Comparable<Key<?>>
 {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 2L;
 
 	/** */
 	com.google.appengine.api.datastore.Key raw;
