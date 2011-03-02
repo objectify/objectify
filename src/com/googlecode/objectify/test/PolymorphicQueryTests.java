@@ -86,7 +86,7 @@ public class PolymorphicQueryTests extends TestBase
 		
 		Cat catrina = (Cat)all.get(2);
 		assert catrina.hypoallergenic == this.cat.hypoallergenic;
-		
+
 		Dog doug = (Dog)all.get(3);
 		assert doug.loudness == this.dog.loudness;
 	}
@@ -105,7 +105,7 @@ public class PolymorphicQueryTests extends TestBase
 		
 		Cat catrina = (Cat)all.get(1);
 		assert catrina.hypoallergenic == this.cat.hypoallergenic;
-		
+
 		Dog doug = (Dog)all.get(2);
 		assert doug.loudness == this.dog.loudness;
 	}
@@ -121,5 +121,29 @@ public class PolymorphicQueryTests extends TestBase
 		
 		Cat catrina = (Cat)all.get(0);
 		assert catrina.hypoallergenic == this.cat.hypoallergenic;
+	}
+
+	/** Dog class is unindexed, but property is indexed */
+	@Test
+	public void testQueryWithUnindexedPoly() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		List<Dog> dogs = ofy.query(Dog.class).list();
+		assert dogs.size() == 0;
+
+		List<Animal> loud = ofy.query(Animal.class).filter("loudness", this.dog.loudness).list();
+		assert loud.size() == 1;
+		
+		Dog doug = (Dog)loud.get(0);
+		assert doug.loudness == this.dog.loudness;
+
+		// Let's try that again with a mammal query
+		List<Mammal> mloud = ofy.query(Mammal.class).filter("loudness", this.dog.loudness).list();
+		assert mloud.size() == 1;
+		
+		doug = (Dog)mloud.get(0);
+		assert doug.loudness == this.dog.loudness;
+		
 	}
 }

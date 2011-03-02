@@ -49,7 +49,7 @@ public class PolymorphicAAATests extends TestBase
 	}
 	
 	/** */
-	@Subclass
+	@Subclass(unindexed=true)
 	public static class Dog extends Mammal
 	{
 		int loudness;
