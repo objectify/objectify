@@ -3,7 +3,8 @@
 <module>
 	<super-source path="impl/emul"/>
 	<source path="">
-		<include name="Key.java" />
+		<!-- A restricted Key.java is now provided as super-source -->
+		<!-- <include name="Key.java" /> -->
 		<include name="NotFoundException.java" />
 	</source>
 	<source path="condition">
