@@ -16,7 +16,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	private static final long serialVersionUID = 2L;
 
 	/** */
-	com.google.appengine.api.datastore.Key raw;
+	protected com.google.appengine.api.datastore.Key raw;
 	
 	/** Cache the instance of the parent wrapper to avoid unnecessary garbage */
 	transient protected Key<?> parent;
