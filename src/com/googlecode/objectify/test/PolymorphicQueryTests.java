@@ -146,4 +146,23 @@ public class PolymorphicQueryTests extends TestBase
 		assert doug.loudness == this.dog.loudness;
 		
 	}
+	
+	/** */
+	@Test
+	public void testFilterOnProperty() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		Cat other = new Cat();
+		other.name = "OtherCat";
+		other.hypoallergenic = false;
+		other.longHair = false;
+		
+		ofy.put(other);
+		
+		// now query, should only get Catrina
+		List<Cat> cats = ofy.query(Cat.class).filter("longHair", true).list();
+		assert cats.size() == 1;
+		assert cats.get(0).name.equals(this.cat.name);
+	}
 }
