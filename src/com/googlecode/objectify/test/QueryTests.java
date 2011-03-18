@@ -383,4 +383,15 @@ public class QueryTests extends TestBase
 		assert f12.list().size() == 2;
 		assert f1.list().size() == 1;
 	}
+	
+	/** */
+	@Test
+	public void testCount() throws Exception
+	{
+		Objectify ofy = this.fact.begin();
+		
+		int count = ofy.query(Trivial.class).count();
+		
+		assert count == 2;
+	}
 }
