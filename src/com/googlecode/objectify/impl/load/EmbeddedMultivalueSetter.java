@@ -60,6 +60,12 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 	@SuppressWarnings("unchecked")
 	protected void safeSet(final Object toPojo, Object value, final LoadContext context)
 	{
+		// Let's just ignore nulls in the dataset and leave the collections as default.  We don't save them so we might
+		// as well not load them.  Maybe at some future date we will change this approach and explicitly set/get null
+		// collections.
+		if (value == null)
+			return;
+			
 		// The datastore always gives us collections, never a native array
 		if (!(value instanceof Collection<?>))
 			throw new IllegalStateException("Tried to load a non-collection type into embedded collection " + this.field);
