@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -57,7 +58,7 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void safeSet(Object toPojo, Object value, LoadContext context)
+	protected void safeSet(final Object toPojo, Object value, final LoadContext context)
 	{
 		// The datastore always gives us collections, never a native array
 		if (!(value instanceof Collection<?>))
@@ -69,12 +70,12 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 		Set<Integer> nullIndexes = TypeUtils.getNullIndexes(context.getEntity(), this.path);
 		
 		// Some nulls, some real, this is what we get
-		int collectionSize = datastoreCollection.size();
-		if (nullIndexes != null)
-			collectionSize += nullIndexes.size();
-		
-		Collection<Object> embeddedMultivalue = this.getOrCreateCollection(toPojo, collectionSize);
-		if (embeddedMultivalue.isEmpty())
+		final int collectionSize = (nullIndexes == null)
+			? datastoreCollection.size()
+			: datastoreCollection.size() + nullIndexes.size();	
+
+		final ArrayList<Object> pending = context.getPendingEmbeddedMultivalue(this.path, collectionSize);
+		if (pending.isEmpty())
 		{
 			// Initialize it with relevant POJOs
 			for (int i=0; i<collectionSize; i++)
@@ -82,19 +83,30 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 				// Make an explicit null check instead of using emptySet() to reduce autoboxing overhead
 				if (nullIndexes != null && nullIndexes.contains(i))
 				{
-					embeddedMultivalue.add(null);
+					pending.add(null);
 				}
 				else
 				{
 					Object embedded = TypeUtils.newInstance(this.getComponentConstructor());
-					embeddedMultivalue.add(embedded);
+					pending.add(embedded);
 				}
 			}
+			
+			// The very last step is to add all the pending objects into the actual collection on the POJO.
+			// This is safe now because all objects are fully populated and hashable.
+			context.addDoneHandler(new Runnable() {
+				@Override
+				public void run()
+				{
+					Collection<Object> embeddedMultivalue = getOrCreateCollection(toPojo, collectionSize);
+					embeddedMultivalue.addAll(pending);
+				}
+			});
 		}
 		
 		// There will be a datastore value for each of the non-null POJOs in the collection
 		Iterator<Object> datastoreIterator = datastoreCollection.iterator();
-		for (Object embedded: embeddedMultivalue)
+		for (Object embedded: pending)
 		{
 			if (embedded != null)
 			{
@@ -102,7 +114,5 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 				this.next.set(embedded, datastoreValue, context);
 			}
 		}
-		
-		context.addProcessedEmbeddedPath(this.path);
 	}
 }

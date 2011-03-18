@@ -1,10 +1,9 @@
 package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 
@@ -21,8 +20,18 @@ public class LoadContext
 	Entity entity;
 	public Entity getEntity() { return this.entity; }
 
-	/** Tracks which embedded collection paths (the Thing[] or Collection<Thing> field have been processed */
-	Set<String> processedEmbeddedMultivaluePaths;
+	/**
+	 * <p>Whenver we stumble across an embedded multivalue, we build it up in an ArrayList *before* putting it in
+	 * the final collection.  This is because the embedded objects need to be fully reconsitituted
+	 * first - if the embedded collection is of type Set, we can't add objects that don't have their
+	 * hashable fields ready.</p>
+	 * 
+	 * <p>This also helps to track which fields have been processed.  The EmbeddedNullIndexSetter needs
+	 * this to cleanup an edge case.</p>
+	 * 
+	 * <p>Key is the base path to the embedded collection/array.</p>
+	 */
+	Map<String, ArrayList<Object>> pendingEmbeddedMultivalues;
 	
 	/** Things that get run when we are done() */
 	List<Runnable> doneHandlers;
@@ -35,26 +44,31 @@ public class LoadContext
 	}
 	
 	/**
-	 * @return the current set of processed embedded paths, possibly the empty set.
-	 *  Do not modify the returned Set.
+	 * @return true if there is a pending array for the specified embedded multivalue.  False means
+	 * that we haven't seen an overt value for it (yet). 
 	 */
-	public Set<String> getProcessedEmbeddedMultivaluePaths()
+	public boolean hasPendingEmbeddedMultivalue(String path)
 	{
-		if (this.processedEmbeddedMultivaluePaths == null)
-			return Collections.emptySet();
-		else
-			return this.processedEmbeddedMultivaluePaths;
+		return this.pendingEmbeddedMultivalues != null && this.pendingEmbeddedMultivalues.containsKey(path);
 	}
 	
 	/**
-	 * Adds a path to the set, instantiating it if necessary
+	 * Gets the temporary storage list for an embedded multivalue, instantiating
+	 * one if necessary.
 	 */
-	public void addProcessedEmbeddedPath(String path)
+	public ArrayList<Object> getPendingEmbeddedMultivalue(String path, int length)
 	{
-		if (this.processedEmbeddedMultivaluePaths == null)
-			this.processedEmbeddedMultivaluePaths = new HashSet<String>();
+		if (this.pendingEmbeddedMultivalues == null)
+			this.pendingEmbeddedMultivalues = new HashMap<String, ArrayList<Object>>();
 		
-		this.processedEmbeddedMultivaluePaths.add(path);
+		ArrayList<Object> list = this.pendingEmbeddedMultivalues.get(path);
+		if (list == null)
+		{
+			list = new ArrayList<Object>(length);
+			this.pendingEmbeddedMultivalues.put(path, list);
+		}
+		
+		return list;
 	}
 	
 	/**
