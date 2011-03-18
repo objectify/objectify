@@ -90,7 +90,11 @@ public class TypeUtils
 		}
 		catch (NoSuchMethodException e)
 		{
-			throw new IllegalStateException("There must be a no-arg constructor for " + clazz.getName(), e);
+			// lame there is no way to tell if the class is a nonstatic inner class
+			if (clazz.isMemberClass() || clazz.isAnonymousClass() || clazz.isLocalClass())
+				throw new IllegalStateException(clazz.getName() + " must be static and must have a no-arg constructor", e);
+			else
+				throw new IllegalStateException(clazz.getName() + " must have a no-arg constructor", e);
 		}
 	}
 	
