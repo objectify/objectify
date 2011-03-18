@@ -28,8 +28,11 @@ import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialized;
+import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.condition.Always;
 
 
 /**
@@ -635,6 +638,34 @@ public class TypeUtils
 		Class<?> notPrimitiveFrom = from.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(from) : from;
 		
 		return notPrimitiveTo.isAssignableFrom(notPrimitiveFrom);
+	}
+
+	/**
+	 * Inspects a specific class and determines if there is a default indexed state;
+	 * @Indexed = true, @Unindexed = false, nothing specified = null. 
+	 */
+	public static Boolean isClassIndexed(Class<?> clazz)
+	{
+		Indexed indexedAnn = clazz.getAnnotation(Indexed.class);
+		Unindexed unindexedAnn = clazz.getAnnotation(Unindexed.class);
+		
+		if (indexedAnn != null && unindexedAnn != null)
+		{
+			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same class: " + clazz.getName());
+		}
+		
+		if (indexedAnn != null && (indexedAnn.value().length != 1 || indexedAnn.value()[0] != Always.class)
+				|| unindexedAnn != null && (unindexedAnn.value().length != 1 || unindexedAnn.value()[0] != Always.class))
+		{
+			throw new IllegalStateException("Class-level @Indexed and @Unindexed annotations cannot have If conditions: " + clazz.getName());
+		}
+		
+		if (indexedAnn != null)
+			return true;
+		else if (unindexedAnn != null)
+			return false;
+		else
+			return null;
 	}
 	
 }

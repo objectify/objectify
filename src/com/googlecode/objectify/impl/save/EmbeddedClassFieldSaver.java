@@ -18,10 +18,11 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 	ClassSaver classSaver;
 	
 	/**
+	 * @param ignoreClassIndexing is for the class that contains this embedded class field, not the embedded class.
 	 */
-	public EmbeddedClassFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public EmbeddedClassFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, collectionize);
+		super(pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		boolean ignoreClassIndexingAnnotations =
 			this.field.isAnnotationPresent(Indexed.class) || this.field.isAnnotationPresent(Unindexed.class);

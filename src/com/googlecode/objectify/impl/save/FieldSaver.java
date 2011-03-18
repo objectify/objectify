@@ -20,6 +20,14 @@ abstract public class FieldSaver implements Saver
 {
 	String path;
 	Field field;
+
+	/** 
+	 * If this is non-null, it means we have a class-provided default value that should override the current save mode.
+	 * However, local @Indexed/@Unindexed conditions get the final say. 
+	 */
+	Boolean defaultIndexed;
+
+	/** These are authoritative */
 	If<?, ?>[] indexConditions;
 	If<?, ?>[] unindexConditions;
 	If<?, ?>[] notSavedConditions;
@@ -27,13 +35,18 @@ abstract public class FieldSaver implements Saver
 	/**
 	 * @param examinedClass is the class which is being registered (or embedded).  It posesses the field,
 	 * but it is not necessarily the declaring class (which could be a base class).
+	 * @param ignoreClassIndexing if true will prevent the declaring class of this field from having an effect on indexing via its @Indexed/@Unindexed
 	 * @param collectionize is whether or not the elements of this field should be stored in a collection;
 	 * this is used for embedded collection class fields. 
 	 */
-	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
 		this.field = field;
 		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
+		
+		// This might be null if there is no explicit default
+		if (!ignoreClassIndexing)
+			this.defaultIndexed = TypeUtils.isClassIndexed(field.getDeclaringClass());
 
 		// Check @Indexed and @Unindexed conditions
 		Indexed indexedAnn = field.getAnnotation(Indexed.class);
@@ -113,6 +126,10 @@ abstract public class FieldSaver implements Saver
 	@SuppressWarnings("unchecked")
 	final public void save(Object pojo, Entity entity, boolean index)
 	{
+		// First thing, if we have an explicit class-level default, use it
+		if (this.defaultIndexed != null)
+			index = this.defaultIndexed;
+		
 		Object value = TypeUtils.field_get(this.field, pojo);
 		
 		if (this.notSavedConditions != null)

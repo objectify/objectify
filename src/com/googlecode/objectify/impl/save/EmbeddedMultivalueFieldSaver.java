@@ -23,13 +23,14 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 
 	/**
 	 * @param field must be an array type
+	 * @param ignoreClassIndexing see the FieldSaver javadocs
 	 * @param collectionize must always be false because we cannot nest embedded arrays
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedMultivalueFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, collectionize);
+		super(pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		if (collectionize)
 			throw new IllegalStateException("You cannot nest multiple @Embedded arrays or collections. A second was found at " + field);

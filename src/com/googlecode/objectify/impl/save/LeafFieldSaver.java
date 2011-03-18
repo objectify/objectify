@@ -35,13 +35,14 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	
 	/**
 	 * @param field must be a noncollection, nonarray type if collectionize is true
+	 * @param ignoreClassIndexing see the FieldSaver javadocs
 	 * @param collectionize when true will cause this leaf saver to persist simple basic
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean collectionize)
+	public LeafFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, collectionize);
+		super(pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		this.conversions = conv;
 		this.collectionize = collectionize;
