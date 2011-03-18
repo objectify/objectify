@@ -99,6 +99,12 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
+	public QueryResultIterable<T> fetch()
+	{
+		return this.base.fetch();
+	}
+
+	@Override
 	public QueryResultIterable<Key<T>> fetchKeys()
 	{
 		return this.base.fetchKeys();

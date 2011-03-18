@@ -411,6 +411,16 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#fetch()
+	 */
+	@Override
+	public QueryResultIterable<T> fetch()
+	{
+		FetchOptions opts = this.fetchOptions();
+		return new ToObjectIterable(this.prepare().asQueryResultIterable(opts));
+	}
+
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Query#fetchKeys()
 	 */
 	@Override
@@ -591,6 +601,25 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		protected Key<T> translate(Entity from)
 		{
 			return new Key<T>(from.getKey());
+		}
+	}
+
+	/**
+	 * Iterable that translates from datastore Entity to POJO
+	 */
+	protected class ToObjectIterable implements QueryResultIterable<T>
+	{
+		QueryResultIterable<Entity> source;
+
+		public ToObjectIterable(QueryResultIterable<Entity> source)
+		{
+			this.source = source;
+		}
+
+		@Override
+		public QueryResultIterator<T> iterator()
+		{
+			return new ToObjectIterator(this.source.iterator());
 		}
 	}
 

@@ -134,6 +134,14 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Key<T> getKey();
 	
 	/**
+	 * Starts an asynchronous query.  While the Query itself is iterable, the datastore does not
+	 * begin executing your query until iterator() or fetch() is called.  If you do not need
+	 * to run multiple queries in parallel, this method is unnecessary; just iterate over the
+	 * Query object itself.
+	 */
+	public QueryResultIterable<T> fetch();
+	
+	/**
 	 * Prepares an Iterable that will obtain the keys of the results.  This is more efficient than
 	 * fetching the actual results.  Note that every time iterator() is called on the Iterable,
 	 * a fresh query is executed; calling this method does not cause a datastore operation.
