@@ -84,6 +84,9 @@
 			<include name="testing/appengine-testing.jar" />
 			<include name="impl/**/*.jar" />
 		</fileset>
+		<fileset dir="${gwt.sdk.dir}">
+			<include name="gwt-user.jar" />
+		</fileset>
 	</path>
 	
 	<!-- Used for building -->
