@@ -12,6 +12,7 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Subclass;
 
 /**
@@ -101,6 +102,22 @@ public class PolymorphicAAATests extends TestBase
 		assert c.name.equals(c2.name);
 		assert c.longHair == c2.longHair;
 		assert c.hypoallergenic == c2.hypoallergenic;
+	}
+
+	/** 
+	 * Issue #80:  http://code.google.com/p/objectify-appengine/issues/detail?id=80
+	 */
+	@Test
+	public void testNullFind() throws Exception
+	{
+		this.testRegistrationForwards();
+		
+		Objectify ofy = this.fact.begin();
+		
+		// This should produce null
+		Cat cat = ofy.find(Cat.class, 123);
+		
+		assert cat == null;
 	}
 
 }
