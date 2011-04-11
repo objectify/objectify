@@ -129,9 +129,17 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		return this.base.metadata.getKind();
 	}
 	
-	/** @return the concrete entity metadata given the discriminator info */
+	/**
+	 * If the entity is null, return the metadata for the root entity of the polymorphic hierarchy.
+	 * This will have the effect of making cache misses use the @Cached annotation of the @Entity.
+	 *  
+	 * @return the concrete entity metadata given the discriminator info 
+	 */
 	private EntityMetadata<? extends T> getConcrete(Entity ent)
 	{
+		if (ent == null)
+			return this.base.metadata;
+
 		String discriminator = (String)ent.getProperty(DISCRIMINATOR_PROPERTY);
 		
 		if (discriminator == null)

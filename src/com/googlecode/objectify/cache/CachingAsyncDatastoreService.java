@@ -356,7 +356,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		}
 		else
 		{
-			// soFar will not containe uncacheables, but it will have negative results
+			// soFar will not contain uncacheables, but it will have negative results
 			Map<Key, Entity> soFar = this.getFromCache(keys);
 
 			Set<Key> stillNeeded = new HashSet<Key>();
