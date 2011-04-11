@@ -75,6 +75,8 @@ public class Conversions
 	 * Run the value through all the converters; the first converter that returns
 	 * a non-null value produces the response for this method.
 	 * 
+	 * @param fieldType if null will simply return the value as-is; we can't do any conversion if we don't know the type!
+	 * 
 	 * @return the converted object
 	 * @throws IllegalArgumentException if we weren't able to find a proper conversion
 	 */
@@ -82,6 +84,9 @@ public class Conversions
 	{
 		if (value == null)
 			return null;
+		
+		if (fieldType == null)
+			return value;
 		
 		for (Converter cvt: this.converters)
 		{

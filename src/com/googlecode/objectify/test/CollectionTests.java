@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -245,5 +246,29 @@ public class CollectionTests extends TestBase
 		has.initialized.add("blah");
 		fetched = this.putAndGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
+	}
+	
+	/**
+	 * Without the generic type
+	 */
+	@SuppressWarnings("rawtypes")
+	public static class HasRawCollection
+	{
+		@Id Long id;
+		Set raw = new HashSet();
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testRawtypeSet()
+	{
+		this.fact.register(HasRawCollection.class);
+		
+		HasRawCollection hrc = new HasRawCollection();
+		hrc.raw.add("foo");
+		
+		HasRawCollection fetched = this.putAndGet(hrc);
+		
+		assert hrc.raw.equals(fetched.raw);
 	}
 }

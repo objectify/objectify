@@ -14,7 +14,7 @@ public interface Wrapper
 	/** Get the value of the thing thing (field) if possible, or null if not possible (method) */
 	Object get(Object pojo);
 
-	/** Get the type of the thing */
+	/** Get the type of the thing.  Might return null when unknown (ie content of Collection with no generic type) */
 	Class<?> getType();
 	
 	/** Get the "generictype", which can be a ParameterizedType */
