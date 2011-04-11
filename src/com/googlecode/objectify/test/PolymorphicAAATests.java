@@ -120,4 +120,25 @@ public class PolymorphicAAATests extends TestBase
 		assert cat == null;
 	}
 
+	/**
+	 * This seems reasonable behavior, better than filtering mismatched values out of the result.
+	 * We like this behavior better because it provides a more clear explanation to the user of
+	 * what went wrong - the CCE is pretty explicit about the classes involved.  If we returned
+	 * null folks would think the data wasn't in the db.
+	 */
+	@Test(expectedExceptions=ClassCastException.class)
+	public void testFetchMismatch() throws Exception
+	{
+		this.testRegistrationForwards();
+		
+		Objectify ofy = this.fact.begin();
+		
+		Animal a = new Animal();
+		a.name = "Bob";
+		ofy.put(a);
+		
+		// This should exclude the value
+		@SuppressWarnings("unused")
+		Mammal m = ofy.find(Mammal.class, a.id);
+	}
 }
