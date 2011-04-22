@@ -59,8 +59,8 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <p>Sorts based on a property.  Examples:</p>
 	 * 
 	 * <ul>
-	 * <li>{@code sort("age")}</li>
-	 * <li>{@code sort("-age")} (descending sort)</li>
+	 * <li>{@code order("age")}</li>
+	 * <li>{@code order("-age")} (descending sort)</li>
 	 * </ul>
 	 * 
 	 * <p>You can sort on id properties <strong>if</strong> this query is
