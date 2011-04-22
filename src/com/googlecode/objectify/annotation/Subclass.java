@@ -19,8 +19,8 @@ import java.lang.annotation.Target;
  * </ul>
  * 
  * <p>The @Entity annotation must be present on the class that identifies the root of the
- * hierarchy.  This class will define the <em>kind</em> of the entire hierarchy.  The
- * @Entity annotation must NOT be present on any subclasses.</p>
+ * hierarchy.  This class will define the <em>kind</em> of the entire hierarchy.
+ * The @Entity annotation must NOT be present on any subclasses.</p>
  * 
  * <p>Actual Java subclasses are not required to have @Subclass, but only Java classes
  * which have @Subclass can be persisted and queried for.</p>

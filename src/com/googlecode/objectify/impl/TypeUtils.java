@@ -645,8 +645,8 @@ public class TypeUtils
 	}
 
 	/**
-	 * Inspects a specific class and determines if there is a default indexed state;
-	 * @Indexed = true, @Unindexed = false, nothing specified = null. 
+	 * Inspects a specific class and determines if there is a default indexed
+	 * state; @Indexed = true, @Unindexed = false, nothing specified = null.
 	 */
 	public static Boolean isClassIndexed(Class<?> clazz)
 	{
