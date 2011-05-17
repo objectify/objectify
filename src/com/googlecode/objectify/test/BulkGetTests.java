@@ -1,14 +1,15 @@
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.test.entity.Trivial;
-import org.testng.annotations.Test;
-
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+
+import org.testng.annotations.Test;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  * Tests that bulk gets return results having the same order as the argument
