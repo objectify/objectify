@@ -33,6 +33,19 @@ public class LoadContext
 	 */
 	Map<String, ArrayList<Object>> pendingEmbeddedMultivalues;
 	
+	/**
+	 * The key of an entry that is stored in an embedded map. Extracted by Transmog and then used in the 
+	 * EmbeddedMapSetter, as only Transmog knows which keys matched.
+	 * <p>
+	 * E.g. in map.entry.property.value this would be "entry".
+	 */
+	String currentMapEntry;
+	/**
+	 * The remaining setter string after setting a map entry, e.g. in map.entry.property.value this would
+	 * be "property.value".
+	 */
+	String currentMapSuffix;
+	
 	/** Things that get run when we are done() */
 	List<Runnable> doneHandlers;
 	
@@ -92,5 +105,15 @@ public class LoadContext
 			for (Runnable handler: this.doneHandlers)
 				handler.run();
 		}
+	}
+
+	public String getMapEntryName()
+	{
+		return currentMapEntry;
+	}
+	
+	public String getMapSuffix()
+	{
+		return currentMapSuffix;
 	}
 }

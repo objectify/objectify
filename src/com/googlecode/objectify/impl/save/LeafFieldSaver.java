@@ -40,9 +40,9 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public LeafFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
+		super(examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		this.conversions = conv;
 		this.collectionize = collectionize;
@@ -62,7 +62,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	 */
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void saveValue(Object value, Entity entity, boolean index)
+	public void saveValue(Object value, Entity entity, Path path, boolean index)
 	{
 		value = this.prepareForSave(value);
 		
@@ -72,11 +72,11 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		
 		if (this.collectionize)
 		{
-			Collection<Object> savedCollection = (Collection<Object>)entity.getProperty(this.path);
+			Collection<Object> savedCollection = (Collection<Object>)entity.getProperty(path.toPathString());
 			if (savedCollection == null)
 			{
 				savedCollection = new ArrayList<Object>();
-				this.setEntityProperty(entity, savedCollection, index);
+				this.setEntityProperty(entity, savedCollection, path, index);
 			}
 			
 			savedCollection.add(value);
@@ -90,7 +90,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 			}
 			else
 			{
-				this.setEntityProperty(entity, value, index);
+				this.setEntityProperty(entity, value, path, index);
 			}
 		}
 	}

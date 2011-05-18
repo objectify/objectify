@@ -33,6 +33,7 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialized;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.condition.Always;
+import com.googlecode.objectify.impl.save.Path;
 
 
 /**
@@ -163,6 +164,36 @@ public class TypeUtils
 	}
 	
 	/**
+	 * Returns the value type, i.e. the argument {@code T} for a generic {@code Map<String, T>}.
+	 */
+	public static Class<?> getMapValueType(Type genericType)
+	{
+		if (genericType instanceof ParameterizedType)
+		{
+			Type[] actualTypeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
+			if (actualTypeArguments.length != 2)
+			{
+				throw new IllegalStateException("Cannot handle subclass of Map with two type arguments");
+			}
+			Type keyType = actualTypeArguments[0];
+			Type valueType = actualTypeArguments[1];
+			if (!String.class.equals(keyType))
+			{
+				throw new IllegalStateException("Map key type must be string");
+			}
+			if (valueType instanceof Class)
+			{
+				return (Class<?>) valueType;
+			}
+			else if (valueType instanceof ParameterizedType)
+			{
+				return (Class<?>) ((ParameterizedType) valueType).getRawType();
+			}
+		}
+		throw new IllegalStateException("unexpected Map type " + genericType);
+	}
+
+	/**
 	 * Extend a property path, adding a '.' separator but also checking
 	 * for the first element.
 	 */
@@ -247,16 +278,16 @@ public class TypeUtils
 	 * 
 	 * <p>If there are no nulls, this property does not need to be set.</p>
 	 */
-	public static void setNullIndexes(Entity entity, String pathBase, Collection<Integer> value)
+	public static void setNullIndexes(Entity entity, Path subPath, Collection<Integer> value)
 	{
-		String path = getNullIndexPath(pathBase);
+		String path = getNullIndexPath(subPath);
 		entity.setUnindexedProperty(path, value);
 	}
 	
 	/**
 	 * <p>Gets the embedded null indexes property in an entity.</p>
 	 * @return null if there is no such property
-	 * @see #setNullIndexes(Entity, String, Collection)
+	 * @see #setNullIndexes(Entity, Path, Collection)
 	 */
 	@SuppressWarnings("unchecked")
 	public static Set<Integer> getNullIndexes(Entity entity, String pathBase)
@@ -277,6 +308,14 @@ public class TypeUtils
 			
 			return result;
 		}
+	}
+	
+	/**
+	 * @return the path where you will find the null indexes for a base path
+	 */
+	public static String getNullIndexPath(Path pathBase)
+	{
+		return pathBase.toPathString() + "^null";
 	}
 	
 	/**

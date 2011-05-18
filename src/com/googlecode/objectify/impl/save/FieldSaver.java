@@ -18,7 +18,6 @@ import com.googlecode.objectify.impl.TypeUtils;
  */
 abstract public class FieldSaver implements Saver
 {
-	String path;
 	Field field;
 
 	/** 
@@ -39,10 +38,9 @@ abstract public class FieldSaver implements Saver
 	 * @param collectionize is whether or not the elements of this field should be stored in a collection;
 	 * this is used for embedded collection class fields. 
 	 */
-	public FieldSaver(String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public FieldSaver(Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
 		this.field = field;
-		this.path = TypeUtils.extendPropertyPath(pathPrefix, field.getName());
 		
 		// This might be null if there is no explicit default
 		if (!ignoreClassIndexing)
@@ -124,7 +122,7 @@ abstract public class FieldSaver implements Saver
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	final public void save(Object pojo, Entity entity, boolean index)
+	final public void save(Object pojo, Entity entity, Path path, boolean index)
 	{
 		// First thing, if we have an explicit class-level default, use it
 		if (this.defaultIndexed != null)
@@ -153,23 +151,26 @@ abstract public class FieldSaver implements Saver
 					index = false;
 		}
 		
-		this.saveValue(value, entity, index);
+		this.saveValue(value, entity, path.extend(field.getName()), index);
 	}
 	
 	/**
 	 * Actually save the value in the entity.  This is the real value, already obtained
 	 * from the POJO and checked against the @Unsaved mechanism..
+	 * @param path TODO
 	 */
-	abstract protected void saveValue(Object value, Entity entity, boolean index);
+	abstract protected void saveValue(Object value, Entity entity, Path path, boolean index);
 
 	/** 
 	 * Sets property on the entity correctly for the values of this.path and this.indexed.
+	 * @param path TODO
 	 */
-	protected void setEntityProperty(Entity entity, Object value, boolean index)
+	protected void setEntityProperty(Entity entity, Object value, Path path, boolean index)
 	{
 		if (index)
-			entity.setProperty(this.path, value);
+			entity.setProperty(path.toPathString(), value);
 		else
-			entity.setUnindexedProperty(this.path, value);
+			entity.setUnindexedProperty(path.toPathString(), value);
 	}
+
 }

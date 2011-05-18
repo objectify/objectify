@@ -15,7 +15,9 @@ public interface Saver
 	/**
 	 * Saves the part of a pojo that we are responsible for to an entity.
 	 * @param pojo might be a root pojo or it might be an embedded class.
+	 * @param path is the entity path to this class, ie "field1.field2" for an embedded field1 
+	 *             containing a field2 of the type of this class.  The root pathPrefix is null.
 	 * @param index whether or not the parent thinks this value should be indexed when saved.
 	 */
-	public void save(Object pojo, Entity entity, boolean index);
+	public void save(Object pojo, Entity entity, Path path, boolean index);
 }

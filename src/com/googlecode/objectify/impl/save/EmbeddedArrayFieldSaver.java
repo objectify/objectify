@@ -14,11 +14,11 @@ import com.googlecode.objectify.impl.conv.Conversions;
 public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(Conversions, String, Class, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(Conversions, Class, Field, boolean, boolean)
 	 */
-	public EmbeddedArrayFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public EmbeddedArrayFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(conv, pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
+		super(conv, examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		assert field.getType().isArray();
 	}

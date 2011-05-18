@@ -28,9 +28,9 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedMultivalueFieldSaver(Conversions conv, String pathPrefix, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
-		super(pathPrefix, examinedClass, field, ignoreClassIndexing, collectionize);
+		super(examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		if (collectionize)
 			throw new IllegalStateException("You cannot nest multiple @Embedded arrays or collections. A second was found at " + field);
@@ -40,7 +40,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 		
 		// Now we collectionize everything on down
 		// We use our indexed state to define everything below us
-		this.classSaver = new ClassSaver(conv, this.path, this.getComponentType(), ignoreClassIndexingAnnotations, true, true);
+		this.classSaver = new ClassSaver(conv, this.getComponentType(), ignoreClassIndexingAnnotations, true, true);
 	}
 	
 	/** Gets the component type of the field */
@@ -53,7 +53,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	 * @see com.googlecode.objectify.impl.save.FieldSaver#saveValue(java.lang.Object, com.google.appengine.api.datastore.Entity, boolean)
 	 */
 	@Override
-	final public void saveValue(Object value, Entity entity, boolean index)
+	final public void saveValue(Object value, Entity entity, Path path, boolean index)
 	{
 		Object arrayOrCollection = value;
 		if (arrayOrCollection == null)
@@ -90,14 +90,14 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 					}
 					else
 					{
-						this.classSaver.save(embeddedPojo, entity, index);
+						this.classSaver.save(embeddedPojo, entity, path, index);
 					}
 
 					which++;
 				}
 				
 				if (!nullIndexes.isEmpty())
-					TypeUtils.setNullIndexes(entity, this.path, nullIndexes);
+					TypeUtils.setNullIndexes(entity, path, nullIndexes);
 			}
 		}
 	}

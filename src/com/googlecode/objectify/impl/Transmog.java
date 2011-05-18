@@ -17,12 +17,14 @@ import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
+import com.googlecode.objectify.impl.load.EmbeddedMapSetter;
 import com.googlecode.objectify.impl.load.EmbeddedMultivalueSetter;
 import com.googlecode.objectify.impl.load.EmbeddedNullIndexSetter;
 import com.googlecode.objectify.impl.load.LeafSetter;
 import com.googlecode.objectify.impl.load.RootSetter;
 import com.googlecode.objectify.impl.load.Setter;
 import com.googlecode.objectify.impl.save.ClassSaver;
+import com.googlecode.objectify.impl.save.Path;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
@@ -122,17 +124,17 @@ public class Transmog<T>
 		 * Creates a set of Setters for the class (and parent/embedded classes) in the
 		 * Transmog.rootSetters collection
 		 * 
-		 * @param clazz is the class to inspect
+		 * @param currentClazz is the class to inspect
 		 */
-		public void visitClass(Class<?> clazz)
+		public void visitClass(Class<?> currentClazz)
 		{
 			// Only good fields come back from this method call
-			List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, this.embedded);
+			List<FieldMetadata> fields = TypeUtils.getPesistentFields(currentClazz, this.embedded);
 			for (FieldMetadata meta: fields)
 				this.visitField(meta.field, meta.names);
 
 			// Only good methods come back from this method call
-			List<MethodMetadata> methods = TypeUtils.getAlsoLoadMethods(clazz);
+			List<MethodMetadata> methods = TypeUtils.getAlsoLoadMethods(currentClazz);
 			for (MethodMetadata meta: methods)
 				this.visitMethod(meta.method, meta.names);
 		}
@@ -178,6 +180,18 @@ public class Transmog<T>
 						
 						Visitor visitor = new Visitor(this.setterChain.extend(setter), path, this.fieldPathsUsed, this.methodPathsUsed);
 						visitor.visitClass(visitType);
+					}
+				}
+				else if (Map.class.isAssignableFrom(field.getType()))
+				{
+					Class<?> visitType = TypeUtils.getMapValueType(field.getGenericType());
+
+					for (String path : paths)
+					{
+						List<String> collisions = makeCollisions(paths, path);
+						EmbeddedMapSetter setter = new EmbeddedMapSetter(field, visitType, conversions, collisions);
+
+						addRootSetter(path, setter, false);
 					}
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
@@ -321,12 +335,60 @@ public class Transmog<T>
 		
 		for (Map.Entry<String, Object> property: fromEntity.getProperties().entrySet())
 		{
-			Setter setter = this.rootSetters.get(property.getKey());
-			if (setter != null)
-				setter.set(toPojo, property.getValue(), context);
+			String key = property.getKey();
+			Object value = property.getValue();
+			loadSingleValue(key, value, toPojo, context);
 		}
 		
 		context.done();
+	}
+
+	/**
+	 * Loads the single value {@code value} into {@code toPojo} using {@code key} as the key within
+	 * the entity. Will use any of {@link #rootSetters} or might delegate through a map setter.
+	 * 
+	 * @param key the key for this value
+	 * @param value the value from the datastore
+	 * @param toPojo the target pojo to load into
+	 */
+	public void loadSingleValue(String key, Object value, Object toPojo, LoadContext context)
+	{
+		Setter setter = this.rootSetters.get(key);
+		if (setter != null)
+		{
+			setter.set(toPojo, value, context);
+		}
+		else
+		{
+			String mapPrefix = key;
+			int lastDotIndex = mapPrefix.lastIndexOf('.');
+			while (setter == null && lastDotIndex != -1)
+			{
+				mapPrefix = mapPrefix.substring(0, lastDotIndex);
+				setter = this.rootSetters.get(mapPrefix);
+				if (setter != null)
+				{
+					int mapKeyEnd = mapPrefix.length() + 1;
+					int followingDot = key.indexOf('.', mapKeyEnd);
+					if (followingDot == -1)
+					{
+						context.currentMapEntry = key.substring(mapKeyEnd);
+						context.currentMapSuffix = "";
+					}
+					else
+					{
+						context.currentMapEntry = key.substring(mapKeyEnd, followingDot);
+						context.currentMapSuffix = key.substring(followingDot + 1);
+					}
+					break;
+				}
+				lastDotIndex = mapPrefix.lastIndexOf('.');
+			}
+			if (setter != null)
+			{
+				setter.set(toPojo, value, context);
+			}
+		}
 	}
 	
 	/**
@@ -339,6 +401,6 @@ public class Transmog<T>
 	public void save(T fromPojo, Entity toEntity)
 	{
 		// The default is to index all fields
-		this.rootSaver.save(fromPojo, toEntity, true);
+		this.rootSaver.save(fromPojo, toEntity, Path.root(), true);
 	}
 }
