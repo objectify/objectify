@@ -111,6 +111,22 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Query<T> endCursor(Cursor value);
 	
 	/**
+	 * Sets the internal chunking strategy within the low-level API.  Affects
+	 * performance only; the result set will be the same.
+	 *  
+	 * @param value must be > 0
+	 */
+	public Query<T> chunkSize(int value);
+	
+	/**
+	 * Sets the number of results retreived on the first call to the datastore.  Affects
+	 * performance only; the result set will be the same.
+	 *  
+	 * @param value must be >= 0
+	 */
+	public Query<T> prefetchSize(int value);
+	
+	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
 	 * is no way to convert this string back into a query and there is no guarantee that
 	 * the string will be consistent across versions of Objectify.</p>

@@ -139,4 +139,16 @@ public class QueryWrapper<T> implements Query<T>
 	{
 		return new QueryWrapper<T>(this.base.clone());
 	}
+
+	@Override
+	public Query<T> chunkSize(int value)
+	{
+		return this.base.chunkSize(value);
+	}
+
+	@Override
+	public Query<T> prefetchSize(int value)
+	{
+		return this.base.prefetchSize(value);
+	}
 }

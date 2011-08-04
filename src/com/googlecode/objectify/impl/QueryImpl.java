@@ -50,6 +50,8 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	int offset;
 	Cursor startCursor;
 	Cursor endCursor;
+	Integer chunkSize;
+	Integer prefetchSize;
 	
 	/** */
 	public QueryImpl(ObjectifyFactory fact, Objectify objectify) 
@@ -252,6 +254,26 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 	public Query<T> endCursor(Cursor value)
 	{
 		this.endCursor = value;
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#chunkSize(int)
+	 */
+	@Override
+	public Query<T> chunkSize(int value)
+	{
+		this.chunkSize = value;
+		return this;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Query#prefetchSize(int)
+	 */
+	@Override
+	public Query<T> prefetchSize(int value)
+	{
+		this.prefetchSize = value;
 		return this;
 	}
 
@@ -544,6 +566,12 @@ public class QueryImpl<T> implements Query<T>, Cloneable
 		
 		if (this.offset != 0)
 			opts = opts.offset(this.offset);
+		
+		if (this.prefetchSize != null)
+			opts = opts.prefetchSize(this.prefetchSize);
+
+		if (this.chunkSize != null)
+			opts = opts.chunkSize(this.chunkSize);
 
 		return opts;
 	}
