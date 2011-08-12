@@ -27,7 +27,21 @@ public class Name implements Serializable
 		// Doesn't do null check on names but good enough
 		return o != null
 			&& o.getClass() == this.getClass()
-			&& ((Name)o).firstName.equals(this.firstName)
-			&& ((Name)o).lastName.equals(this.lastName);
+			&& safeEquals(((Name)o).firstName, this.firstName)
+			&& safeEquals(((Name)o).lastName, this.lastName);
+	}
+	
+	@Override
+	public int hashCode()
+	{
+		return firstName.hashCode();
+	}
+
+	/**
+	 * Null safe equality comparison
+	 */
+	boolean safeEquals(Object o1, Object o2)
+	{
+		return (o1 == o2) || ((o1 != null) && o1.equals(o2));
 	}
 }

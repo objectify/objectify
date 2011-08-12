@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test.entity;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.Embedded;
 import javax.persistence.Id;
@@ -21,6 +22,9 @@ public class Criminal
 	
 	@Embedded
 	public List<Name> moreAliases;
+
+	@Embedded
+	public Set<Name> aliasesSet;
 
 	public Criminal()
 	{

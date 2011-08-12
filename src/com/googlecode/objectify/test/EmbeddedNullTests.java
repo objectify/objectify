@@ -3,6 +3,7 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 
 import org.testng.annotations.BeforeMethod;
@@ -201,6 +202,22 @@ public class EmbeddedNullTests extends TestBase
 //		assert queried.hasNext();
 //		assert queried.next().id.equals(fetched.id);
 //		assert !queried.hasNext();
+	}
+	
+	/**
+	 * Reported error when a field is null in an embedded set, but it seems to work
+	 */
+	@Test
+	public void testEmbeddedSetWithNullField() throws Exception
+	{
+		Criminal crim = new Criminal();
+		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), new Name("Mojo", null), new Name("Ivan", "Stang") };
+		crim.aliasesSet = new HashSet<Name>(Arrays.asList(crim.aliases));
+		
+		Criminal fetched = this.putAndGet(crim);
+		
+		for (Name name: crim.aliases)
+			assert fetched.aliasesSet.contains(name);
 	}
 	
 }
