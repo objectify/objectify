@@ -20,6 +20,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
 import com.googlecode.objectify.impl.conv.Converter;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
@@ -207,7 +208,7 @@ public class ConversionTests extends TestBase
 		this.fact.register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
-		hbd.data = new BigDecimal(1.0);
+		hbd.data = new BigDecimal(32.25);
 		
 		try
 		{
@@ -235,6 +236,21 @@ public class ConversionTests extends TestBase
 					return null;
 			}
 		});
+		
+		HasBigDecimal fetched = this.putAndGet(hbd);
+		assert hbd.data.equals(fetched.data);
+	}
+
+	/** */
+	@Test
+	public void testBigDecimalLongConverter() throws Exception
+	{
+		this.fact.register(HasBigDecimal.class);
+
+		HasBigDecimal hbd = new HasBigDecimal();
+		hbd.data = new BigDecimal(32.25);
+		
+		this.fact.getConversions().add(new BigDecimalLongConverter());
 		
 		HasBigDecimal fetched = this.putAndGet(hbd);
 		assert hbd.data.equals(fetched.data);
