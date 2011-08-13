@@ -7,6 +7,7 @@ package com.googlecode.objectify.test;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import javax.persistence.Embedded;
@@ -254,5 +255,24 @@ public class ConversionTests extends TestBase
 		
 		HasBigDecimal fetched = this.putAndGet(hbd);
 		assert hbd.data.equals(fetched.data);
+	}
+	
+	public static class HasTimeZone
+	{
+		public @Id Long id;
+		public TimeZone tz;
+	}
+
+	/** */
+	@Test
+	public void testTimeZoneConverter() throws Exception
+	{
+		this.fact.register(HasTimeZone.class);
+
+		HasTimeZone htz = new HasTimeZone();
+		htz.tz = TimeZone.getDefault();
+
+		HasTimeZone fetched = this.putAndGet(htz);
+		assert htz.tz.equals(fetched.tz);
 	}
 }

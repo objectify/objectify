@@ -36,6 +36,7 @@ public class Conversions
 		this.converters.add(new ArrayConverter(this));
 		this.converters.add(new CollectionConverter(this));
 		this.converters.add(new SqlDateConverter());
+		this.converters.add(new TimeZoneConverter());
 		
 		this.inserter = this.converters.listIterator();
 	}
