@@ -17,6 +17,11 @@ import java.util.concurrent.TimeoutException;
  * Any pending callbacks will be fired during any method call when done; calling isDone()
  * is the usual method.  
  * </p>
+ * <p>
+ * Callbacks will *not* be fired if the get() method throws an exception.  That is, callbacks
+ * are only fired on normal completion of the result.  This prevents, for example, cache put()s
+ * from firing when concurrency exceptions are thrown.
+ * </p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -72,8 +77,16 @@ public class ListenableFuture<T> implements Future<T>
 			List<Runnable> doMe = this.callbacks;
 			this.callbacks = null;
 
-			for (Runnable runnable: doMe)
-				runnable.run();
+			// Make sure that we got an actual value rather than an exception
+			boolean itWorked = false;
+			try {
+				this.raw.get();
+				itWorked = true;
+			} catch (Exception ex) {}
+			
+			if (itWorked)
+				for (Runnable runnable: doMe)
+					runnable.run();
 			
 			// Deregister us, we're done!
 			ListenableHook.removePending(this);
