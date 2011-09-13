@@ -6,6 +6,7 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -98,4 +99,39 @@ public class TransactionTests extends TestBase
 		// see the change made in the transactional session, and the fetch only hits the cache.
 		assert simple2.stuff.equals(simple3.stuff);
 	}
+
+	/**
+	 * This should theoretically test the case where the cache is being modified even after a concurrency failure.
+	 */
+	@Test
+	public void testConcurrencyFailure() throws Exception
+	{
+		Trivial triv = new Trivial("foo", 5);
+		Key<Trivial> tk = this.fact.begin().put(triv);
+		
+		Objectify tOfy1 = this.fact.beginTransaction();
+		Objectify tOfy2 = this.fact.beginTransaction();
+
+		Trivial triv1 = tOfy1.get(tk);
+		Trivial triv2 = tOfy2.get(tk);
+		
+		triv1.setSomeString("bar");
+		triv2.setSomeString("shouldn't work");
+		
+		tOfy1.async().put(triv1);
+		tOfy2.async().put(triv2);
+		
+		tOfy1.getTxn().commit();
+		
+		try {
+			tOfy2.getTxn().commit();
+			assert false;	// must throw exception
+		} catch (ConcurrentModificationException ex) {}
+
+		Trivial fetched = this.fact.begin().get(tk);
+		
+		// This will be fetched from the cache, and must not be the "shouldn't work"
+		assert fetched.getSomeString().equals("bar");
+	}
+	
 }
