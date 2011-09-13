@@ -102,6 +102,7 @@ public class TransactionTests extends TestBase
 
 	/**
 	 * This should theoretically test the case where the cache is being modified even after a concurrency failure.
+	 * However, it doesn't seem to trigger even without the logic fix in ListenableFuture.
 	 */
 	@Test
 	public void testConcurrencyFailure() throws Exception
