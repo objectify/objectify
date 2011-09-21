@@ -356,6 +356,33 @@ public class ObjectifyFactory
 	}
 	
 	/**
+	 * Allocates a single id from the allocator for the specified kind.  Safe to use in concert
+	 * with the automatic generator.  This is just a convenience method for allocateIds().
+	 * 
+	 * @param clazz must be a registered entity class with a Long or long id field.
+	 */
+	public <T> long allocateId(Class<T> clazz)
+	{
+		return allocateIds(clazz, 1).iterator().next().getId();
+	}
+
+	/**
+	 * Allocates a single id from the allocator for the specified kind.  Safe to use in concert
+	 * with the automatic generator.  This is just a convenience method for allocateIds().
+	 * 
+	 * Note that the id is only unique within the parent, not across the entire kind.
+	 * 
+	 * @param parent must be a legitimate parent key for the class type.  It need not
+	 * point to an existent entity, but it must be the correct type for clazz.
+	 * @param clazz must be a registered entity class with a Long or long id field, and
+	 * a parent key of the correct type.
+	 */
+	public <T> long allocateId(Key<?> parent, Class<T> clazz)
+	{
+		return allocateIds(parent, clazz, 1).iterator().next().getId();
+	}
+	
+	/**
 	 * Preallocate a contiguous range of unique ids within the namespace of the
 	 * specified entity class.  These ids can be used in concert with the normal
 	 * automatic allocation of ids when put()ing entities with null Long id fields.
