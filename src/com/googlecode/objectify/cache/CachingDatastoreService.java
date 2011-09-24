@@ -9,11 +9,14 @@ import com.google.appengine.api.datastore.DatastoreAttributes;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Index;
+import com.google.appengine.api.datastore.Index.IndexState;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.util.FutureHelper;
 
 /**
@@ -82,6 +85,15 @@ public class CachingDatastoreService implements DatastoreService
 	public Transaction beginTransaction()
 	{
 		return FutureHelper.quietGet(this.async.beginTransaction());
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.DatastoreService#beginTransaction(com.google.appengine.api.datastore.TransactionOptions)
+	 */
+	@Override
+	public Transaction beginTransaction(TransactionOptions options)
+	{
+		return FutureHelper.quietGet(this.async.beginTransaction(options));
 	}
 
 	/* (non-Javadoc)
@@ -253,6 +265,15 @@ public class CachingDatastoreService implements DatastoreService
 	public DatastoreAttributes getDatastoreAttributes()
 	{
 		return this.ds.getDatastoreAttributes();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.DatastoreService#getIndexes()
+	 */
+	@Override
+	public Map<Index, IndexState> getIndexes()
+	{
+		return this.ds.getIndexes();
 	}
 }
 

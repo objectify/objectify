@@ -13,14 +13,18 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
+import com.google.appengine.api.datastore.DatastoreAttributes;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Index;
+import com.google.appengine.api.datastore.Index.IndexState;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -227,6 +231,28 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	{
 		return this.rawAsync.allocateIds(parent, kind, num);
 	}
+	
+	/**
+	 * Need this for beingTransaction()
+	 */
+	private class TransactionFutureWrapper extends SimpleFutureWrapper<Transaction, Transaction>
+	{
+		TransactionWrapper xact;
+
+		public TransactionFutureWrapper(Future<Transaction> base)
+		{
+			super(base);
+		}
+
+		@Override
+		protected Transaction wrap(Transaction t)
+		{
+			if (xact == null)
+				xact = new TransactionWrapper(CachingAsyncDatastoreService.this, t);
+			
+			return xact;
+		}
+	}
 
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#beginTransaction()
@@ -234,18 +260,16 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Transaction> beginTransaction()
 	{
-		return new SimpleFutureWrapper<Transaction, Transaction>(this.rawAsync.beginTransaction()) {
-			TransactionWrapper xact;
+		return new TransactionFutureWrapper(this.rawAsync.beginTransaction());
+	}
 
-			@Override
-			protected Transaction wrap(Transaction t)
-			{
-				if (xact == null)
-					xact = new TransactionWrapper(CachingAsyncDatastoreService.this, t);
-				
-				return xact;
-			}
-		};
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#beginTransaction(com.google.appengine.api.datastore.TransactionOptions)
+	 */
+	@Override
+	public Future<Transaction> beginTransaction(TransactionOptions options)
+	{
+		return new TransactionFutureWrapper(this.rawAsync.beginTransaction(options));
 	}
 
 	/* (non-Javadoc)
@@ -543,6 +567,24 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 			((TransactionWrapper)txn).enlist(result);
 		
 		return result;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#getDatastoreAttributes()
+	 */
+	@Override
+	public Future<DatastoreAttributes> getDatastoreAttributes()
+	{
+		return this.rawAsync.getDatastoreAttributes();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#getIndexes()
+	 */
+	@Override
+	public Future<Map<Index, IndexState>> getIndexes()
+	{
+		return this.rawAsync.getIndexes();
 	}
 }
 
