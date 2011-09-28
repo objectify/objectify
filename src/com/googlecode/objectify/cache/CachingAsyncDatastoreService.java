@@ -121,6 +121,15 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	{
 		return new TransactionFutureWrapper(this.rawAsync.beginTransaction(options));
 	}
+	
+	/**
+	 * We don't allow implicit transactions, so throw an exception if the user is trying to use one.
+	 */
+	private void checkForImplicitTransaction()
+	{
+		if (this.rawAsync.getCurrentTransaction() != null)
+			throw new UnsupportedOperationException("Implicit, thread-local transactions are not supported by the cache");
+	}
 
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#delete(com.google.appengine.api.datastore.Key[])
@@ -128,6 +137,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Void> delete(Key... keys)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.delete(null, keys);
 	}
 
@@ -137,6 +148,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Void> delete(Iterable<Key> keys)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.delete(null, keys);
 	}
 
@@ -183,6 +196,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Entity> get(Key key)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.get(null, key);
 	}
 
@@ -192,6 +207,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Map<Key, Entity>> get(Iterable<Key> keys)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.get(null, keys);
 	}
 
@@ -308,6 +325,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public PreparedQuery prepare(Query query)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.rawAsync.prepare(query);
 	}
 
@@ -326,6 +345,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Key> put(Entity entity)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.put(null, entity);
 	}
 
@@ -335,6 +356,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<List<Key>> put(Iterable<Entity> entities)
 	{
+		this.checkForImplicitTransaction();
+		
 		return this.put(null, entities);
 	}
 
