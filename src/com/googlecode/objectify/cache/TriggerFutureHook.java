@@ -4,7 +4,6 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
 
@@ -15,11 +14,6 @@ import com.google.apphosting.api.ApiProxy.ApiProxyException;
 import com.google.apphosting.api.ApiProxy.Delegate;
 import com.google.apphosting.api.ApiProxy.Environment;
 import com.google.apphosting.api.ApiProxy.LogRecord;
-
-/** This private interface is needed so we can get a parent out of the wrapped proxy */
-interface GetParentDelegate {
-	Delegate<Environment> getParent();
-}
 
 /**
  * <p>This bit of appengine magic hooks into the ApiProxy and does the heavy lifting of
@@ -36,7 +30,7 @@ interface GetParentDelegate {
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TriggerFutureHook implements Delegate<Environment>, GetParentDelegate
+public class TriggerFutureHook implements Delegate<Environment>
 {
 	/** */
 	Delegate<Environment> parent;
@@ -57,7 +51,7 @@ public class TriggerFutureHook implements Delegate<Environment>, GetParentDelega
 	public static synchronized void install()
 	{
 		// Already installed
-		if (ApiProxy.getDelegate() instanceof GetParentDelegate)
+		if (ApiProxy.getDelegate() instanceof TriggerFutureHook)
 			return;
 		
 		@SuppressWarnings("unchecked")
@@ -69,21 +63,29 @@ public class TriggerFutureHook implements Delegate<Environment>, GetParentDelega
 			ApiProxy.setDelegate(wrapPartially(ApiProxy.getDelegate(), hook));
 	}
 	
-	/**
-	 * Remove the TriggerFutureHook from the delegate system.  This only works if we were the last delegate to be installed.
-	 * You'll need to call this before calling RemoteApiInstaller.uninstall() if you have been using Objectify.
-	 * 
-	 * @see http://code.google.com/p/googleappengine/issues/detail?id=5965
-	 */
-	public static synchronized void uninstall()
-	{
-		if (!(ApiProxy.getDelegate() instanceof GetParentDelegate))
-			throw new IllegalStateException("Can't uninstall because another delegate has been registered, and Google doesn't provide a way to handle this case.  See http://code.google.com/p/googleappengine/issues/detail?id=5965");
-		
-		GetParentDelegate current = (GetParentDelegate)ApiProxy.getDelegate();
-		
-		ApiProxy.setDelegate(current.getParent());
-	}
+// This just doesn't work because of the dynamic proxy hack necessary on local.  I've tried adding
+// a GetParentDelegate interface to the proxy to get the value out but I just get an "interface
+// is not visible to the class loader" exception no matter what I try.  So basically you can't
+// uninstall until Google fixes at least one of these bugs:
+// http://code.google.com/p/googleappengine/issues/detail?id=4271
+// http://code.google.com/p/googleappengine/issues/detail?id=4442
+// http://code.google.com/p/googleappengine/issues/detail?id=5965
+//
+//	/**
+//	 * Remove the TriggerFutureHook from the delegate system.  This only works if we were the last delegate to be installed.
+//	 * You'll need to call this before calling RemoteApiInstaller.uninstall() if you have been using Objectify.
+//	 * 
+//	 * @see http://code.google.com/p/googleappengine/issues/detail?id=5965
+//	 */
+//	public static synchronized void uninstall()
+//	{
+//		if (!(ApiProxy.getDelegate() instanceof GetParentDelegate))
+//			throw new IllegalStateException("Can't uninstall because another delegate has been registered, and Google doesn't provide a way to handle this case.  See http://code.google.com/p/googleappengine/issues/detail?id=5965");
+//		
+//		GetParentDelegate current = (GetParentDelegate)ApiProxy.getDelegate();
+//		
+//		ApiProxy.setDelegate(current.getParent());
+//	}
 	
 	/**
 	 * Register a pending Future that has a callback.
@@ -190,8 +192,7 @@ public class TriggerFutureHook implements Delegate<Environment>, GetParentDelega
 	static <S, T extends S> S wrapPartially(final S original, final T wrapper)
 	{
 		// We need to make sure GetParentDelegate is one of the interfaces supported by the proxy
-		Class<?>[] interfaces = Arrays.copyOf(original.getClass().getInterfaces(), original.getClass().getInterfaces().length + 1);
-		interfaces[original.getClass().getInterfaces().length] = GetParentDelegate.class;
+		Class<?>[] interfaces = original.getClass().getInterfaces();
 		
 		InvocationHandler handler = new InvocationHandler() {
 			@Override
@@ -232,11 +233,5 @@ public class TriggerFutureHook implements Delegate<Environment>, GetParentDelega
 	public List<Thread> getRequestThreads(Environment paramE)
 	{
 		return parent.getRequestThreads(paramE);
-	}
-
-	@Override
-	public Delegate<Environment> getParent()
-	{
-		return this.parent;
 	}
 }
