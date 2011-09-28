@@ -70,7 +70,7 @@ public class Registrar
 				this.byKind.put(kind, cmeta);
 				this.byClass.put(clazz, cmeta);
 				
-				if (cmeta.mightBeInCache())
+				if (cmeta.getCacheExpirySeconds() != null)
 					this.cacheEnabled = true;
 			}
 			else if (meta instanceof PolymorphicEntityMetadata<?>)

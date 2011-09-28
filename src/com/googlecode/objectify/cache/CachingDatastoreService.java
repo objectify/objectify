@@ -30,11 +30,7 @@ import com.googlecode.objectify.util.FutureHelper;
  * <li>Transactional reads bypass the cache, but successful transaction commits will update the cache.</li>
  * </ul>
  * 
- * <p>Note:  There is a horrible, obscure, and utterly bizarre bug in GAE's memcache
- * relating to Key serialization.  It manifests in certain circumstances when a Key
- * has a parent Key that has the same String name.  For this reason, we use the
- * keyToString method to stringify Keys as cache keys.  The actual structure
- * stored in the memcache will be String -> Entity.</p>  
+ * <p>For further details, see the javadocs for CachingAsyncDatastoreService.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

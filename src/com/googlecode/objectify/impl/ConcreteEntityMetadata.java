@@ -89,23 +89,14 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getCached(com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getCacheExpirySeconds()
 	 */
 	@Override
-	public Cached getCached(Entity ent)
+	public Integer getCacheExpirySeconds()
 	{
-		return this.cached;
+		return this.cached == null ? null : this.cached.expirationSeconds();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#mightBeInCache()
-	 */
-	@Override
-	public boolean mightBeInCache()
-	{
-		return this.cached != null;
-	}
-
 	/**
 	 * Recursive function which walks up the superclass hierarchy looking
 	 * for key-related fields (@Id and @Parent).  Ignores all other fields;

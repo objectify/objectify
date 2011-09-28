@@ -5,11 +5,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
@@ -19,199 +16,52 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.Index.IndexState;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.KeyRange;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
-import com.google.appengine.api.memcache.Expiration;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.cache.EntityMemcache.Bucket;
+import com.googlecode.objectify.util.NowFuture;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional
- * and nontransactional sessions.  Entity cacheability and expiration are determined
- * by the {@code @Cached} annotation on the POJO.</p>
+ * and nontransactional sessions.</p>
  * 
  * <ul>
  * <li>Caches negative results as well as positive results.</li>
  * <li>Queries do not affect the cache in any way.</li>
  * <li>Transactional reads bypass the cache, but successful transaction commits will update the cache.</li>
+ * <li>This cache has near-transactional integrity.  As long as DeadlineExceededException is not hit, cache should
+ * not go out of sync even under heavy contention.</li>
+ * <li>Heavy contention will reduce the hit rate of the cache, possibly severely.  Please star
+ * <a href="http://code.google.com/p/googleappengine/issues/detail?id=5859">this issue</a>.</li>
  * </ul>
  * 
- * <p>Note:  There is a horrible, obscure, and utterly bizarre bug in GAE's memcache
- * relating to Key serialization.  It manifests in certain circumstances when a Key
- * has a parent Key that has the same String name.  For this reason, we use the
- * keyToString method to stringify Keys as cache keys.  The actual structure
- * stored in the memcache will be String -> Entity.</p>
- * 
- * <p>Note2:  Until Google adds a hook that lets us wrap native Future<?> implementations,
- * this cache requires the AsyncCacheFilter to be installed.  This wasn't necessary when
- * the cache was synchronous, but async caching requires an extra hook for the end of
- * a request when fired-and-forgotten put()s and delete()s get processed.</p>
+ * <p>Note:  Until Google adds a hook that lets us wrap native Future<?> implementations,
+ * you muse install the {@code AsyncCacheFilter} to use this cache asynchronously.  This
+ * is not necessary for synchronous use of {@code CachingDatastoreService}, but asynchronous
+ * operation requires an extra hook for the end of a request when fired-and-forgotten put()s
+ * and delete()s get processed.  <strong>If you use this cache asynchronously, and you do not
+ * use the {@code AsyncCacheFilter}, your cache will go out of sync.</strong></p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CachingAsyncDatastoreService implements AsyncDatastoreService
 {
-	/** Source of metadata so we know which kinds to cache */
-	ObjectifyFactory fact;
-	
 	/** The real datastore service objects - we need both */
 	AsyncDatastoreService rawAsync;
 	
 	/** */
-	MemcacheService memcache;
+	EntityMemcache memcache;
 	
 	/**
 	 */
-	public CachingAsyncDatastoreService(ObjectifyFactory fact, AsyncDatastoreService rawAsync, MemcacheService memcache)
+	public CachingAsyncDatastoreService(AsyncDatastoreService rawAsync, EntityMemcache memcache)
 	{
-		this.fact = fact;
 		this.rawAsync = rawAsync;
 		this.memcache = memcache;
-	}
-	
-	/**
-	 * Breaks down the map into groupings based on which are cacheable and for how long.
-	 * 
-	 * @return a map of expiration to Key/Entity map for only the entities that are cacheable 
-	 */
-	private Map<Integer, Map<Key, Entity>> categorize(Map<Key, Entity> entities)
-	{
-		Map<Integer, Map<Key, Entity>> result = new HashMap<Integer, Map<Key, Entity>>();
-		
-		for (Map.Entry<Key, Entity> entry: entities.entrySet())
-		{
-			Cached cachedAnno = this.fact.getMetadata(entry.getKey()).getCached(entry.getValue());
-			if (cachedAnno != null)
-			{
-				Integer expiry = cachedAnno.expirationSeconds();
-				
-				Map<Key, Entity> grouping = result.get(expiry);
-				if (grouping == null)
-				{
-					grouping = new HashMap<Key, Entity>();
-					result.put(expiry, grouping);
-				}
-				
-				grouping.put(entry.getKey(), entry.getValue());
-			}
-		}
-		
-		return result;
-	}
-
-	/**
-	 * Get values from the datastore, inserting negative results (null values) for any keys
-	 * that are requested but don't come back.
-	 */
-	private Future<Map<Key, Entity>> getFromDatastore(Transaction txn, final Set<Key> stillNeeded)
-	{
-		Future<Map<Key, Entity>> prelim = this.rawAsync.get(txn, stillNeeded);
-		
-		return new SimpleFutureWrapper<Map<Key, Entity>, Map<Key, Entity>>(prelim) {
-			@Override
-			protected Map<Key, Entity> wrap(Map<Key, Entity> t)
-			{
-				// Add null values for any keys not in the result set
-				if (t.size() != stillNeeded.size())
-					for (Key key: stillNeeded)
-						if (!t.containsKey(key))
-							t.put(key, null);
-				
-				return t;
-			}
-		};
-	}
-
-	/** Hides the ugly casting and deals with String/Key conversion */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	private Map<Key, Entity> getFromCacheRaw(Iterable<Key> keys)
-	{
-		Collection<String> keysColl = new ArrayList<String>();
-		for (Key key: keys)
-			keysColl.add(KeyFactory.keyToString(key));
-		
-		Map<String, Entity> rawResults;
-		try {
-			rawResults = (Map)this.memcache.getAll((Collection)keysColl);
-		}
-		catch (Exception ex) {
-			// This should only be an issue if Google changes the serialization
-			// format of an Entity.  It's possible, but this is just a cache so we
-			// can safely ignore the error.
-			return new HashMap<Key, Entity>();
-		}
-		
-		Map<Key, Entity> keyMapped = new HashMap<Key, Entity>((int)(rawResults.size() * 1.5));
-		for(Map.Entry<String, Entity> entry: rawResults.entrySet())
-			keyMapped.put(KeyFactory.stringToKey(entry.getKey()), entry.getValue());
-
-		return keyMapped;
-	}
-	
-	/**
-	 * Get entries from cache.  Ignores uncacheable keys.
-	 */
-	private Map<Key, Entity> getFromCache(Iterable<Key> keys)
-	{
-		Collection<Key> fetch = new ArrayList<Key>();
-		
-		for (Key key: keys)
-			if (this.fact.getMetadata(key).mightBeInCache())
-				fetch.add(key);
-		
-		return this.getFromCacheRaw(fetch);
-	}
-	
-	/**
-	 * Puts entries in the cache with the specified expiration.
-	 * @param expirationSeconds can be -1 to indicate "keep as long as possible". 
-	 */
-	@SuppressWarnings("rawtypes")
-	private void putInCache(Map<Key, Entity> entities, int expirationSeconds)
-	{
-		Map<String, Entity> rawMap = new HashMap<String, Entity>((int)(entities.size() * 1.5));
-
-		for (Map.Entry<Key, Entity> entry: entities.entrySet())
-			rawMap.put(KeyFactory.keyToString(entry.getKey()), entry.getValue());
-		
-		if (expirationSeconds < 0)
-			this.memcache.putAll((Map)rawMap);
-		else
-			this.memcache.putAll((Map)rawMap, Expiration.byDeltaSeconds(expirationSeconds));
-	}
-	
-	/**
-	 * Puts entries in the cache with the appropriate expirations.
-	 */
-	void putInCache(Map<Key, Entity> entities)
-	{
-		Map<Integer, Map<Key, Entity>> categories = this.categorize(entities);
-		
-		for (Map.Entry<Integer, Map<Key, Entity>> entry: categories.entrySet())
-			this.putInCache(entry.getValue(), entry.getKey());
-	}
-	
-	/**
-	 * Deletes from the cache, ignoring any noncacheable keys
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	void deleteFromCache(Iterable<Key> keys)
-	{
-		Collection<String> cacheables = new ArrayList<String>();
-		
-		for (Key key: keys)
-			if (this.fact.getMetadata(key).mightBeInCache())
-				cacheables.add(KeyFactory.keyToString(key));
-		
-		if (!cacheables.isEmpty())
-			this.memcache.deleteAll((Collection)cacheables);
 	}
 	
 	/* (non-Javadoc)
@@ -248,7 +98,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		protected Transaction wrap(Transaction t)
 		{
 			if (xact == null)
-				xact = new TransactionWrapper(CachingAsyncDatastoreService.this, t);
+				xact = new TransactionWrapper(memcache, t);
 			
 			return xact;
 		}
@@ -305,22 +155,21 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Void> delete(final Transaction txn, final Iterable<Key> keys)
 	{
-		ListenableFuture<Void> future = new ListenableFuture<Void>(this.rawAsync.delete(txn, keys));
-		future.addCallback(new Runnable() {
+		Future<Void> future = new TriggerSuccessFuture<Void>(this.rawAsync.delete(txn, keys)) {
 			@Override
-			public void run()
+			protected void success(Void result)
 			{
 				if (txn != null)
 				{
 					for (Key key: keys)
-						((TransactionWrapper)txn).deferCacheDelete(key);
+						((TransactionWrapper)txn).deferEmptyFromCache(key);
 				}
 				else
 				{
-					deleteFromCache(keys);
+					memcache.empty(keys);
 				}
 			}
-		});
+		};
 		
 		if (txn instanceof TransactionWrapper)
 			((TransactionWrapper)txn).enlist(future);
@@ -380,60 +229,46 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		}
 		else
 		{
-			// soFar will not contain uncacheables, but it will have negative results
-			Map<Key, Entity> soFar = this.getFromCache(keys);
+			Map<Key, Bucket> soFar = this.memcache.getAll(keys);
 
-			Set<Key> stillNeeded = new HashSet<Key>();
-			for (Key getKey: keys)
-				if (!soFar.containsKey(getKey))
-					stillNeeded.add(getKey);
+			final List<Bucket> uncached = new ArrayList<Bucket>(soFar.size());
+			Map<Key, Entity> cached = new HashMap<Key, Entity>();
+			
+			for (Bucket buck: soFar.values())
+				if (buck.isEmpty())
+					uncached.add(buck);
+				else if (!buck.isNegative())
+					cached.put(buck.getKey(), buck.getEntity());
 
 			// Maybe we need to fetch some more
 			Future<Map<Key, Entity>> pending = null;
-			if (!stillNeeded.isEmpty())
+			if (!uncached.isEmpty())
 			{
-				// Includes negative results
-				Future<Map<Key, Entity>> fromDatastore = this.getFromDatastore(txn, stillNeeded);
-				final ListenableFuture<Map<Key, Entity>> listenable = new ListenableFuture<Map<Key, Entity>>(fromDatastore);
-				listenable.addCallback(new Runnable() {
+				Future<Map<Key, Entity>> fromDatastore = this.rawAsync.get(null, EntityMemcache.keysOf(uncached));
+				pending = new TriggerSuccessFuture<Map<Key, Entity>>(fromDatastore) {
 					@Override
-					public void run()
+					public void success(Map<Key, Entity> result)
 					{
-						try
+						for (Bucket buck: uncached)
 						{
-							putInCache(listenable.get());
+							Entity value = result.get(buck.getKey());
+							if (value != null)
+								buck.setNext(value);
 						}
-						catch (Exception e)
-						{
-							// Not entirely certain what to do with this
-							throw new RuntimeException(e);
-						}
+						
+						memcache.putAll(uncached);
 					}
-				});
-				
-				pending = listenable;
+				};
 			}
 			
-			Future<Map<Key, Entity>> merged = new MergeFuture<Key, Entity>(soFar, pending);
-			
-			// Need to strip out any negative results
-			Future<Map<Key, Entity>> stripped = new SimpleFutureWrapper<Map<Key, Entity>, Map<Key, Entity>>(merged) {
-				@Override
-				protected Map<Key, Entity> wrap(Map<Key, Entity> t)
-				{
-					Iterator<Entity> it = t.values().iterator();
-					while (it.hasNext())
-						if (it.next() == null)
-							it.remove();
-					
-					return t;
-				}
-			};
-
-			if (txn instanceof TransactionWrapper)
-				((TransactionWrapper)txn).enlist(stripped);
-			
-			return stripped;
+			// If there was nothing from the cache, don't need to merge!
+			if (cached.isEmpty())
+				if (pending == null)
+					return new NowFuture<Map<Key, Entity>>(cached);	// empty!
+				else
+					return pending;
+			else
+				return new MergeFuture<Key, Entity>(cached, pending);
 		}
 	}
 
@@ -509,64 +344,43 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	@Override
 	public Future<Key> put(final Transaction txn, final Entity entity)
 	{
-		final ListenableFuture<Key> result = new ListenableFuture<Key>(this.rawAsync.put(txn, entity));
-		result.addCallback(new Runnable() {
-			@Override
-			public void run()
-			{
-				// This forces the GAE future to update the key in the entity
-				FutureHelper.quietGet(result);
-				
-				// Cacheability checking is handled inside these methods
-				if (txn != null)
-					((TransactionWrapper)txn).deferCachePut(entity);
-				else
-					putInCache(Collections.singletonMap(entity.getKey(), entity));
-				
-			}
-		});
-
-		if (txn instanceof TransactionWrapper)
-			((TransactionWrapper)txn).enlist(result);
+		Future<List<Key>> bulk = this.put(txn, Collections.singleton(entity));
 		
-		return result;
+		return new SimpleFutureWrapper<List<Key>, Key>(bulk) {
+			@Override
+			protected Key wrap(List<Key> keys) throws Exception
+			{
+				return keys.get(0);
+			}
+		};
 	}
 
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#put(com.google.appengine.api.datastore.Transaction, java.lang.Iterable)
 	 */
 	@Override
-	public Future<List<Key>> put(final Transaction txn, final Iterable<Entity> entities)
+	public Future<List<Key>> put(final Transaction txn, Iterable<Entity> entities)
 	{
-		final ListenableFuture<List<Key>> result = new ListenableFuture<List<Key>>(this.rawAsync.put(txn, entities));
-		result.addCallback(new Runnable() {
+		Future<List<Key>> future = new TriggerSuccessFuture<List<Key>>(this.rawAsync.put(txn, entities)) {
 			@Override
-			public void run()
+			protected void success(List<Key> result)
 			{
-				// This forces the GAE future to update the keys in the entities
-				FutureHelper.quietGet(result);
-				
 				if (txn != null)
 				{
-					for (Entity ent: entities)
-						((TransactionWrapper)txn).deferCachePut(ent);
+					for (Key key: result)
+						((TransactionWrapper)txn).deferEmptyFromCache(key);
 				}
 				else
 				{
-					Map<Key, Entity> map = new HashMap<Key, Entity>();
-					for (Entity entity: entities)
-						map.put(entity.getKey(), entity);
-					
-					putInCache(map);
+					memcache.empty(result);
 				}
-				
 			}
-		});
+		};
 		
 		if (txn instanceof TransactionWrapper)
-			((TransactionWrapper)txn).enlist(result);
+			((TransactionWrapper)txn).enlist(future);
 		
-		return result;
+		return future;
 	}
 
 	/* (non-Javadoc)

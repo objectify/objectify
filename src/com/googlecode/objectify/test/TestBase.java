@@ -20,7 +20,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOpts;
-import com.googlecode.objectify.cache.ListenableHook;
+import com.googlecode.objectify.cache.TriggerFutureHook;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.Child;
@@ -99,7 +99,7 @@ public class TestBase
 	public void tearDown()
 	{
 		// This normally is done in the AsyncCacheFilter but that doesn't exist for tests
-		ListenableHook.completeAllPendingFutures();
+		TriggerFutureHook.completeAllPendingFutures();
 		this.helper.tearDown();
 	}
 	

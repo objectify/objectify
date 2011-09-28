@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Cached;
 
 
 /**
@@ -17,20 +16,13 @@ public interface EntityMetadata<T>
 	public String getKind();
 	
 	/**
-	 * @param ent is the entity for which to get caching information
-	 * @return the Cached instruction for this entity, or null if it should not be cached.
-	 */
-	public Cached getCached(Entity ent);
-	
-	/**
-	 * This gets a little strange when dealing with polymorphism; if anything in the polymorphic group is cacheable,
-	 * this will return true.  This doesn't necessarily mean that data will be written to the cache; that
-	 * is strictly determined by the getCached() method.  But it determines whether or not we have to look
-	 * since we don't know by Key whether or not something has a Cached annotation.  
+	 * Get the expiry associated with this kind, defined by the @Cached annotation.
+	 * For polymorphic types, this is always the instruction on the root @Entity - you
+	 * cannot provide per-type caching.
 	 *  
-	 * @return true of things of this kind might be found in the cache.
+	 * @return null means DO NOT CACHE, 0 means "no limit", otherwise # of seconds
 	 */
-	public boolean mightBeInCache();
+	public Integer getCacheExpirySeconds();
 	
 	/**
 	 * Converts an entity to an object of the appropriate type for this metadata structure.
@@ -38,7 +30,6 @@ public interface EntityMetadata<T>
 	 * which EntityMetadata to call.
 	 */
 	public T toObject(Entity ent, Objectify ofy);
-
 
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.

@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -15,19 +13,19 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.ObjectifyOpts;
-import com.googlecode.objectify.cache.ListenableFuture;
+import com.googlecode.objectify.cache.TriggerFuture;
 import com.googlecode.objectify.util.FutureHelper;
 
 /**
- * Tests of the ListenableFuture
+ * Tests of the TriggerFuture
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ListenableTests extends TestBase
+public class TriggerFutureTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(ListenableTests.class.getName());
+	private static Logger log = Logger.getLogger(TriggerFutureTests.class.getName());
 
 	/** This seemed to be an issue related to the listenable but apparently not */
 	@Test
@@ -56,21 +54,21 @@ public class ListenableTests extends TestBase
 			final Entity ent = new Entity("thing");
 			ent.setUnindexedProperty("foo", "bar" + i);
 			
-			final ListenableFuture<Key> fut = new ListenableFuture<Key>(ads.put(null, ent));
-			fut.addCallback(new Runnable() {
+			@SuppressWarnings("unused")
+			TriggerFuture<Key> fut = new TriggerFuture<Key>(ads.put(null, ent)) {
 				@Override
-				public void run()
+				protected void trigger()
 				{
 					// This magic line makes the key get updated.  Without this line,
 					// we get what looks like some sort of race condition - the error
 					// happens at varying iterations.
-					FutureHelper.quietGet(fut);
+					FutureHelper.quietGet(this);
 					
 					Key k = ent.getKey();
 					if (!k.isComplete())
 						throw new IllegalStateException("Failed completeness at " + which);
 				}
-			});
+			};
 		} 
 	}
 }

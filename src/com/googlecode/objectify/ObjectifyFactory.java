@@ -13,7 +13,10 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
+import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.AsyncObjectifyImpl;
+import com.googlecode.objectify.impl.CacheControlImpl;
+import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
@@ -58,6 +61,12 @@ public class ObjectifyFactory
 	
 	/** All the various converters */
 	protected Conversions conversions = new Conversions(this);
+	
+	/** Tracks stats */
+	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
+	
+	/** Manages caching of entities at a low level */
+	protected EntityMemcache entityMemcache = new EntityMemcache(this.getRawMemcacheService(), new CacheControlImpl(this), this.memcacheStats);
 	
 	/**
 	 * Creates the default options for begin() and beginTransaction().  You can
@@ -115,7 +124,7 @@ public class ObjectifyFactory
 		
 		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
 		{
-			CachingAsyncDatastoreService async = new CachingAsyncDatastoreService(this, this.getRawAsyncDatastoreService(cfg), this.getRawMemcacheService());
+			CachingAsyncDatastoreService async = new CachingAsyncDatastoreService(this.getRawAsyncDatastoreService(cfg), this.entityMemcache);
 			return new CachingDatastoreService(ds, async);
 		}
 		else
@@ -138,7 +147,7 @@ public class ObjectifyFactory
 		AsyncDatastoreService ads = this.getRawAsyncDatastoreService(cfg);
 
 		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
-			return new CachingAsyncDatastoreService(this, ads, this.getRawMemcacheService());
+			return new CachingAsyncDatastoreService(ads, this.entityMemcache);
 		else
 			return ads;
 	}
@@ -160,7 +169,7 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * You can override this to change behavior, such as change (or remove) a scope
+	 * You can override this to change behavior, such as change (or remove) a namespace
 	 */
 	protected MemcacheService getRawMemcacheService()
 	{
@@ -204,6 +213,11 @@ public class ObjectifyFactory
 	{
 		this.registrar.register(clazz);
 	}
+	
+	/**
+	 * Get the object that tracks memcache stats.
+	 */
+	public EntityMemcacheStats getMemcacheStats() { return this.memcacheStats; } 
 	
 	//
 	// Stuff which should only be necessary internally, but might be useful to others.

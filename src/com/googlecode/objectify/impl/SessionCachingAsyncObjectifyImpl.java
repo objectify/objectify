@@ -13,8 +13,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cache.ListenableFuture;
-import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.cache.TriggerSuccessFuture;
 import com.googlecode.objectify.util.NowFuture;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
@@ -122,18 +121,16 @@ public class SessionCachingAsyncObjectifyImpl extends AsyncObjectifyImpl
 		
 		Result<Map<Key<T>, T>> orig = super.put(objs);
 		
-		final ListenableFuture<Map<Key<T>, T>> listenable = new ListenableFuture<Map<Key<T>, T>>(orig.getFuture());
-		listenable.addCallback(new Runnable() {
+		Future<Map<Key<T>, T>> triggered = new TriggerSuccessFuture<Map<Key<T>, T>>(orig.getFuture()) {
 			@Override
-			public void run()
+			protected void success(Map<Key<T>, T> result)
 			{
-				// Important also that the get() will properly populate keys on entities
-				for (Map.Entry<Key<T>, T> entry: FutureHelper.quietGet(listenable).entrySet())
+				for (Map.Entry<Key<T>, T> entry: result.entrySet())
 					cache.put(entry.getKey(), entry.getValue());
 			}
-		});
+		};
 
-		return new ResultAdapter<Map<Key<T>, T>>(listenable);
+		return new ResultAdapter<Map<Key<T>, T>>(triggered);
 	}
 
 	/* (non-Javadoc)

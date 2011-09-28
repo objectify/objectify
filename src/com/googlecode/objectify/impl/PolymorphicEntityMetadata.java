@@ -7,7 +7,6 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Subclass;
 
 
@@ -70,9 +69,6 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		}
 	}
 	
-	/** If any item in the hierarchy is cacheable, this goes true */
-	boolean mightBeInCache;
-	
 	/** The metadata for the base @Entity, which has no discriminator */
 	SubclassInfo<T> base;
 	
@@ -91,8 +87,6 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		this.base = new SubclassInfo<T>(baseMetadata, null);
 		
 		this.byClass.put(clazz, this.base);
-		
-		this.mightBeInCache = baseMetadata.mightBeInCache();
 	}
 	
 	/**
@@ -115,10 +109,6 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		this.byDiscriminator.put(discriminator, subclassMeta);
 		for (String alsoLoad: sub.alsoLoad())
 			this.byDiscriminator.put(alsoLoad, subclassMeta);
-		
-		// It's a great big or clause
-		if (subclassMeta.mightBeInCache())
-			this.mightBeInCache = true;
 	}
 	
 	/* (non-Javadoc)
@@ -164,19 +154,11 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getCached(com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getCacheExpirySeconds()
 	 */
-	public Cached getCached(Entity ent)
+	public Integer getCacheExpirySeconds()
 	{
-		return this.getConcrete(ent).getCached(ent);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#mightBeInCache()
-	 */
-	public boolean mightBeInCache()
-	{
-		return this.mightBeInCache;
+		return this.base.metadata.getCacheExpirySeconds();
 	}
 	
 	/* (non-Javadoc)
