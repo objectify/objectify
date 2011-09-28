@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.cache.MemcacheStats;
@@ -14,16 +14,16 @@ public class EntityMemcacheStats implements MemcacheStats
 	/** */
 	public class Stat
 	{
-		private AtomicInteger hits = new AtomicInteger();
-		private AtomicInteger misses = new AtomicInteger();
+		private AtomicLong hits = new AtomicLong();
+		private AtomicLong misses = new AtomicLong();
 		
-		public int getHits() { return this.hits.get(); }
-		public int getMisses() { return this.misses.get(); }
+		public long getHits() { return this.hits.get(); }
+		public long getMisses() { return this.misses.get(); }
 
 		public float getPercent()
 		{
-			int h = this.getHits();
-			int m = this.getMisses();
+			long h = this.getHits();
+			long m = this.getMisses();
 			
 			if (m == 0)
 				return 0;
