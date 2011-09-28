@@ -24,11 +24,12 @@ public class EntityMemcacheStats implements MemcacheStats
 		{
 			long h = this.getHits();
 			long m = this.getMisses();
+			long total = h + m;
 			
-			if (m == 0)
+			if (total == 0)
 				return 0;
 			else
-				return (float)h / (float)m;
+				return (float)h / (float)total;
 		}
 	}
 	
