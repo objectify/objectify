@@ -20,17 +20,8 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.util.FutureHelper;
 
 /**
- * <p>A write-through memcache for Entity objects that works for both transactional
- * and nontransactional sessions.  Entity cacheability and expiration are determined
- * by the {@code @Cached} annotation on the POJO.</p>
- * 
- * <ul>
- * <li>Caches negative results as well as positive results.</li>
- * <li>Queries do not affect the cache in any way.</li>
- * <li>Transactional reads bypass the cache, but successful transaction commits will update the cache.</li>
- * </ul>
- * 
- * <p>For further details, see the javadocs for CachingAsyncDatastoreService.</p>
+ * <p>A synchronous facade for the CachingAsyncDatastoreService.  Please see the documentation
+ * for that class for details.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
