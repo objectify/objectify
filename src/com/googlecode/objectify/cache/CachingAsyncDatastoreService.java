@@ -128,7 +128,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	private void checkForImplicitTransaction()
 	{
 		if (this.rawAsync.getCurrentTransaction() != null)
-			throw new UnsupportedOperationException("Implicit, thread-local transactions are not supported by the cache");
+			throw new UnsupportedOperationException("Implicit, thread-local transactions are not supported by the cache.  You must pass in an transaction explicitly.");
 	}
 
 	/* (non-Javadoc)
