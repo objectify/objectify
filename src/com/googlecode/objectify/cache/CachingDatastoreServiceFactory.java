@@ -28,6 +28,9 @@ public class CachingDatastoreServiceFactory
 	 */
 	public static void setDefaultMemcacheService(MemcacheService value) { defaultMemcacheService = value; }
 	
+	/** The memcache service used by default for most of these factory methods */
+	public static MemcacheService getDefaultMemcacheService() { return defaultMemcacheService; }
+	
 	/**
 	 * Get a caching DatastoreService with no pre-set expiration on cache values.
 	 */
