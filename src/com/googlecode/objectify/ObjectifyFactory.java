@@ -1,6 +1,7 @@
 package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
+import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -26,6 +27,8 @@ import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.util.NowFuture;
+import com.googlecode.objectify.util.ObjectifyWrapper;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -94,18 +97,40 @@ public class ObjectifyFactory
 		// This is a hack because Development SDK 1.5.4 doesn't support global transactions yet.  So
 		// if that is turned on, disable transactions entirely.
 		// TODO:  remove this in SDK 1.5.5+, whenever it works
-		if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development
-				&& txnOpts != null
-				&& txnOpts.allowsMultipleEntityGroups()) {
-			txnOpts = null;
+		boolean enableHack = 
+				txnOpts != null
+				&& txnOpts.allowsMultipleEntityGroups() != null
+				&& txnOpts.allowsMultipleEntityGroups()
+				&& SystemProperty.environment.value() == SystemProperty.Environment.Value.Development;
+		
+		//Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
+		Transaction txn = (enableHack) ? null : (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
+		
+		Objectify ofy = (opts.getSessionCache())
+			? new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn))
+			: new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
+		
+		if (enableHack)
+		{
+			// Gotta make sure calls to commit() don't cause problems
+			return new ObjectifyWrapper(ofy) {
+				@Override
+				public Transaction getTxn()
+				{
+					return new Transaction() {
+						@Override public Future<Void> rollbackAsync() { return new NowFuture<Void>(null); }
+						@Override public void rollback() { }
+						@Override public boolean isActive() { return false; }
+						@Override public String getId() { return null; }
+						@Override public String getApp() { return null; }
+						@Override public Future<Void> commitAsync() { return new NowFuture<Void>(null); }
+						@Override public void commit() { }
+					};
+				}
+			};
 		}
-		
-		Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
-		
-		if (opts.getSessionCache())
-			return new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn));
 		else
-			return new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
+			return ofy;
 	}
 	
 	/**
