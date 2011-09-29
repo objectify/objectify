@@ -9,8 +9,10 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.utils.SystemProperty;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
@@ -87,7 +89,18 @@ public class ObjectifyFactory
 	 */
 	protected Objectify createObjectify(AsyncDatastoreService ds, ObjectifyOpts opts) 
 	{
-		Transaction txn = (opts.getBeginTransaction()) ? FutureHelper.quietGet(ds.beginTransaction()) : null;
+		TransactionOptions txnOpts = opts.getTransactionOptions();
+		
+		// This is a hack because Development SDK 1.5.4 doesn't support global transactions yet.  So
+		// if that is turned on, disable transactions entirely.
+		// TODO:  remove this in SDK 1.5.5+, whenever it works
+		if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development
+				&& txnOpts != null
+				&& txnOpts.allowsMultipleEntityGroups()) {
+			txnOpts = null;
+		}
+		
+		Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
 		
 		if (opts.getSessionCache())
 			return new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn));
@@ -201,7 +214,16 @@ public class ObjectifyFactory
 	 */
 	public Objectify beginTransaction()
 	{
-		return this.begin(this.createDefaultOpts().setBeginTransaction(true));
+		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.withDefaults()));
+	}
+	
+	/**
+	 * @return an Objectify which uses a transaction.  Adds a little overhead but allows you
+	 * to span multiple entity groups. 
+	 */
+	public Objectify beginGlobalTransaction()
+	{
+		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.allowMultipleEntityGroups(true)));
 	}
 	
 	/**
