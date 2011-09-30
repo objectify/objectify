@@ -31,6 +31,9 @@ public class ObjectifyService
 	/** @see ObjectifyFactory#beginTransaction() */
 	public static Objectify beginTransaction() { return factory().beginTransaction(); }
 	
+	/** @see ObjectifyFactory#beginTransactionXg() */
+	public static Objectify beginTransactionXg() { return factory().beginTransactionXg(); }
+	
 	/** @see ObjectifyFactory#begin(ObjectifyOpts) */
 	public static Objectify begin(ObjectifyOpts opts) { return factory().begin(opts); }
 	

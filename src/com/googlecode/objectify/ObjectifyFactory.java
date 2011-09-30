@@ -243,10 +243,10 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * @return an Objectify which uses a transaction.  Adds a little overhead but allows you
+	 * @return an Objectify which uses a cross-entity-group transaction.  Adds a little overhead but allows you
 	 * to span multiple entity groups. 
 	 */
-	public Objectify beginGlobalTransaction()
+	public Objectify beginTransactionXg()
 	{
 		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.allowMultipleEntityGroups(true)));
 	}
