@@ -24,10 +24,10 @@ import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
  * In addition, hit/miss statistics are tracked in a {@code MemcacheStats}.</p>
  * 
  * <p>In order to guarantee cache synchronization, getAll() *must* be able to return
- * an IdentifiableValue, even for entries not present in the cache.  Because null cache
- * values cannot be made into IdentifiableValue, we immediately replace them with an
- * EMPTY sentinel value and refetch.  If this refetch doesn't work, we treat the
- * key as uncacheable for the duration of the request.</p> 
+ * an IdentifiableValue, even for entries not present in the cache.  Because empty cache
+ * values cannot be made into IdentifiableValue, we immediately replace them with a
+ * null value and refetch (null is a valid cache value).  If this refetch doesn't work,
+ * we treat the key as uncacheable for the duration of the request.</p>
  * 
  * <p>There is a horrible, obscure, and utterly bizarre bug in GAE's memcache
  * relating to Key serialization.  It manifests in certain circumstances when a Key
@@ -35,7 +35,7 @@ import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
  * keyToString method to stringify Keys as cache keys.  The actual structure
  * stored in the memcache will be String -> Entity.</p>
  * 
- * <p>Actually, that's a lie.  Usually it is String -> Entity.  When NEGATIVE or EMPTY
+ * <p>Actually, that's a lie.  Usually it is String -> Entity.  When NEGATIVE
  * is stored, it will be String -> String.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
@@ -145,13 +145,6 @@ public class EntityMemcache
 	 */
 	static final String NEGATIVE = "NEGATIVE";
 	
-	/**
-	 * The value stored in the memcache for an empty result.  This is needed because getIdentifiable() does not
-	 * produce an identifiable value for null.  When we discover this, we must immediately put an EMPTY in its
-	 * place so that a future putIfUntouched() will work.
-	 */
-	static final String EMPTY = "EMPTY";
-	
 	/** */
 	MemcacheService memcache;
 	MemcacheStats stats;
@@ -216,7 +209,7 @@ public class EntityMemcache
 	}
 	
 	/**
-	 * Update a set of buckets with new values.  If collisions occur, resets the memcache value to EMPTY.
+	 * Update a set of buckets with new values.  If collisions occur, resets the memcache value to null.
 	 * 
 	 * @param updates can have null Entity values, which will record a negative cache result.  Buckets must have
 	 *  been obtained from getAll().
@@ -230,10 +223,10 @@ public class EntityMemcache
 
 		if (!bad.isEmpty())
 		{
-			// So we had some collisions.  We need to reset these back to EMPTY, but do it in a safe way - if we
-			// blindly set EMPTY something already EMPTY, it will break any putIfUntouched() which saw the first EMPTY.
+			// So we had some collisions.  We need to reset these back to null, but do it in a safe way - if we
+			// blindly set null something already null, it will break any putIfUntouched() which saw the first null.
 			// This could result in write contention starving out a real write.  The solution is to only reset things
-			// that are not already EMPTY.
+			// that are not already null.
 			
 			Map<Key, Object> cached = this.cacheGetAll(bad);
 			
@@ -242,7 +235,7 @@ public class EntityMemcache
 			while (it.hasNext())
 			{
 				Object value = it.next();
-				if (value != null && !EMPTY.equals(value))
+				if (value == null)
 					it.remove();
 			}
 			
@@ -261,7 +254,7 @@ public class EntityMemcache
 		
 		for (Key key: keys)
 			if (cacheControl.getExpirySeconds(key) != null)
-				updates.put(KeyFactory.keyToString(key), EMPTY);
+				updates.put(KeyFactory.keyToString(key), null);
 		
 		this.memcache.putAll(updates);
 	}
@@ -312,8 +305,8 @@ public class EntityMemcache
 		
 		if (iv == null)
 		{
-			// The cache is cold for that value, so start out with an EMPTY that we can make an IV for
-			this.memcache.put(safeKey, EMPTY);
+			// The cache is cold for that value, so start out with a null that we can make an IV for
+			this.memcache.put(safeKey, null);
 			
 			try {
 				iv = this.memcache.getIdentifiable(safeKey);
