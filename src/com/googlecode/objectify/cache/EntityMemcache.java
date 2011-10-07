@@ -13,11 +13,10 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.memcache.ErrorHandler;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
-import com.google.appengine.api.memcache.StrictErrorHandler;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>
@@ -147,22 +146,18 @@ public class EntityMemcache
 	 */
 	private static final String NEGATIVE = "NEGATIVE";
 	
-	/**
-	 * We use this on the memcacheservice for writes so that we get real exceptions when something goes wrong.
-	 */
-	private static final ErrorHandler DOES_NOT_MASK_EXCEPTIONS = new StrictErrorHandler();
-	
 	/** */
 	MemcacheService memcache;
+	MemcacheService memcacheWithRetry;
 	MemcacheStats stats;
 	CacheControl cacheControl;
 	
 	/**
 	 * Creates a memcache which caches everything without expiry and doesn't record statistics.
 	 */
-	public EntityMemcache(MemcacheService memcache)
+	public EntityMemcache(String namespace)
 	{
-		this(memcache, new CacheControl() {
+		this(namespace, new CacheControl() {
 			@Override
 			public Integer getExpirySeconds(Key key) { return 0; }
 		});
@@ -171,9 +166,9 @@ public class EntityMemcache
 	/**
 	 * Creates a memcache which doesn't record stats
 	 */
-	public EntityMemcache(MemcacheService memcache, CacheControl cacheControl)
+	public EntityMemcache(String namespace, CacheControl cacheControl)
 	{
-		this(memcache, cacheControl, new MemcacheStats() {
+		this(namespace, cacheControl, new MemcacheStats() {
 			@Override public void recordHit(Key key) { }
 			@Override public void recordMiss(Key key) { }
 		});
@@ -181,9 +176,10 @@ public class EntityMemcache
 
 	/**
 	 */
-	public EntityMemcache(MemcacheService memcache, CacheControl cacheControl, MemcacheStats stats)
+	public EntityMemcache(String namespace, CacheControl cacheControl, MemcacheStats stats)
 	{
-		this.memcache = memcache;
+		this.memcache = MemcacheServiceFactory.getMemcacheService(namespace);
+		this.memcacheWithRetry = MemcacheServiceRetryProxy.createProxy(MemcacheServiceFactory.getMemcacheService(namespace));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
@@ -262,14 +258,7 @@ public class EntityMemcache
 			if (cacheControl.getExpirySeconds(key) != null)
 				updates.put(KeyFactory.keyToString(key), null);	// Need to do key stringification
 		
-		ErrorHandler handler = this.memcache.getErrorHandler();
-		try {
-			this.memcache.setErrorHandler(DOES_NOT_MASK_EXCEPTIONS);
-			
-			this.memcache.putAll(updates);
-		} finally {
-			this.memcache.setErrorHandler(handler);
-		}
+		this.memcacheWithRetry.putAll(updates);
 	}
 	
 	/**

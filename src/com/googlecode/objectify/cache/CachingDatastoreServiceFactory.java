@@ -5,8 +5,6 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.ObjectifyFactory;
 
 
@@ -20,23 +18,22 @@ import com.googlecode.objectify.ObjectifyFactory;
  */
 public class CachingDatastoreServiceFactory
 {
-	private static MemcacheService defaultMemcacheService = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
+	private static String defaultMemcacheNamespace = ObjectifyFactory.MEMCACHE_NAMESPACE;
 	
 	/** 
-	 * You can reset the memcache used, say, to include a different namespace.  The default namespace is
-	 * the one used by Objectify for its cache.
+	 * The default namespace is the one used by Objectify for its cache.  You can reset it.
 	 */
-	public static void setDefaultMemcacheService(MemcacheService value) { defaultMemcacheService = value; }
+	public static void setDefaultMemcacheNamespace(String value) { defaultMemcacheNamespace = value; }
 	
-	/** The memcache service used by default for most of these factory methods */
-	public static MemcacheService getDefaultMemcacheService() { return defaultMemcacheService; }
+	/** The memcache snamespace used by default for most of these factory methods */
+	public static String getDefaultMemcacheNamespace() { return defaultMemcacheNamespace; }
 	
 	/**
 	 * Get a caching DatastoreService with no pre-set expiration on cache values.
 	 */
 	public static DatastoreService getDatastoreService()
 	{
-		EntityMemcache em = new EntityMemcache(defaultMemcacheService);
+		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getDatastoreService(em);
 	}
 	
@@ -45,7 +42,7 @@ public class CachingDatastoreServiceFactory
 	 */
 	public static DatastoreService getDatastoreService(DatastoreServiceConfig cfg)
 	{
-		EntityMemcache em = new EntityMemcache(defaultMemcacheService);
+		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getDatastoreService(cfg, em);
 	}
 
@@ -54,7 +51,7 @@ public class CachingDatastoreServiceFactory
 	 */
 	public static AsyncDatastoreService getAsyncDatastoreService()
 	{
-		EntityMemcache em = new EntityMemcache(defaultMemcacheService);
+		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getAsyncDatastoreService(em);
 	}
 	
@@ -63,7 +60,7 @@ public class CachingDatastoreServiceFactory
 	 */
 	public static AsyncDatastoreService getAsyncDatastoreService(DatastoreServiceConfig cfg)
 	{
-		EntityMemcache em = new EntityMemcache(defaultMemcacheService);
+		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getAsyncDatastoreService(cfg, em);
 	}
 	
@@ -154,7 +151,7 @@ public class CachingDatastoreServiceFactory
 	 */
 	private static EntityMemcache getCacheControlled(final int expirySeconds)
 	{
-		return new EntityMemcache(defaultMemcacheService, new CacheControl() {
+		return new EntityMemcache(defaultMemcacheNamespace, new CacheControl() {
 			@Override
 			public Integer getExpirySeconds(Key key)
 			{
