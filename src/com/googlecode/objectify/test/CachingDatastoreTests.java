@@ -17,7 +17,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.test.util.MockAsyncDatastoreService;
@@ -53,7 +52,7 @@ public class CachingDatastoreTests extends TestBase
 	{
 		super.setUp();
 		
-		EntityMemcache mc = new EntityMemcache(MemcacheServiceFactory.getMemcacheService());
+		EntityMemcache mc = new EntityMemcache(null);
 		cads = new CachingAsyncDatastoreService(DatastoreServiceFactory.getAsyncDatastoreService(), mc);
 		nods = new CachingAsyncDatastoreService(new MockAsyncDatastoreService(), mc);
 		

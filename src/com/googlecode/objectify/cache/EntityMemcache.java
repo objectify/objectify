@@ -16,6 +16,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>
@@ -143,19 +144,20 @@ public class EntityMemcache
 	/**
 	 * The value stored in the memcache for a negative cache result.
 	 */
-	static final String NEGATIVE = "NEGATIVE";
+	private static final String NEGATIVE = "NEGATIVE";
 	
 	/** */
 	MemcacheService memcache;
+	MemcacheService memcacheWithRetry;
 	MemcacheStats stats;
 	CacheControl cacheControl;
 	
 	/**
 	 * Creates a memcache which caches everything without expiry and doesn't record statistics.
 	 */
-	public EntityMemcache(MemcacheService memcache)
+	public EntityMemcache(String namespace)
 	{
-		this(memcache, new CacheControl() {
+		this(namespace, new CacheControl() {
 			@Override
 			public Integer getExpirySeconds(Key key) { return 0; }
 		});
@@ -164,9 +166,9 @@ public class EntityMemcache
 	/**
 	 * Creates a memcache which doesn't record stats
 	 */
-	public EntityMemcache(MemcacheService memcache, CacheControl cacheControl)
+	public EntityMemcache(String namespace, CacheControl cacheControl)
 	{
-		this(memcache, cacheControl, new MemcacheStats() {
+		this(namespace, cacheControl, new MemcacheStats() {
 			@Override public void recordHit(Key key) { }
 			@Override public void recordMiss(Key key) { }
 		});
@@ -174,9 +176,10 @@ public class EntityMemcache
 
 	/**
 	 */
-	public EntityMemcache(MemcacheService memcache, CacheControl cacheControl, MemcacheStats stats)
+	public EntityMemcache(String namespace, CacheControl cacheControl, MemcacheStats stats)
 	{
-		this.memcache = memcache;
+		this.memcache = MemcacheServiceFactory.getMemcacheService(namespace);
+		this.memcacheWithRetry = MemcacheServiceRetryProxy.createProxy(MemcacheServiceFactory.getMemcacheService(namespace));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
@@ -244,19 +247,18 @@ public class EntityMemcache
 	}
 
 	/**
-	 * Revert a set of keys to the empty state.
+	 * Revert a set of keys to the empty state.  Will loop on this several times just in case
+	 * the memcache write fails - we don't want to leave the cache in a nasty state.
 	 */
 	public void empty(Iterable<Key> keys)
 	{
-		// Need to do key stringification
-		
 		Map<String, Object> updates = new HashMap<String, Object>();
 		
 		for (Key key: keys)
 			if (cacheControl.getExpirySeconds(key) != null)
-				updates.put(KeyFactory.keyToString(key), null);
+				updates.put(KeyFactory.keyToString(key), null);	// Need to do key stringification
 		
-		this.memcache.putAll(updates);
+		this.memcacheWithRetry.putAll(updates);
 	}
 	
 	/**

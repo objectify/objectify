@@ -11,8 +11,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.utils.SystemProperty;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
@@ -71,7 +69,7 @@ public class ObjectifyFactory
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 	
 	/** Manages caching of entities at a low level */
-	protected EntityMemcache entityMemcache = new EntityMemcache(this.getRawMemcacheService(), new CacheControlImpl(this), this.memcacheStats);
+	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	
 	/**
 	 * Creates the default options for begin() and beginTransaction().  You can
@@ -204,14 +202,6 @@ public class ObjectifyFactory
 	protected AsyncDatastoreService getRawAsyncDatastoreService(DatastoreServiceConfig cfg)
 	{
 		return DatastoreServiceFactory.getAsyncDatastoreService(cfg);
-	}
-	
-	/**
-	 * You can override this to change behavior, such as change (or remove) a namespace
-	 */
-	protected MemcacheService getRawMemcacheService()
-	{
-		return MemcacheServiceFactory.getMemcacheService(MEMCACHE_NAMESPACE);
 	}
 	
 	/**
