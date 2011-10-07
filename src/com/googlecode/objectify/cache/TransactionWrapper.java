@@ -1,9 +1,11 @@
 package com.googlecode.objectify.cache;
 
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.Key;
@@ -78,13 +80,24 @@ class TransactionWrapper implements Transaction
 		for (Future<?> fut: this.enlistedFutures)
 			FutureHelper.quietGet(fut);
 		
-		Future<Void> future = new TriggerSuccessFuture<Void>(this.raw.commitAsync()) {
+		Future<Void> future = new TriggerFuture<Void>(this.raw.commitAsync()) {
 			@Override
-			protected void success(Void result)
+			protected void trigger()
 			{
-				// Only after successful commit should we modify the cache
+				// Only after a commit should we modify the cache
 				if (deferred != null)
+				{
+					// There is one special case - if we have a ConcurrentModificationException, we don't
+					// need to empty the cache because whoever succeeded in their write took care of it.
+					try {
+						this.raw.get();
+					} catch (ExecutionException ex) {
+						if (ex.getCause() instanceof ConcurrentModificationException)
+							return;
+					} catch (Exception ex) {}
+					
 					cache.empty(deferred);
+				}
 			}
 		};
 		

@@ -13,9 +13,11 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.memcache.ErrorHandler;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+import com.google.appengine.api.memcache.StrictErrorHandler;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>
@@ -143,7 +145,12 @@ public class EntityMemcache
 	/**
 	 * The value stored in the memcache for a negative cache result.
 	 */
-	static final String NEGATIVE = "NEGATIVE";
+	private static final String NEGATIVE = "NEGATIVE";
+	
+	/**
+	 * We use this on the memcacheservice for writes so that we get real exceptions when something goes wrong.
+	 */
+	private static final ErrorHandler DOES_NOT_MASK_EXCEPTIONS = new StrictErrorHandler();
 	
 	/** */
 	MemcacheService memcache;
@@ -244,19 +251,25 @@ public class EntityMemcache
 	}
 
 	/**
-	 * Revert a set of keys to the empty state.
+	 * Revert a set of keys to the empty state.  Will loop on this several times just in case
+	 * the memcache write fails - we don't want to leave the cache in a nasty state.
 	 */
 	public void empty(Iterable<Key> keys)
 	{
-		// Need to do key stringification
-		
 		Map<String, Object> updates = new HashMap<String, Object>();
 		
 		for (Key key: keys)
 			if (cacheControl.getExpirySeconds(key) != null)
-				updates.put(KeyFactory.keyToString(key), null);
+				updates.put(KeyFactory.keyToString(key), null);	// Need to do key stringification
 		
-		this.memcache.putAll(updates);
+		ErrorHandler handler = this.memcache.getErrorHandler();
+		try {
+			this.memcache.setErrorHandler(DOES_NOT_MASK_EXCEPTIONS);
+			
+			this.memcache.putAll(updates);
+		} finally {
+			this.memcache.setErrorHandler(handler);
+		}
 	}
 	
 	/**

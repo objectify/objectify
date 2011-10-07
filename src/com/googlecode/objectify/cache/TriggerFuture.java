@@ -28,7 +28,7 @@ import java.util.concurrent.TimeoutException;
 abstract public class TriggerFuture<T> implements Future<T>
 {
 	/** Wrap the raw Future<?> */
-	Future<T> raw;
+	protected Future<T> raw;
 	
 	/** If we have run the trigger() method already */
 	boolean triggered = false;
@@ -88,7 +88,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 
 		return done;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see java.util.concurrent.Future#get()
 	 */
