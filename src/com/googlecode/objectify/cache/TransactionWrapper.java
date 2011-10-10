@@ -1,11 +1,9 @@
 package com.googlecode.objectify.cache;
 
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.Key;
@@ -87,14 +85,17 @@ class TransactionWrapper implements Transaction
 				// Only after a commit should we modify the cache
 				if (deferred != null)
 				{
+					// According to Alfred, ConcurrentModificationException does not necessarily mean
+					// the write failed.  So this optimization is a bad idea.
+					//
 					// There is one special case - if we have a ConcurrentModificationException, we don't
 					// need to empty the cache because whoever succeeded in their write took care of it.
-					try {
-						this.raw.get();
-					} catch (ExecutionException ex) {
-						if (ex.getCause() instanceof ConcurrentModificationException)
-							return;
-					} catch (Exception ex) {}
+					//try {
+					//	this.raw.get();
+					//} catch (ExecutionException ex) {
+					//	if (ex.getCause() instanceof ConcurrentModificationException)
+					//		return;
+					//} catch (Exception ex) {}
 					
 					cache.empty(deferred);
 				}

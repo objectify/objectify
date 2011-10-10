@@ -57,6 +57,15 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 	
 	/**
+	 * Reconstitute a Key from a web safe string.  This can be generated with toWebSafeString()
+	 * or KeyFactory.strongToKey().
+	 */
+	public Key(String webSafe)
+	{
+		this(KeyFactory.stringToKey(webSafe));
+	}
+	
+	/**
 	 * @return the raw datastore version of this key
 	 */
 	public com.google.appengine.api.datastore.Key getRaw()
@@ -150,6 +159,15 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	public String toString()
 	{
 		return "Key<?>(" + this.raw + ")";
+	}
+	
+	/**
+	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
+	 * constructor that takes a websafe string.
+	 */
+	public String toWebSafeString()
+	{
+		return KeyFactory.keyToString(this.raw);
 	}
 	
 	/**
