@@ -1,6 +1,7 @@
 package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
+import com.google.appengine.api.datastore.TransactionOptions;
 
 /**
  * <p>The options available when creating an Objectify instance.</p>
@@ -19,23 +20,38 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
  */
 public class ObjectifyOpts implements Cloneable
 {
-	boolean beginTransaction;
+	/** If txnOpts is null, don't start a transaction */
+	TransactionOptions txnOpts;
 	boolean sessionCache = false;
 	boolean globalCache = true;
 	Consistency consistency = Consistency.STRONG;
 	Double deadline;
 	
 	/** Gets the current value of beginTransaction */
-	public boolean getBeginTransaction() { return this.beginTransaction; }
+	@Deprecated
+	public boolean getBeginTransaction() { return this.txnOpts != null; }
 	
 	/**
 	 * Sets whether or not the Objectify instance will start a transaction.  If
 	 * true, the instance will hold a transaction that must be rolled back or
 	 * committed.
 	 */
+	@Deprecated
 	public ObjectifyOpts setBeginTransaction(boolean value)
 	{
-		this.beginTransaction = value;
+		this.txnOpts = value ? TransactionOptions.Builder.withDefaults() : null;
+		return this;
+	}
+
+	/** Get the current transaction options - null if there is no transaction */
+	public TransactionOptions getTransactionOptions() { return this.txnOpts; }
+	
+	/**
+	 * Set options for a transaction to start, or null for no transaction.
+	 */
+	public ObjectifyOpts setTransactionOptions(TransactionOptions opts)
+	{
+		this.txnOpts = opts;
 		return this;
 	}
 	

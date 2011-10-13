@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
@@ -85,12 +86,16 @@ public class ObjectifyFactory
 	 */
 	protected Objectify createObjectify(AsyncDatastoreService ds, ObjectifyOpts opts) 
 	{
-		Transaction txn = (opts.getBeginTransaction()) ? FutureHelper.quietGet(ds.beginTransaction()) : null;
+		TransactionOptions txnOpts = opts.getTransactionOptions();
 		
-		if (opts.getSessionCache())
-			return new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn));
-		else
-			return new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
+		
+		Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
+		
+		Objectify ofy = (opts.getSessionCache())
+			? new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn))
+			: new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
+		
+		return ofy;
 	}
 	
 	/**
@@ -191,7 +196,16 @@ public class ObjectifyFactory
 	 */
 	public Objectify beginTransaction()
 	{
-		return this.begin(this.createDefaultOpts().setBeginTransaction(true));
+		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.withDefaults()));
+	}
+	
+	/**
+	 * @return an Objectify which uses a cross-entity-group transaction.  Adds a little overhead but allows you
+	 * to span multiple entity groups. 
+	 */
+	public Objectify beginTransactionXG()
+	{
+		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.withXG(true)));
 	}
 	
 	/**

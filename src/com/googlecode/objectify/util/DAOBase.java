@@ -4,6 +4,7 @@
 
 package com.googlecode.objectify.util;
 
+import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOpts;
@@ -40,9 +41,12 @@ public class DAOBase
 	/**
 	 * Creates a DAO possibly with a transaction.
 	 */
+	@Deprecated
 	public DAOBase(boolean transactional)
 	{
-		this.opts = new ObjectifyOpts().setBeginTransaction(transactional);
+		this.opts = new ObjectifyOpts();
+		if (transactional)
+			opts.setTransactionOptions(TransactionOptions.Builder.withDefaults());
 	}
 	
 	/**
