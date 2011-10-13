@@ -26,6 +26,8 @@ import com.googlecode.objectify.impl.EntityMemcacheStats.Stat;
  */
 public class MemcacheStatsServlet extends HttpServlet
 {
+	private static final long serialVersionUID = 1L;
+
 	/**
 	 * If you aren't using ObjectifyService, you can extend the servlet and override this method. 
 	 */
