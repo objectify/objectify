@@ -2,6 +2,7 @@ package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.TransactionOptions;
+import com.googlecode.objectify.util.DatastoreIntrospector;
 
 /**
  * <p>The options available when creating an Objectify instance.</p>
@@ -28,26 +29,28 @@ public class ObjectifyOpts implements Cloneable
 	Double deadline;
 	
 	/** Gets the current value of beginTransaction */
-	@Deprecated
 	public boolean getBeginTransaction() { return this.txnOpts != null; }
 	
 	/**
 	 * Sets whether or not the Objectify instance will start a transaction.  If
 	 * true, the instance will hold a transaction that must be rolled back or
-	 * committed.
+	 * committed.  Uses XG transactions when on the HRD; {@code setBeginTransaction(true)} is equivalent
+	 * to {@code setTransactionOptions(TransactionOptions.Builder.withXG(true))}.
+	 * There is no overhead for XG transactions on a single entity group, so there is
+	 * no good reason to ever have this false.
 	 */
-	@Deprecated
 	public ObjectifyOpts setBeginTransaction(boolean value)
 	{
-		this.txnOpts = value ? TransactionOptions.Builder.withDefaults() : null;
+		this.txnOpts = value ? TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG) : null;
 		return this;
 	}
 
 	/** Get the current transaction options - null if there is no transaction */
-	public TransactionOptions getTransactionOptions() { return this.txnOpts; }
+	TransactionOptions getTransactionOptions() { return this.txnOpts; }
 	
 	/**
 	 * Set options for a transaction to start, or null for no transaction.
+	 * You probably want to use {@code setBeginTransaction(true)} instead.
 	 */
 	public ObjectifyOpts setTransactionOptions(TransactionOptions opts)
 	{

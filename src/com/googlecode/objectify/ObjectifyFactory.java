@@ -88,7 +88,6 @@ public class ObjectifyFactory
 	{
 		TransactionOptions txnOpts = opts.getTransactionOptions();
 		
-		
 		Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
 		
 		Objectify ofy = (opts.getSessionCache())
@@ -191,21 +190,12 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * @return an Objectify which uses a transaction.  Be careful, you cannot
-	 *  access entities across differing entity groups. 
+	 * @return an Objectify which uses a transaction. The transaction supports cross-group access, but
+	 * this has no extra overhead for a single-entity-group transaction.
 	 */
 	public Objectify beginTransaction()
 	{
-		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.withDefaults()));
-	}
-	
-	/**
-	 * @return an Objectify which uses a cross-entity-group transaction.  Adds a little overhead but allows you
-	 * to span multiple entity groups. 
-	 */
-	public Objectify beginTransactionXG()
-	{
-		return this.begin(this.createDefaultOpts().setTransactionOptions(TransactionOptions.Builder.withXG(true)));
+		return this.begin(this.createDefaultOpts().setBeginTransaction(true));
 	}
 	
 	/**
