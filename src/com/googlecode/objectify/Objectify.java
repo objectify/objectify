@@ -36,6 +36,11 @@ public interface Objectify
 	<T> Map<Key<T>, T> get(Iterable<? extends Key<? extends T>> keys);
 	
 	/**
+	 * <p>Varargs version of get(Iterable)</p>
+	 */
+	<T> Map<Key<T>, T> get(Key<? extends T>... keys);
+	
+	/**
 	 * <p>Gets one instance of your entity.</p>
 	 * 
 	 * @throws NotFoundException if the key does not exist in the datastore

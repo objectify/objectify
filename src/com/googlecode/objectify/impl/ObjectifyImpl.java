@@ -46,6 +46,15 @@ public class ObjectifyImpl implements Objectify
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#get(com.googlecode.objectify.Key<? extends T>[])
+	 */
+	@Override
+	public <T> Map<Key<T>, T> get(Key<? extends T>... keys)
+	{
+		return this.async.get(keys).get();
+	}
+
+	/* (non-Javadoc)
 	 * @see com.google.code.objectify.Objectify#get(com.google.appengine.api.datastore.Key)
 	 */
 	@Override

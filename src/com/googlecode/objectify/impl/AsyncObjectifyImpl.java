@@ -90,6 +90,16 @@ public class AsyncObjectifyImpl implements AsyncObjectify
 		return new ResultAdapter<Map<Key<T>, T>>(wrapped);
 	}
 
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.AsyncObjectify#get(com.googlecode.objectify.Key<? extends T>[])
+	 */
+	@Override
+	public <T> Result<Map<Key<T>, T>> get(Key<? extends T>... keys)
+	{
+		return this.get(Arrays.asList(keys));
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.AsyncObjectify#get(com.googlecode.objectify.Key)
 	 */

@@ -31,6 +31,11 @@ public interface AsyncObjectify
 	<T> Result<Map<Key<T>, T>> get(Iterable<? extends Key<? extends T>> keys);
 	
 	/**
+	 * @see Objectify#get(Key...)
+	 */
+	<T> Result<Map<Key<T>, T>> get(Key<? extends T>... keys);
+	
+	/**
 	 * Note that the Result.get() method will throw NotFoundException if entity wasn't found
 	 * @see Objectify#get(Key)
 	 */

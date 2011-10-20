@@ -39,6 +39,12 @@ public class ObjectifyWrapper implements Objectify
 	}
 	
 	@Override
+	public <T> Map<Key<T>, T> get(Key<? extends T>... keys)
+	{
+		return this.base.get(keys);
+	}
+
+	@Override
 	public <T> T get(Key<? extends T> key) throws NotFoundException
 	{
 		return this.base.get(key);
