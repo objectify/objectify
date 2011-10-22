@@ -14,6 +14,26 @@ import com.googlecode.objectify.annotation.Subclass;
 public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = 2L;
+	
+	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
+	public static <T> Key<T> create(Class<? extends T> kindClass, long id) {
+		return new Key<T>(kindClass, id);
+	}
+
+	/** Key.create(Blah.class, name) is easier to type than new Key<Blah>(Blah.class, name) */
+	public static <T> Key<T> create(Class<? extends T> kindClass, String name) {
+		return new Key<T>(kindClass, name);
+	}
+
+	/** Key.create(parent, Blah.class, id) is easier to type than new Key<Blah>(parent, Blah.class, id) */
+	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, long id) {
+		return new Key<T>(parent, kindClass, id);
+	}
+
+	/** Key.create(parent, Blah.class, name) is easier to type than new Key<Blah>(parent, Blah.class, name) */
+	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, String name) {
+		return new Key<T>(parent, kindClass, name);
+	}
 
 	/** */
 	protected com.google.appengine.api.datastore.Key raw;
