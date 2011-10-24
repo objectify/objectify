@@ -441,4 +441,13 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	{
 		return this.parentField != null;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getEntityClass()
+	 */
+	@Override
+	public Class<T> getEntityClass()
+	{
+		return this.entityClass;
+	}
 }

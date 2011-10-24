@@ -66,4 +66,10 @@ public interface EntityMetadata<T>
 	 * @return true if the entity has a parent field
 	 */
 	public boolean hasParentField();
+	
+	/**
+	 * Gets the class associated with this entity. For concrete metadata it will be the actual class;
+	 * for polymorphic metadata this will be the base class.
+	 */
+	public Class<T> getEntityClass(); 
 }

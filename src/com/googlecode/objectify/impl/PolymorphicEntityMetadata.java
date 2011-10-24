@@ -227,4 +227,13 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	{
 		return this.base.metadata.hasParentField();
 	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getEntityClass()
+	 */
+	@Override
+	public Class<T> getEntityClass()
+	{
+		return this.base.metadata.getEntityClass();
+	}
 }
