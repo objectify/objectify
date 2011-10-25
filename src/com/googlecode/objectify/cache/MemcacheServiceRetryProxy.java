@@ -11,7 +11,8 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.StrictErrorHandler;
 
 /**
- * <p>Dynamic proxy which wraps a MemcacheService and adds retries when an exception occurs.</p> 
+ * <p>Dynamic proxy which wraps a MemcacheService and adds retries when an exception occurs.
+ * It logs and masks exceptions on complete failure.</p> 
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -73,13 +74,13 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 				return meth.invoke(this.raw, args);
 			} catch (InvocationTargetException ex) {
 				if (i == (this.retries - 1))
-					throw ex;
+					log.log(Level.SEVERE, "Memcache operation failed, giving up", ex);
 				else
 					log.log(Level.WARNING, "Error performing memcache operation, retrying: " + meth, ex);
 			}
 		}
 		
-		// Impossible to reach this point, but compiler doesn't realize that
+		// Will reach this point of we have exhausted our retries.
 		return null;
 	}
 
