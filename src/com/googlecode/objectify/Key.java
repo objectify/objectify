@@ -35,6 +35,11 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<T>(parent, kindClass, name);
 	}
 
+	/** Key.create(webSafeString) is easier to type than new Key<Blah>(webSafeString) */
+	public static <T> Key<T> create(String webSafeString) {
+		return new Key<T>(webSafeString);
+	}
+	
 	/** */
 	protected com.google.appengine.api.datastore.Key raw;
 	
