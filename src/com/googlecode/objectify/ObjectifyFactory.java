@@ -380,14 +380,14 @@ public class ObjectifyFactory
 	 * 
 	 * Note that the id is only unique within the parent, not across the entire kind.
 	 * 
-	 * @param parent must be a legitimate parent key for the class type.  It need not
+	 * @param parent must be a legitimate parent for the class type.  It need not
 	 * point to an existent entity, but it must be the correct type for clazz.
 	 * @param clazz must be a registered entity class with a Long or long id field, and
 	 * a parent key of the correct type.
 	 */
-	public <T> long allocateId(Key<?> parent, Class<T> clazz)
+	public <T> long allocateId(Object parentKeyOrEntity, Class<T> clazz)
 	{
-		return allocateIds(parent, clazz, 1).iterator().next().getId();
+		return allocateIds(parentKeyOrEntity, clazz, 1).iterator().next().getId();
 	}
 	
 	/**
@@ -411,17 +411,19 @@ public class ObjectifyFactory
 	 * specified entity class and the parent key.  These ids can be used in concert with the normal
 	 * automatic allocation of ids when put()ing entities with null Long id fields.
 	 * 
-	 * @param parent must be a legitimate parent key for the class type.  It need not
+	 * @param parent must be a legitimate parent for the class type.  It need not
 	 * point to an existent entity, but it must be the correct type for clazz.
 	 * @param clazz must be a registered entity class with a Long or long id field, and
 	 * a parent key of the correct type.
 	 * @param num must be >= 1 and <= 1 billion 
 	 */
-	public <T> KeyRange<T> allocateIds(Key<?> parent, Class<T> clazz, long num)
+	public <T> KeyRange<T> allocateIds(Object parentKeyOrEntity, Class<T> clazz, long num)
 	{
+		Key<?> parent = this.getKey(parentKeyOrEntity);
+		String kind = Key.getKind(clazz);
+		
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
-		String kind = Key.getKind(clazz);
 		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(parent.getRaw(), kind, num));
 	}
 	
