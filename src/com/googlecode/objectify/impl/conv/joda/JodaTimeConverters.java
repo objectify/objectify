@@ -14,5 +14,6 @@ public class JodaTimeConverters
 	public static void add(Conversions conv) {
 		conv.add(new ReadableInstantConverter());
 		conv.add(new LocalDateConverter());
+		conv.add(new DateTimeZoneConverter());
 	}
 }
