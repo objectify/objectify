@@ -23,6 +23,11 @@ public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 	{
 		this.raw = raw;
 	}
+	
+	/**
+	 * Get the raw datastore keyrange.
+	 */
+	public com.google.appengine.api.datastore.KeyRange getRaw() { return this.raw; }
 
 	/* (non-Javadoc)
 	 * @see java.lang.Iterable#iterator()

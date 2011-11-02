@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreService.KeyRangeState;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -425,6 +426,18 @@ public class ObjectifyFactory
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
 		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(parent.getRaw(), kind, num));
+	}
+	
+	/**
+	 * Allocates a user-specified contiguous range of unique IDs, preventing the allocator from
+	 * giving them out to entities (with autogeneration) or other calls to allocate methods.
+	 * This lets you specify a specific range to block out (for example, you are bulk-loading a
+	 * collection of pre-existing entities).  If you don't care about what id is allocated, use
+	 * one of the other allocate methods.
+	 */
+	public <T> KeyRangeState allocateIdRange(KeyRange<T> range)
+	{
+		return DatastoreServiceFactory.getDatastoreService().allocateIdRange(range.getRaw());
 	}
 	
 	/**
