@@ -15,6 +15,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
@@ -259,11 +260,18 @@ public class EntityMemcache
 	 * @param updates can have null Entity values, which will record a negative cache result.  Buckets must have
 	 *  been obtained from getAll().
 	 */
-	public void putAll(Iterable<Bucket> updates)
+	public void putAll(Collection<Bucket> updates)
 	{
+		Set<Key> good = this.cachePutIfUntouched(updates);
+		
+		if (good.size() == updates.size())
+			return;
+
+		// Figure out which ones were bad
 		List<Key> bad = new ArrayList<Key>();
+		
 		for (Bucket bucket: updates)
-			if (!this.cachePutIfUntouched(bucket))
+			if (!good.contains(bucket.getKey()))
 				bad.add(bucket.getKey());
 
 		if (!bad.isEmpty())
@@ -304,25 +312,28 @@ public class EntityMemcache
 	}
 	
 	/**
-	 * Put an item in the cache, checking for cacheability and collisions.  Hides key stringification.
-	 * @return true if everything is ok (value stored or didn't need to be cached), false if there was a collision.
+	 * Put buckets in the cache, checking for cacheability and collisions.
+	 * @return the set of keys that were *successfully* put without collision
 	 */
-	private boolean cachePutIfUntouched(Bucket bucket)
+	private Set<Key> cachePutIfUntouched(Iterable<Bucket> buckets)
 	{
-		// Don't need to cache the uncacheables
-		if (!bucket.isCacheable())
-			return true;
-		
-		Integer expiry = cacheControl.getExpirySeconds(bucket.getKey());
+		Map<Key, CasValues> payload = new HashMap<Key, CasValues>();
 
-		// if null, do not cache
-		if (expiry == null)
-			return true;
-		
-		if (expiry == 0)
-			return this.memcache.putIfUntouched(bucket.getKey(), bucket.iv, bucket.getNextToStore());
-		else
-			return this.memcache.putIfUntouched(bucket.getKey(), bucket.iv, bucket.getNextToStore(), Expiration.byDeltaSeconds(expiry));
+		for (Bucket buck: buckets)
+		{
+			if (!buck.isCacheable())
+				continue;
+			
+			Integer expirySeconds = cacheControl.getExpirySeconds(buck.getKey());
+			if (expirySeconds == null)
+				continue;
+			
+			Expiration expiration = expirySeconds == 0 ? null : Expiration.byDeltaSeconds(expirySeconds);
+			
+			payload.put(buck.getKey(), new CasValues(buck.iv, buck.getNextToStore(), expiration));
+		}
+
+		return this.memcache.putIfUntouched(payload);
 	}
 
 	/**
