@@ -5,7 +5,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 
 /**
@@ -32,5 +31,7 @@ import com.googlecode.objectify.condition.If;
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface Unindexed
 {
-	Class<? extends If<?, ?>>[] value() default { Always.class };
+	// Fully specifying the default value works around a bizarre compiler bug:
+	// http://stackoverflow.com/questions/1425088/incompatible-types-found-required-default-enums-in-annotations
+	Class<? extends If<?, ?>>[] value() default { com.googlecode.objectify.condition.Always.class };
 }
