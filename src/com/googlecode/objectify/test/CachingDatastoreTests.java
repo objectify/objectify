@@ -79,7 +79,7 @@ public class CachingDatastoreTests extends TestBase
 	@Test
 	public void testBasicCache() throws Exception
 	{
-		Future<List<Key>> fkey = cads.put(entityInList);
+		Future<List<Key>> fkey = cads.put(null, entityInList);
 		List<Key> putResult = fkey.get();
 		
 		Future<Map<Key, Entity>> fent = cads.get(null, putResult);

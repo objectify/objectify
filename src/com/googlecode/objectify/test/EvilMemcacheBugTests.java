@@ -5,13 +5,10 @@
 
 package com.googlecode.objectify.test;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import javax.persistence.Id;
 
@@ -39,7 +36,7 @@ import com.googlecode.objectify.annotation.Parent;
 public class EvilMemcacheBugTests extends TestBase
 {
 	/** */
-	private static Logger log = Logger.getLogger(EvilMemcacheBugTests.class.getName());
+	//private static Logger log = Logger.getLogger(EvilMemcacheBugTests.class.getName());
 	
 	/** */
 	static class SimpleParent
@@ -211,42 +208,44 @@ public class EvilMemcacheBugTests extends TestBase
 		
 		// This fails!  It is a bug in the datastore.  See http://code.google.com/p/googleappengine/issues/detail?id=2088
 		// Objectify works around this problem, so it is not a serious issue.
+		// Update: This succeeds!  As of SDK 1.6.0 this has been fixed.  The Objectify workaround (stringifying keys) has been removed.
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 	}
 	
-	@SuppressWarnings("rawtypes")
-	@Test
-	public void testWithoutObjectify()  throws Exception {
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		MemcacheService ms = MemcacheServiceFactory.getMemcacheService("testing1423");
-
-		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
-		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-
-		//save a test entity
-		Entity ent1 = new Entity(childKey);
-		ent1.setProperty("foo", "original");
-		ds.put(null, ent1);
-		ms.put(ent1.getKey(), ent1);
-
-		//load it, and change the value.
-		Entity ent1loaded = ds.get(null, ent1.getKey());
-		ent1loaded.setProperty("foo", "changed");
-		//save it to the datastore and memcache
-		ds.put(null, ent1loaded);
-		ms.put(ent1loaded.getKey(), ent1loaded);
-
-		//dump memcache -- silly GAE can't hide this method from me!
-		Method meth = ms.getClass().getMethod("grabTail", int.class);
-		meth.setAccessible(true);
-		List dump = (List)meth.invoke(ms, 100);
-		for(Object obj : dump)
-			log.info(obj.toString());
-		
-		assert (dump.size() == 1);
-//		Entity ent3 = (Entity) ms.getAll((Collection)Collections.singleton(childKey)).values().toArray()[0];
-		
-//		assert "changed".equals(ent3.getProperty("foo"));
-		
-	}
+//	/** The comment was wrong - the grabTail method was removed in GAE SDK 1.6.0! */
+//	@SuppressWarnings("rawtypes")
+//	@Test
+//	public void testWithoutObjectify()  throws Exception {
+//		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+//		MemcacheService ms = MemcacheServiceFactory.getMemcacheService("testing1423");
+//
+//		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
+//		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
+//
+//		//save a test entity
+//		Entity ent1 = new Entity(childKey);
+//		ent1.setProperty("foo", "original");
+//		ds.put(null, ent1);
+//		ms.put(ent1.getKey(), ent1);
+//
+//		//load it, and change the value.
+//		Entity ent1loaded = ds.get(null, ent1.getKey());
+//		ent1loaded.setProperty("foo", "changed");
+//		//save it to the datastore and memcache
+//		ds.put(null, ent1loaded);
+//		ms.put(ent1loaded.getKey(), ent1loaded);
+//
+//		//dump memcache -- silly GAE can't hide this method from me!
+//		Method meth = ms.getClass().getMethod("grabTail", int.class);
+//		meth.setAccessible(true);
+//		List dump = (List)meth.invoke(ms, 100);
+//		for(Object obj : dump)
+//			log.info(obj.toString());
+//		
+//		assert (dump.size() == 1);
+////		Entity ent3 = (Entity) ms.getAll((Collection)Collections.singleton(childKey)).values().toArray()[0];
+//		
+////		assert "changed".equals(ent3.getProperty("foo"));
+//		
+//	}
 }

@@ -270,7 +270,7 @@ public class QueryTests extends TestBase
 		assert fred.getName().equals(fetched.getName()); 
 	}
 	
-	/** This is expected to fail without a kind: see http://code.google.com/p/googleappengine/issues/detail?id=2196 */
+	/** */
 	@Test
 	public void testFilteringByAncestor() throws Exception
 	{
@@ -282,12 +282,17 @@ public class QueryTests extends TestBase
 		Child child = new Child(trivKey, "blah");
 		ofy.put(child);
 		
-		Iterator<Child> it = ofy.<Child>query().ancestor(trivKey).iterator();
+		Iterator<Object> it = ofy.query().ancestor(trivKey).iterator();
 
-		assert it.hasNext();	// fails due to known GAE SDK bug
-		Child fetched = it.next();
+		Object fetchedTrivial = it.next();
+		assert fetchedTrivial instanceof Trivial;
+		assert ((Trivial)fetchedTrivial).getId().equals(triv.getId()); 
+		
+		Object fetchedChild = it.next();
+		assert fetchedChild instanceof Child;
+		assert ((Child)fetchedChild).getId().equals(child.getId()); 
+		
 		assert !it.hasNext();
-		assert child.getId().equals(fetched.getId()); 
 	}
 	
 	/** */
