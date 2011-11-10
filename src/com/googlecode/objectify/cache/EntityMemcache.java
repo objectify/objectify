@@ -1,6 +1,7 @@
 package com.googlecode.objectify.cache;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -12,7 +13,6 @@ import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
@@ -30,14 +30,8 @@ import com.google.appengine.api.memcache.MemcacheServiceFactory;
  * null value and refetch (null is a valid cache value).  If this refetch doesn't work,
  * we treat the key as uncacheable for the duration of the request.</p>
  * 
- * <p>There is a horrible, obscure, and utterly bizarre bug in GAE's memcache
- * relating to Key serialization.  It manifests in certain circumstances when a Key
- * has a parent Key that has the same String name.  For this reason, we use the
- * keyToString method to stringify Keys as cache keys.  The actual structure
- * stored in the memcache will be String -> Entity.</p>
- * 
- * <p>Actually, that's a lie.  Usually it is String -> Entity.  When NEGATIVE
- * is stored, it will be String -> String.</p>
+ * <p>The values put in memcache are Key -> Entity, except for negative cache entries,
+ * which are Key -> String (the value NEGATIVE).</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -202,10 +196,58 @@ public class EntityMemcache
 	{
 		Map<Key, Bucket> result = new HashMap<Key, Bucket>();
 		
+		// Sort out the ones that are uncacheable
+		Set<Key> potentials = new HashSet<Key>();
+		
 		for (Key key: keys)
 		{
-			Bucket buck = this.cacheGetIdentifiable(key);
+			if (cacheControl.getExpirySeconds(key) == null)
+				result.put(key, new Bucket(key));
+			else
+				potentials.add(key);
+		}
+
+		Map<Key, IdentifiableValue> ivs = null;
+		try {
+			ivs = this.memcache.getIdentifiables(potentials);
+		} catch (Exception ex) {
+			// This should really only be a problem if the serialization format for an Entity changes,
+			// or someone put a badly-serializing object in the cache underneath us.
+			log.log(Level.WARNING, "Error obtaining cache for " + potentials, ex);
+			ivs = new HashMap<Key, IdentifiableValue>();
+		}
+		
+		// Figure out cold cache values
+		Map<Key, Object> cold = new HashMap<Key, Object>();
+		for (Key key: potentials)
+			if (ivs.get(key) == null)
+				cold.put(key, null);
+		
+		if (!cold.isEmpty())
+		{
+			// The cache is cold for those values, so start them out with nulls that we can make an IV for
+			this.memcache.putAll(cold);
+			
+			try {
+				Map<Key, IdentifiableValue> ivs2 = this.memcache.getIdentifiables(cold.keySet());
+				ivs.putAll(ivs2);
+			} catch (Exception ex) {
+				// At this point we should just not worry about it, the ivs will be null and uncacheable
+			}
+		}
+		
+		// Now create the remaining buckets
+		for (Key key: keys)
+		{
+			// iv might still be null, which is ok - that means uncacheable
+			IdentifiableValue iv = ivs.get(key);
+			Bucket buck = (iv == null) ? new Bucket(key) : new Bucket(key, iv);
 			result.put(key, buck);
+			
+			if (buck.isEmpty())
+				this.stats.recordMiss(buck.getKey());
+			else
+				this.stats.recordHit(buck.getKey());
 		}
 
 		return result;
@@ -252,11 +294,11 @@ public class EntityMemcache
 	 */
 	public void empty(Iterable<Key> keys)
 	{
-		Map<String, Object> updates = new HashMap<String, Object>();
+		Map<Key, Object> updates = new HashMap<Key, Object>();
 		
 		for (Key key: keys)
 			if (cacheControl.getExpirySeconds(key) != null)
-				updates.put(KeyFactory.keyToString(key), null);	// Need to do key stringification
+				updates.put(key, null);
 		
 		this.memcacheWithRetry.putAll(updates);
 	}
@@ -277,80 +319,24 @@ public class EntityMemcache
 		if (expiry == null)
 			return true;
 		
-		String safeKey = KeyFactory.keyToString(bucket.getKey());
 		if (expiry == 0)
-			return this.memcache.putIfUntouched(safeKey, bucket.iv, bucket.getNextToStore());
+			return this.memcache.putIfUntouched(bucket.getKey(), bucket.iv, bucket.getNextToStore());
 		else
-			return this.memcache.putIfUntouched(safeKey, bucket.iv, bucket.getNextToStore(), Expiration.byDeltaSeconds(expiry));
+			return this.memcache.putIfUntouched(bucket.getKey(), bucket.iv, bucket.getNextToStore(), Expiration.byDeltaSeconds(expiry));
 	}
 
-	/**
-	 * Get a bucket for the key.  Bucket might be uncacheable, or negative, or a million other things depending
-	 * on the nature of the key and whether memcache is working and what's in it.
-	 * @return a bucket, always - never null
-	 */
-	private Bucket cacheGetIdentifiable(Key key)
-	{
-		if (cacheControl.getExpirySeconds(key) == null)
-			return new Bucket(key);
-
-		String safeKey = KeyFactory.keyToString(key);
-		
-		IdentifiableValue iv = null;
-		try {
-			iv = this.memcache.getIdentifiable(safeKey);
-		} catch (Exception ex) {
-			// This should really only be a problem if the serialization format for an Entity changes,
-			// or someone put a badly-serializing object in the cache underneath us.
-			log.log(Level.WARNING, "Error obtaining cache for " + safeKey, ex);
-		}
-		
-		if (iv == null)
-		{
-			// The cache is cold for that value, so start out with a null that we can make an IV for
-			this.memcache.put(safeKey, null);
-			
-			try {
-				iv = this.memcache.getIdentifiable(safeKey);
-			} catch (Exception ex) {
-				// At this point we should just not worry about it, iv will be null and uncacheable
-			}
-		}
-		
-		// iv might still be null, which is ok - that means uncacheable
-		Bucket buck = new Bucket(key, iv);
-		
-		if (buck.isEmpty())
-			this.stats.recordMiss(buck.getKey());
-		else
-			this.stats.recordHit(buck.getKey());
-	
-		return buck;
-	}
-	
 	/**
 	 * Bulk get on keys, getting the raw objects
 	 */
-	private Map<Key, Object> cacheGetAll(Iterable<Key> keys)
+	private Map<Key, Object> cacheGetAll(Collection<Key> keys)
 	{
-		List<String> safeKeys = new ArrayList<String>();
-
-		for (Key key: keys)
-			safeKeys.add(KeyFactory.keyToString(key));
-		
 		try {
-			Map<String, Object> fetched = this.memcache.getAll(safeKeys);
-			
-			Map<Key, Object> keyMap = new HashMap<Key, Object>();
-			for (Map.Entry<String, Object> entry: fetched.entrySet())
-				keyMap.put(KeyFactory.stringToKey(entry.getKey()), entry.getValue());
-			
-			return keyMap;
+			return this.memcache.getAll(keys);
 		} catch (Exception ex) {
 			// Some sort of serialization error, just wipe out the values
 			log.log(Level.WARNING, "Error fetching values from memcache, deleting keys", ex);
 			
-			this.memcache.deleteAll(safeKeys);
+			this.memcache.deleteAll(keys);
 			
 			return new HashMap<Key, Object>();
 		}
