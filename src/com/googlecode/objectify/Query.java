@@ -46,8 +46,12 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * with that exact name.  You can't create properties like this with Objectify,
 	 * but you can with the Low-Level API.</p>
 	 * 
-	 * <p>You can filter on id properties <strong>if</strong> this query is
-	 * restricted to a Class<T> and the entity has no @Parent.  If you are
+	 * <p>See the Google documentation for 
+	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
+	 * for an explanation of what you can and cannot filter for.</p>
+	 * 
+	 * <p>In addition to filtering on indexed properties, you can filter on @Id properties
+	 * <strong>if</strong> this query is restricted to a Class<T> and the entity has no @Parent.  If you are
 	 * having trouble working around this limitation, please consult the
 	 * objectify-appengine google group.</p>
 	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
