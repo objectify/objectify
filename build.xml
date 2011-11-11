@@ -31,6 +31,8 @@
 	<property name="super.package" value="com/googlecode/objectify/impl/emul"/>
 
 	<property name="googlecode.projectname" value="objectify-appengine"/>
+	
+	<property name="maven.repo.dir" location="../objectify-maven" />
 
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
