@@ -37,8 +37,6 @@ import com.googlecode.objectify.util.SimpleFutureWrapper;
  * <li>Transactional reads bypass the cache, but successful transaction commits will update the cache.</li>
  * <li>This cache has near-transactional integrity.  As long as DeadlineExceededException is not hit, cache should
  * not go out of sync even under heavy contention.</li>
- * <li>Heavy contention will reduce the hit rate of the cache, possibly severely.  Please star
- * <a href="http://code.google.com/p/googleappengine/issues/detail?id=5859">this issue</a>.</li>
  * </ul>
  * 
  * <p>Note:  Until Google adds a hook that lets us wrap native Future<?> implementations,
