@@ -90,6 +90,27 @@ public interface Objectify
 	<T> T find(Class<? extends T> clazz, String name);
 
 	/**
+	 * <p>Performs a parallel batch get, returning your entities.  This is faster and
+	 * more efficient than fetching entities one at a time.</p>
+	 *
+	 * <p>You can fetch entities of many different kinds in a single call.
+	 * Entities not present in the datastore will have a value of null.</p>
+	 *
+	 * @param refs are the keys to fetch; you can mix and match the types of objects.
+	 */
+	void getRefs(Iterable<? extends Ref<?>> refs);
+	
+	/**
+	 * <p>Varargs version of getRefs(Iterable)</p>
+	 */
+	void getRefs(Ref<?>... refs);
+	
+	/**
+	 * <p>Gets one instance of your entity.  The value will be null if the key does not exist in the datastore.</p>
+	 */
+	void findRef(Ref<?> ref);
+	
+	/**
 	 * <p>Puts an entity in the datastore.</p>
 	 * 
 	 * <p>If your entity has a null Long id, a fresh id will be generated and
@@ -205,4 +226,15 @@ public interface Objectify
 	 * asynchronous; just create multiple Iterators before iterating them.
 	 */
 	public AsyncObjectify async();
+	
+	/**
+	 * <p>Enables a fetch group.  This will cause any entity fields (or Ref fields) which
+	 * are annotated with @Fetch("fetchGroupName") to be fetched when you perform get()
+	 * operations using the returned Objectify.</p>
+	 * 
+	 * @param fetchGroup is the name of a fetch group to enable
+	 * @return a new Objectify instance which will fetch the fetch groups; the "this" Objectify
+	 * instance remains unmodified.
+	 */
+	public Objectify fetch(String fetchGroup);
 }

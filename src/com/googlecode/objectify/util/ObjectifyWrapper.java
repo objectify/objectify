@@ -14,6 +14,7 @@ import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.Ref;
 
 
 /**
@@ -168,5 +169,29 @@ public class ObjectifyWrapper implements Objectify
 	public DatastoreService getDatastore()
 	{
 		return this.base.getDatastore();
+	}
+
+	@Override
+	public void getRefs(Iterable<? extends Ref<?>> refs)
+	{
+		this.base.getRefs(refs);
+	}
+
+	@Override
+	public void getRefs(Ref<?>... refs)
+	{
+		this.base.getRefs(refs);
+	}
+
+	@Override
+	public void findRef(Ref<?> ref)
+	{
+		this.base.findRef(ref);
+	}
+
+	@Override
+	public Objectify fetch(String fetchGroup)
+	{
+		return this.base.fetch(fetchGroup);
 	}
 }

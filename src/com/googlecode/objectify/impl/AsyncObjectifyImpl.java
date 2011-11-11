@@ -18,6 +18,7 @@ import com.googlecode.objectify.NotFoundException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
@@ -386,5 +387,35 @@ public class AsyncObjectifyImpl implements AsyncObjectify
 	public Objectify sync()
 	{
 		return this.sync;
+	}
+
+	/**
+	 * Populate the refs with an async result
+	 */
+	public void getRefs(Iterable<? extends Ref<?>> refs)
+	{
+	}
+
+	/**
+	 * Populate the refs with an async result
+	 */
+	public void getRefs(Ref<?>... refs)
+	{
+	}
+
+	/**
+	 * Populate the ref with an async result
+	 */
+	public void findRef(Ref<?> ref)
+	{
+	}
+
+	/**
+	 * Return a new AsyncObjectify that will enable the specified fetch group.
+	 */
+	public AsyncObjectify fetch(String fetchGroup)
+	{
+		// For now
+		return this;
 	}
 }

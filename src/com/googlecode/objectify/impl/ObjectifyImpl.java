@@ -11,6 +11,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.Query;
+import com.googlecode.objectify.Ref;
 
 /**
  * Implementation of the Objectify interface.  This actually just calls through to
@@ -241,5 +242,38 @@ public class ObjectifyImpl implements Objectify
 	public DatastoreService getDatastore()
 	{
 		return this.getFactory().getDatastoreService(this.opts);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getRefs(java.lang.Iterable)
+	 */
+	@Override
+	public void getRefs(Iterable<? extends Ref<?>> refs)
+	{
+		this.async.getRefs(refs);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getRefs(com.googlecode.objectify.Ref<?>[])
+	 */
+	@Override
+	public void getRefs(Ref<?>... refs)
+	{
+		this.async.getRefs(refs);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#findRef(com.googlecode.objectify.Ref)
+	 */
+	@Override
+	public void findRef(Ref<?> ref)
+	{
+		this.async.findRef(ref);
+	}
+
+	@Override
+	public Objectify fetch(String fetchGroup)
+	{
+		return new ObjectifyImpl(opts, (AsyncObjectifyImpl)async.fetch(fetchGroup));
 	}
 }
