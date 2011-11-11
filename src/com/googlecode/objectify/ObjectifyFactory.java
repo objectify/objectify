@@ -412,7 +412,7 @@ public class ObjectifyFactory
 	 * specified entity class and the parent key.  These ids can be used in concert with the normal
 	 * automatic allocation of ids when put()ing entities with null Long id fields.
 	 * 
-	 * @param father must be a legitimate parent for the class type.  It need not
+	 * @param parentKeyOrEntity must be a legitimate parent for the class type.  It need not
 	 * point to an existent entity, but it must be the correct type for clazz.
 	 * @param clazz must be a registered entity class with a Long or long id field, and
 	 * a parent key of the correct type.
