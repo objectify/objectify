@@ -1,0 +1,142 @@
+package com.googlecode.objectify.cmd;
+
+import java.util.Map;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+
+
+/**
+ * <p>The top element in the command chain for retrieving entities from the datastore.</p>
+ * 
+ * <p>At this point you can enable load groups with {@code group()}, start all-kinds
+ * queries by calling query-related methods (see Query), load entities by key or ref,
+ * or narrow your interest to a specific kind by calling {@code type()}.</p>
+ * 
+ * <p>All command objects are immutable.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
+ */
+public interface LoadCmd extends Query<Object>
+{
+	/**
+	 * <p>Enables one or more fetch groups.  This will cause any entity fields (or Ref fields) which
+	 * are annotated with @Load("groupName") to be fetched along with your entities.</p>
+	 * 
+	 * <p>Calling this method multiple times is the same as passing all the group names into one call.</p>
+	 * 
+	 * @param groupNames are one or more fetch groups to enable
+	 * @return a continuation of the immutable command pattern, enabled for fetching this group.
+	 */
+	LoadCmd group(String... groupNames);
+	
+	/**
+	 * <p>Restricts the find operation to entities of a particular type.  The type may be the
+	 * base of a polymorphic class hierarchy.  This is optional.</p>
+	 * 
+	 * @param type is the type of entity (or entities) to retrieve, possibly a base class for a polymorphic hierarchy
+	 * @return the next step in the immutable command chain, which allows you to start a query or define
+	 *  keys for a batch get.
+	 */
+	<E> LoadType<E> type(Class<E> type);
+
+	/**
+	 * <p>Fetch a single entity ref.  This starts an asynchronous fetch operation which will be available as ref.get().</p>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * 
+	 * @param ref holds the key to fetch and will receive the asynchronous result.  
+	 */
+	void ref(Ref<?> ref);
+	
+	/**
+	 * <p>Fetch multiple refs in a batch operation.  This starts an asynchronous fetch.</p>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * 
+	 * @param refs provide the keys to fetch and will receive the asynchronous result.
+	 */
+	void refs(Iterable<Ref<?>> refs);
+	
+	/**
+	 * <p>A convenient substitute for refs(Iterable)</p>
+	 */
+	void refs(Ref<?>... refs);
+
+	/**
+	 * <p>Fetch a single entity by key.  This starts an asynchronous fetch.</p>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * 
+	 * @param key defines the entity to fetch
+	 * @return a Ref<?> which holds the asynchronous result 
+	 */
+	<K> Ref<K> entity(Key<K> key);
+
+	/**
+	 * <p>Fetch a single entity by native datastore key.  This starts an asynchronous fetch.</p>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * 
+	 * @param key defines the entity to fetch
+	 * @return a Ref<?> which holds the asynchronous result 
+	 */
+	<K> Ref<K> entity(com.google.appengine.api.datastore.Key rawKey);
+	
+	/**
+	 * <p>Fetch a single entity which has the same id/parent as the specified entity.  This starts an asynchronous fetch.</p>
+	 * 
+	 * <p>This is typically used to retrieve "unfetched" entities which have been returned as fields in other entities.
+	 * These unfetched entities will have their key fields (id/parent) filled but otherwise be uninitialized.</p>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * 
+	 * @param entity defines the entity to fetch; it must be of a registered entity type and have valid id/parent fields.
+	 * @return a Ref<?> which holds the asynchronous result 
+	 */
+	<K> Ref<K> entity(K entity);
+	
+	/**
+	 * <p>Fetch multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
+	 * 
+	 * <p>The parameters can be any mix of key-like structures, including:</p>
+	 * 
+	 * <ul>
+	 * <li>Standard Objectify Key<?> objects.</li>
+	 * <li>Native datastore Key objects.</li>
+	 * <li>Registered entity instances which have id and parent fields populated.  This is typically used to retrieve "unfetched"
+	 * entities which have been returned as fields in other entities. These unfetched entities will have their key fields
+	 * (id/parent) filled but otherwise be uninitialized.</li>
+	 * </ul>
+	 * 
+	 * <p>Since fetching is asynchronous,
+	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
+	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
+	 * will be thrown when the Map is accessed.</p>
+	 * 
+	 * @param keysOrEntities defines a possibly heterogeneous mixture of Key<?>, native datastore Key, or registered
+	 * entity instances with valid id/parent fields.
+	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
+	 */
+	<K, E extends K> Map<Key<K>, E> entities(Iterable<?> keysOrEntities);
+	
+	/**
+	 * <p>A convenient substitute for entities(Iterable)</p>
+	 */
+	<K, E extends K> Map<Key<K>, E> entities(Object... keysOrEntities);
+}

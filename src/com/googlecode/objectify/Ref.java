@@ -2,41 +2,30 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
+import com.googlecode.objectify.impl.StdRef;
+
 
 /**
  * <p>Ref associates a Key<?> with an entity value.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Ref<T> implements Serializable, Comparable<Ref<T>>
+abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 {
 	private static final long serialVersionUID = 1L;
 	
 	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
 	public static <T> Ref<T> create(Key<T> key) {
-		return new Ref<T>(key);
+		return new StdRef<T>(key);
 	}
-
-	/** If this Ref is loaded with a */
-	protected Key<T> key;
 
 	/** If this Ref is loaded with a */
 	protected Result<T> result;
 	
-	/** For GWT serialization */
-	protected Ref() {}
-
-	/** Create a Ref based on the key */
-	public Ref(Key<T> key) {
-		this.key = key;
-	}
-	
 	/**
 	 * @return the key associated with this Ref
 	 */
-	public Key<T> key() {
-		return key;
-	}
+	abstract public Key<T> key();
 	
 	/**
 	 * Same as key() but conforms to JavaBeans conventions in case this is being processed by a JSON
@@ -48,27 +37,51 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	
 	/**
 	 * Obtain the entity value if it has been initialized.
-	 * @return the entity referenced
+	 * 
+	 * @return the entity referenced, or null if the entity was not found
 	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
-	public T value() {
+	@SuppressWarnings("unchecked")
+	public <E extends T> E get() {
 		if (this.result == null)
 			throw new IllegalStateException("Ref<?> value has not been initialized");
 		else
-			return this.result.get();
+			return (E)this.result.now();
+	}
+	
+	/**
+	 * Obtain the entity value if it has been initialized, throwing an exception if the entity was not found.
+	 * 
+	 * @return the entity referenced
+	 * @throws NotFoundException if the specified entity was not found
+	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
+	 */
+	public <E extends T> E getSafe() {
+		E t = this.get();
+		if (t == null)
+			throw new NotFoundException(key());
+		else
+			return t;
 	}
 
 	/**
-	 * Same as value() but conforms to JavaBeans conventions in case this is being processed by a JSON
+	 * Same as get() but conforms to JavaBeans conventions in case this is being processed by a JSON
 	 * converter or expression language.
 	 */
-	public T getValue() {
-		return value();
+	public <E extends T> E getValue() {
+		return get();
 	}
-
+	
+	/**
+	 * Assigns a new result object, replacing (or initializing) the present one.
+	 */
+	public void setResult(Result<T> result) {
+		this.result = result;
+	}
+	
 	/** Comparison is based on key */
 	@Override
 	public int compareTo(Ref<T> o) {
-		return this.key.compareTo(o.key);
+		return this.key().compareTo(o.key());
 	}
 }

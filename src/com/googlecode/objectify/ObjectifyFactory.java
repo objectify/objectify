@@ -1,6 +1,8 @@
 package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -14,13 +16,13 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
-import com.googlecode.objectify.impl.AsyncObjectifyImpl;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
-import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
+import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 import com.googlecode.objectify.util.FutureHelper;
@@ -69,6 +71,15 @@ public class ObjectifyFactory
 	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	
 	/**
+	 * Construct an instance of the specified type.  Objectify uses this method whenever possible to create
+	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other
+	 * dependency injection mechanisms.  The default is simple construction.
+	 */
+	public <T> T construct(Class<T> type) {
+		return TypeUtils.newInstance(type);
+	}
+	
+	/**
 	 * Creates the default options for begin() and beginTransaction().  You can
 	 * override this if, for example, you wanted to enable session caching by default.
 	 */
@@ -93,7 +104,7 @@ public class ObjectifyFactory
 		
 		Objectify ofy = (opts.getSessionCache())
 			? new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn))
-			: new ObjectifyImpl(opts, new AsyncObjectifyImpl(this, ds, txn));
+			: new ObjectifyImpl(opts, new ObjectifyImpl(this, ds, txn));
 		
 		return ofy;
 	}
@@ -286,9 +297,9 @@ public class ObjectifyFactory
 		if (keyOrEntity instanceof Key<?>)
 			return (Key<T>)keyOrEntity;
 		else if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
-			return new Key<T>((com.google.appengine.api.datastore.Key)keyOrEntity);
+			return Key.create((com.google.appengine.api.datastore.Key)keyOrEntity);
 		else
-			return new Key<T>(this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity));
+			return Key.create(this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity));
 	}
 	
 	/**
@@ -306,6 +317,21 @@ public class ObjectifyFactory
 			return ((Key<?>)keyOrEntity).getRaw();
 		else
 			return this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity);
+	}
+	
+	/**
+	 * Gets the raw datastore Keys given a collection of things that might be Key, Key<?>, or entities
+	 * @param keysOrEntities must contain Key, Key<?>, or registered entities
+	 * @return a List of the raw datastore Key objects
+	 */
+	public List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<?> keysOrEntities)
+	{
+		List<com.google.appengine.api.datastore.Key> result = new ArrayList<com.google.appengine.api.datastore.Key>();
+		
+		for (Object obj: keysOrEntities)
+			result.add(getRawKey(obj));
+		
+		return result;
 	}
 
 	/** This is used just for makeFilterable() */
@@ -361,7 +387,7 @@ public class ObjectifyFactory
 	 */
 	public <T> Key<T> stringToKey(String stringifiedKey)
 	{
-		return new Key<T>(KeyFactory.stringToKey(stringifiedKey));
+		return Key.create(KeyFactory.stringToKey(stringifiedKey));
 	}
 	
 	/**

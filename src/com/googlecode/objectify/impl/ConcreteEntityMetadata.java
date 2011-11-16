@@ -352,7 +352,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 				if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
 					this.parentField.set(obj, parentKey);
 				else
-					this.parentField.set(obj, new Key<Object>(parentKey));
+					this.parentField.set(obj, Key.create(parentKey));
 			}
 		}
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }

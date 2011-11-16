@@ -15,6 +15,11 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = 2L;
 	
+	/** Key.create(key) is easier to type than new Key<Blah>(key) */
+	public static <T> Key<T> create(com.google.appengine.api.datastore.Key raw) {
+		return new Key<T>(raw);
+	}
+	
 	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
 	public static <T> Key<T> create(Class<? extends T> kindClass, long id) {
 		return new Key<T>(kindClass, id);
@@ -50,32 +55,32 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	protected Key() {}
 
 	/** Wrap a raw Key */
-	public Key(com.google.appengine.api.datastore.Key raw)
+	private Key(com.google.appengine.api.datastore.Key raw)
 	{
 		this.raw = raw;
 	}
 
 	/** Create a key with a long id */
-	public Key(Class<? extends T> kindClass, long id)
+	private Key(Class<? extends T> kindClass, long id)
 	{
 		this(null, kindClass, id);
 	}
 	
 	/** Create a key with a String name */
-	public Key(Class<? extends T> kindClass, String name)
+	private Key(Class<? extends T> kindClass, String name)
 	{
 		this(null, kindClass, name);
 	}
 	
 	/** Create a key with a parent and a long id */
-	public Key(Key<?> parent, Class<? extends T> kindClass, long id)
+	private Key(Key<?> parent, Class<? extends T> kindClass, long id)
 	{
 		this.raw = KeyFactory.createKey(raw(parent), getKind(kindClass), id);
 		this.parent = parent;
 	}
 	
 	/** Create a key with a parent and a String name */
-	public Key(Key<?> parent, Class<? extends T> kindClass, String name)
+	private Key(Key<?> parent, Class<? extends T> kindClass, String name)
 	{
 		this.raw = KeyFactory.createKey(raw(parent), getKind(kindClass), name);
 		this.parent = parent;
@@ -85,7 +90,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Reconstitute a Key from a web safe string.  This can be generated with getString()
 	 * or KeyFactory.strongToKey().
 	 */
-	public Key(String webSafe)
+	private Key(String webSafe)
 	{
 		this(KeyFactory.stringToKey(webSafe));
 	}

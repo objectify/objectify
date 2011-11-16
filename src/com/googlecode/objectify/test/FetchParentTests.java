@@ -157,7 +157,7 @@ public class FetchParentTests extends TestBase
 		assert fetched.father.foo == null;
 
 		// This should get the complete parent
-		Child fetched2 = ofy.fetch("group").get(fact.<Child>getKey(ch));
+		Child fetched2 = ofy.group("group").get(fact.<Child>getKey(ch));
 		assert fetched2.father.id.equals(f.id);
 		assert fetched2.father.foo.equals(f.foo);
 	}

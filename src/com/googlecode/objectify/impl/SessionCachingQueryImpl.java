@@ -6,6 +6,7 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.cmd.QueryImpl;
 import com.googlecode.objectify.util.QueryResultIteratorWrapper;
 
 /**

@@ -40,7 +40,7 @@ public class BasicTests extends TestBase
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.put(triv);
+		Key<Trivial> k = ofy.put().entity(triv).now();
 
 		assert k.getKind().equals(triv.getClass().getSimpleName());
 		assert k.getId() == triv.getId();
@@ -48,7 +48,7 @@ public class BasicTests extends TestBase
 		Key<Trivial> created = new Key<Trivial>(Trivial.class, k.getId());
 		assert k.equals(created);
 
-		Trivial fetched = ofy.get(k);
+		Trivial fetched = ofy.get().key(k).now();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -62,14 +62,14 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.put(triv);
+		Key<Trivial> k = ofy.put().entity(triv).now();
 
 		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		Key<Trivial> k2 = ofy.put(triv2);
+		Key<Trivial> k2 = ofy.put().entity(triv2).now();
 
 		assert k2.equals(k);
 
-		Trivial fetched = ofy.get(k);
+		Trivial fetched = ofy.get().key(k).now();
 
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
@@ -83,14 +83,14 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		Key<NamedTrivial> k = ofy.put(triv);
+		Key<NamedTrivial> k = ofy.put().entity(triv).now();
 
 		assert k.getName().equals("first");
 
 		Key<NamedTrivial> createdKey = new Key<NamedTrivial>(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
-		NamedTrivial fetched = ofy.get(k);
+		NamedTrivial fetched = ofy.get().key(k).now();
 
 		assert fetched.getName().equals(k.getName());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -110,7 +110,7 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		Map<Key<Trivial>, Trivial> map = ofy.put(objs);
+		Map<Key<Trivial>, Trivial> map = ofy.put().entities(objs).now();
 		List<Key<Trivial>> keys = new ArrayList<Key<Trivial>>(map.keySet());
 
 		// Verify the put keys
@@ -121,7 +121,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy.get(keys);
+		Map<Key<Trivial>, Trivial> fetched = ofy.get().keys(keys).now();
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
@@ -139,7 +139,7 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin();
 
 		Employee fred = new Employee("fred");
-		ofy.put(fred);
+		ofy.put().entity(fred).now();
 
 		Key<Employee> fredKey = this.fact.getKey(fred);
 
@@ -155,7 +155,7 @@ public class BasicTests extends TestBase
 		assert employees.size() == 1100;
 
 		int count = 0;
-		for (Employee emp: ofy.query(Employee.class).filter("manager", fred))
+		for (Employee emp: ofy.get().type(Employee.class).filter("manager", fred).fetch())
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;
@@ -170,7 +170,7 @@ public class BasicTests extends TestBase
 		Objectify ofy = this.fact.begin(new ObjectifyOpts().setConsistency(Consistency.EVENTUAL));
 
 		Trivial triv = new Trivial("foo", 5);
-		ofy.put(triv);
+		ofy.put().entity(triv).now();
 	}
 
 	/** */
@@ -187,15 +187,12 @@ public class BasicTests extends TestBase
 	}
 	
 	/**
-	 * Note that this produces an exception (and thus test failure), but it is the
-	 * low-level api that produces the error.  This bug should be fixed in the GAE
-	 * code rather than Objectify.
 	 */
 	@Test
 	public void testPutNothing() throws Exception
 	{
 		Objectify ofy = this.fact.begin();
 		
-		ofy.put(Collections.emptyList());
+		ofy.put().entities(Collections.emptyList()).now();
 	}
 }

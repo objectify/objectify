@@ -82,7 +82,7 @@ public class TransactionTests extends TestBase
 		HasSimpleCollection simple2;
 		try
 		{
-			simple2 = txnOfy.get(HasSimpleCollection.class, simple.id);
+			simple2 = txnOfy.get().type(HasSimpleCollection.class).id(simple.id).now();
 			simple2.stuff.add("blah");
 			txnOfy.put(simple2);
 			txnOfy.getTxn().commit();
@@ -93,7 +93,7 @@ public class TransactionTests extends TestBase
 				txnOfy.getTxn().rollback();
 		}
 		
-		HasSimpleCollection simple3 = nonTxnOfy.get(HasSimpleCollection.class, simple.id);
+		HasSimpleCollection simple3 = nonTxnOfy.get().type(HasSimpleCollection.class).id(simple.id).now();
 		
 		// This will fail when session caching is turned on because the nonTxnOfy doesn't
 		// see the change made in the transactional session, and the fetch only hits the cache.

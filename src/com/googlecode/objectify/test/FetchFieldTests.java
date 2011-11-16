@@ -192,14 +192,14 @@ public class FetchFieldTests extends TestBase
 		
 		Objectify ofy = fact.begin();
 		
-		fetched = ofy.fetch("single").get(fact.<HasEntitiesWithGroups>getKey(he));
+		fetched = ofy.group("single").get(fact.<HasEntitiesWithGroups>getKey(he));
 		assert fetched.single.getId().equals(t1.getId());
 		assert fetched.single.getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(0) == fetched.single;	// good question about this
 		assert fetched.multi.get(1).getId().equals(t2.getId());
 		assert fetched.multi.get(1).getSomeString() == null;
 
-		fetched = ofy.fetch("multi").get(fact.<HasEntitiesWithGroups>getKey(he));
+		fetched = ofy.group("multi").get(fact.<HasEntitiesWithGroups>getKey(he));
 		assert fetched.multi.get(0).getId().equals(t1.getId());
 		assert fetched.multi.get(0).getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).getId().equals(t2.getId());
@@ -207,7 +207,7 @@ public class FetchFieldTests extends TestBase
 		assert fetched.single.getId().equals(t1.getId());
 		assert fetched.single.getSomeString() == null;	// or should this be the same item as multi[0]?
 		
-		fetched = ofy.fetch("single").fetch("multi").get(fact.<HasEntitiesWithGroups>getKey(he));
+		fetched = ofy.group("single").group("multi").get(fact.<HasEntitiesWithGroups>getKey(he));
 		assert fetched.multi.get(0).getId().equals(t1.getId());
 		assert fetched.multi.get(0).getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).getId().equals(t2.getId());

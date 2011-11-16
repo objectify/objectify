@@ -21,7 +21,7 @@ public class KeyConverter implements Converter
 	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
 	{
 		if (Key.class.isAssignableFrom(fieldType) && value instanceof com.google.appengine.api.datastore.Key)
-			return new Key<Object>((com.google.appengine.api.datastore.Key)value);
+			return Key.create((com.google.appengine.api.datastore.Key)value);
 		else
 			return null;
 	}

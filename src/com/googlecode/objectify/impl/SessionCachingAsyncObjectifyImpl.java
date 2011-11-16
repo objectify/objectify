@@ -14,6 +14,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cache.TriggerSuccessFuture;
+import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.util.NowFuture;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
@@ -23,7 +24,7 @@ import com.googlecode.objectify.util.SimpleFutureWrapper;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SessionCachingAsyncObjectifyImpl extends AsyncObjectifyImpl
+public class SessionCachingAsyncObjectifyImpl extends ObjectifyImpl
 {
 	/** Value which gets put in the cache for negative results */
 	protected static final Object NEGATIVE_RESULT = new Object();

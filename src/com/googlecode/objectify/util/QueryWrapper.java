@@ -1,14 +1,12 @@
 package com.googlecode.objectify.util;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
-import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Query;
+import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.cmd.Query;
 
 /**
  * Simple wrapper/decorator for a Query.
@@ -75,21 +73,9 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
-	public QueryResultIterator<T> iterator()
+	public Ref<T> first()
 	{
-		return this.base.iterator();
-	}
-
-	@Override
-	public T get()
-	{
-		return this.base.get();
-	}
-
-	@Override
-	public Key<T> getKey()
-	{
-		return this.base.getKey();
+		return this.base.first();
 	}
 
 	@Override
@@ -99,27 +85,15 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
-	public QueryResultIterable<T> fetch()
+	public QueryResultIterable<T> entities()
 	{
-		return this.base.fetch();
+		return this.base.entities();
 	}
 
 	@Override
-	public QueryResultIterable<Key<T>> fetchKeys()
+	public QueryResultIterable<Key<T>> keys()
 	{
-		return this.base.fetchKeys();
-	}
-
-	@Override
-	public <V> Set<Key<V>> fetchParentKeys()
-	{
-		return this.base.fetchParentKeys();
-	}
-
-	@Override
-	public <V> Map<Key<V>, V> fetchParents()
-	{
-		return this.base.fetchParents();
+		return this.base.keys();
 	}
 
 	@Override
@@ -135,12 +109,6 @@ public class QueryWrapper<T> implements Query<T>
 	}
 	
 	@Override
-	public Query<T> clone()
-	{
-		return new QueryWrapper<T>(this.base.clone());
-	}
-
-	@Override
 	public Query<T> chunkSize(int value)
 	{
 		return this.base.chunkSize(value);
@@ -150,5 +118,11 @@ public class QueryWrapper<T> implements Query<T>
 	public Query<T> prefetchSize(int value)
 	{
 		return this.base.prefetchSize(value);
+	}
+
+	@Override
+	public Query<T> keysOnly()
+	{
+		return this.base.keysOnly();
 	}
 }

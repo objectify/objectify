@@ -1,33 +1,19 @@
-package com.googlecode.objectify;
+package com.googlecode.objectify.cmd;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 
 
 /**
- * <p>This is similar to the datastore Query object, but better understands
- * real class objects - it allows you to filter and sort by the key field
- * normally.</p>
+ * The basic options for a Query.  Note that this does not include type().
  * 
- * <p>The methods of this class follow the GAE/Python Query class rather than
- * the GAE/Java Query class because the Python version is much more convenient
- * to use.  The Java version seems to have been designed for machines, not
- * humans.  You will appreciate the improvement.</p>
- * 
- * <p>Construct this class by calling {@code Objectify.query()}</p>
- * 
- * <p>Note that this class is Iterable; to get results, call iterator().</p>
- * 
- * <p>To obtain a {@code Cursor} call {@code Query.iterator().getCursor()}.
- * This cursor can be resumed with {@code Query.cursor()}.</p>
- *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Query<T> extends QueryResultIterable<T>
+public interface Query<T>
 {
 	/**
 	 * <p>Create a filter based on the specified condition and value, using
@@ -131,6 +117,12 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Query<T> prefetchSize(int value);
 	
 	/**
+	 * Causes this query to return only key information (id and parent).  This is cheaper and
+	 * more efficient than returning all entity data.
+	 */
+	public Query<T> keysOnly();
+	
+	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
 	 * is no way to convert this string back into a query and there is no guarantee that
 	 * the string will be consistent across versions of Objectify.</p>
@@ -138,50 +130,24 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p> 
 	 */
 	public String toString();
-	
+
 	/**
 	 * Gets the first entity in the result set.  Obeys the offset value.
 	 * 
 	 * @return the only instance in the result, or null if the result set is empty.
 	 */
-	public T get();
+	public Ref<T> first();
 	
 	/**
-	 * Get the key of the first entity in the result set.  Obeys the offset value.
-	 * 
-	 * @return the key of the first instance in the result, or null if the result set is empty.
+	 * Starts an asynchronous query which will return entities.  If keysOnly() is set, the entities
+	 * will only have their id/parent fields set.
 	 */
-	public Key<T> getKey();
+	public QueryResultIterable<T> entities();
 	
 	/**
-	 * Starts an asynchronous query.  While the Query itself is iterable, the datastore does not
-	 * begin executing your query until iterator() or fetch() is called.  If you do not need
-	 * to run multiple queries in parallel, this method is unnecessary; just iterate over the
-	 * Query object itself.
+	 * Starts an asynchronous query which will return key objects.  Implies keysOnly(). 
 	 */
-	public QueryResultIterable<T> fetch();
-	
-	/**
-	 * Prepares an Iterable that will obtain the keys of the results.  This is more efficient than
-	 * fetching the actual results.  Note that every time iterator() is called on the Iterable,
-	 * a fresh query is executed; calling this method does not cause a datastore operation.
-	 */
-	public QueryResultIterable<Key<T>> fetchKeys();
-	
-	/**
-	 * Execute a keys-only query and then extract parent keys, returning them as a Set.
-	 * 
-	 * @throws IllegalStateException if any member of the query result does not have a parent. 
-	 */
-	public <V> Set<Key<V>> fetchParentKeys();
-	
-	/**
-	 * Gets the parent keys and then fetches the actual entities.  This is the same
-	 * as calling {@code ofy.get(query.fetchParentKeys())}.
-	 * 
-	 * @throws IllegalStateException if any member of the query result does not have a parent. 
-	 */
-	public <V> Map<Key<V>, V> fetchParents();
+	public QueryResultIterable<Key<T>> keys();
 	
 	/**
 	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.</p>
@@ -207,10 +173,4 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * can fit in a simple ArrayList.</p>
 	 */
 	public List<Key<T>> listKeys();
-	
-	/**
-	 * @return a clone of this query object at its current state.  You can then modify
-	 * the clone without modifying the original query.
-	 */
-	public Query<T> clone();
 }

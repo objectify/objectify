@@ -39,7 +39,7 @@ public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 			@Override
 			protected Key<T> translate(com.google.appengine.api.datastore.Key from)
 			{
-				return new Key<T>(from);
+				return Key.create(from);
 			}
 		};
 	}
