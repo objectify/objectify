@@ -4,7 +4,6 @@
 
 package com.googlecode.objectify.util;
 
-import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOpts;
@@ -26,54 +25,53 @@ import com.googlecode.objectify.ObjectifyService;
  */
 public class DAOBase
 {
-	/** Need to create the lazy Objectify object */
-	private ObjectifyOpts opts;
-	
-	/** A single objectify interface, lazily created */
-	private Objectify lazyOfy;
+	/** A single objectify interface */
+	private Objectify ofy;
 	
 	/** Creates a DAO without a transaction */
-	public DAOBase()
-	{
-		this.opts = new ObjectifyOpts();
+	public DAOBase() {
+		this(false);
 	}
 	
 	/**
 	 * Creates a DAO possibly with a transaction.
 	 */
-	@Deprecated
-	public DAOBase(boolean transactional)
-	{
-		this.opts = new ObjectifyOpts();
+	public DAOBase(boolean transactional) {
 		if (transactional)
-			opts.setTransactionOptions(TransactionOptions.Builder.withDefaults());
+			ofy = fact().beginTransaction();
+		else
+			ofy = fact().begin();
 	}
 	
 	/**
 	 * Creates a DAO with a certain set of options
 	 */
-	public DAOBase(ObjectifyOpts opts)
-	{
-		this.opts = opts;
+	public DAOBase(ObjectifyOpts opts) {
+		this(opts, false);
+	}
+	
+	/**
+	 * Creates a DAO with a certain set of options
+	 */
+	public DAOBase(ObjectifyOpts opts, boolean transactional) {
+		if (transactional)
+			ofy = fact().beginTransaction(opts);
+		else
+			ofy = fact().begin(opts);
 	}
 	
 	/**
 	 * Easy access to the factory object.  This is convenient shorthand for
 	 * {@code ObjectifyService.factory()}.
 	 */
-	public ObjectifyFactory fact()
-	{
+	public ObjectifyFactory fact() {
 		return ObjectifyService.factory();
 	}
 
 	/**
-	 * Easy access to the objectify object (which is lazily created).
+	 * Easy access to the objectify object
 	 */
-	public Objectify ofy()
-	{
-		if (this.lazyOfy == null)
-			this.lazyOfy = ObjectifyService.factory().begin(this.opts);
-
-		return this.lazyOfy;
+	public Objectify ofy() {
+		return ofy;
 	}
 }

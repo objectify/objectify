@@ -5,27 +5,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreService.KeyRangeState;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.ReadPolicy;
-import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
-import com.googlecode.objectify.cache.CachingDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Registrar;
-import com.googlecode.objectify.impl.SessionCachingAsyncObjectifyImpl;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
-import com.googlecode.objectify.util.FutureHelper;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -46,10 +39,8 @@ import com.googlecode.objectify.util.FutureHelper;
  * 	}
  * </pre></code>
  * 
- * <p>It would be fairly easy for someone to implement a ScanningObjectifyFactory
- * on top of this class that looks for @Entity annotations based on Scannotation or
- * Reflections, but this would add extra dependency jars and need a hook for
- * application startup.</p>
+ * <p>ObjectifyFactory is designed to be subclassed; much default behavior can be changed
+ * by overriding methods.  In particular, see createObjectify(), construct(), getAsyncDatastoreService().</p>  
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -83,30 +74,20 @@ public class ObjectifyFactory
 	 * Creates the default options for begin() and beginTransaction().  You can
 	 * override this if, for example, you wanted to enable session caching by default.
 	 */
-	protected ObjectifyOpts createDefaultOpts()
-	{
-		return new ObjectifyOpts();
+	protected ObjectifyOpts createDefaultOpts() {
+		return ObjectifyOpts.defaults();
 	}
 	
 	/**
 	 * Override this in your factory if you wish to use a different impl, say,
 	 * one based on the ObjectifyWrapper.
 	 * 
-	 * @param ds the DatastoreService
 	 * @param opts the options for creating this Objectify
+	 * @param transactional - whether or not to start a transaction in the instance
 	 * @return an instance of Objectify configured appropriately
 	 */
-	protected Objectify createObjectify(AsyncDatastoreService ds, ObjectifyOpts opts) 
-	{
-		TransactionOptions txnOpts = opts.getTransactionOptions();
-		
-		Transaction txn = (txnOpts == null) ? null : FutureHelper.quietGet(ds.beginTransaction(txnOpts));
-		
-		Objectify ofy = (opts.getSessionCache())
-			? new ObjectifyImpl(opts, new SessionCachingAsyncObjectifyImpl(this, ds, txn))
-			: new ObjectifyImpl(opts, new ObjectifyImpl(this, ds, txn));
-		
-		return ofy;
+	protected Objectify createObjectify(ObjectifyOpts opts, boolean transactional) {
+		return new ObjectifyImpl(this, opts, transactional);
 	}
 	
 	/**
@@ -114,8 +95,7 @@ public class ObjectifyFactory
 	 * Note that not all options are defined by the config; some options (e.g. caching)
 	 * have no analogue in the native datastore.
 	 */
-	protected DatastoreServiceConfig makeConfig(ObjectifyOpts opts)
-	{
+	protected DatastoreServiceConfig createDatastoreServiceConfig(ObjectifyOpts opts) {
 		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(opts.getConsistency()));
 		
 		if (opts.getDeadline() != null)
@@ -125,40 +105,16 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * Get a DatastoreService facade appropriate to the options.  Note that
-	 * Objectify does not itself use DatastoreService; this method solely
-	 * exists to support Objectify.getDatastore().
-	 * 
-	 * @return a DatastoreService configured per the specified options.
-	 */
-	public DatastoreService getDatastoreService(ObjectifyOpts opts)
-	{
-		DatastoreServiceConfig cfg = this.makeConfig(opts);
-		DatastoreService ds = this.getRawDatastoreService(cfg);
-		
-		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
-		{
-			CachingAsyncDatastoreService async = new CachingAsyncDatastoreService(this.getRawAsyncDatastoreService(cfg), this.entityMemcache);
-			return new CachingDatastoreService(ds, async);
-		}
-		else
-		{
-			return ds;
-		}
-	}
-	
-	/**
 	 * Get an AsyncDatastoreService facade appropriate to the options.  All Objectify
-	 * datastore interaction goes through an AsyncDatastoreService, even the synchronous
-	 * methods.  The GAE SDK works the same way; DatastoreService is a facade around
-	 * AsyncDatastoreService.
+	 * datastore interaction goes through an AsyncDatastoreService.  This might or
+	 * might not produce a CachingAsyncDatastoreService.
 	 * 
 	 * @return an AsyncDatastoreService configured per the specified options.
 	 */
-	public AsyncDatastoreService getAsyncDatastoreService(ObjectifyOpts opts)
+	public AsyncDatastoreService createAsyncDatastoreService(ObjectifyOpts opts)
 	{
-		DatastoreServiceConfig cfg = this.makeConfig(opts);
-		AsyncDatastoreService ads = this.getRawAsyncDatastoreService(cfg);
+		DatastoreServiceConfig cfg = this.createDatastoreServiceConfig(opts);
+		AsyncDatastoreService ads = this.createRawAsyncDatastoreService(cfg);
 
 		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastoreService(ads, this.entityMemcache);
@@ -169,45 +125,38 @@ public class ObjectifyFactory
 	/**
 	 * You can override this to add behavior at the raw datastoreservice level.
 	 */
-	protected DatastoreService getRawDatastoreService(DatastoreServiceConfig cfg)
-	{
-		return DatastoreServiceFactory.getDatastoreService(cfg);
-	}
-	
-	/**
-	 * You can override this to add behavior at the raw datastoreservice level.
-	 */
-	protected AsyncDatastoreService getRawAsyncDatastoreService(DatastoreServiceConfig cfg)
-	{
+	protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
 		return DatastoreServiceFactory.getAsyncDatastoreService(cfg);
 	}
 	
 	/**
-	 * Create a lightweight Objectify instance with the default options.
-	 * Equivalent to begin(new ObjectifyOpts()).
+	 * Create an Objectify instance with the default options.
+	 * Equivalent to begin(ObjectifyOpts.defaults()) unless you override this.createDefaultOpts().
 	 */
-	public Objectify begin()
-	{
+	public Objectify begin() {
 		return this.begin(this.createDefaultOpts());
 	}
 	
 	/**
-	 * @return an Objectify from the DatastoreService with the specified options.
-	 * This is a lightweight operation and can be used freely.
+	 * Create an Objectify instance with the specified options.
 	 */
-	public Objectify begin(ObjectifyOpts opts)
-	{
-		AsyncDatastoreService ds = this.getAsyncDatastoreService(opts);
-		return this.createObjectify(ds, opts);
+	public Objectify begin(ObjectifyOpts opts) {
+		return this.createObjectify(opts, false);
 	}
 	
 	/**
-	 * @return an Objectify which uses a transaction. The transaction supports cross-group access, but
-	 * this has no extra overhead for a single-entity-group transaction.
+	 * Create a transactional Objectify instance with the default options.
+	 * Equivalent to beginTransaction(ObjectifyOpts.defaults()) unless you override this.createDefaultOpts().
 	 */
-	public Objectify beginTransaction()
-	{
-		return this.begin(this.createDefaultOpts().setBeginTransaction(true));
+	public Objectify beginTransaction() {
+		return this.beginTransaction(this.createDefaultOpts());
+	}
+	
+	/**
+	 * Create a transactional Objectify instance with the specified options.
+	 */
+	public Objectify beginTransaction(ObjectifyOpts opts) {
+		return this.createObjectify(opts, true);
 	}
 	
 	/**
@@ -215,8 +164,7 @@ public class ObjectifyFactory
 	 * must be registered first.  This method must be called in a single-threaded
 	 * mode sometime around application initialization.</p> 
 	 */
-	public <T> void register(Class<T> clazz)
-	{
+	public <T> void register(Class<T> clazz) {
 		this.registrar.register(clazz);
 	}
 	
@@ -233,8 +181,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key)
-	{
+	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) {
 		return this.getMetadata(key.getKind());
 	}
 	
@@ -242,8 +189,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Key<T> key)
-	{
+	public <T> EntityMetadata<T> getMetadata(Key<T> key) {
 		return this.getMetadata(key.getKind());
 	}
 	
@@ -251,8 +197,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz)
-	{
+	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz) {
 		EntityMetadata<T> metadata = this.registrar.getMetadata(clazz);
 		if (metadata == null)
 			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
@@ -263,8 +208,7 @@ public class ObjectifyFactory
 	/**
 	 * Gets metadata for the specified kind, or throws an exception if the kind is unknown
 	 */
-	public <T> EntityMetadata<T> getMetadata(String kind)
-	{
+	public <T> EntityMetadata<T> getMetadata(String kind) {
 		EntityMetadata<T> metadata = this.registrar.getMetadata(kind);
 		if (metadata == null)
 			throw new IllegalArgumentException("No class with kind '" + kind + "' was registered");
@@ -278,8 +222,7 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadataForEntity(T obj)
-	{
+	public <T> EntityMetadata<T> getMetadataForEntity(T obj) {
 		// Type erasure sucks ass
 		return (EntityMetadata<T>)this.getMetadata(obj.getClass());
 	}
@@ -292,8 +235,8 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> Key<T> getKey(Object keyOrEntity)
-	{
+	public <T> Key<T> getKey(Object keyOrEntity) {
+		
 		if (keyOrEntity instanceof Key<?>)
 			return (Key<T>)keyOrEntity;
 		else if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
@@ -309,8 +252,8 @@ public class ObjectifyFactory
 	 * @throws NullPointerException if keyOrEntity is null
 	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
 	 */
-	public com.google.appengine.api.datastore.Key getRawKey(Object keyOrEntity)
-	{
+	public com.google.appengine.api.datastore.Key getRawKey(Object keyOrEntity) {
+		
 		if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return (com.google.appengine.api.datastore.Key)keyOrEntity;
 		else if (keyOrEntity instanceof Key<?>)
@@ -324,8 +267,8 @@ public class ObjectifyFactory
 	 * @param keysOrEntities must contain Key, Key<?>, or registered entities
 	 * @return a List of the raw datastore Key objects
 	 */
-	public List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<?> keysOrEntities)
-	{
+	public List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<?> keysOrEntities) {
+		
 		List<com.google.appengine.api.datastore.Key> result = new ArrayList<com.google.appengine.api.datastore.Key>();
 		
 		for (Object obj: keysOrEntities)
@@ -346,8 +289,7 @@ public class ObjectifyFactory
 	 * 
 	 * @return whatever can be put into a filter clause.
 	 */
-	public Object makeFilterable(Object keyOrEntityOrOther)
-	{
+	public Object makeFilterable(Object keyOrEntityOrOther) {
 		if (keyOrEntityOrOther == null)
 			return null;
 
@@ -361,43 +303,12 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * <p>Converts a Key<?> into a web-safe string suitable for http parameters
-	 * in URLs.  Note that you can convert back and forth with the {@code keyToString()}
-	 * and {@code stringToKey()} methods.</p>
-	 * 
-	 * <p>The String is actually generated by using the KeyFactory {@code keyToString()}
-	 * method on a raw version of the datastore key.  You can, if you wanted, use
-	 * these web safe strings interchangeably.</p>
-	 * 
-	 * @param key is any Objectify key
-	 * @return a simple String which does not need urlencoding
-	 */
-	public String keyToString(Key<?> key)
-	{
-		return KeyFactory.keyToString(key.getRaw());
-	}
-	
-	/**
-	 * Converts a String generated with {@code keyToString()} back into an Objectify
-	 * Key.  The String could also have been generated by the GAE {@code KeyFactory}.
-	 * 
-	 * @param stringifiedKey is generated by either {@code ObjectifyFactory.keyToString()} or
-	 *  {@code KeyFactory.keyToString()}.
-	 * @return a Key<?>
-	 */
-	public <T> Key<T> stringToKey(String stringifiedKey)
-	{
-		return Key.create(KeyFactory.stringToKey(stringifiedKey));
-	}
-	
-	/**
 	 * Allocates a single id from the allocator for the specified kind.  Safe to use in concert
 	 * with the automatic generator.  This is just a convenience method for allocateIds().
 	 * 
 	 * @param clazz must be a registered entity class with a Long or long id field.
 	 */
-	public <T> long allocateId(Class<T> clazz)
-	{
+	public <T> long allocateId(Class<T> clazz) {
 		return allocateIds(clazz, 1).iterator().next().getId();
 	}
 
@@ -412,8 +323,7 @@ public class ObjectifyFactory
 	 * @param clazz must be a registered entity class with a Long or long id field, and
 	 * a parent key of the correct type.
 	 */
-	public <T> long allocateId(Object parentKeyOrEntity, Class<T> clazz)
-	{
+	public <T> long allocateId(Object parentKeyOrEntity, Class<T> clazz) {
 		return allocateIds(parentKeyOrEntity, clazz, 1).iterator().next().getId();
 	}
 	
@@ -425,8 +335,7 @@ public class ObjectifyFactory
 	 * @param clazz must be a registered entity class with a Long or long id field.
 	 * @param num must be >= 1 and <= 1 billion 
 	 */
-	public <T> KeyRange<T> allocateIds(Class<T> clazz, long num)
-	{
+	public <T> KeyRange<T> allocateIds(Class<T> clazz, long num) {
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
 		String kind = Key.getKind(clazz);
@@ -444,8 +353,7 @@ public class ObjectifyFactory
 	 * a parent key of the correct type.
 	 * @param num must be >= 1 and <= 1 billion 
 	 */
-	public <T> KeyRange<T> allocateIds(Object parentKeyOrEntity, Class<T> clazz, long num)
-	{
+	public <T> KeyRange<T> allocateIds(Object parentKeyOrEntity, Class<T> clazz, long num) {
 		Key<?> parent = this.getKey(parentKeyOrEntity);
 		String kind = Key.getKind(clazz);
 		
@@ -461,16 +369,14 @@ public class ObjectifyFactory
 	 * collection of pre-existing entities).  If you don't care about what id is allocated, use
 	 * one of the other allocate methods.
 	 */
-	public <T> KeyRangeState allocateIdRange(KeyRange<T> range)
-	{
+	public <T> KeyRangeState allocateIdRange(KeyRange<T> range) {
 		return DatastoreServiceFactory.getDatastoreService().allocateIdRange(range.getRaw());
 	}
 	
 	/**
 	 * @return the repository of Converter objects
 	 */
-	public Conversions getConversions()
-	{
+	public Conversions getConversions() {
 		return this.conversions;
 	}
 }

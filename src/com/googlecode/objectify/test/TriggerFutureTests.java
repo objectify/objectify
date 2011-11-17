@@ -46,7 +46,7 @@ public class TriggerFutureTests extends TestBase
 	public void testRaceCondition() throws Exception
 	{
 		ObjectifyOpts opts = new ObjectifyOpts().setGlobalCache(false);
-		AsyncDatastoreService ads = this.fact.getAsyncDatastoreService(opts);
+		AsyncDatastoreService ads = this.fact.createAsyncDatastoreService(opts);
 		
 		for (int i=0; i<100; i++)
 		{

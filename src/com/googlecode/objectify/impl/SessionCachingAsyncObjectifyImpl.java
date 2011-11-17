@@ -15,7 +15,7 @@ import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cache.TriggerSuccessFuture;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.util.NowFuture;
+import com.googlecode.objectify.util.FutureNow;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
@@ -61,7 +61,7 @@ public class SessionCachingAsyncObjectifyImpl extends ObjectifyImpl
 		if (needFetching.isEmpty())
 		{
 			// We can just use the foundInCache as-is
-			Future<Map<Key<T>, T>> fut = new NowFuture<Map<Key<T>, T>>(foundInCache);
+			Future<Map<Key<T>, T>> fut = new FutureNow<Map<Key<T>, T>>(foundInCache);
 			return new ResultAdapter<Map<Key<T>, T>>(fut);
 		}
 		else

@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.util;
 
+import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -55,5 +56,17 @@ public class ObjectifyWrapper implements Objectify
 	public ObjectifyFactory getFactory()
 	{
 		return base.getFactory();
+	}
+
+	@Override
+	public Objectify consistency(Consistency policy)
+	{
+		return base.consistency(policy);
+	}
+
+	@Override
+	public Objectify deadline(Double value)
+	{
+		return base.deadline(value);
 	}
 }

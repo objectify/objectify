@@ -1,5 +1,6 @@
 package com.googlecode.objectify;
 
+import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
@@ -77,4 +78,23 @@ public interface Objectify
 	 */
 	public ObjectifyFactory getFactory();
 
+	/**
+	 * Provides a new Objectify instance which has all of the same characteristics of this one (transaction,
+	 * cache policy, session cache contents, etc) but with the specified Consistency.
+	 *  
+	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
+	 *  are faster.
+	 * @return a new Objectify instance with the consistency policy replaced
+	 */
+	Objectify consistency(Consistency policy);
+	
+	/**
+	 * Provides a new Objectify instance which has all of the same characteristics of this one (transaction,
+	 * cache policy, session cache contents, etc) but with the specified deadline.
+	 *  
+	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
+	 *  are faster.
+	 * @return a new Objectify instance with the consistency policy replaced
+	 */
+	Objectify deadline(Double value);
 }

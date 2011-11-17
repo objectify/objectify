@@ -11,14 +11,14 @@ import java.util.concurrent.TimeoutException;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class NowFuture<T> implements Future<T>
+public class FutureNow<T> implements Future<T>
 {
 	/** */
 	T value;
 	
 	/**
 	 */
-	public NowFuture(T value)
+	public FutureNow(T value)
 	{
 		this.value = value;
 	}

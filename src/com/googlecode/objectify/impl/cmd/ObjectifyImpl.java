@@ -13,16 +13,20 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.appengine.api.datastore.TransactionOptions;
+import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.TranslatingQueryResultIterator;
@@ -38,44 +42,56 @@ public class ObjectifyImpl implements Objectify
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
 	
-	/** The google object that does the actual heavy lifting */
-	protected AsyncDatastoreService ads;
+	/** Our options */
+	protected ObjectifyOpts opts;
 	
 	/** The transaction to use.  If null, do not use transactions. */
-	protected Transaction txn;
+	protected Result<Transaction> txn;
+	
+	/** Lazily fetch this from the factory */
+	private AsyncDatastoreService lazyAds;
 	
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public ObjectifyImpl(ObjectifyFactory fact, AsyncDatastoreService ds, Transaction txn)
-	{
+	public ObjectifyImpl(ObjectifyFactory fact, ObjectifyOpts opts, boolean transactional) {
 		this.factory = fact;
-		this.ads = ds;
-		this.txn = txn;
+		this.opts = opts;
+
+		if (transactional) {
+			// There is no overhead for XG transactions on a single entity group, so there is
+			// no good reason to ever have withXG false when on the HRD.
+			this.txn = new ResultAdapter<Transaction>(ads().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG)));
+		}
+	}
+	
+	/** Lazily create this thing */
+	protected AsyncDatastoreService ads() {
+		if (lazyAds == null)
+			lazyAds = factory.createAsyncDatastoreService(opts);
+		
+		return lazyAds;
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getFactory()
 	 */
-	public ObjectifyFactory getFactory()
-	{
+	public ObjectifyFactory getFactory() {
 		return this.factory;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
-	public Transaction getTxn()
-	{
-		return this.txn;
+	public Transaction getTxn() {
+		return txn == null ? null : this.getTxn();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find()
 	 */
 	@Override
-	public LoadCmd load()
-	{
+	public LoadCmd load() {
 		return new LoadingImpl(this);
 	}
 
@@ -83,8 +99,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#put()
 	 */
 	@Override
-	public Put put()
-	{
+	public Put put() {
 		return new PutImpl(this);
 	}
 
@@ -92,8 +107,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#delete()
 	 */
 	@Override
-	public Delete delete()
-	{
+	public Delete delete() {
 		return new DeleteImpl(this);
 	}
 
@@ -102,7 +116,7 @@ public class ObjectifyImpl implements Objectify
 	 */
 	public <K, E extends K> Map<Key<K>, E> get(final Iterable<com.google.appengine.api.datastore.Key> rawKeys) {
 		
-		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(txn, rawKeys);
+		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads().get(getTxn(), rawKeys);
 		Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
 		
 		Result<Map<Key<K>, E>> wrapper = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<K>, E>>(adapted) {
@@ -129,15 +143,15 @@ public class ObjectifyImpl implements Objectify
 	/**
 	 * The fundamental put() operation.
 	 */
-	public <K, E extends K> Result<Map<Key<K>, E>> put(final Iterable<? extends E> entities)
-	{
+	public <K, E extends K> Result<Map<Key<K>, E>> put(final Iterable<? extends E> entities) {
+		
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
 			EntityMetadata<E> metadata = factory.getMetadataForEntity(obj);
 			entityList.add(metadata.toEntity(obj, this));
 		}
 
-		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(txn, entityList);
+		Future<List<com.google.appengine.api.datastore.Key>> raw = ads().put(getTxn(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
 		return new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<K>, E>>(adapted) {
@@ -166,7 +180,7 @@ public class ObjectifyImpl implements Objectify
 	 * The fundamental delete() operation.
 	 */
 	public Result<Void> delete(Iterable<com.google.appengine.api.datastore.Key> keys) {
-		Future<Void> fut = ads.delete(txn, keys);
+		Future<Void> fut = ads().delete(getTxn(), keys);
 		return new ResultAdapter<Void>(fut);
 	}
 	
@@ -175,7 +189,7 @@ public class ObjectifyImpl implements Objectify
 	 * only query though.
 	 */
 	public <T> QueryResultIterable<T> query(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(txn, query);
+		PreparedQuery pq = ads().prepare(getTxn(), query);
 		return new ToObjectIterable<T>(pq.asQueryResultIterable(fetchOpts));
 	}
 
@@ -186,7 +200,7 @@ public class ObjectifyImpl implements Objectify
 	@SuppressWarnings("unchecked")
 	public <T> QueryResultIterable<T> queryKeys(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
 		assert query.isKeysOnly();
-		PreparedQuery pq = ads.prepare(txn, query);
+		PreparedQuery pq = ads().prepare(getTxn(), query);
 		return (QueryResultIterable<T>)new ToKeyIterable(pq.asQueryResultIterable(fetchOpts));
 	}
 
@@ -194,7 +208,7 @@ public class ObjectifyImpl implements Objectify
 	 * The fundamental query count operation.  This is sufficiently different from normal query().
 	 */
 	public int queryCount(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(txn, query);
+		PreparedQuery pq = ads().prepare(getTxn(), query);
 		return pq.countEntities(fetchOpts);
 	}
 
@@ -257,5 +271,15 @@ public class ObjectifyImpl implements Objectify
 			EntityMetadata<T> meta = factory.getMetadata(from.getKey());
 			return meta.toObject(from, ObjectifyImpl.this);
 		}
+	}
+
+	@Override
+	public Objectify consistency(Consistency policy) {
+		return null;
+	}
+
+	@Override
+	public Objectify deadline(Double value) {
+		return null;
 	}
 }
