@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -20,12 +18,13 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.Query;
+import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of various queries
@@ -56,8 +55,8 @@ public class QueryTests extends TestBase
 		trivs.add(this.triv1);
 		trivs.add(this.triv2);
 		
-		Objectify ofy = this.fact.begin();
-		Map<Key<Trivial>, Trivial> result = ofy.put(trivs);
+		TestObjectify ofy = this.fact.begin();
+		Map<Key<Trivial>, Trivial> result = ofy.put().entities(trivs).now();
 
 		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
 	}	
@@ -66,11 +65,11 @@ public class QueryTests extends TestBase
 	@Test
 	public void testKeysOnly() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Query<Trivial> q = ofy.query(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+		Query<Trivial> q = ofy.load().type(Trivial.class);
 		
 		int count = 0;
-		for (Key<Trivial> k: q.fetchKeys())
+		for (Key<Trivial> k: q.keys())
 		{
 			assert keys.contains(k);
 			count++;
@@ -82,14 +81,14 @@ public class QueryTests extends TestBase
 		assert q.count() == keys.size();
 		
 		q.limit(2);
-		for (Key<Trivial> k: q.fetchKeys())
+		for (Key<Trivial> k: q.keys())
 			assert keys.contains(k);
 		
-		Key<Trivial> first = q.getKey();
+		Key<Trivial> first = q.keysOnly().first().key();
 		assert first.equals(this.keys.get(0));
 		
 		q.offset(1);
-		Key<Trivial> second = q.getKey();
+		Key<Trivial> second = q.keysOnly().first().key();
 		assert second.equals(this.keys.get(1));
 	}
 
@@ -101,12 +100,12 @@ public class QueryTests extends TestBase
 		// then search for limit 20 using that cursor
 		// then use get() and see if we get the object at cursor
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		for (int i = 0; i < 30; i++) {
 			ofy.put(new Trivial("foo", i));
 		}
 
-		Query<Trivial> q1 = ofy.query(Trivial.class).filter("someString", "foo");
+		Query<Trivial> q1 = ofy.load().type(Trivial.class).filter("someString", "foo");
 		q1.limit(20);
 		QueryResultIterator<Trivial> i1 = q1.iterator();
 		List<Trivial> l1 = new ArrayList<Trivial>();
@@ -128,8 +127,8 @@ public class QueryTests extends TestBase
 
 		assert l1.size() == 20;
 
-		Query<Trivial> q2 = ofy.query(Trivial.class).filter("someString =", "foo");
-		q2.limit(20).startCursor(cursor);
+		Query<Trivial> q2 = ofy.load().type(Trivial.class).filter("someString =", "foo");
+		q2.limit(20).startAt(cursor);
 		QueryResultIterator<Trivial> i2 = q2.iterator();
 		List<Trivial> l2 = new ArrayList<Trivial>();
 		while (i2.hasNext())
@@ -139,7 +138,7 @@ public class QueryTests extends TestBase
 		}
 		assert l2.size() == 15;
 
-		Trivial gotten = q2.get();
+		Trivial gotten = q2.first().get();
 		assert gotten.getId().equals(objectAfterCursor.getId());
 	}
 
@@ -147,8 +146,8 @@ public class QueryTests extends TestBase
 	@Test
 	public void testNormalSorting() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Iterator<Trivial> it = ofy.query(Trivial.class).order("someString").iterator();
+		TestObjectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).order("someString").iterator();
 		
 		Trivial t1 = it.next();
 		Trivial t2 = it.next();
@@ -161,8 +160,8 @@ public class QueryTests extends TestBase
 	@Test
 	public void testNormalReverseSorting() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Iterator<Trivial> it = ofy.query(Trivial.class).order("-someString").iterator();
+		TestObjectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).order("-someString").iterator();
 		
 		// t2 first
 		Trivial t2 = it.next();
@@ -176,8 +175,8 @@ public class QueryTests extends TestBase
 	@Test
 	public void testIdSorting() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Iterator<Trivial> it = ofy.query(Trivial.class).order("id").iterator();
+		TestObjectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).order("id").iterator();
 		
 		Trivial t1 = it.next();
 		Trivial t2 = it.next();
@@ -190,8 +189,8 @@ public class QueryTests extends TestBase
 	@Test
 	public void testFiltering() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString >", triv1.getSomeString()).iterator();
+		TestObjectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).filter("someString >", triv1.getSomeString()).iterator();
 			
 		Trivial t2 = it.next();
 		assert !it.hasNext();
@@ -202,12 +201,12 @@ public class QueryTests extends TestBase
 	@Test
 	public void testFilteringByNull() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv3 = new Trivial(null, 3);
 		ofy.put(triv3);
 		
-		Iterator<Trivial> it = ofy.query(Trivial.class).filter("someString", null).iterator();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).filter("someString", null).iterator();
 
 		assert it.hasNext();
 		Trivial t3 = it.next();
@@ -219,8 +218,8 @@ public class QueryTests extends TestBase
 	@Test
 	public void testIdFiltering() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		Iterator<Trivial> it = ofy.query(Trivial.class).filter("id >", triv1.getId()).iterator();
+		TestObjectify ofy = this.fact.begin();
+		Iterator<Trivial> it = ofy.load().type(Trivial.class).filter("id >", triv1.getId()).iterator();
 		
 		Trivial t2 = it.next();
 		assert !it.hasNext();
@@ -231,11 +230,11 @@ public class QueryTests extends TestBase
 	@Test
 	public void testQueryToString() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		Query<Trivial> q1 = ofy.query(Trivial.class).filter("id >", triv1.getId());
-		Query<Trivial> q2 = ofy.query(Trivial.class).filter("id <", triv1.getId());
-		Query<Trivial> q3 = ofy.query(Trivial.class).filter("id >", triv1.getId()).order("-id");
+		Query<Trivial> q1 = ofy.load().type(Trivial.class).filter("id >", triv1.getId());
+		Query<Trivial> q2 = ofy.load().type(Trivial.class).filter("id <", triv1.getId());
+		Query<Trivial> q3 = ofy.load().type(Trivial.class).filter("id >", triv1.getId()).order("-id");
 
 		assert !q1.toString().equals(q2.toString());
 		assert !q1.toString().equals(q3.toString());
@@ -245,24 +244,24 @@ public class QueryTests extends TestBase
 	@Test
 	public void testEmptySingleResult() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		Query<Trivial> q = ofy.query(Trivial.class).filter("id", 999999);	// no such entity
-		assert q.get() == null;
+		Query<Trivial> q = ofy.load().type(Trivial.class).filter("id", 999999);	// no such entity
+		assert q.first().get() == null;
 	}
 
 	/** */
 	@Test
 	public void testFilteringByKeyField() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		Key<Employee> bobKey = new Key<Employee>(Employee.class, "bob");
+		Key<Employee> bobKey = Key.create(Employee.class, "bob");
 		
 		Employee fred = new Employee("fred", bobKey);
 		ofy.put(fred);
 		
-		Iterator<Employee> it = ofy.query(Employee.class).filter("manager", bobKey).iterator();
+		Iterator<Employee> it = ofy.load().type(Employee.class).filter("manager", bobKey).iterator();
 
 		assert it.hasNext();
 		Employee fetched = it.next();
@@ -274,7 +273,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testFilteringByAncestor() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial(null, 3);
 		Key<Trivial> trivKey = ofy.put(triv);
@@ -282,7 +281,7 @@ public class QueryTests extends TestBase
 		Child child = new Child(trivKey, "blah");
 		ofy.put(child);
 		
-		Iterator<Object> it = ofy.query().ancestor(trivKey).iterator();
+		Iterator<Object> it = ofy.load().ancestor(trivKey).iterator();
 
 		Object fetchedTrivial = it.next();
 		assert fetchedTrivial instanceof Trivial;
@@ -299,7 +298,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testIN() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv1 = new Trivial("foo", 3);
 		Trivial triv2 = new Trivial("bar", 3);
@@ -308,7 +307,7 @@ public class QueryTests extends TestBase
 
 		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
 
-		List<Trivial> result = ofy.query(Trivial.class).filter("someString in", conditions).list();
+		List<Trivial> result = ofy.load().type(Trivial.class).filter("someString in", conditions).list();
 		assert result.size() == 2;
 		
 		long id1 = result.get(0).getId();
@@ -322,7 +321,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testINfilteringOnStringName() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		NamedTrivial triv1 = new NamedTrivial("foo", null, 3);
 		NamedTrivial triv2 = new NamedTrivial("bar", null, 3);
@@ -331,7 +330,7 @@ public class QueryTests extends TestBase
 
 		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
 
-		List<NamedTrivial> result = ofy.query(NamedTrivial.class).filter("name in", conditions).list();
+		List<NamedTrivial> result = ofy.load().type(NamedTrivial.class).filter("name in", conditions).list();
 		assert result.size() == 2;
 		
 		String id1 = result.get(0).getName();
@@ -345,13 +344,13 @@ public class QueryTests extends TestBase
 	@Test
 	public void testINfilteringWithKeySpecial() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv1 = new Trivial("foo", 3);
 		Key<Trivial> key1 = ofy.put(triv1);
 		Set<Key<Trivial>> singleton = Collections.singleton(key1);
 
-		List<Trivial> result = ofy.query(Trivial.class).filter("__key__ in", singleton).list();
+		List<Trivial> result = ofy.load().type(Trivial.class).filter("__key__ in", singleton).list();
 		assert result.size() == 1;
 		
 		assert  triv1.getId().equals(result.get(0).getId()); 
@@ -361,16 +360,16 @@ public class QueryTests extends TestBase
 	@Test
 	public void testINfilteringWithKeyField() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		Key<Employee> bobKey = new Key<Employee>(Employee.class, "bob");
+		Key<Employee> bobKey = Key.create(Employee.class, "bob");
 		Employee fred = new Employee("fred", bobKey);
 		
 		ofy.put(fred);
 		
 		Set<Key<Employee>> singleton = Collections.singleton(bobKey);
 
-		List<Employee> result = ofy.query(Employee.class).filter("manager in", singleton).list();
+		List<Employee> result = ofy.load().type(Employee.class).filter("manager in", singleton).list();
 		assert result.size() == 1;
 		
 		assert  result.get(0).getName().equals("fred"); 
@@ -378,24 +377,11 @@ public class QueryTests extends TestBase
 	
 	/** */
 	@Test
-	public void testCloningQuery() throws Exception
-	{
-		Objectify ofy = this.fact.begin();
-		
-		Query<Trivial> f12 = ofy.query(Trivial.class).filter("someString >", "a");
-		Query<Trivial> f1 = f12.clone().filter("someString <", "foo2");
-		
-		assert f12.list().size() == 2;
-		assert f1.list().size() == 1;
-	}
-	
-	/** */
-	@Test
 	public void testCount() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		int count = ofy.query(Trivial.class).count();
+		int count = ofy.load().type(Trivial.class).count();
 		
 		assert count == 2;
 	}

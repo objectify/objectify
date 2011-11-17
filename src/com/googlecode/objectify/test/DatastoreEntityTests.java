@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * This is a set of tests that clarify exactly what happens when you put different

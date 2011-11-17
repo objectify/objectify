@@ -10,9 +10,10 @@ import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests simple use of the getRef() methods on Objectify
@@ -30,7 +31,7 @@ public class RefTests extends TestBase
 	/** */
 	@BeforeTest
 	public void createTwo() {
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		t1 = new Trivial("foo", 11);
 		k1 = ofy.put(t1);
@@ -44,7 +45,7 @@ public class RefTests extends TestBase
 //	/** */
 //	@Test
 //	public void testGet() throws Exception {
-//		Objectify ofy = fact.begin();
+//		TestObjectify ofy = fact.begin();
 //		
 //		Ref<Trivial> ref = Ref.create(k1);
 //
@@ -60,37 +61,37 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void testFind() throws Exception {
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Ref<Trivial> ref = Ref.create(k1);
 
-		ofy.findRef(ref);
-		assert ref.value().getSomeString().equals(t1.getSomeString());
+		ofy.load().ref(ref);
+		assert ref.get().getSomeString().equals(t1.getSomeString());
 		
 		Ref<Trivial> refNone = Ref.create(kNone);
-		assert refNone.value() == null;
+		assert refNone.get() == null;
 	}
 
 	/** */
 	@Test
 	public void testGetRefsVarargs() throws Exception {
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Ref<Trivial> ref1 = Ref.create(k1);
 		Ref<Trivial> ref2 = Ref.create(k2);
 		Ref<Trivial> refNone = Ref.create(kNone);
 
-		ofy.getRefs(ref1, ref2, refNone);
+		ofy.load().refs(ref1, ref2, refNone);
 		
-		assert ref1.value().getSomeString().equals(t1.getSomeString());
-		assert ref2.value().getSomeString().equals(t2.getSomeString());
-		assert refNone.value() == null;
+		assert ref1.get().getSomeString().equals(t1.getSomeString());
+		assert ref2.get().getSomeString().equals(t2.getSomeString());
+		assert refNone.get() == null;
 	}
 
 	/** */
 	@Test
 	public void testGetRefsIterable() throws Exception {
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Ref<Trivial> ref1 = Ref.create(k1);
 		Ref<Trivial> ref2 = Ref.create(k2);
@@ -101,10 +102,10 @@ public class RefTests extends TestBase
 		list.add(ref2);
 		list.add(refNone);
 		
-		ofy.getRefs(list);
+		ofy.load().refs(list);
 		
-		assert ref1.value().getSomeString().equals(t1.getSomeString());
-		assert ref2.value().getSomeString().equals(t2.getSomeString());
-		assert refNone.value() == null;
+		assert ref1.get().getSomeString().equals(t1.getSomeString());
+		assert ref2.get().getSomeString().equals(t2.getSomeString());
+		assert refNone.get() == null;
 	}
 }

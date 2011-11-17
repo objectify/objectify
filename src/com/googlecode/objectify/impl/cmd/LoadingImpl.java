@@ -81,7 +81,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	 */
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void refs(Iterable<Ref<?>> refs) {
+	public void refs(Iterable<? extends Ref<?>> refs) {
 		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.getRawKeys(refs);
 		
 		final Map<Key<Object>, Object> fetched = ofy.get(keys);

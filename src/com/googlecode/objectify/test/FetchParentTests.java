@@ -7,9 +7,10 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Fetch;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests the fetching system for simple parent values.
@@ -38,7 +39,7 @@ public class FetchParentTests extends TestBase
 		fact.register(Father.class);
 		fact.register(Child.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
 		f.foo = "foo";
@@ -69,7 +70,7 @@ public class FetchParentTests extends TestBase
 	{
 		fact.register(TreeNode.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
@@ -101,7 +102,7 @@ public class FetchParentTests extends TestBase
 	{
 		fact.register(TreeNode.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
@@ -140,7 +141,7 @@ public class FetchParentTests extends TestBase
 		fact.register(Father.class);
 		fact.register(ChildWithGroup.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
 		f.foo = "foo";
@@ -157,7 +158,7 @@ public class FetchParentTests extends TestBase
 		assert fetched.father.foo == null;
 
 		// This should get the complete parent
-		Child fetched2 = ofy.group("group").get(fact.<Child>getKey(ch));
+		Child fetched2 = ofy.load().group("group").entity(fact.<Child>getKey(ch)).get();
 		assert fetched2.father.id.equals(f.id);
 		assert fetched2.father.foo.equals(f.foo);
 	}

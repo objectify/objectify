@@ -55,15 +55,15 @@ public class QueryWrapper<T> implements Query<T>
 	}
 
 	@Override
-	public Query<T> startCursor(Cursor value)
+	public Query<T> startAt(Cursor value)
 	{
-		return this.base.startCursor(value);
+		return this.base.startAt(value);
 	}
 
 	@Override
-	public Query<T> endCursor(Cursor value)
+	public Query<T> endAt(Cursor value)
 	{
-		return this.base.endCursor(value);
+		return this.base.endAt(value);
 	}
 
 	@Override

@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -16,8 +14,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Normally we run all tests with caching enabled.  This lets us mix cached
@@ -67,11 +66,11 @@ public class CachingTests extends TestBase
 		entities.add(un2);
 		entities.add(triv2);
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		Map<Key<Object>, Object> keys = ofy.put(entities);
+		Map<Key<Object>, Object> keys = ofy.put().entities(entities).now();
 		
-		Map<Key<Object>, Object> fetched = ofy.get(keys.keySet());
+		Map<Key<Object>, Object> fetched = ofy.load().entities(keys.keySet());
 		
 		assert fetched.size() == 4;
 		assert fetched.containsKey(this.fact.getKey(un1));

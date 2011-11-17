@@ -12,14 +12,15 @@ import javax.persistence.Id;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.Query;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  */
@@ -102,7 +103,7 @@ public class EmbeddedTests extends TestBase
 	@Test
 	public void testNullHandling() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		// null mayor
 		Town t1 = new Town();
@@ -137,7 +138,7 @@ public class EmbeddedTests extends TestBase
 	{
 		fact.register(PartiallyUnindexedEntity.class);
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		PartiallyUnindexedEntity obj = new PartiallyUnindexedEntity(
 				new PartiallyUnindexedStruct(
@@ -175,8 +176,8 @@ public class EmbeddedTests extends TestBase
 
 	private void subtestFoundByQuery(boolean expected, Key<?> key, String filter, Object value)
 	{
-		Query<PartiallyUnindexedEntity> q = fact.begin().query(PartiallyUnindexedEntity.class);
-		q.filter(filter + " =", value);
+		Query<PartiallyUnindexedEntity> q = fact.begin().load().type(PartiallyUnindexedEntity.class);
+		q = q.filter(filter + " =", value);
 		Iterator<PartiallyUnindexedEntity> results = q.iterator();
 
 		if (expected)
@@ -197,13 +198,13 @@ public class EmbeddedTests extends TestBase
 	{
 		fact.register(TeamEntity.class);
 
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		TeamEntity t = new TeamEntity();
 		t.members = new Names();
 		t.members.names = new Name[]{new Name("Joe", "Smith"), new Name("Jane", "Foo")};
 		Key<TeamEntity> k = ofy.put(t);
 
-		System.out.println(ofy.getDatastore().get(fact.getRawKey(k)));
+		System.out.println(ds().get(fact.getRawKey(k)));
 
 		t = ofy.get(k);
 		assert t != null;
@@ -251,7 +252,7 @@ public class EmbeddedTests extends TestBase
 		KensClientListName clientlistname = new KensClientListName();
 		clientlistname.listMembers = listMembers;
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		ofy.put(clientlistname);
 	}

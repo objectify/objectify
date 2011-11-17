@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -15,9 +13,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.test.EnumTests.HasEnums.Color;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of Enums, including Enums in arrays and lists
@@ -59,7 +58,7 @@ public class EnumTests extends TestBase
 	@Test
 	public void testSimpleEnum() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.color = Color.RED;
@@ -73,7 +72,7 @@ public class EnumTests extends TestBase
 	@Test(groups={"now"})
 	public void testEnumsList() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.colors = Arrays.asList(Color.RED, Color.GREEN);
@@ -88,7 +87,7 @@ public class EnumTests extends TestBase
 	@Test
 	public void testEnumsArray() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.colorsArray = new Color[] { Color.RED, Color.GREEN };
@@ -103,13 +102,13 @@ public class EnumTests extends TestBase
 	@Test
 	public void testFilterByEnum() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasEnums he = new HasEnums();
 		he.color = Color.GREEN;
 		ofy.put(he);
 		
-		HasEnums fetched = ofy.query(HasEnums.class).filter("color =", Color.GREEN).get();
+		HasEnums fetched = ofy.load().type(HasEnums.class).filter("color =", Color.GREEN).first().get();
 		assert fetched.id.equals(he.id);
 	}
 }

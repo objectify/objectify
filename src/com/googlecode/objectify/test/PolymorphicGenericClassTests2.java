@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Checking to make sure polymorphism works with generic base classes - the
@@ -35,7 +36,7 @@ public class PolymorphicGenericClassTests2 extends TestBase
 		@SuppressWarnings("unchecked")
 		public Key<T> key()
 		{
-			return new Key<T>((Class<? extends T>)this.getClass(), this.id);
+			return Key.create((Class<? extends T>)this.getClass(), this.id);
 		}
 	}
 
@@ -69,7 +70,7 @@ public class PolymorphicGenericClassTests2 extends TestBase
 		Objectify ofy = this.fact.begin();
 		
 		@SuppressWarnings("rawtypes")
-		List<Vehicle> all = ofy.query(Vehicle.class).list();
+		List<Vehicle> all = ofy.load().type(Vehicle.class).list();
 		assert all.size() == 1;
 		assert all.get(0).name.equals(car.name);
 	}

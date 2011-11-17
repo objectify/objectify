@@ -7,9 +7,10 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Test behavior of null fields, and default values
@@ -69,13 +70,13 @@ public class NullDefaultFieldTests extends TestBase
 	public void testNewVersionOfEntity() throws Exception {
 		fact.register(EntityWithDefault.class);
 
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		// e1 has absent properties
 		Entity e1 = new Entity("EntityWithDefault");
 		e1.setProperty("a", "1");
-		com.google.appengine.api.datastore.Key k1 = ofy.getDatastore().put(e1);
+		com.google.appengine.api.datastore.Key k1 = ds().put(e1);
 
-		EntityWithDefault o = ofy.get(new Key<EntityWithDefault>(EntityWithDefault.class, k1.getId()));
+		EntityWithDefault o = ofy.get(Key.create(EntityWithDefault.class, k1.getId()));
 
 		assert o.a != null;
 		assert "1".equals(o.a);
@@ -93,7 +94,7 @@ public class NullDefaultFieldTests extends TestBase
 	@Test
 	public void testDefaultValuesAndNull() throws Exception {
 		fact.register(EntityWithDefault.class);
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 
 		Key<EntityWithDefault> k1 = ofy.put(new EntityWithDefault("A"));
 		Key<EntityWithDefault> k2 = ofy.put(new EntityWithDefault("A", "B", "C"));

@@ -8,10 +8,11 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
 import com.googlecode.objectify.test.entity.Town;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests that a certain-shaped Town results in the correct datastore Entity.
@@ -144,7 +145,7 @@ public class ExampleDocoTests extends TestBase
 
 	private Town loadTown(Entity e) throws EntityNotFoundException
 	{
-		Key<Town> k = new Key<Town>(e.getKey());
+		Key<Town> k = Key.create(e.getKey());
 		return fact.begin().get(k);
 	}
 
@@ -157,8 +158,8 @@ public class ExampleDocoTests extends TestBase
 	private com.google.appengine.api.datastore.Entity townToEntity(Town town)
 			throws EntityNotFoundException
 	{
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		Key<Town> k = ofy.put(town);
-		return ofy.getDatastore().get(fact.getRawKey(k));
+		return ds().get(fact.getRawKey(k));
 	}
 }

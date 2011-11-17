@@ -1,13 +1,15 @@
 /*
  */
 
-package com.googlecode.objectify.test;
+package com.googlecode.objectify.test.util;
 
 import java.util.logging.Logger;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
@@ -16,8 +18,6 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.cache.TriggerFutureHook;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
@@ -46,7 +46,7 @@ public class TestBase
 	private static Logger log = Logger.getLogger(TestBase.class.getName());
 	
 	/** */
-	protected ObjectifyFactory fact;
+	protected TestObjectifyFactory fact;
 	
 	/** */
 	private final LocalServiceTestHelper helper =
@@ -61,22 +61,7 @@ public class TestBase
 	{
 		this.helper.setUp();
 		
-		this.fact = new ObjectifyFactory() {
-			@Override
-			public Objectify begin(ObjectifyOpts opts)
-			{
-				// This can be used to enable/disable the memory cache globally.
-				opts.setGlobalCache(true);
-				
-				// This can be used to enable/disable the session caching objectify
-				// Note that it will break several unit tests that check for transmutation
-				// when entities are run through the DB (ie, unknown List types become
-				// ArrayList).  These failures are ok.
-				opts.setSessionCache(false);
-				
-				return super.begin(opts);
-			}
-		};
+		this.fact = new TestObjectifyFactory();
 		
 		this.fact.register(Trivial.class);
 		this.fact.register(NamedTrivial.class);
@@ -107,15 +92,21 @@ public class TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		
-		Key<T> key = ofy.put(saveMe);
+		Key<T> key = ofy.put().entity(saveMe).now();
 
 		try
 		{
-			Entity ent = ofy.getDatastore().get(fact.getRawKey(key));
+			Entity ent = ds().get(key.getRaw());
 			System.out.println(ent);
 		}
 		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
 
-		return ofy.find(key);
+		return ofy.load().entity(key).get();
+	}
+	
+	/** Get a DatastoreService */
+	protected DatastoreService ds()
+	{
+		return DatastoreServiceFactory.getDatastoreService();
 	}
 }

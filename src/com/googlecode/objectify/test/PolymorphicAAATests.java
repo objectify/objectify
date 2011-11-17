@@ -12,8 +12,9 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Just the registration part of polymorphic classes.  The 'A' just to alphabetize it before
@@ -112,10 +113,10 @@ public class PolymorphicAAATests extends TestBase
 	{
 		this.testRegistrationForwards();
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		// This should produce null
-		Cat cat = ofy.find(Cat.class, 123);
+		Cat cat = ofy.load().type(Cat.class).id(123).get();
 		
 		assert cat == null;
 	}
@@ -131,7 +132,7 @@ public class PolymorphicAAATests extends TestBase
 	{
 		this.testRegistrationForwards();
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Animal a = new Animal();
 		a.name = "Bob";
@@ -139,6 +140,6 @@ public class PolymorphicAAATests extends TestBase
 		
 		// This should exclude the value
 		@SuppressWarnings("unused")
-		Mammal m = ofy.find(Mammal.class, a.id);
+		Mammal m = ofy.load().type(Mammal.class).id(a.id).get();
 	}
 }

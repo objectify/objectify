@@ -20,6 +20,7 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.test.util.MockAsyncDatastoreService;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Tests of the caching datastore directly, outside of the rest of Objectify. Tries to create as few

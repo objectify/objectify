@@ -45,6 +45,11 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<T>(webSafeString);
 	}
 	
+	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
+	public static <T> Key<T> valueOf(String webSafeString) {
+		return Key.create(webSafeString);
+	}
+	
 	/** */
 	protected com.google.appengine.api.datastore.Key raw;
 	
@@ -52,7 +57,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	transient protected Key<?> parent;
 	
 	/** For GWT serialization */
-	protected Key() {}
+	private Key() {}
 
 	/** Wrap a raw Key */
 	private Key(com.google.appengine.api.datastore.Key raw)

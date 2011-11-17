@@ -7,10 +7,11 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Fetch;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests the fetching system for parent values using Ref<?> holders.
@@ -39,7 +40,7 @@ public class FetchParentRefTests extends TestBase
 		fact.register(Father.class);
 		fact.register(Child.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
 		f.foo = "foo";
@@ -53,8 +54,8 @@ public class FetchParentRefTests extends TestBase
 		Child fetched = ofy.get(fact.<Child>getKey(ch));
 		
 		assert fetched.bar.equals(ch.bar);
-		assert fetched.father.value().id.equals(f.id);
-		assert fetched.father.value().foo.equals(f.foo);
+		assert fetched.father.get().id.equals(f.id);
+		assert fetched.father.get().foo.equals(f.foo);
 	}
 
 	/** */
@@ -70,7 +71,7 @@ public class FetchParentRefTests extends TestBase
 	{
 		fact.register(TreeNode.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
@@ -89,11 +90,11 @@ public class FetchParentRefTests extends TestBase
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
 		assert fetched3.foo.equals(node3.foo);
-		assert fetched3.parent.value().id.equals(node2.id);
-		assert fetched3.parent.value().foo.equals(node2.foo);
-		assert fetched3.parent.value().parent.value().id.equals(node1.id);
-		assert fetched3.parent.value().parent.value().foo.equals(node1.foo);
-		assert fetched3.parent.value().parent.value().parent == null;
+		assert fetched3.parent.get().id.equals(node2.id);
+		assert fetched3.parent.get().foo.equals(node2.foo);
+		assert fetched3.parent.get().parent.get().id.equals(node1.id);
+		assert fetched3.parent.get().parent.get().foo.equals(node1.foo);
+		assert fetched3.parent.get().parent.get().parent == null;
 	}
 
 	/** */
@@ -102,7 +103,7 @@ public class FetchParentRefTests extends TestBase
 	{
 		fact.register(TreeNode.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
@@ -120,11 +121,11 @@ public class FetchParentRefTests extends TestBase
 
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
-		assert fetched3.parent.value().id.equals(node2.id);
-		assert fetched3.parent.value().foo == null;
-		assert fetched3.parent.value().parent.value().id.equals(node1.id);
-		assert fetched3.parent.value().parent.value().foo.equals(node1.foo);
-		assert fetched3.parent.value().parent.value().parent == null;
+		assert fetched3.parent.get().id.equals(node2.id);
+		assert fetched3.parent.get().foo == null;
+		assert fetched3.parent.get().parent.get().id.equals(node1.id);
+		assert fetched3.parent.get().parent.get().foo.equals(node1.foo);
+		assert fetched3.parent.get().parent.get().parent == null;
 	}
 
 	/** */
@@ -141,7 +142,7 @@ public class FetchParentRefTests extends TestBase
 		fact.register(Father.class);
 		fact.register(ChildWithGroup.class);
 		
-		Objectify ofy = fact.begin();
+		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
 		f.foo = "foo";
@@ -155,11 +156,11 @@ public class FetchParentRefTests extends TestBase
 		// This should get an empty ref
 		Child fetched = ofy.get(fact.<Child>getKey(ch));
 		assert fetched.father.key().getId() == f.id;
-		assert fetched.father.value() == null;
+		assert fetched.father.get() == null;
 
 		// This should get a filled in ref
-		Child fetched2 = ofy.group("group").get(fact.<Child>getKey(ch));
-		assert fetched2.father.value().id.equals(f.id);
-		assert fetched2.father.value().foo.equals(f.foo);
+		Child fetched2 = ofy.load().group("group").entity(fact.<Child>getKey(ch)).get();
+		assert fetched2.father.get().id.equals(f.id);
+		assert fetched2.father.get().foo.equals(f.foo);
 	}
 }

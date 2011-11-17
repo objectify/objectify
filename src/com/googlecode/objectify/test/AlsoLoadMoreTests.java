@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -12,12 +10,12 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * More tests of using the @AlsoLoad annotation
@@ -77,15 +75,14 @@ public class AlsoLoadMoreTests extends TestBase
 	@Test
 	public void testMethodOverridingField() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(MethodOverridesField.class));
 		ent.setProperty("foo", TEST_VALUE);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<MethodOverridesField> key = new Key<MethodOverridesField>(ent.getKey());
-		MethodOverridesField fetched = ofy.get(key);
+		Key<MethodOverridesField> key = Key.create(ent.getKey());
+		MethodOverridesField fetched = ofy.load().entity(key).get();
 		
 		assert fetched.foo == null;
 		assert fetched.bar.equals(TEST_VALUE);

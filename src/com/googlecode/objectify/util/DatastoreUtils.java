@@ -15,7 +15,7 @@ public class DatastoreUtils
 	/**
 	 * Turn a list of refs into a list of raw keys.
 	 */
-	public static List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<Ref<?>> refs) {
+	public static List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<? extends Ref<?>> refs) {
 		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Ref<?> ref: refs)
 			rawKeys.add(ref.getKey().getRaw());

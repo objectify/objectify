@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -15,6 +13,7 @@ import com.googlecode.objectify.KeyRange;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Tests of simple key allocations
@@ -44,7 +43,7 @@ public class AllocateTests extends TestBase
 		
 		// Create an id with a put and verify it is > than the last
 		Trivial triv = new Trivial("foo", 3);
-		this.fact.begin().put(triv);
+		this.fact.begin().put().entity(triv);
 		
 		assert triv.getId() > previousId;
 	}
@@ -53,7 +52,7 @@ public class AllocateTests extends TestBase
 	@Test
 	public void testParentAllocation() throws Exception
 	{
-		Key<Trivial> parentKey = new Key<Trivial>(Trivial.class, 123);
+		Key<Trivial> parentKey = Key.create(Trivial.class, 123);
 		KeyRange<Child> range = this.fact.allocateIds(parentKey, Child.class, 5);
 		
 		Iterator<Key<Child>> it = range.iterator();
@@ -68,7 +67,7 @@ public class AllocateTests extends TestBase
 		
 		// Create an id with a put and verify it is > than the last
 		Child ch = new Child(parentKey, "foo");
-		this.fact.begin().put(ch);
+		this.fact.begin().put().entity(ch);
 		
 		assert ch.getId() > previousId;
 	}

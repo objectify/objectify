@@ -11,11 +11,12 @@ import java.util.logging.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.PolymorphicAAATests.Animal;
 import com.googlecode.objectify.test.PolymorphicAAATests.Cat;
 import com.googlecode.objectify.test.PolymorphicAAATests.Dog;
 import com.googlecode.objectify.test.PolymorphicAAATests.Mammal;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of polymorphic persistence and queries
@@ -45,7 +46,7 @@ public class PolymorphicQueryTests extends TestBase
 		this.fact.register(Cat.class);
 		this.fact.register(Dog.class);
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		this.animal = new Animal();
 		this.animal.name = "Ann";
@@ -73,9 +74,9 @@ public class PolymorphicQueryTests extends TestBase
 	@Test
 	public void testQueryAll() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		List<Animal> all = ofy.query(Animal.class).list();
+		List<Animal> all = ofy.load().type(Animal.class).list();
 		assert all.size() == 4;
 		
 		Animal ann = all.get(0);
@@ -95,9 +96,9 @@ public class PolymorphicQueryTests extends TestBase
 	@Test
 	public void testQueryMammal() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		List<Mammal> all = ofy.query(Mammal.class).list();
+		List<Mammal> all = ofy.load().type(Mammal.class).list();
 		assert all.size() == 3;
 		
 		Mammal mamet = (Mammal)all.get(0);
@@ -114,9 +115,9 @@ public class PolymorphicQueryTests extends TestBase
 	@Test
 	public void testQueryCat() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		List<Cat> all = ofy.query(Cat.class).list();
+		List<Cat> all = ofy.load().type(Cat.class).list();
 		assert all.size() == 1;
 		
 		Cat catrina = (Cat)all.get(0);
@@ -127,19 +128,19 @@ public class PolymorphicQueryTests extends TestBase
 	@Test
 	public void testQueryWithUnindexedPoly() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
-		List<Dog> dogs = ofy.query(Dog.class).list();
+		List<Dog> dogs = ofy.load().type(Dog.class).list();
 		assert dogs.size() == 0;
 
-		List<Animal> loud = ofy.query(Animal.class).filter("loudness", this.dog.loudness).list();
+		List<Animal> loud = ofy.load().type(Animal.class).filter("loudness", this.dog.loudness).list();
 		assert loud.size() == 1;
 		
 		Dog doug = (Dog)loud.get(0);
 		assert doug.loudness == this.dog.loudness;
 
 		// Let's try that again with a mammal query
-		List<Mammal> mloud = ofy.query(Mammal.class).filter("loudness", this.dog.loudness).list();
+		List<Mammal> mloud = ofy.load().type(Mammal.class).filter("loudness", this.dog.loudness).list();
 		assert mloud.size() == 1;
 		
 		doug = (Dog)mloud.get(0);
@@ -151,7 +152,7 @@ public class PolymorphicQueryTests extends TestBase
 	@Test
 	public void testFilterOnProperty() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Cat other = new Cat();
 		other.name = "OtherCat";
@@ -161,7 +162,7 @@ public class PolymorphicQueryTests extends TestBase
 		ofy.put(other);
 		
 		// now query, should only get Catrina
-		List<Cat> cats = ofy.query(Cat.class).filter("longHair", true).list();
+		List<Cat> cats = ofy.load().type(Cat.class).filter("longHair", true).list();
 		assert cats.size() == 1;
 		assert cats.get(0).name.equals(this.cat.name);
 	}

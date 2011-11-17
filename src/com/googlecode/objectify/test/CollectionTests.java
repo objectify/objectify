@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -24,10 +22,11 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.HasCollections.CustomSet;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of various collection types
@@ -56,7 +55,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicLists() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList(1, 2, 3);
@@ -64,8 +63,8 @@ public class CollectionTests extends TestBase
 		hc.integerArrayList = new ArrayList<Integer>(hc.integerList);
 		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
 		assertContains123(hc.integerList, ArrayList.class);
 		assertContains123(hc.integerArrayList, ArrayList.class);
@@ -76,7 +75,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicSets() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerSet = new HashSet<Integer>();
@@ -89,8 +88,8 @@ public class CollectionTests extends TestBase
 		hc.integerTreeSet = new TreeSet<Integer>(hc.integerSet);
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
 		assertContains123(hc.integerSet, HashSet.class);
 		assertContains123(hc.integerSortedSet, TreeSet.class);
@@ -103,7 +102,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCustomSet() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.customSet = new CustomSet();
@@ -111,8 +110,8 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(2);
 		hc.customSet.add(3);
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
 		assertContains123(hc.customSet, CustomSet.class);
 	}
@@ -121,11 +120,11 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testTypedKeySet() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
-		Key<Trivial> key7 = new Key<Trivial>(Trivial.class, 7);
-		Key<Trivial> key8 = new Key<Trivial>(Trivial.class, 8);
-		Key<Trivial> key9 = new Key<Trivial>(Trivial.class, 9);
+		Key<Trivial> key7 = Key.create(Trivial.class, 7);
+		Key<Trivial> key8 = Key.create(Trivial.class, 8);
+		Key<Trivial> key9 = Key.create(Trivial.class, 9);
 
 		HasCollections hc = new HasCollections();
 		hc.typedKeySet = new HashSet<Key<Trivial>>();
@@ -133,8 +132,8 @@ public class CollectionTests extends TestBase
 		hc.typedKeySet.add(key8);
 		hc.typedKeySet.add(key9);
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
 		assert hc.typedKeySet instanceof HashSet<?>;
 		assert hc.typedKeySet.size() == 3;
@@ -147,19 +146,19 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCollectionContainingNull() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList((Integer) null);
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
 		assert hc.integerList != null;
 		assert hc.integerList.size() == 1;
 		assert hc.integerList.get(0) == null;
 
-		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
+		Entity e = ds().get(fact.getRawKey(key));
 		assert e.hasProperty("integerList");
 		List<?> l = (List<?>) e.getProperty("integerList");
 		assert l != null;
@@ -173,19 +172,19 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testNullCollections() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = null;
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
-		ofy.put(hc);
-		hc = ofy.get(key);
+		ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 		assert hc.integerList == null;	// not loaded
 
-		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
+		Entity e = ds().get(fact.getRawKey(key));
 		// rule : never store a null collection
 		assert !e.hasProperty("integerList");
 	}
@@ -196,20 +195,20 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testEmptyCollections() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = new ArrayList<Integer>();
 
-		Key<HasCollections> key = ofy.put(hc);
-		hc = ofy.get(key);
+		Key<HasCollections> key = ofy.put().entity(hc).now();
+		hc = ofy.load().entity(key).get();
 
-		System.out.println(ofy.getDatastore().get(fact.getRawKey(hc)));
+		System.out.println(ds().get(fact.getRawKey(hc)));
 
 		// This isn't valid with the caching objectify turned on
 		assert hc.integerList == null;
 
-		Entity e = ofy.getDatastore().get(fact.getRawKey(key));
+		Entity e = ds().get(fact.getRawKey(key));
 		// rule : never store an empty collection
 		assert !e.hasProperty("integerList");
 

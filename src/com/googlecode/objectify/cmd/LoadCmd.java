@@ -62,7 +62,7 @@ public interface LoadCmd extends Query<Object>
 	 * 
 	 * @param refs provide the keys to fetch and will receive the asynchronous result.
 	 */
-	void refs(Iterable<Ref<?>> refs);
+	void refs(Iterable<? extends Ref<?>> refs);
 	
 	/**
 	 * <p>A convenient substitute for refs(Iterable)</p>

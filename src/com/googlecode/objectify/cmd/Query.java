@@ -13,7 +13,7 @@ import com.googlecode.objectify.Ref;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Query<T>
+public interface Query<T> extends QueryResultIterable<T>
 {
 	/**
 	 * <p>Create a filter based on the specified condition and value, using
@@ -89,7 +89,7 @@ public interface Query<T>
 	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
 	 * on the results of the query after a cursor is established.
 	 */
-	public Query<T> startCursor(Cursor value);
+	public Query<T> startAt(Cursor value);
 	
 	/**
 	 * Ends query results at the specified Cursor.  You can obtain a Cursor from
@@ -98,7 +98,7 @@ public interface Query<T>
 	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
 	 * on the results of the query after a cursor is established.
 	 */
-	public Query<T> endCursor(Cursor value);
+	public Query<T> endAt(Cursor value);
 	
 	/**
 	 * Sets the internal chunking strategy within the low-level API.  Affects
@@ -139,8 +139,12 @@ public interface Query<T>
 	public Ref<T> first();
 	
 	/**
-	 * Starts an asynchronous query which will return entities.  If keysOnly() is set, the entities
-	 * will only have their id/parent fields set.
+	 * <p>Starts an asynchronous query which will return entities.  If keysOnly() is set, the entities
+	 * will only have their id/parent fields set.</p>
+	 * 
+	 * <p>Note that since the Query<T> itself is QueryResultIterable<T>, you can iterate on the query
+	 * object itself.  However, if you want to start an async query and iterate on it later, you can
+	 * use this method.</p>
 	 */
 	public QueryResultIterable<T> entities();
 	

@@ -12,6 +12,7 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Serialized;
 import com.googlecode.objectify.test.entity.Name;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Tests of the {@code @Serialized} annotation

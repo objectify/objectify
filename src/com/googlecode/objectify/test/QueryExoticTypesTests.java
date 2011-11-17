@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -16,9 +14,10 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.Query;
+import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of queries of odd field types.
@@ -50,7 +49,7 @@ public class QueryExoticTypesTests extends TestBase
 	public void testDateFiltering() throws Exception
 	{
 		this.fact.register(HasDate.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		long later = System.currentTimeMillis();
 		long earlier = later - 100000;
@@ -60,7 +59,7 @@ public class QueryExoticTypesTests extends TestBase
 		
 		ofy.put(hd);
 			
-		Query<HasDate> q = ofy.query(HasDate.class).filter("when >", new Date(earlier));
+		Query<HasDate> q = ofy.load().type(HasDate.class).filter("when >", new Date(earlier));
 		
 		List<HasDate> result = q.list();
 		
@@ -80,14 +79,14 @@ public class QueryExoticTypesTests extends TestBase
 	public void testUserFiltering() throws Exception
 	{
 		this.fact.register(HasUser.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		HasUser hd = new HasUser();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 		
 		ofy.put(hd);
 			
-		Query<HasUser> q = ofy.query(HasUser.class).filter("who", hd.who);
+		Query<HasUser> q = ofy.load().type(HasUser.class).filter("who", hd.who);
 		
 		List<HasUser> result = q.list();
 		
@@ -100,14 +99,14 @@ public class QueryExoticTypesTests extends TestBase
 	public void testBadlyNamedUserFiltering() throws Exception
 	{
 		this.fact.register(User.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		User hd = new User();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 		
 		ofy.put(hd);
 			
-		Query<User> q = ofy.query(User.class).filter("who", hd.who);
+		Query<User> q = ofy.load().type(User.class).filter("who", hd.who);
 		
 		List<User> result = q.list();
 		
@@ -132,7 +131,7 @@ public class QueryExoticTypesTests extends TestBase
 	public void testFromThruDateFiltering() throws Exception
 	{
 		this.fact.register(HasFromThruDate.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		HasFromThruDate h1 = new HasFromThruDate();
 		Calendar cal1 = Calendar.getInstance();
@@ -161,7 +160,7 @@ public class QueryExoticTypesTests extends TestBase
 		cal1.set(2010, 7, 26);
 		Date thruDate = cal1.getTime();
 
-		Query<HasFromThruDate> q = ofy.query(HasFromThruDate.class);
+		Query<HasFromThruDate> q = ofy.load().type(HasFromThruDate.class);
 		q.filter("dateList >=", fromDate).filter("dateList <=", thruDate);
 
 		List<HasFromThruDate> listresult = q.list();

@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -16,13 +14,13 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.test.entity.HasAlsoLoads;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of using the @AlsoLoad annotation
@@ -105,15 +103,14 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testSimpleAlsoLoad() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("oldStuff", "oldStuff");
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasAlsoLoads> key = new Key<HasAlsoLoads>(ent.getKey());
-		HasAlsoLoads fetched = ofy.get(key);
+		Key<HasAlsoLoads> key = Key.create(ent.getKey());
+		HasAlsoLoads fetched = ofy.load().entity(key).get();
 		
 		assert fetched.getStuff().equals("oldStuff");
 		assert fetched.getOtherStuff() == null;
@@ -123,18 +120,17 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testAlsoLoadDuplicateError() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("stuff", "stuff");
 		ent.setProperty("oldStuff", "oldStuff");
-		ds.put(ent);
+		ds().put(ent);
 		
 		try
 		{
-			Key<HasAlsoLoads> key = new Key<HasAlsoLoads>(ent.getKey());
-			ofy.get(key);
+			Key<HasAlsoLoads> key = Key.create(ent.getKey());
+			ofy.load().entity(key).get();
 			assert false: "Shouldn't be able to read data duplicated with @AlsoLoad";
 		}
 		catch (Exception ex) {}
@@ -144,15 +140,14 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testAlsoLoadMethods() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("weirdStuff", "5");
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasAlsoLoads> key = new Key<HasAlsoLoads>(ent.getKey());
-		HasAlsoLoads fetched = ofy.get(key);
+		Key<HasAlsoLoads> key = Key.create(ent.getKey());
+		HasAlsoLoads fetched = ofy.load().entity(key).get();
 		
 		assert fetched.getWeird() == 5;
 	}
@@ -161,16 +156,15 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testEasyHasEmbedded() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
 		ent.setProperty("fieldUser.oldFoo", TEST_VALUE);
 		ent.setProperty("methodUser.oldFoo", TEST_VALUE);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasEmbedded> key = new Key<HasEmbedded>(ent.getKey());
-		HasEmbedded fetched = ofy.get(key);
+		Key<HasEmbedded> key = Key.create(ent.getKey());
+		HasEmbedded fetched = ofy.load().entity(key).get();
 		
 		assert TEST_VALUE.equals(fetched.fieldUser.foo);
 		assert TEST_VALUE.equals(fetched.methodUser.foo);
@@ -180,16 +174,15 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testHarderHasEmbedded() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
 		ent.setProperty("oldFieldUser.oldFoo", TEST_VALUE);
 		ent.setProperty("oldMethodUser.oldFoo", TEST_VALUE);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasEmbedded> key = new Key<HasEmbedded>(ent.getKey());
-		HasEmbedded fetched = ofy.get(key);
+		Key<HasEmbedded> key = Key.create(ent.getKey());
+		HasEmbedded fetched = ofy.load().entity(key).get();
 		
 		assert TEST_VALUE.equals(fetched.fieldUser.foo);
 		assert TEST_VALUE.equals(fetched.methodUser.foo);
@@ -199,8 +192,7 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testEasyHasEmbeddedArray() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		List<String> values = new ArrayList<String>();
 		values.add(TEST_VALUE);
@@ -209,10 +201,10 @@ public class AlsoLoadTests extends TestBase
 		Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
 		ent.setProperty("fieldUsers.oldFoo", values);
 		ent.setProperty("methodUsers.oldFoo", values);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasEmbeddedArray> key = new Key<HasEmbeddedArray>(ent.getKey());
-		HasEmbeddedArray fetched = ofy.get(key);
+		Key<HasEmbeddedArray> key = Key.create(ent.getKey());
+		HasEmbeddedArray fetched = ofy.load().entity(key).get();
 		
 		HasAlsoLoadField[] expectedFieldUsers = new HasAlsoLoadField[] { new HasAlsoLoadField(TEST_VALUE), new HasAlsoLoadField(TEST_VALUE) };
 		HasAlsoLoadMethod[] expectedMethodUsers = new HasAlsoLoadMethod[] { new HasAlsoLoadMethod(TEST_VALUE), new HasAlsoLoadMethod(TEST_VALUE) };
@@ -225,8 +217,7 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testHarderHasEmbeddedArray() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		List<String> values = new ArrayList<String>();
 		values.add(TEST_VALUE);
@@ -235,10 +226,10 @@ public class AlsoLoadTests extends TestBase
 		Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
 		ent.setProperty("oldFieldUsers.oldFoo", values);
 		ent.setProperty("oldMethodUsers.oldFoo", values);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<HasEmbeddedArray> key = new Key<HasEmbeddedArray>(ent.getKey());
-		HasEmbeddedArray fetched = ofy.get(key);
+		Key<HasEmbeddedArray> key = Key.create(ent.getKey());
+		HasEmbeddedArray fetched = ofy.load().entity(key).get();
 		
 		HasAlsoLoadField[] expectedFieldUsers = new HasAlsoLoadField[] { new HasAlsoLoadField(TEST_VALUE), new HasAlsoLoadField(TEST_VALUE) };
 		HasAlsoLoadMethod[] expectedMethodUsers = new HasAlsoLoadMethod[] { new HasAlsoLoadMethod(TEST_VALUE), new HasAlsoLoadMethod(TEST_VALUE) };

@@ -23,10 +23,11 @@ import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of a bizarre bug in Google's memcache serialization of Key objects.
@@ -49,7 +50,7 @@ public class EvilMemcacheBugTests extends TestBase
 		}
 		
 		static Key<SimpleParent> getSimpleParentKey(String id) {
-			return new Key<SimpleParent>(SimpleParent.class, id);
+			return Key.create(SimpleParent.class, id);
 		}
 	}
 
@@ -63,7 +64,7 @@ public class EvilMemcacheBugTests extends TestBase
 		String foo = "bar";
 		
 		static Key<SimpleEntity> getSimpleChildKey(String id) {
-			return new Key<SimpleEntity>(SimpleParent.getSimpleParentKey(id), SimpleEntity.class, id);
+			return Key.create(SimpleParent.getSimpleParentKey(id), SimpleEntity.class, id);
 		}
 		
 		SimpleEntity() {}
@@ -82,11 +83,11 @@ public class EvilMemcacheBugTests extends TestBase
 		
 		SimpleEntity simple = new SimpleEntity(simpleId);
 
-		Objectify nonTxnOfy = this.fact.begin();
+		TestObjectify nonTxnOfy = this.fact.begin();
 		nonTxnOfy.put(simple);
 		
 
-		Objectify txnOfy = this.fact.beginTransaction();
+		TestObjectify txnOfy = this.fact.beginTransaction();
 		SimpleEntity simple2;
 		try {
 			simple2 = txnOfy.get(SimpleEntity.getSimpleChildKey(simpleId));
@@ -109,8 +110,8 @@ public class EvilMemcacheBugTests extends TestBase
 		// Need to register it so the entity kind becomes cacheable
 		this.fact.register(SimpleEntity.class);
 		
-		DatastoreService ods = this.fact.getDatastoreService(new ObjectifyOpts().setGlobalCache(false));
-		DatastoreService ds = this.fact.getDatastoreService(new ObjectifyOpts().setGlobalCache(true));
+		DatastoreService ds = ds();
+		DatastoreService cacheds = CachingDatastoreServiceFactory.getDatastoreService();
 
 		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.
 		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
@@ -119,26 +120,26 @@ public class EvilMemcacheBugTests extends TestBase
 		
 		Entity ent1 = new Entity(childKey);
 		ent1.setProperty("foo", "original");
-		ds.put(ent1);
+		cacheds.put(ent1);
 
 		// Weirdly, this will solve the problem too
 		//MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
 		//cs.clearAll();
 		
-		Transaction txn = ds.beginTransaction();
+		Transaction txn = cacheds.beginTransaction();
 		Entity ent2;
 		try {
-			ent2 = ods.get(txn, childKey);
+			ent2 = ds.get(txn, childKey);
 			//ent2 = new Entity(childKey);	// solves the problem
 			ent2.setProperty("foo", "changed");
-			ds.put(txn, ent2);
+			cacheds.put(txn, ent2);
 			txn.commit();
 		} finally {
 			if (txn.isActive())
 				txn.rollback();
 		}
 
-		Entity ent3 = ds.get(childKey);
+		Entity ent3 = cacheds.get(childKey);
 		
 		assert "changed".equals(ent3.getProperty("foo"));
 	}

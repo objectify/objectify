@@ -12,15 +12,15 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.NotSaved;
 import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of using the @NotSaved annotation and its various conditions.
@@ -53,14 +53,13 @@ public class NotSavedTests extends TestBase
 	{
 		this.fact.register(CompletelyUnsaved.class);
 		
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		Entity ent = new Entity(Key.getKind(CompletelyUnsaved.class));
 		ent.setProperty("foo", TEST_VALUE);
-		ds.put(ent);
+		ds().put(ent);
 		
-		Key<CompletelyUnsaved> key = new Key<CompletelyUnsaved>(ent.getKey());
+		Key<CompletelyUnsaved> key = Key.create(ent.getKey());
 		CompletelyUnsaved fetched = ofy.get(key);
 		assert fetched.foo.equals(TEST_VALUE);
 		
@@ -181,14 +180,13 @@ public class NotSavedTests extends TestBase
 	{
 		this.fact.register(UnsavedDefaults.class);
 		
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
 		
 		UnsavedDefaults thing = new UnsavedDefaults();
 		Key<UnsavedDefaults> key = ofy.put(thing);
 		
 		// Now get the raw entity and verify that it doesn't have properties saved
-		Entity ent = ds.get(this.fact.getRawKey(key));
+		Entity ent = ds().get(this.fact.getRawKey(key));
 		assert ent.getProperties().isEmpty();
 	}
 

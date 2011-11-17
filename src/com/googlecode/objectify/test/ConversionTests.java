@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -19,7 +17,6 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
 import com.googlecode.objectify.impl.conv.Converter;
@@ -27,6 +24,8 @@ import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of type conversions.
@@ -82,16 +81,16 @@ public class ConversionTests extends TestBase
 	@Test
 	public void testStringConversion() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
+		DatastoreService ds = ds();
 		
 		Entity ent = new Entity(Key.getKind(Trivial.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
 		ds.put(ent);
 		
-		Key<Trivial> key = new Key<Trivial>(ent.getKey());
-		Trivial fetched = ofy.get(key);
+		Key<Trivial> key = Key.create(ent.getKey());
+		Trivial fetched = ofy.load().entity(key).get();
 		
 		assert fetched.getSomeNumber() == 1;
 		assert fetched.getSomeString().equals("2");	// should be a string
@@ -138,10 +137,10 @@ public class ConversionTests extends TestBase
 		HasNames has = new HasNames();
 		has.names = new Name[] { new Name("Bob", BIG_STRING) };
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		try
 		{
-			ofy.put(has);
+			ofy.put().entity(has).now();
 			assert false : "You should not be able to put() embedded collections with big strings"; 
 		}
 		catch (IllegalStateException ex)

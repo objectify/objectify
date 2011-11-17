@@ -14,6 +14,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.cache.TriggerFuture;
+import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.FutureHelper;
 
 /**
@@ -45,7 +46,7 @@ public class TriggerFutureTests extends TestBase
 	@Test
 	public void testRaceCondition() throws Exception
 	{
-		ObjectifyOpts opts = new ObjectifyOpts().setGlobalCache(false);
+		ObjectifyOpts opts = ObjectifyOpts.defaults().globalCache(false);
 		AsyncDatastoreService ads = this.fact.createAsyncDatastoreService(opts);
 		
 		for (int i=0; i<100; i++)

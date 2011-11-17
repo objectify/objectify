@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -11,8 +9,9 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.HasArrays;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of persisting arrays
@@ -29,14 +28,14 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testStringArrays() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.strings = new String[] { "red", "green" };
 		
-		Key<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put().entity(hasa).now();
 
-		HasArrays fetched = ofy.get(k);
+		HasArrays fetched = ofy.load().entity(k).get();
 
 		assert Arrays.equals(fetched.strings, hasa.strings);
 	}
@@ -45,14 +44,14 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testIntArrays() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.ints = new int[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put().entity(hasa).now();
 
-		HasArrays fetched = ofy.get(k);
+		HasArrays fetched = ofy.load().entity(k).get();
 
 		assert Arrays.equals(fetched.ints, hasa.ints);
 	}
@@ -61,14 +60,14 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testIntegerArrays() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.integers = new Integer[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put().entity(hasa).now();
 
-		HasArrays fetched = ofy.get(k);
+		HasArrays fetched = ofy.load().entity(k).get();
 
 		assert Arrays.equals(fetched.integers, hasa.integers);
 	}
@@ -77,14 +76,14 @@ public class ArrayTests extends TestBase
 	@Test
 	public void testLongArrays() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		HasArrays hasa = new HasArrays();
 		hasa.longs = new long[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put(hasa);
+		Key<HasArrays> k = ofy.put().entity(hasa).now();
 
-		HasArrays fetched = ofy.get(k);
+		HasArrays fetched = ofy.load().entity(k).get();
 
 		assert Arrays.equals(fetched.longs, hasa.longs);
 	}

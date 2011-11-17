@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -10,9 +8,10 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of ancestor relationships.
@@ -29,23 +28,23 @@ public class AncestorTests extends TestBase
 	@Test
 	public void testSimpleParentChild() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> parentKey = ofy.put(triv);
+		Key<Trivial> parentKey = ofy.put().entity(triv).now();
 
 		Child child = new Child(parentKey, "cry");
-		Key<Child> childKey = ofy.put(child);
+		Key<Child> childKey = ofy.put().entity(child).now();
 		
 		assert childKey.getParent().equals(parentKey);
 		
-		Child fetched = ofy.get(childKey);
+		Child fetched = ofy.load().entity(childKey).get();
 		
 		assert fetched.getParent().equals(child.getParent());
 		assert fetched.getChildString().equals(child.getChildString());
 		
 		// Let's make sure we can get it back from an ancestor query
-		Child queried = ofy.query(Child.class).ancestor(parentKey).get();
+		Child queried = ofy.load().type(Child.class).ancestor(parentKey).first().get();
 		
 		assert queried.getParent().equals(child.getParent());
 		assert queried.getChildString().equals(child.getChildString());

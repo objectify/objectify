@@ -9,9 +9,10 @@ import java.util.Iterator;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Name;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests specifically dealing with nulls in embedded fields and collections
@@ -29,7 +30,7 @@ public class EmbeddedNullTests extends TestBase
 		Criminal avoid = new Criminal();
 		avoid.aliases = new Name[] { new Name("Bob", "Dobbs") };
 		avoid.moreAliases = Collections.singletonList(new Name("Bob", "Dobbs"));
-		this.fact.begin().put(avoid);
+		this.fact.begin().put().entity(avoid).now();
 	}
 
 	/**
@@ -48,13 +49,13 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases == null;
 		
 		// Now check the queries
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		Iterator<Criminal> queried;
 
-		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
+		queried = ofy.load().type(Criminal.class).filter("aliases", null).iterator();
 		assert !queried.hasNext();
 
-		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
+		queried = ofy.load().type(Criminal.class).filter("moreAliases", null).iterator();
 		assert !queried.hasNext();
 
 		// Potential altenate syntax?
@@ -89,13 +90,13 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases == null;
 
 		// Now check the queries
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		Iterator<Criminal> queried;
 
-		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
+		queried = ofy.load().type(Criminal.class).filter("aliases", null).iterator();
 		assert !queried.hasNext();
 
-		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
+		queried = ofy.load().type(Criminal.class).filter("moreAliases", null).iterator();
 		assert !queried.hasNext();
 		
 		// Potential altenate syntax?
@@ -135,7 +136,7 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases.get(0) == null;
 
 		// Queries on non-leaf values are not currently supported
-//		Objectify ofy = this.fact.begin();
+//		TestObjectify ofy = this.fact.begin();
 //		Iterator<Criminal> queried;
 //		
 //		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
@@ -190,7 +191,7 @@ public class EmbeddedNullTests extends TestBase
 		assert fetched.moreAliases.get(2) != null;
 
 		// Queries on non-leaf values are not currently supported
-//		Objectify ofy = this.fact.begin();
+//		TestObjectify ofy = this.fact.begin();
 //		Iterator<Criminal> queried;
 //		
 //		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();

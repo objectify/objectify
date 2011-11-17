@@ -14,8 +14,9 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Test persisting objects that contain embedded maps.
@@ -68,13 +69,13 @@ public class EmbeddedMapTests extends TestBase
 	{
 		this.fact.register(PojoWithMap.class);
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		PojoWithMap hasMap = createPojoWithMap("");
 
-		Key<PojoWithMap> key = ofy.put(hasMap);
+		Key<PojoWithMap> key = ofy.put().entity(hasMap).now();
 
-		PojoWithMap retrieved = ofy.get(key);
+		PojoWithMap retrieved = ofy.load().entity(key).get();
 		printRawEntity(ofy, key);
 
 		checkPojoWithMap(retrieved, "");
@@ -121,18 +122,18 @@ public class EmbeddedMapTests extends TestBase
 		PojoWithEmbeededPojoWithMap pojo = new PojoWithEmbeededPojoWithMap();
 		pojo.mapPojo = createPojoWithMap("");
 
-		Objectify ofy = this.fact.begin();
-		Key<PojoWithEmbeededPojoWithMap> key = ofy.put(pojo);
+		TestObjectify ofy = this.fact.begin();
+		Key<PojoWithEmbeededPojoWithMap> key = ofy.put().entity(pojo).now();
 		printRawEntity(ofy, key);
 
-		pojo = ofy.get(key);
+		pojo = ofy.load().entity(key).get();
 
 		checkPojoWithMap(pojo.mapPojo, "");
 	}
 
-	private void printRawEntity(Objectify ofy, Key<?> key) throws EntityNotFoundException
+	private void printRawEntity(TestObjectify ofy, Key<?> key) throws EntityNotFoundException
 	{
-		Entity ent = ofy.getDatastore().get(fact.getRawKey(key));
+		Entity ent = ds().get(fact.getRawKey(key));
 		System.out.println(ent);
 	}
 
@@ -145,11 +146,11 @@ public class EmbeddedMapTests extends TestBase
 		nestedMap.nested.put("key", withMap);
 		nestedMap.nested.put("key_2", createPojoWithMap("_2"));
 
-		Objectify ofy = this.fact.begin();
-		Key<PojoWithMapWithPojoWithMap> key = ofy.put(nestedMap);
+		TestObjectify ofy = this.fact.begin();
+		Key<PojoWithMapWithPojoWithMap> key = ofy.put().entity(nestedMap).now();
 		printRawEntity(ofy, key);
 
-		nestedMap = ofy.get(key);
+		nestedMap = ofy.load().entity(key).get();
 
 		assert nestedMap.nested.size() == 2;
 		checkPojoWithMap(nestedMap.nested.get("key"), "1");
@@ -172,11 +173,11 @@ public class EmbeddedMapTests extends TestBase
 		list.add(3L);
 		primitiveMap.primitives.put("list", list);
 
-		Objectify ofy = this.fact.begin();
-		Key<PojoWithPrimitiveValueMap> key = ofy.put(primitiveMap);
+		TestObjectify ofy = this.fact.begin();
+		Key<PojoWithPrimitiveValueMap> key = ofy.put().entity(primitiveMap).now();
 		printRawEntity(ofy, key);
 
-		primitiveMap = ofy.get(key);
+		primitiveMap = ofy.load().entity(key).get();
 
 		assert primitiveMap.primitives.get("string").equals("Hello World");
 		// Numbers in maps loose their type and get to be Longs :-(
@@ -190,8 +191,8 @@ public class EmbeddedMapTests extends TestBase
 	{
 		this.fact.register(PojoWithPrimitiveValueMap.class);
 
-		Objectify ofy = this.fact.begin();
-		DatastoreService ds = ofy.getDatastore();
+		TestObjectify ofy = this.fact.begin();
+		DatastoreService ds = ds();
 
 		Entity ent = new Entity(Key.getKind(PojoWithPrimitiveValueMap.class));
 		ent.setProperty("simpletons.string", "Hello World");
@@ -199,8 +200,8 @@ public class EmbeddedMapTests extends TestBase
 		ent.setProperty("primitives.date", date);
 		ds.put(ent);
 
-		Key<PojoWithPrimitiveValueMap> key = new Key<PojoWithPrimitiveValueMap>(ent.getKey());
-		PojoWithPrimitiveValueMap fetched = ofy.get(key);
+		Key<PojoWithPrimitiveValueMap> key = Key.create(ent.getKey());
+		PojoWithPrimitiveValueMap fetched = ofy.load().entity(key).get();
 
 		assert fetched.primitives.get("string").equals("Hello World");
 		assert fetched.primitives.get("date").equals(date);
@@ -214,10 +215,10 @@ public class EmbeddedMapTests extends TestBase
 
 		pojo.things.put("illegal.value", new Thing());
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		try
 		{
-			ofy.put(pojo);
+			ofy.put().entity(pojo).now();
 			assert false;
 		}
 		catch (IllegalStateException e)
@@ -236,10 +237,10 @@ public class EmbeddedMapTests extends TestBase
 
 		pojo.things.put(null, new Thing());
 
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		try
 		{
-			ofy.put(pojo);
+			ofy.put().entity(pojo).now();
 			assert false;
 		}
 		catch (IllegalStateException e)
@@ -258,13 +259,13 @@ public class EmbeddedMapTests extends TestBase
 
 		pojo.things.put("test", null);
 
-		Objectify ofy = this.fact.begin();
-		Key<PojoWithMap> key = ofy.put(pojo);
-		Entity ent = ofy.getDatastore().get(fact.getRawKey(key));
+		TestObjectify ofy = this.fact.begin();
+		Key<PojoWithMap> key = ofy.put().entity(pojo).now();
+		Entity ent = ds().get(fact.getRawKey(key));
 
 		assert !ent.hasProperty("things.test");
 
-		pojo = ofy.get(key);
+		pojo = ofy.load().entity(key).get();
 		assert !pojo.things.containsKey("test");
 	}
 }

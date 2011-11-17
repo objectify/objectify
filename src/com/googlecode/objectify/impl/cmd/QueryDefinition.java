@@ -93,7 +93,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#startCursor(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
-	public Query<T> startCursor(Cursor value)
+	public Query<T> startAt(Cursor value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setStartCursor(value);
@@ -104,7 +104,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#endCursor(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
-	public Query<T> endCursor(Cursor value)
+	public Query<T> endAt(Cursor value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setEndCursor(value);

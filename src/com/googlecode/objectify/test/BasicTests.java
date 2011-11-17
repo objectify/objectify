@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -15,11 +13,11 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of basic entity manipulation.
@@ -36,7 +34,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testGenerateId() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
@@ -45,10 +43,10 @@ public class BasicTests extends TestBase
 		assert k.getKind().equals(triv.getClass().getSimpleName());
 		assert k.getId() == triv.getId();
 
-		Key<Trivial> created = new Key<Trivial>(Trivial.class, k.getId());
+		Key<Trivial> created = Key.create(Trivial.class, k.getId());
 		assert k.equals(created);
 
-		Trivial fetched = ofy.get().key(k).now();
+		Trivial fetched = ofy.load().entity(k).get();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -59,7 +57,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testOverwriteId() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> k = ofy.put().entity(triv).now();
@@ -69,7 +67,7 @@ public class BasicTests extends TestBase
 
 		assert k2.equals(k);
 
-		Trivial fetched = ofy.get().key(k).now();
+		Trivial fetched = ofy.load().entity(k).get();
 
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
@@ -80,17 +78,17 @@ public class BasicTests extends TestBase
 	@Test
 	public void testNames() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
 		Key<NamedTrivial> k = ofy.put().entity(triv).now();
 
 		assert k.getName().equals("first");
 
-		Key<NamedTrivial> createdKey = new Key<NamedTrivial>(NamedTrivial.class, "first");
+		Key<NamedTrivial> createdKey = Key.create(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
-		NamedTrivial fetched = ofy.get().key(k).now();
+		NamedTrivial fetched = ofy.load().entity(k).get();
 
 		assert fetched.getName().equals(k.getName());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -101,7 +99,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testBatchOperations() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		Trivial triv1 = new Trivial("foo", 5);
 		Trivial triv2 = new Trivial("foo2", 6);
@@ -121,7 +119,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy.get().keys(keys).now();
+		Map<Key<Trivial>, Trivial> fetched = ofy.load().entities(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
@@ -136,7 +134,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testManyToOne() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		Employee fred = new Employee("fred");
 		ofy.put().entity(fred).now();
@@ -150,12 +148,12 @@ public class BasicTests extends TestBase
 			employees.add(emp);
 		}
 
-		ofy.put(employees);
+		ofy.put().entities(employees).now();
 
 		assert employees.size() == 1100;
 
 		int count = 0;
-		for (Employee emp: ofy.get().type(Employee.class).filter("manager", fred).fetch())
+		for (Employee emp: ofy.load().type(Employee.class).filter("manager", fred).entities())
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;
@@ -167,7 +165,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testConsistencySetting() throws Exception
 	{
-		Objectify ofy = this.fact.begin(new ObjectifyOpts().setConsistency(Consistency.EVENTUAL));
+		TestObjectify ofy = this.fact.begin().consistency(Consistency.EVENTUAL);
 
 		Trivial triv = new Trivial("foo", 5);
 		ofy.put().entity(triv).now();
@@ -177,11 +175,11 @@ public class BasicTests extends TestBase
 	@Test
 	public void testKeyToString() throws Exception
 	{
-		Key<Trivial> trivKey = new Key<Trivial>(Trivial.class, 123);
+		Key<Trivial> trivKey = Key.create(Trivial.class, 123);
 		
-		String stringified = this.fact.keyToString(trivKey);
+		String stringified = trivKey.getString();
 		
-		Key<Trivial> andBack = this.fact.stringToKey(stringified);
+		Key<Trivial> andBack = Key.create(stringified);
 		
 		assert trivKey.equals(andBack);
 	}
@@ -191,7 +189,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testPutNothing() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		ofy.put().entities(Collections.emptyList()).now();
 	}

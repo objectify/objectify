@@ -1,6 +1,4 @@
 /*
- * $Id$
- * $URL$
  */
 
 package com.googlecode.objectify.test;
@@ -10,11 +8,12 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.test.entity.Apple;
 import com.googlecode.objectify.test.entity.Banana;
 import com.googlecode.objectify.test.entity.HolderOfString;
 import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of basic entity manipulation.
@@ -31,7 +30,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testApple() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		Apple a = new Apple(Apple.COLOR, Apple.TASTE);
 		Key<Apple> aKey = ofy.put(a);
 		Apple a2 = ofy.get(aKey);
@@ -43,7 +42,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testBanana() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		Banana b = new Banana(Banana.COLOR, Banana.TASTE);
 		Key<Banana> bKey = ofy.put(b);
 		Banana b2 = ofy.get(bKey);
@@ -56,7 +55,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testStringHolder() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfString hos = new HolderOfString(s);
 		Key<HolderOfString> hosKey = ofy.put(hos);
@@ -70,7 +69,7 @@ public class EntityTests extends TestBase
 	@Test
 	public void testStringHolderWithALong() throws Exception
 	{
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		String s = "my secret";
 		HolderOfStringAndLong hosal = new HolderOfStringAndLong(s,2L);
 		Key<HolderOfStringAndLong> hosKey = ofy.put(hosal);

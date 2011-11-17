@@ -6,6 +6,7 @@ import javax.persistence.Id;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Basic tests for registering entities

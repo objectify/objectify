@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -15,9 +13,10 @@ import javax.persistence.Id;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -39,7 +38,7 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> k = null;
 		
-		Objectify tOfy = this.fact.beginTransaction();
+		TestObjectify tOfy = this.fact.beginTransaction();
 		try
 		{
 			k = tOfy.put(triv);
@@ -51,7 +50,7 @@ public class TransactionTests extends TestBase
 				tOfy.getTxn().rollback();
 		}
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		Trivial fetched = ofy.get(k);
 		
 		assert fetched.getId().equals(k.getId());
@@ -75,14 +74,14 @@ public class TransactionTests extends TestBase
 		
 		HasSimpleCollection simple = new HasSimpleCollection();
 		
-		Objectify nonTxnOfy = this.fact.begin();
+		TestObjectify nonTxnOfy = this.fact.begin();
 		nonTxnOfy.put(simple);
 		
-		Objectify txnOfy = this.fact.beginTransaction();
+		TestObjectify txnOfy = this.fact.beginTransaction();
 		HasSimpleCollection simple2;
 		try
 		{
-			simple2 = txnOfy.get().type(HasSimpleCollection.class).id(simple.id).now();
+			simple2 = txnOfy.load().type(HasSimpleCollection.class).id(simple.id).get();
 			simple2.stuff.add("blah");
 			txnOfy.put(simple2);
 			txnOfy.getTxn().commit();
@@ -93,7 +92,7 @@ public class TransactionTests extends TestBase
 				txnOfy.getTxn().rollback();
 		}
 		
-		HasSimpleCollection simple3 = nonTxnOfy.get().type(HasSimpleCollection.class).id(simple.id).now();
+		HasSimpleCollection simple3 = nonTxnOfy.load().type(HasSimpleCollection.class).id(simple.id).get();
 		
 		// This will fail when session caching is turned on because the nonTxnOfy doesn't
 		// see the change made in the transactional session, and the fetch only hits the cache.
@@ -110,8 +109,8 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> tk = this.fact.begin().put(triv);
 		
-		Objectify tOfy1 = this.fact.beginTransaction();
-		Objectify tOfy2 = this.fact.beginTransaction();
+		TestObjectify tOfy1 = this.fact.beginTransaction();
+		TestObjectify tOfy2 = this.fact.beginTransaction();
 
 		Trivial triv1 = tOfy1.get(tk);
 		Trivial triv2 = tOfy2.get(tk);
@@ -119,8 +118,8 @@ public class TransactionTests extends TestBase
 		triv1.setSomeString("bar");
 		triv2.setSomeString("shouldn't work");
 		
-		tOfy1.async().put(triv1);
-		tOfy2.async().put(triv2);
+		tOfy1.put().entity(triv1).now();
+		tOfy2.put().entity(triv2).now();
 		
 		tOfy1.getTxn().commit();
 		

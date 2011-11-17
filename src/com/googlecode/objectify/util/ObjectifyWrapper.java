@@ -15,9 +15,13 @@ import com.googlecode.objectify.cmd.Put;
 /**
  * <p>Simple wrapper/decorator for an Objectify interface.</p>
  * 
+ * <p>Use by subclassing like this: {@code class MyObjectify extends ObjectifyWrapper<MyObjectify>}</p>
+ * 
+ * <p>Be aware that chained settings require the wrapper to be cloned.</p>
+ * 
  * @author Jeff Schnitzer
  */
-public class ObjectifyWrapper implements Objectify
+public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectify, Cloneable
 {
 	/** */
 	private Objectify base;
@@ -59,14 +63,34 @@ public class ObjectifyWrapper implements Objectify
 	}
 
 	@Override
-	public Objectify consistency(Consistency policy)
+	public T consistency(Consistency policy)
 	{
-		return base.consistency(policy);
+		@SuppressWarnings("unchecked")
+		T next = (T)this.clone();
+		next.base = base.consistency(policy);
+		return next;
 	}
 
 	@Override
-	public Objectify deadline(Double value)
+	public T deadline(Double value)
 	{
-		return base.deadline(value);
+		@SuppressWarnings("unchecked")
+		T next = (T)this.clone();
+		next.base = base.deadline(value);
+		return next;
 	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@SuppressWarnings("unchecked")
+	protected ObjectifyWrapper<T> clone()
+	{
+		try {
+			return (ObjectifyWrapper<T>)super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e); // impossible
+		}
+	}
+
 }

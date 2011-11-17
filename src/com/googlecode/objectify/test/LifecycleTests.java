@@ -9,6 +9,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Tests the lifecycle annotations

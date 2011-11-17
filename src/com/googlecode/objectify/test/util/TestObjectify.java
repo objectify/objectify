@@ -1,0 +1,30 @@
+package com.googlecode.objectify.test.util;
+
+import java.util.Map;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.util.ObjectifyWrapper;
+
+/**
+ * Adds some convenience methods.  Most of the tests were written against Objectify 3 and it's a PITA to convert all the calls.
+ */
+public class TestObjectify extends ObjectifyWrapper<TestObjectify>
+{
+	/** */
+	public TestObjectify(Objectify ofy) {
+		super(ofy);
+	}
+	
+	public <K, E extends K> Key<K> put(E entitity)  {
+		return this.put().<K, E>entity(entitity).now();
+	}
+
+	public <K, E extends K> Map<Key<K>, E> put(E... entities)  {
+		return this.put().<K, E>entities(entities).now();
+	}
+	
+	public <K, E extends K> E get(Key<K> key) {
+		return this.load().entity(key).get();
+	}
+}

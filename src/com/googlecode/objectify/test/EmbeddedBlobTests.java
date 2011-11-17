@@ -15,6 +15,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.test.util.TestBase;
 
 /**
  * Testing what you can and can not do with @Embedded blobs like Text and Blob

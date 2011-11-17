@@ -13,9 +13,10 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Testing of field visiblity (package/private/etc)
@@ -59,13 +60,13 @@ public class FieldVisibilityTests extends TestBase
 	{
 		this.fact.register(ThingWithPrivates.class);
 		
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 		
 		ThingWithPrivates thing = new ThingWithPrivates();
 		thing.stuff.add("foo");
 		
 		ofy.put(thing);
 		
-		ofy.query(ThingWithPrivates.class).filter("stuff", "foo").list();
+		ofy.load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
 	}
 }

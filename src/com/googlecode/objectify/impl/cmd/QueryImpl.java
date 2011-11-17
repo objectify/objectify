@@ -16,6 +16,7 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.google.appengine.api.datastore.QueryResultIterable;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
@@ -44,8 +45,8 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	/** */
 	int limit;
 	int offset;
-	Cursor startCursor;
-	Cursor endCursor;
+	Cursor startAt;
+	Cursor endAt;
 	Integer chunkSize;
 	Integer prefetchSize;
 	
@@ -214,12 +215,12 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 
 	/** Modifies the instance */
 	void setStartCursor(Cursor value) {
-		this.startCursor = value;
+		this.startAt = value;
 	}
 
 	/** Modifies the instance */
 	void setEndCursor(Cursor value) {
-		this.endCursor = value;
+		this.endAt = value;
 	}
 
 	/** Modifies the instance */
@@ -308,11 +309,11 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		if (this.offset > 0)
 			bld.append(",offset=").append(this.offset);
 		
-		if (this.startCursor != null)
-			bld.append(",startCursor=").append(this.startCursor.toWebSafeString());
+		if (this.startAt != null)
+			bld.append(",startAt=").append(this.startAt.toWebSafeString());
 
-		if (this.endCursor != null)
-			bld.append(",endCursor=").append(this.endCursor.toWebSafeString());
+		if (this.endAt != null)
+			bld.append(",endAt=").append(this.endAt.toWebSafeString());
 
 		bld.append('}');
 		
@@ -361,6 +362,14 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	@Override
 	public QueryResultIterable<T> entities() {
 		return ofy.query(actual, this.fetchOptions());
+	}
+
+	/* (non-Javadoc)
+	 * @see com.google.appengine.api.datastore.QueryResultIterable#iterator()
+	 */
+	@Override
+	public QueryResultIterator<T> iterator() {
+		return entities().iterator();
 	}
 
 	/* (non-Javadoc)
@@ -440,11 +449,11 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	{
 		FetchOptions opts = FetchOptions.Builder.withDefaults();
 		
-		if (this.startCursor != null)
-			opts = opts.startCursor(this.startCursor);
+		if (this.startAt != null)
+			opts = opts.startCursor(this.startAt);
 		
-		if (this.endCursor != null)
-			opts = opts.endCursor(this.endCursor);
+		if (this.endAt != null)
+			opts = opts.endCursor(this.endAt);
 		
 		if (this.limit != 0)
 			opts = opts.limit(this.limit);

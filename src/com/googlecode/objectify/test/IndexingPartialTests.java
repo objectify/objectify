@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -11,12 +9,13 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cached;
 import com.googlecode.objectify.annotation.Indexed;
 import com.googlecode.objectify.annotation.Unindexed;
 import com.googlecode.objectify.condition.IfFalse;
 import com.googlecode.objectify.condition.PojoIf;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of partial indexing.  Doesn't stress test the If mechanism; that is
@@ -46,19 +45,19 @@ public class IndexingPartialTests extends TestBase
 	public void testUnindexedWhenFalse() throws Exception
 	{
 		this.fact.register(UnindexedWhenFalse.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		UnindexedWhenFalse thing = new UnindexedWhenFalse();
 		
 		// Should be able to query for it when true
 		thing.foo = true;
 		ofy.put(thing);
-		assert thing.id == ofy.query(UnindexedWhenFalse.class).filter("foo", true).get().id;
+		assert thing.id == ofy.load().type(UnindexedWhenFalse.class).filter("foo", true).first().get().id;
 
 		// Should not be able to query for it when false
 		thing.foo = false;
 		ofy.put(thing);
-		assert !ofy.query(UnindexedWhenFalse.class).filter("foo", true).iterator().hasNext();
+		assert !ofy.load().type(UnindexedWhenFalse.class).filter("foo", true).iterator().hasNext();
 	}
 
 	/** */
@@ -86,7 +85,7 @@ public class IndexingPartialTests extends TestBase
 	public void testUnindexedOnOtherField() throws Exception
 	{
 		this.fact.register(IndexedOnOtherField.class);
-		Objectify ofy = this.fact.begin();
+		TestObjectify ofy = this.fact.begin();
 
 		IndexedOnOtherField thing = new IndexedOnOtherField();
 		thing.bar = true;
@@ -94,12 +93,12 @@ public class IndexingPartialTests extends TestBase
 		// Should be able to query for bar when true
 		thing.indexBar = true;
 		ofy.put(thing);
-		assert thing.id == ofy.query(IndexedOnOtherField.class).filter("bar", true).get().id;
+		assert thing.id == ofy.load().type(IndexedOnOtherField.class).filter("bar", true).first().get().id;
 
 		// Should not be able to query for bar when false
 		thing.indexBar = false;
 		ofy.put(thing);
-		assert !ofy.query(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
+		assert !ofy.load().type(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
 	}
 	
 }

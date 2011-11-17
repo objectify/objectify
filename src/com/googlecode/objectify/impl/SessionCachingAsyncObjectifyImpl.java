@@ -11,7 +11,6 @@ import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Query;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cache.TriggerSuccessFuture;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;

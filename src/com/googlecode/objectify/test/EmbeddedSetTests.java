@@ -8,6 +8,8 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.test.util.TestBase;
+
 /**
  */
 public class EmbeddedSetTests extends TestBase
