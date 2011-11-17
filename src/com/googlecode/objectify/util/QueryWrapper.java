@@ -4,16 +4,18 @@ import java.util.List;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
+import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Query;
 
 /**
- * Simple wrapper/decorator for a Query.
+ * Simple wrapper/decorator for a Query.  Use it like this:
+ * {@code class MyQuery<T> extends QueryWrapper<MyQuery<T>, T>} 
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryWrapper<T> implements Query<T>
+public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, Cloneable
 {
 	/** */
 	Query<T> base;
@@ -25,104 +27,143 @@ public class QueryWrapper<T> implements Query<T>
 	}
 	
 	@Override
-	public Query<T> filter(String condition, Object value)
+	public H filter(String condition, Object value)
 	{
-		return this.base.filter(condition, value);
+		H next = this.clone();
+		next.base = base.filter(condition, value);
+		return next;
 	}
 	
 	@Override
-	public Query<T> order(String condition)
+	public H order(String condition)
 	{
-		return this.base.order(condition);
+		H next = this.clone();
+		next.base = base.order(condition);
+		return next;
 	}
 	
 	@Override
-	public Query<T> ancestor(Object keyOrEntity)
+	public H ancestor(Object keyOrEntity)
 	{
-		return this.base.ancestor(keyOrEntity);
+		H next = this.clone();
+		next.base = base.ancestor(keyOrEntity);
+		return next;
 	}
 	
 	@Override
-	public Query<T> limit(int value)
+	public H limit(int value)
 	{
-		return this.base.limit(value);
+		H next = this.clone();
+		next.base = base.limit(value);
+		return next;
 	}
 	
 	@Override
-	public Query<T> offset(int value)
+	public H offset(int value)
 	{
-		return this.base.offset(value);
+		H next = this.clone();
+		next.base = base.offset(value);
+		return next;
 	}
 
 	@Override
-	public Query<T> startAt(Cursor value)
+	public H startAt(Cursor value)
 	{
-		return this.base.startAt(value);
+		H next = this.clone();
+		next.base = base.startAt(value);
+		return next;
 	}
 
 	@Override
-	public Query<T> endAt(Cursor value)
+	public H endAt(Cursor value)
 	{
-		return this.base.endAt(value);
+		H next = this.clone();
+		next.base = base.endAt(value);
+		return next;
 	}
 
 	@Override
 	public String toString()
 	{
-		return this.base.toString();
+		return base.toString();
 	}
 
 	@Override
 	public Ref<T> first()
 	{
-		return this.base.first();
+		return base.first();
 	}
 
 	@Override
 	public int count()
 	{
-		return this.base.count();
+		return base.count();
 	}
 
 	@Override
 	public QueryResultIterable<T> entities()
 	{
-		return this.base.entities();
+		return base.entities();
 	}
 
 	@Override
 	public QueryResultIterable<Key<T>> keys()
 	{
-		return this.base.keys();
+		return base.keys();
 	}
 
 	@Override
 	public List<T> list()
 	{
-		return this.base.list();
+		return base.list();
 	}
 
 	@Override
 	public List<Key<T>> listKeys()
 	{
-		return this.base.listKeys();
+		return base.listKeys();
 	}
 	
 	@Override
-	public Query<T> chunkSize(int value)
+	public H chunkSize(int value)
 	{
-		return this.base.chunkSize(value);
+		H next = this.clone();
+		next.base = base.chunkSize(value);
+		return next;
 	}
 
 	@Override
-	public Query<T> prefetchSize(int value)
+	public H prefetchSize(int value)
 	{
-		return this.base.prefetchSize(value);
+		H next = this.clone();
+		next.base = base.prefetchSize(value);
+		return next;
 	}
 
 	@Override
-	public Query<T> keysOnly()
+	public H keysOnly()
 	{
-		return this.base.keysOnly();
+		H next = this.clone();
+		next.base = base.keysOnly();
+		return next;
+	}
+
+	@Override
+	public QueryResultIterator<T> iterator()
+	{
+		return base.iterator();
+	}
+	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	@SuppressWarnings("unchecked")
+	protected H clone()
+	{
+		try {
+			return (H)super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e); // impossible
+		}
 	}
 }

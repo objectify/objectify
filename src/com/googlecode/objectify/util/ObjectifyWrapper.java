@@ -65,7 +65,6 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	@Override
 	public T consistency(Consistency policy)
 	{
-		@SuppressWarnings("unchecked")
 		T next = (T)this.clone();
 		next.base = base.consistency(policy);
 		return next;
@@ -74,7 +73,6 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	@Override
 	public T deadline(Double value)
 	{
-		@SuppressWarnings("unchecked")
 		T next = (T)this.clone();
 		next.base = base.deadline(value);
 		return next;
@@ -84,10 +82,10 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see java.lang.Object#clone()
 	 */
 	@SuppressWarnings("unchecked")
-	protected ObjectifyWrapper<T> clone()
+	protected T clone()
 	{
 		try {
-			return (ObjectifyWrapper<T>)super.clone();
+			return (T)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}

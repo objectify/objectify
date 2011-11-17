@@ -56,7 +56,7 @@ public class TestBase
 					new LocalMemcacheServiceTestConfig(),
 					new LocalTaskQueueTestConfig());
 	/** */
-	@BeforeMethod()
+	@BeforeMethod
 	public void setUp()
 	{
 		this.helper.setUp();
