@@ -3,21 +3,22 @@ package com.googlecode.objectify.test;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
  */
 public class EmbeddedSetTests extends TestBase
 {
+	@Entity
 	public static class HasSet
 	{
 		@Id Long id;
-		@Embedded Set<HashableThing> someSet = new HashSet<HashableThing>();
+		@Embed Set<HashableThing> someSet = new HashSet<HashableThing>();
 	}
 	
 	public static class HashableThing

@@ -1,6 +1,4 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
@@ -8,17 +6,17 @@ package com.googlecode.objectify.test;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
- * Testing what you can and can not do with @Embedded blobs like Text and Blob
+ * Testing what you can and can not do with @Embed blobs like Text and Blob
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -41,6 +39,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedText
 	{
@@ -49,6 +48,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedBlob
 	{
@@ -57,6 +57,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedTextArray
 	{
@@ -65,6 +66,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedBlobArray
 	{
@@ -73,6 +75,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedTextList
 	{
@@ -81,6 +84,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	public static class HasEmbeddedBlobList
 	{

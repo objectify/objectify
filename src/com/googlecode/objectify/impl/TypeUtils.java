@@ -22,12 +22,11 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialize;
@@ -119,11 +118,11 @@ public class TypeUtils
 	
 	/**
 	 * @return true if the field can be saved (is persistable), false if it
-	 *  is static, final, @Transient, etc.
+	 *  is static, final, @Ignore, etc.
 	 */
 	public static boolean isSaveable(Field field)
 	{
-		return !field.isAnnotationPresent(Transient.class)
+		return !field.isAnnotationPresent(Ignore.class)
 			&& ((field.getModifiers() & NOT_SAVED_MODIFIERS) == 0)
 			&& !field.isSynthetic();
 	}
@@ -336,14 +335,14 @@ public class TypeUtils
 	
 	/**
 	 * Determines if the field is embedded or not.  Today this checks for
-	 * an @Embedded annotation, but in the future it could check the type
+	 * an @Embed annotation, but in the future it could check the type
 	 * (or component type) is one of the natively persistable classes.
 	 * 
 	 * @return true if field is an embedded class, collection, or array.
 	 */
 	public static boolean isEmbedded(Field field)
 	{
-		return field.isAnnotationPresent(Embedded.class);
+		return field.isAnnotationPresent(Embed.class);
 	}
 	
 	/** Checked exceptions are LAME. */
@@ -423,8 +422,8 @@ public class TypeUtils
 			if (TypeUtils.isSaveable(field) &&
 					(embedded || (!field.isAnnotationPresent(Id.class) && !field.isAnnotationPresent(Parent.class))))
 			{
-				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialize.class))
-					throw new IllegalStateException("Cannot have @Embedded and @Serialized on the same field! Check " + field);
+				if (field.isAnnotationPresent(Embed.class) && field.isAnnotationPresent(Serialize.class))
+					throw new IllegalStateException("Cannot have @Embed and @Serialize on the same field! Check " + field);
 
 				FieldMetadata metadata = new FieldMetadata(field);
 				metadata.names.add(field.getName());
@@ -450,7 +449,7 @@ public class TypeUtils
 	/**
 	 * Get all the methods that are appropriate for saving into on this
 	 * class and all superclasses.  Validates that @AlsoLoad methods are
-	 * properly created (one parameter, not @Embedded).
+	 * properly created (one parameter, not @Embed).
 	 * 
 	 * @return all the correctly specified @AlsoLoad and @OldName methods.
 	 *  Methods will be set accessable.  Key will be the immediate name in the annotation.
@@ -475,8 +474,8 @@ public class TypeUtils
 		for (Method method: clazz.getDeclaredMethods())
 		{
 			// This seems like a good idea
-			if (method.isAnnotationPresent(Embedded.class))
-				throw new IllegalStateException("@Embedded is not a legal annotation for methods");
+			if (method.isAnnotationPresent(Embed.class))
+				throw new IllegalStateException("@Embed is not a legal annotation for methods");
 
 			MethodMetadata metadata = new MethodMetadata(method);
 			
@@ -490,10 +489,10 @@ public class TypeUtils
 						if (method.getParameterTypes().length != 1)
 							throw new IllegalStateException("@AlsoLoad methods must have a single parameter. Can't use " + method);
 						
-						// Parameter cannot be @Embedded
+						// Parameter cannot be @Embed
 						for (Annotation maybeEmbedded: paramAnnotations)
-							if (maybeEmbedded instanceof Embedded)
-								throw new IllegalStateException("@Embedded cannot be used on @AlsoLoad methods. The offender is " + method);
+							if (maybeEmbedded instanceof Embed)
+								throw new IllegalStateException("@Embed cannot be used on @AlsoLoad methods. The offender is " + method);
 						
 						// It's good, let's add it
 						method.setAccessible(true);

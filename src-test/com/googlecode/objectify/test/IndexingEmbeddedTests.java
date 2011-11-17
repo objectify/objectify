@@ -5,13 +5,12 @@ package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.IndexingInheritanceTests.IndexedDefaultPojo;
@@ -30,6 +29,7 @@ public class IndexingEmbeddedTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(IndexingEmbeddedTests.class.getName());
 
+	@Entity
 	@Index
 	public static class LevelTwoIndexedClass 
 	{
@@ -42,33 +42,34 @@ public class IndexingEmbeddedTests extends TestBase
 
 	public static class LevelOne {
 	    String foo = "1";
-	    @Embedded LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
-	    @Embedded LevelTwoIndexedField twoField = new LevelTwoIndexedField();
+	    @Embed LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
+	    @Embed LevelTwoIndexedField twoField = new LevelTwoIndexedField();
 	}
 
 	@Entity @Unindex 
  	public static class EntityWithEmbedded {
 	    @Id Long id;
-	    @Embedded LevelOne one = new LevelOne();
+	    @Embed LevelOne one = new LevelOne();
 	    String prop = "A";
 	}
 
+	@Entity
 	@SuppressWarnings("unused")
 	public static class EmbeddedIndexedPojo
 	{
 		@Id Long id;
 
-		@Unindex 				private boolean aProp = true;
+		@Unindex 			private boolean aProp = true;
 		
-		@Index 	@Embedded 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
-		@Unindex 	@Embedded 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
-					@Embedded 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
+		@Index 		@Embed 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
+		@Unindex 	@Embed 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
+					@Embed 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
 
 // 		Fundamentally broken; how to test bad-hetro behavior?
 
-//		@Indexed 	@Embedded 	private List indexedHetro = new ArrayList();
-//		@Unindexed 	@Embedded 	private List unindexedHetro = new ArrayList();
-//					@Embedded 	private List defHetro = new ArrayList();
+//		@Indexed 	@Embed 	private List indexedHetro = new ArrayList();
+//		@Unindexed 	@Embed 	private List unindexedHetro = new ArrayList();
+//					@Embed 	private List defHetro = new ArrayList();
 //		public EmbeddedIndexedPojo(){
 //			indexedHetro.add(new IndexedDefaultPojo());
 //			indexedHetro.add(new IndexedPojo());

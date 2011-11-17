@@ -3,27 +3,28 @@ package com.googlecode.objectify.test.entity;
 import java.util.List;
 import java.util.Set;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 
 /**
  * Entity for testing null/empty embedded arrays and collections
  */
+@Entity
 @Cache
 public class Criminal
 {
 	@Id
 	public Long id;
 	
-	@Embedded
+	@Embed
 	public Name[] aliases;
 	
-	@Embedded
+	@Embed
 	public List<Name> moreAliases;
 
-	@Embedded
+	@Embed
 	public Set<Name> aliasesSet;
 
 	public Criminal()

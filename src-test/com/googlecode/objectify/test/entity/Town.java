@@ -1,12 +1,13 @@
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 
 /**
  */
+@Entity
 @Cache
 public class Town
 {
@@ -15,9 +16,9 @@ public class Town
 
 	public String name;
 	
-	@Embedded
+	@Embed
 	public Person mayor;
 
-	@Embedded
+	@Embed
 	public Person[] folk;
 }

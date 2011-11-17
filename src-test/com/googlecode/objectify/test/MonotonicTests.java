@@ -1,10 +1,10 @@
 package com.googlecode.objectify.test;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 import com.googlecode.objectify.util.Monotonic;
@@ -13,6 +13,7 @@ import com.googlecode.objectify.util.Monotonic;
  */
 public class MonotonicTests extends TestBase
 {
+	@Entity
 	@Cache
 	public static class HasNumber
 	{

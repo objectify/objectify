@@ -1,13 +1,12 @@
 package com.googlecode.objectify.test;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -29,7 +28,8 @@ public class NullDefaultFieldTests extends TestBase
 			this.s = s;
 		}
 	}
-	
+
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class EntityWithDefault {
 		@Id
@@ -42,7 +42,7 @@ public class NullDefaultFieldTests extends TestBase
 		@Unindex
 		String c = "bar";
 		/** new embedded */
-		@Embedded
+		@Embed
 		Struct s = new Struct("default2");
 
 		public EntityWithDefault()

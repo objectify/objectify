@@ -14,7 +14,7 @@ import java.lang.annotation.Target;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target({ElementType.METHOD})
 public @interface OnLoad
 {
 }

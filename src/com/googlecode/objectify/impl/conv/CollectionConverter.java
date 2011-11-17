@@ -27,7 +27,7 @@ public class CollectionConverter implements Converter
 		if (value instanceof Collection<?>)
 		{
 			if (ctx.inEmbeddedCollection())
-				throw new IllegalStateException("You cannot have collections inside @Embedded arrays or collections");
+				throw new IllegalStateException("You cannot have collections inside @Embed arrays or collections");
 			
 			// All collections get turned into a List that preserves the order.  We must
 			// also be sure to convert anything contained in the collection

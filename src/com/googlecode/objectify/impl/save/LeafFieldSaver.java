@@ -50,7 +50,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		
 		if (this.collectionize)
 			if (!this.serialize && TypeUtils.isArrayOrCollection(field.getType()))
-				throw new IllegalStateException("Cannot place array or collection properties inside @Embedded arrays or collections. The offending field is " + field);
+				throw new IllegalStateException("Cannot place array or collection properties inside @Embed arrays or collections. The offending field is " + field);
 		
 		// Don't save null arrays or collections
 		if (!this.serialize && TypeUtils.isArrayOrCollection(field.getType()))
@@ -109,7 +109,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		// For now, special case serialization
 		if (this.serialize && value != null)
 		{
-			// If it's @Serialized, we serialize it no matter what it looks like
+			// If it's @Serialize, we serialize it no matter what it looks like
 			try
 			{
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();

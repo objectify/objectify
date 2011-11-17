@@ -8,9 +8,6 @@ import java.util.Arrays;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -18,6 +15,8 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
 import com.googlecode.objectify.impl.conv.Converter;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
@@ -39,6 +38,7 @@ public class ConversionTests extends TestBase
 	private static Logger log = Logger.getLogger(ConversionTests.class.getName());
 	
 	/** Used for some of the tests here */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasStringArray
 	{
@@ -47,11 +47,12 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasNames
 	{
 		public @Id Long id;
-		public @Embedded Name[] names;
+		public @Embed Name[] names;
 	}
 	
 	/** */
@@ -150,6 +151,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class Blobby
 	{
@@ -172,6 +174,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** For testSqlDateConversion() */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasSqlDate
 	{
@@ -194,6 +197,7 @@ public class ConversionTests extends TestBase
 	}
 
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasBigDecimal
 	{
@@ -256,6 +260,7 @@ public class ConversionTests extends TestBase
 		assert hbd.data.equals(fetched.data);
 	}
 	
+	@com.googlecode.objectify.annotation.Entity
 	public static class HasTimeZone
 	{
 		public @Id Long id;

@@ -1,11 +1,10 @@
 /*
- * $Id$
- * $URL$
  */
 
 package com.googlecode.objectify.test.entity;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
 
 
 /**
@@ -13,6 +12,7 @@ import com.googlecode.objectify.annotation.Cache;
  * 
  * @author Scott Hernandez
  */
+@Entity
 @Cache
 public class HolderOfStringAndLong extends HolderOfString
 {

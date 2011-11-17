@@ -3,19 +3,19 @@ package com.googlecode.objectify.test;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
- * Tests of the {@code @Serialized} annotation
+ * Tests of the {@code @Serialize} annotation
  */
 public class SerializedTests extends TestBase
 {
@@ -26,6 +26,7 @@ public class SerializedTests extends TestBase
 		@Serialize long[] longs;
 	}
 	
+	@Entity
 	@Cache
 	public static class SerializedStuff
 	{
@@ -33,9 +34,9 @@ public class SerializedTests extends TestBase
 		
 		@Serialize public Name[] names;
 		
-		@Embedded public EmbeddedSerialized easy;
+		@Embed public EmbeddedSerialized easy;
 		
-		@Embedded public EmbeddedSerialized[] hard;
+		@Embed public EmbeddedSerialized[] hard;
 	}
 
 	/**

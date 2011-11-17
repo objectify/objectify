@@ -5,9 +5,9 @@
 
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Id;
-
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 
 /**
@@ -15,6 +15,7 @@ import com.googlecode.objectify.annotation.Unindex;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Entity
 @Cache
 public class Trivial
 {

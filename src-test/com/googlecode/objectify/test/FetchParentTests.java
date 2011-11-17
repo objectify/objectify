@@ -3,10 +3,10 @@
 
 package com.googlecode.objectify.test;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
@@ -20,12 +20,14 @@ import com.googlecode.objectify.test.util.TestObjectify;
 public class FetchParentTests extends TestBase
 {
 	/** */
+	@Entity
 	public static class Father {
 		public @Id Long id;
 		public String foo;
 	}
 	
 	/** */
+	@Entity
 	public static class Child {
 		public @Id Long id;
 		public @Load @Parent Father father;
@@ -58,6 +60,7 @@ public class FetchParentTests extends TestBase
 	}
 
 	/** */
+	@Entity
 	public static class TreeNode {
 		public @Id Long id;
 		public @Load @Parent TreeNode parent;
@@ -128,6 +131,7 @@ public class FetchParentTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	public static class ChildWithGroup {
 		public @Id Long id;
 		public @Load("group") @Parent Father father;

@@ -11,13 +11,13 @@ import com.googlecode.objectify.condition.If;
  * <p>This annotation controls whether or not fields are indexed in the datastore.</p>
  * 
  * <p>When placed on a simple field, the field will be not be indexed.  If the field is
- * an @Embedded class or a collection of @Embedded classes, the fields of those classes
- * will be indexed as if the class had the @Unindexed annotation.</p>
+ * an @Embed class or a collection of @Embed classes, the fields of those classes
+ * will be indexed as if the class had the @Unindex annotation.</p>
  * 
  * <p>When placed on an entity class or an embedded class, this sets the default
  * for all fields to be unindexed.  It can be overridden by field level annotations.</p>
  * 
- * <p>If an embedded class field is annotated with @Unindexed, any @Indexed or @Unindexed
+ * <p>If an embedded class field is annotated with @Unindex, any @Index or @Unindex
  * annotation on the class itself is ignored.</p>
  * 
  * <p>If passed one or more classes that implement the {@code If} interface, the

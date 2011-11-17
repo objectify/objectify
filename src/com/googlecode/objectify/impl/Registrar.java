@@ -99,7 +99,7 @@ public class Registrar
 			throw new IllegalArgumentException("A @Subclass hierarchy must have an @Entity superclass (direct or indirect)");
 		
 		// First thing we do is climb and take care of the actual root @Entity
-		if (clazz.isAnnotationPresent(Entity.class) || clazz.isAnnotationPresent(javax.persistence.Entity.class))
+		if (clazz.isAnnotationPresent(Entity.class))
 		{
 			// We're at the end of the recursion, deal with the base
 			EntityMetadata<?> meta = this.byKind.get(kind);

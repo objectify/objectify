@@ -1,16 +1,12 @@
 /*
- * $Id$ $URL:
- * https://subetha
- * .googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest
- * /util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Id;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -18,6 +14,7 @@ import com.googlecode.objectify.annotation.Cache;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Jon Stevens
  */
+@Entity
 @Cache
 public class Employee
 {

@@ -1,11 +1,11 @@
 package com.googlecode.objectify.test;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
@@ -15,6 +15,7 @@ import com.googlecode.objectify.test.util.TestBase;
  */
 public class RegisterTests extends TestBase
 {
+    @Entity
 	@Cache
 	public static class NonPublicConstructor
 	{
@@ -24,6 +25,7 @@ public class RegisterTests extends TestBase
 		private NonPublicConstructor() { }
 	}
 
+    @Entity
 	@Cache
 	public static class NoNoargConstructors
 	{
@@ -44,11 +46,12 @@ public class RegisterTests extends TestBase
         }
     }
     
+    @Entity
 	@Cache
     public static class HasEmbedded {
         @Id
         Long id;
-        @Embedded
+        @Embed
         BadStruct name;
 
     }

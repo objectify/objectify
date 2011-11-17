@@ -1,21 +1,20 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 
 /**
  * A simple entity with some @AlsoLoad annotations
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Entity
 @Cache
 public class HasAlsoLoads
 {
@@ -34,7 +33,7 @@ public class HasAlsoLoads
 	public void setOtherStuff(String value) { this.otherStuff = value; }
 
 	/** Tests loading with @AlsoLoad on a method */
-	@Transient Integer weird;
+	@Ignore Integer weird;
 	public Integer getWeird() { return this.weird; }
 	void namedAnything(@AlsoLoad("weirdStuff") String stuff)
 	{

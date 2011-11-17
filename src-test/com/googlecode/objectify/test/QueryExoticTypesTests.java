@@ -9,11 +9,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
 import com.googlecode.objectify.test.util.TestBase;
@@ -38,6 +38,7 @@ public class QueryExoticTypesTests extends TestBase
 	}	
 	
 	/** */
+	@Entity
 	public static class HasDate
 	{
 		@Id Long id;
@@ -68,6 +69,7 @@ public class QueryExoticTypesTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	public static class HasUser
 	{
 		@Id Long id;
@@ -117,6 +119,7 @@ public class QueryExoticTypesTests extends TestBase
 	/**
 	 * @author aswath satrasala
 	 */
+	@Entity
 	public static class HasFromThruDate
 	{
 		@Id

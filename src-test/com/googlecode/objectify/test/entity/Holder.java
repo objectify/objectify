@@ -1,19 +1,18 @@
 /*
- * $Id$
- * $URL$
  */
 
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Id;
-
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 
 /**
  * A holder of a <T>hing.
  * 
  * @author Scott Hernandez
  */
+@Entity
 @Cache
 public abstract class Holder<T>
 {	

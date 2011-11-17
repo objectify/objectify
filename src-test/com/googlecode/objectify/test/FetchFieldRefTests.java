@@ -6,13 +6,13 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -53,6 +53,7 @@ public class FetchFieldRefTests extends TestBase
 	}
 
 	/** */
+	@Entity
 	public static class HasEntities {
 		public @Id Long id;
 		public @Load Ref<Trivial> single;
@@ -102,6 +103,7 @@ public class FetchFieldRefTests extends TestBase
 	}
 
 	/** */
+	@Entity
 	public static class ListNode {
 		public @Id Long id;
 		public @Load Ref<ListNode> next;
@@ -166,6 +168,7 @@ public class FetchFieldRefTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	public static class HasEntitiesWithGroups {
 		public @Id Long id;
 		public @Load("single") Ref<Trivial> single;

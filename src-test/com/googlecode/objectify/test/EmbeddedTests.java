@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
@@ -28,9 +27,9 @@ public class EmbeddedTests extends TestBase
 {
 	public static class PartiallyUnindexedStruct
 	{
-		@Embedded
+		@Embed
 		Person indexedPerson;
-		@Embedded
+		@Embed
 		@Unindex
 		Person unindexedPerson;
 
@@ -51,16 +50,17 @@ public class EmbeddedTests extends TestBase
 		}
 	}
 
+	@Entity
 	@Cache
 	public static class PartiallyUnindexedEntity
 	{
 		@Id
 		Long id;
 
-		@Embedded
+		@Embed
 		PartiallyUnindexedStruct indexed;
 
-		@Embedded
+		@Embed
 		@Unindex
 		PartiallyUnindexedStruct unindexed;
 
@@ -77,16 +77,17 @@ public class EmbeddedTests extends TestBase
 
 	public static class Names
 	{
-		@Embedded
+		@Embed
 		Name[] names;
 	}
 
 	public static class Team
 	{
-		@Embedded
+		@Embed
 		Names members;
 	}
 
+	@Entity
 	@Cache
 	public static class TeamEntity extends Team
 	{
@@ -96,7 +97,7 @@ public class EmbeddedTests extends TestBase
 
 	public static class League
 	{
-		@Embedded
+		@Embed
 		Team[] teams;
 	}
 
@@ -235,7 +236,7 @@ public class EmbeddedTests extends TestBase
 		private Long id;
 		private Key<Trivial> orgKey;
 		private String listName;
-		private @Embedded
+		private @Embed
 		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
 		public KensClientListName() {}
 	}
@@ -257,10 +258,11 @@ public class EmbeddedTests extends TestBase
 		ofy.put(clientlistname);
 	}
 	
+	@Entity
 	public static class EntityEmbedsOtherEntity
 	{
 		@Id Long id;
-		@Embedded Trivial other;
+		@Embed Trivial other;
 	}
 
 	@Test

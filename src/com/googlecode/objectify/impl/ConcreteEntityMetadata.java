@@ -7,15 +7,14 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.Id;
-import javax.persistence.PostLoad;
-import javax.persistence.PrePersist;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.OnLoad;
+import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.conv.Conversions;
 
@@ -42,11 +41,11 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	/** If the entity has a @Parent field, treat it specially */
 	protected Field parentField;
 	
-	/** Any methods in the hierarchy annotated with @PrePersist, could be null */
-	protected List<Method> prePersistMethods;
+	/** Any methods in the hierarchy annotated with @OnSave, could be null */
+	protected List<Method> onSaveMethods;
 
-	/** Any methods in the hierarchy annotated with @PostLoad, could be null */
-	protected List<Method> postLoadMethods;
+	/** Any methods in the hierarchy annotated with @OnLoad, could be null */
+	protected List<Method> onLoadMethods;
 
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
@@ -68,7 +67,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
 		this.processKeyFields(clazz);
 
-		// Walk up the inheritance chain looking for @PrePersist and @PostLoad
+		// Walk up the inheritance chain looking for @OnSave and @OnLoad
 		this.processLifecycleCallbacks(clazz);
 		
 		// Now figure out how to handle normal properties
@@ -146,7 +145,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 
 	/**
 	 * Recursive function which walks up the superclass hierarchy looking
-	 * for lifecycle-related methods (@PrePersist and @PostLoad).
+	 * for lifecycle-related methods (@OnSave and @OnLoad).
 	 */
 	private void processLifecycleCallbacks(Class<?> clazz)
 	{
@@ -159,7 +158,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		// Check all the methods
 		for (Method method: clazz.getDeclaredMethods())
 		{
-			if (method.isAnnotationPresent(PrePersist.class) || method.isAnnotationPresent(PostLoad.class))
+			if (method.isAnnotationPresent(OnSave.class) || method.isAnnotationPresent(OnLoad.class))
 			{
 				method.setAccessible(true);
 				
@@ -167,22 +166,22 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 				
 				for (int i=0; i<ptypes.length; i++)
 					if (ptypes[i] != Objectify.class && ptypes[i] != Entity.class)
-						throw new IllegalStateException("@PrePersist and @PostLoad methods can only have parameters of type Objectify or Entity");
+						throw new IllegalStateException("@OnSave and @OnLoad methods can only have parameters of type Objectify or Entity");
 				
-				if (method.isAnnotationPresent(PrePersist.class))
+				if (method.isAnnotationPresent(OnSave.class))
 				{
-					if (this.prePersistMethods == null)
-						this.prePersistMethods = new ArrayList<Method>();
+					if (this.onSaveMethods == null)
+						this.onSaveMethods = new ArrayList<Method>();
 					
-					this.prePersistMethods.add(method);
+					this.onSaveMethods.add(method);
 				}
 				
-				if (method.isAnnotationPresent(PostLoad.class))
+				if (method.isAnnotationPresent(OnLoad.class))
 				{
-					if (this.postLoadMethods == null)
-						this.postLoadMethods = new ArrayList<Method>();
+					if (this.onLoadMethods == null)
+						this.onLoadMethods = new ArrayList<Method>();
 					
-					this.postLoadMethods.add(method);
+					this.onLoadMethods.add(method);
 				}
 			}
 			
@@ -202,8 +201,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 
 		this.transmog.load(ent, pojo);
 		
-		// If there are any @PostLoad methods, call them
-		this.invokeLifecycleCallbacks(this.postLoadMethods, pojo, ent, ofy);
+		// If there are any @OnLoad methods, call them
+		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ent, ofy);
 
 		return pojo;
 	}
@@ -216,8 +215,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	{
 		Entity ent = this.initEntity(pojo);
 
-		// If there are any @PrePersist methods, call them
-		this.invokeLifecycleCallbacks(this.prePersistMethods, pojo, ent, ofy);
+		// If there are any @OnSave methods, call them
+		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ent, ofy);
 		
 		this.transmog.save(pojo, ent);
 		

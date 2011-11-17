@@ -8,12 +8,12 @@ import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -59,6 +59,7 @@ public class TransactionTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	static class HasSimpleCollection
 	{

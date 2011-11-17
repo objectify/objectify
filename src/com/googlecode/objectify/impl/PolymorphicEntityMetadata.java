@@ -55,13 +55,13 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		 */
 		public void addIndexedDiscriminators(Class<?> clazz)
 		{
-			if (clazz.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class) || clazz.isAnnotationPresent(javax.persistence.Entity.class))
+			if (clazz.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class))
 				return;
 
 			this.addIndexedDiscriminators(clazz.getSuperclass());
 			
 			Subclass sub = clazz.getAnnotation(Subclass.class);
-			if (sub != null && !sub.unindexed())
+			if (sub != null && sub.index())
 			{
 				String disc = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
 				this.indexedDiscriminators.add(disc);

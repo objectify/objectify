@@ -1,20 +1,17 @@
 /*
- * $Id: BeanMixin.java 1075 2009-05-07 06:41:19Z lhoriman $
- * $URL: https://subetha.googlecode.com/svn/branches/resin/rtest/src/org/subethamail/rtest/util/BeanMixin.java $
  */
 
 package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
@@ -23,15 +20,15 @@ import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
- * Tests of using the @NotSaved annotation and its various conditions.
+ * Tests of using the @IgnoreSave annotation and its various conditions.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class NotSavedTests extends TestBase
+public class IgnoreSaveTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(NotSavedTests.class.getName());
+	private static Logger log = Logger.getLogger(IgnoreSaveTests.class.getName());
 	
 	/** */
 	public static final String TEST_VALUE = "blah";
@@ -40,6 +37,7 @@ public class NotSavedTests extends TestBase
 	static class DeeperIfTrue extends IfTrue {}
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class CompletelyUnsaved
 	{
@@ -68,6 +66,7 @@ public class NotSavedTests extends TestBase
 	}
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class UnsavedWhenTrue
 	{
@@ -92,6 +91,7 @@ public class NotSavedTests extends TestBase
 	}
 
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class DeeperUnsavedWhenTrue
 	{
@@ -116,6 +116,7 @@ public class NotSavedTests extends TestBase
 	}
 
 	/** Should not be registerable */
+	@com.googlecode.objectify.annotation.Entity
 	static class BadFieldType
 	{
 		@Id Long id;
@@ -123,6 +124,7 @@ public class NotSavedTests extends TestBase
 	}
 	
 	/** Should not be registerable */
+	@com.googlecode.objectify.annotation.Entity
 	static class DeeperBadFieldType
 	{
 		@Id Long id;
@@ -131,10 +133,12 @@ public class NotSavedTests extends TestBase
 	
 	/** Should not be registerable */
 	static class TryToEmbedMe { @IgnoreSave(IfNull.class) String bar; }
+	
+	@com.googlecode.objectify.annotation.Entity
 	static class EmbeddedCollectionWithUnsaved
 	{
 		@Id Long id;
-		@Embedded TryToEmbedMe[] stuff;
+		@Embed TryToEmbedMe[] stuff;
 	}
 	
 	/** */
@@ -164,6 +168,7 @@ public class NotSavedTests extends TestBase
 	}
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class UnsavedDefaults
 	{

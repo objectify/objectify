@@ -10,8 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -24,6 +22,7 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
 import com.googlecode.objectify.test.util.TestBase;
@@ -40,6 +39,7 @@ public class EvilMemcacheBugTests extends TestBase
 	//private static Logger log = Logger.getLogger(EvilMemcacheBugTests.class.getName());
 	
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	static class SimpleParent
 	{
 		@Id String id;
@@ -55,6 +55,7 @@ public class EvilMemcacheBugTests extends TestBase
 	}
 
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class SimpleEntity
 	{

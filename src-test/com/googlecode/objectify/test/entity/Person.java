@@ -1,15 +1,16 @@
 package com.googlecode.objectify.test.entity;
 
-import javax.persistence.Embedded;
-
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
 
 /**
  */
+@Entity
 @Cache
 public class Person
 {
-	@Embedded
+	@Embed
 	public Name name;
 	public int age;
 

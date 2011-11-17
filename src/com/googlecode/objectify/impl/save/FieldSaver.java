@@ -5,8 +5,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.IgnoreSave;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
@@ -29,7 +29,7 @@ abstract public class FieldSaver implements Saver
 	/** These are authoritative */
 	If<?, ?>[] indexConditions;
 	If<?, ?>[] unindexConditions;
-	If<?, ?>[] notSavedConditions;
+	If<?, ?>[] ignoreSaveConditions;
 	
 	/**
 	 * @param examinedClass is the class which is being registered (or embedded).  It posesses the field,
@@ -51,7 +51,7 @@ abstract public class FieldSaver implements Saver
 		Unindex unindexedAnn = field.getAnnotation(Unindex.class);
 
 		if (indexedAnn != null && unindexedAnn != null)
-			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
+			throw new IllegalStateException("Cannot have @Index and @Unindex on the same field: " + field);
 		
 		if (indexedAnn != null)
 			this.indexConditions = this.generateIfConditions(indexedAnn.value(), examinedClass);
@@ -64,9 +64,9 @@ abstract public class FieldSaver implements Saver
 		if (notSaved != null)
 		{
 			if (collectionize && (notSaved.value().length != 1 || notSaved.value()[0] != Always.class))
-				throw new IllegalStateException("You cannot use @NotSaved with a condition within @Embedded collections; check the field " + this.field);
+				throw new IllegalStateException("You cannot use @IgnoreSave with a condition within @Embed collections; check the field " + this.field);
 			
-			this.notSavedConditions = this.generateIfConditions(notSaved.value(), examinedClass);
+			this.ignoreSaveConditions = this.generateIfConditions(notSaved.value(), examinedClass);
 		}
 	}
 	
@@ -130,10 +130,10 @@ abstract public class FieldSaver implements Saver
 		
 		Object value = TypeUtils.field_get(this.field, pojo);
 		
-		if (this.notSavedConditions != null)
+		if (this.ignoreSaveConditions != null)
 		{
-			for (int i=0; i<this.notSavedConditions.length; i++)
-				if (((If<Object, Object>)this.notSavedConditions[i]).matches(value, pojo))
+			for (int i=0; i<this.ignoreSaveConditions.length; i++)
+				if (((If<Object, Object>)this.ignoreSaveConditions[i]).matches(value, pojo))
 					return;
 		}
 		

@@ -1,13 +1,12 @@
 package com.googlecode.objectify.test;
 
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -15,13 +14,14 @@ import com.googlecode.objectify.test.util.TestObjectify;
  */
 public class TransientTests extends TestBase
 {
+    @com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasTransients
 	{
 		@Id Long id;
 		String name;
 		transient int transientKeyword;
-		@Transient int transientAnnotation;
+		@Ignore int transientAnnotation;
 	}
 
 	/** */

@@ -15,13 +15,12 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-import javax.persistence.Transient;
-
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.entity.HasCollections;
 import com.googlecode.objectify.test.entity.HasCollections.CustomSet;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -217,11 +216,12 @@ public class CollectionTests extends TestBase
 	}
 
 	/** */
+	@com.googlecode.objectify.annotation.Entity
 	public static class HasInitializedCollection
 	{
 		public @Id Long id;
 		public List<String> initialized = new ArrayList<String>();
-		@Transient public List<String> copyOf;
+		@Ignore public List<String> copyOf;
 		
 		public HasInitializedCollection()
 		{
@@ -250,6 +250,7 @@ public class CollectionTests extends TestBase
 	/**
 	 * Without the generic type
 	 */
+	@com.googlecode.objectify.annotation.Entity
 	@SuppressWarnings("rawtypes")
 	public static class HasRawCollection
 	{

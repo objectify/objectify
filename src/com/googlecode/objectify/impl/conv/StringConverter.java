@@ -18,7 +18,7 @@ public class StringConverter implements Converter
 		if (((String)value).length() > 500)
 		{
 			if (ctx.inEmbeddedCollection())
-				throw new IllegalStateException("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embedded collections." +
+				throw new IllegalStateException("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embed collections." +
 						"  You must use Text for the field type instead." +
 						"  This is what you tried to save into " + ctx.getField() + ": " + value);
 			

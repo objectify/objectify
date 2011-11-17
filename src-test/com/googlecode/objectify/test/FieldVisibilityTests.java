@@ -9,10 +9,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
@@ -30,6 +30,7 @@ public class FieldVisibilityTests extends TestBase
 	private static Logger log = Logger.getLogger(FieldVisibilityTests.class.getName());
 	
 	/** */
+	@Entity
 	@Unindex
 	static class ThingWithPrivates
 	{

@@ -5,12 +5,12 @@ package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
@@ -28,6 +28,7 @@ public class IndexingInheritanceTests extends TestBase
 	private static Logger log = Logger.getLogger(IndexingInheritanceTests.class.getName());
 
 	@SuppressWarnings("unused")
+	@Entity
 	@Cache
 	@Unindex
 	public static class UnindexedPojo
@@ -39,6 +40,7 @@ public class IndexingInheritanceTests extends TestBase
 	}
 	
 	@SuppressWarnings("unused")
+	@Entity
 	@Cache
 	@Index
 	public static class IndexedPojo
@@ -50,6 +52,7 @@ public class IndexingInheritanceTests extends TestBase
 	}
 	
 	@SuppressWarnings("unused")
+	@Entity
 	@Cache
 	public static class IndexedDefaultPojo
 	{
@@ -61,6 +64,7 @@ public class IndexingInheritanceTests extends TestBase
 	
 
 	@SuppressWarnings("unused")
+	@Entity
 	@Cache
 	public static class DefaultIndexedChildFromUnindexedPojo extends UnindexedPojo
 	{
@@ -72,6 +76,7 @@ public class IndexingInheritanceTests extends TestBase
 	}
 
 	@SuppressWarnings("unused")
+	@Entity
 	@Cache
 	public static class DefaultIndexedGrandChildFromUnindexedPojo extends DefaultIndexedChildFromUnindexedPojo
 	{
@@ -83,6 +88,7 @@ public class IndexingInheritanceTests extends TestBase
 	}
 	
 	/** Switches the default from unindexed to indexed, but shouldn't have any effect on base */
+	@Entity
 	@Cache
 	@Index
 	public static class DerivedAndIndexed extends UnindexedPojo
@@ -90,6 +96,7 @@ public class IndexingInheritanceTests extends TestBase
 	}
 
 	/** Switches the default from indexed to unindexed, but shouldn't have any effect on base */
+	@Entity
 	@Cache
 	@Unindex
 	public static class DerivedAndUnindexed extends IndexedPojo

@@ -33,17 +33,17 @@ import com.googlecode.objectify.impl.save.Path;
  * 
  * <p>To understand this code, you must first understand that a "leaf" value is anything that
  * can be put into the datastore in a single property.  Simple types like String, and Enum,
- * and Key are leaf nodes, but so are Collections and arrays of these basic types.  @Embedded
+ * and Key are leaf nodes, but so are Collections and arrays of these basic types.  @Embed
  * values are nonleaf - they branch the persistance graph, producing multiple properties in a
  * datastore Entity.</p>
  * 
  * <p>Also realize that there are two separate dimensions to understand.  Misunderstanding
  * the two related graphs will make this code very confusing:</p>
  * <ul>
- * <li>There is a class graph, which branches at @Embedded classes (either simple fields
+ * <li>There is a class graph, which branches at @Embed classes (either simple fields
  * or array/collection fields).  The static analysis code that builds Setters and Savers
  * must traverse this graph.</li>
- * <li>There is an object graph, which branches at @Embedded arrays.  The runtime execution
+ * <li>There is an object graph, which branches at @Embed arrays.  The runtime execution
  * code must traverse this graph when setting and saving entities.</li>
  * </ul>
  * 
@@ -53,7 +53,7 @@ import com.googlecode.objectify.impl.save.Path;
  * <ul>
  * <li>When loading, Transmog <em>iterates</em> through the properties of an Entity and for each one calls a Setter
  * that knows how to set this property somewhere deep in the object graph of a typed pojo.  In the case
- * of @Embedded arrays and collections, this single collection datastore value will set multipel
+ * of @Embed arrays and collections, this single collection datastore value will set multipel
  * values in the pojo.  The core data structure is {@code rootSetters}, a map of entity property
  * name to a Setter which knows what to do with that data.</li>
  * <li>When saving, Transmog <em>recurses</em> through the class structure of a pojo (and any embedded objects), calling

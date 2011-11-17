@@ -33,7 +33,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 		super(examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		if (collectionize)
-			throw new IllegalStateException("You cannot nest multiple @Embedded arrays or collections. A second was found at " + field);
+			throw new IllegalStateException("You cannot nest multiple @Embed arrays or collections. A second was found at " + field);
 		
 		boolean ignoreClassIndexingAnnotations =
 			this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);

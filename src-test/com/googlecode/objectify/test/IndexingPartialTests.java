@@ -5,11 +5,11 @@ package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfFalse;
@@ -33,6 +33,7 @@ public class IndexingPartialTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 	
 	/** */
+	@Entity
 	@Cache
 	static class UnindexedWhenFalse
 	{
@@ -71,6 +72,7 @@ public class IndexingPartialTests extends TestBase
 	}
 	
 	/** */
+	@Entity
 	@Cache
 	@Unindex
 	static class IndexedOnOtherField

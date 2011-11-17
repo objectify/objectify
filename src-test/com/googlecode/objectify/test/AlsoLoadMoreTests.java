@@ -5,15 +5,14 @@ package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import javax.persistence.Id;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -32,6 +31,7 @@ public class AlsoLoadMoreTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 	
 	/** */
+	@Entity
 	@Cache
 	static class MethodOverridesField
 	{
@@ -45,6 +45,7 @@ public class AlsoLoadMoreTests extends TestBase
 	}
 	
 	/** Should not be registerable */
+	@Entity
 	static class ConflictingFields
 	{
 		@Id Long id;
@@ -53,6 +54,7 @@ public class AlsoLoadMoreTests extends TestBase
 	}
 	
 	/** Should not be registerable */
+	@Entity
 	static class ConflictingMethods
 	{
 		@Id Long id;
@@ -77,7 +79,7 @@ public class AlsoLoadMoreTests extends TestBase
 	{
 		TestObjectify ofy = this.fact.begin();
 		
-		Entity ent = new Entity(Key.getKind(MethodOverridesField.class));
+		com.google.appengine.api.datastore.Entity ent = new com.google.appengine.api.datastore.Entity(Key.getKind(MethodOverridesField.class));
 		ent.setProperty("foo", TEST_VALUE);
 		ds().put(ent);
 		

@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
-import javax.persistence.Embedded;
-import javax.persistence.Id;
-
 import org.testng.annotations.Test;
 import org.testng.v6.Maps;
 
@@ -15,6 +12,8 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -23,13 +22,14 @@ import com.googlecode.objectify.test.util.TestObjectify;
  */
 public class EmbeddedMapTests extends TestBase
 {
+	@com.googlecode.objectify.annotation.Entity
 	public static class PojoWithMap
 	{
 		@Id
 		Long id;
-		@Embedded
+		@Embed
 		Thing oneThing;
-		@Embedded
+		@Embed
 		Map<String, Thing> things = Maps.newHashMap();
 	}
 
@@ -39,27 +39,30 @@ public class EmbeddedMapTests extends TestBase
 		Long weight;
 	}
 
+	@com.googlecode.objectify.annotation.Entity
 	public static class PojoWithEmbeededPojoWithMap
 	{
 		@Id
 		Long id;
-		@Embedded
+		@Embed
 		PojoWithMap mapPojo;
 	}
 
+	@com.googlecode.objectify.annotation.Entity
 	public static class PojoWithMapWithPojoWithMap
 	{
 		@Id
 		Long id;
-		@Embedded
+		@Embed
 		Map<String, PojoWithMap> nested = Maps.newHashMap();
 	}
 
+	@com.googlecode.objectify.annotation.Entity
 	public static class PojoWithPrimitiveValueMap
 	{
 		@Id
 		Long id;
-		@Embedded
+		@Embed
 		@AlsoLoad("simpletons")
 		Map<String, Object> primitives = Maps.newHashMap();
 	}

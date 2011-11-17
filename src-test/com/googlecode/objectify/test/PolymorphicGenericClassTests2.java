@@ -6,13 +6,13 @@ package com.googlecode.objectify.test;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import com.googlecode.objectify.annotation.Entity;
 
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
 
@@ -49,7 +49,7 @@ public class PolymorphicGenericClassTests2 extends TestBase
 	}
 	
 	/** */
-	@Subclass
+	@Subclass(index=true)
 	public static class Car extends Vehicle<Car>
 	{
 		int numWheels;

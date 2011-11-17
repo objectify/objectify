@@ -29,7 +29,7 @@ public class ArrayConverter implements Converter
 			return null;
 
 		if (ctx.inEmbeddedCollection())
-			throw new IllegalStateException("You cannot have arrays within @Embedded arrays or collections");
+			throw new IllegalStateException("You cannot have arrays within @Embed arrays or collections");
 		
 		if (value.getClass().getComponentType() == Byte.TYPE)
 		{
