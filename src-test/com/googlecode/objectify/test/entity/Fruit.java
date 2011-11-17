@@ -7,14 +7,14 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  * A fruit.
  * 
  * @author Scott Hernandez
  */
-@Cached
+@Cache
 public abstract class Fruit
 {
 	@Id Long id;

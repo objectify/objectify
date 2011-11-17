@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
 import com.googlecode.objectify.impl.conv.Converter;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
@@ -39,7 +39,7 @@ public class ConversionTests extends TestBase
 	private static Logger log = Logger.getLogger(ConversionTests.class.getName());
 	
 	/** Used for some of the tests here */
-	@Cached
+	@Cache
 	public static class HasStringArray
 	{
 		public @Id Long id;
@@ -47,7 +47,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasNames
 	{
 		public @Id Long id;
@@ -150,7 +150,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class Blobby
 	{
 		public @Id Long id;
@@ -172,7 +172,7 @@ public class ConversionTests extends TestBase
 	}
 	
 	/** For testSqlDateConversion() */
-	@Cached
+	@Cache
 	public static class HasSqlDate
 	{
 		public @Id Long id;
@@ -194,7 +194,7 @@ public class ConversionTests extends TestBase
 	}
 
 	/** */
-	@Cached
+	@Cache
 	public static class HasBigDecimal
 	{
 		public @Id Long id;

@@ -7,8 +7,8 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Unindex;
 
 /**
  * An entity that has several array types.  Left off getters and setters
@@ -16,20 +16,20 @@ import com.googlecode.objectify.annotation.Unindexed;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Cached
+@Cache
 public class HasArrays
 {
 	public @Id Long id;
 	
 	public String[] strings;
 	
-	@Unindexed
+	@Unindex
 	public long[] longs;
 	
-	@Unindexed
+	@Unindex
 	public int[] ints;
 
-	@Unindexed
+	@Unindex
 	public Integer[] integers;
 
 	/** Default constructor must always exist */

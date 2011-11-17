@@ -9,7 +9,7 @@ import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Serialized;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.conv.Conversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
@@ -46,7 +46,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 		
 		this.conversions = conv;
 		this.collectionize = collectionize;
-		this.serialize = field.isAnnotationPresent(Serialized.class);
+		this.serialize = field.isAnnotationPresent(Serialize.class);
 		
 		if (this.collectionize)
 			if (!this.serialize && TypeUtils.isArrayOrCollection(field.getType()))

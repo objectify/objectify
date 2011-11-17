@@ -14,8 +14,8 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.NotSaved;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
@@ -40,11 +40,11 @@ public class NotSavedTests extends TestBase
 	static class DeeperIfTrue extends IfTrue {}
 	
 	/** */
-	@Cached
+	@Cache
 	static class CompletelyUnsaved
 	{
 		@Id Long id;
-		@NotSaved String foo;
+		@IgnoreSave String foo;
 	}
 	
 	/** */
@@ -68,11 +68,11 @@ public class NotSavedTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	static class UnsavedWhenTrue
 	{
 		@Id Long id;
-		@NotSaved(IfTrue.class) boolean foo;
+		@IgnoreSave(IfTrue.class) boolean foo;
 		boolean bar;
 	}
 	
@@ -92,11 +92,11 @@ public class NotSavedTests extends TestBase
 	}
 
 	/** */
-	@Cached
+	@Cache
 	static class DeeperUnsavedWhenTrue
 	{
 		@Id Long id;
-		@NotSaved(IfTrue.class) boolean foo;
+		@IgnoreSave(IfTrue.class) boolean foo;
 		boolean bar;
 	}
 	
@@ -119,18 +119,18 @@ public class NotSavedTests extends TestBase
 	static class BadFieldType
 	{
 		@Id Long id;
-		@NotSaved(IfTrue.class) String foo;
+		@IgnoreSave(IfTrue.class) String foo;
 	}
 	
 	/** Should not be registerable */
 	static class DeeperBadFieldType
 	{
 		@Id Long id;
-		@NotSaved(DeeperIfTrue.class) String foo;
+		@IgnoreSave(DeeperIfTrue.class) String foo;
 	}
 	
 	/** Should not be registerable */
-	static class TryToEmbedMe { @NotSaved(IfNull.class) String bar; }
+	static class TryToEmbedMe { @IgnoreSave(IfNull.class) String bar; }
 	static class EmbeddedCollectionWithUnsaved
 	{
 		@Id Long id;
@@ -164,14 +164,14 @@ public class NotSavedTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	static class UnsavedDefaults
 	{
 		@Id Long id;
-		@NotSaved(IfDefault.class) boolean booleanDefault = true;
-		@NotSaved(IfDefault.class) String stringDefault = TEST_VALUE;
-		@NotSaved(IfDefault.class) int intDefault = 10;
-		@NotSaved(IfDefault.class) float floatDefault = 10f;
+		@IgnoreSave(IfDefault.class) boolean booleanDefault = true;
+		@IgnoreSave(IfDefault.class) String stringDefault = TEST_VALUE;
+		@IgnoreSave(IfDefault.class) int intDefault = 10;
+		@IgnoreSave(IfDefault.class) float floatDefault = 10f;
 	}
 	
 	/** */

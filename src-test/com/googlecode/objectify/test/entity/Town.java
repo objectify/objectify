@@ -3,11 +3,11 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  */
-@Cached
+@Cache
 public class Town
 {
 	@Id

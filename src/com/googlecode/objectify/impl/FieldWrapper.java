@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.annotation.Serialized;
+import com.googlecode.objectify.annotation.Serialize;
 
 /** 
  * Wrapper which makes a field look just like... a field.  More importantly,
@@ -38,7 +38,7 @@ public class FieldWrapper implements Wrapper
 	@Override
 	public boolean isSerialized()
 	{
-		return this.field.isAnnotationPresent(Serialized.class);
+		return this.field.isAnnotationPresent(Serialize.class);
 	}
 	
 	@Override

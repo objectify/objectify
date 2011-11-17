@@ -28,10 +28,10 @@ import javax.persistence.Transient;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Indexed;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.annotation.Serialized;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Serialize;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.impl.save.Path;
 
@@ -423,7 +423,7 @@ public class TypeUtils
 			if (TypeUtils.isSaveable(field) &&
 					(embedded || (!field.isAnnotationPresent(Id.class) && !field.isAnnotationPresent(Parent.class))))
 			{
-				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialized.class))
+				if (field.isAnnotationPresent(Embedded.class) && field.isAnnotationPresent(Serialize.class))
 					throw new IllegalStateException("Cannot have @Embedded and @Serialized on the same field! Check " + field);
 
 				FieldMetadata metadata = new FieldMetadata(field);
@@ -689,8 +689,8 @@ public class TypeUtils
 	 */
 	public static Boolean isClassIndexed(Class<?> clazz)
 	{
-		Indexed indexedAnn = clazz.getAnnotation(Indexed.class);
-		Unindexed unindexedAnn = clazz.getAnnotation(Unindexed.class);
+		Index indexedAnn = clazz.getAnnotation(Index.class);
+		Unindex unindexedAnn = clazz.getAnnotation(Unindex.class);
 		
 		if (indexedAnn != null && unindexedAnn != null)
 		{

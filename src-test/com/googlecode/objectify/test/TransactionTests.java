@@ -13,7 +13,7 @@ import javax.persistence.Id;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -59,7 +59,7 @@ public class TransactionTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	static class HasSimpleCollection
 	{
 		@Id Long id;

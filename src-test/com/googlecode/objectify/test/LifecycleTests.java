@@ -8,7 +8,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
@@ -16,7 +16,7 @@ import com.googlecode.objectify.test.util.TestBase;
  */
 public class LifecycleTests extends TestBase
 {
-	@Cached
+	@Cache
 	public static class HasLifecycle
 	{
 		@Id Long id;
@@ -39,7 +39,7 @@ public class LifecycleTests extends TestBase
 		@PostLoad void postLoad(Objectify ofy, Entity ent) { this.postLoadedWithBoth = true; }
 	}
 
-	@Cached
+	@Cache
 	public static class HasInheritedLifecycle extends HasLifecycle {}
 
 	/** */
@@ -74,7 +74,7 @@ public class LifecycleTests extends TestBase
 		assert fetched.postLoadedWithBoth;
 	}
 	
-	@Cached
+	@Cache
 	public static class HasExceptionThrowingLifecycle
 	{
 		@Id Long id;

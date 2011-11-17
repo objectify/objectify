@@ -12,8 +12,8 @@ import javax.persistence.Id;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Person;
@@ -31,11 +31,11 @@ public class EmbeddedTests extends TestBase
 		@Embedded
 		Person indexedPerson;
 		@Embedded
-		@Unindexed
+		@Unindex
 		Person unindexedPerson;
 
 		String indexedString;
-		@Unindexed
+		@Unindex
 		String unidexedString;
 
 		public PartiallyUnindexedStruct()
@@ -51,7 +51,7 @@ public class EmbeddedTests extends TestBase
 		}
 	}
 
-	@Cached
+	@Cache
 	public static class PartiallyUnindexedEntity
 	{
 		@Id
@@ -61,7 +61,7 @@ public class EmbeddedTests extends TestBase
 		PartiallyUnindexedStruct indexed;
 
 		@Embedded
-		@Unindexed
+		@Unindex
 		PartiallyUnindexedStruct unindexed;
 
 		public PartiallyUnindexedEntity()
@@ -87,7 +87,7 @@ public class EmbeddedTests extends TestBase
 		Names members;
 	}
 
-	@Cached
+	@Cache
 	public static class TeamEntity extends Team
 	{
 		@Id

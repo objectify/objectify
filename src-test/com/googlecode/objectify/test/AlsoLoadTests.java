@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.entity.HasAlsoLoads;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -70,7 +70,7 @@ public class AlsoLoadTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	static class HasEmbedded
 	{
 		@Id Long id;
@@ -79,7 +79,7 @@ public class AlsoLoadTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	static class HasEmbeddedArray
 	{
 		@Id Long id;

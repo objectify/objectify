@@ -9,9 +9,9 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfFalse;
 import com.googlecode.objectify.condition.PojoIf;
 import com.googlecode.objectify.test.util.TestBase;
@@ -33,11 +33,11 @@ public class IndexingPartialTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 	
 	/** */
-	@Cached
+	@Cache
 	static class UnindexedWhenFalse
 	{
 		@Id Long id;
-		@Unindexed(IfFalse.class) boolean foo;
+		@Unindex(IfFalse.class) boolean foo;
 	}
 	
 	/** */
@@ -71,13 +71,13 @@ public class IndexingPartialTests extends TestBase
 	}
 	
 	/** */
-	@Cached
-	@Unindexed
+	@Cache
+	@Unindex
 	static class IndexedOnOtherField
 	{
 		@Id Long id;
 		public boolean indexBar;
-		public @Indexed(IfComplicated.class) boolean bar;
+		public @Index(IfComplicated.class) boolean bar;
 	}
 	
 	/** */

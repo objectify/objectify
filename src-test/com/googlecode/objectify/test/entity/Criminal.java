@@ -6,12 +6,12 @@ import java.util.Set;
 import javax.persistence.Embedded;
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  * Entity for testing null/empty embedded arrays and collections
  */
-@Cached
+@Cache
 public class Criminal
 {
 	@Id

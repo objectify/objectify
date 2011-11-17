@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface Cached
+public @interface Cache
 {
 	/**
 	 * Number of seconds after which the cached copy should be expired; the default value (0) is

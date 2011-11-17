@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.annotation.Fetch;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -55,8 +55,8 @@ public class FetchFieldRefTests extends TestBase
 	/** */
 	public static class HasEntities {
 		public @Id Long id;
-		public @Fetch Ref<Trivial> single;
-		public @Fetch List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load Ref<Trivial> single;
+		public @Load List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
 	
 	/** */
@@ -104,7 +104,7 @@ public class FetchFieldRefTests extends TestBase
 	/** */
 	public static class ListNode {
 		public @Id Long id;
-		public @Fetch Ref<ListNode> next;
+		public @Load Ref<ListNode> next;
 		public String foo;
 	}
 	
@@ -168,8 +168,8 @@ public class FetchFieldRefTests extends TestBase
 	/** */
 	public static class HasEntitiesWithGroups {
 		public @Id Long id;
-		public @Fetch("single") Ref<Trivial> single;
-		public @Fetch("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load("single") Ref<Trivial> single;
+		public @Load("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
 	
 	

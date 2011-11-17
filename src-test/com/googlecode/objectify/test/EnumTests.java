@@ -13,7 +13,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.EnumTests.HasEnums.Color;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -30,7 +30,7 @@ public class EnumTests extends TestBase
 	private static Logger log = Logger.getLogger(EnumTests.class.getName());
 
 	/** */
-	@Cached
+	@Cache
 	public static class HasEnums
 	{
 		public enum Color {

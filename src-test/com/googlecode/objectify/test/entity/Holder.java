@@ -7,14 +7,14 @@ package com.googlecode.objectify.test.entity;
 
 import javax.persistence.Id;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  * A holder of a <T>hing.
  * 
  * @author Scott Hernandez
  */
-@Cached
+@Cache
 public abstract class Holder<T>
 {	
 	@Id Long id;

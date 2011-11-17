@@ -8,7 +8,7 @@ package com.googlecode.objectify.test.entity;
 import javax.persistence.Id;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Parent;
 
 /**
@@ -16,7 +16,7 @@ import com.googlecode.objectify.annotation.Parent;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Cached
+@Cache
 public class Child
 {
 	@Id Long id;

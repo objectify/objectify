@@ -23,7 +23,7 @@ import com.google.appengine.api.memcache.MemcacheSerialization;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
 import com.googlecode.objectify.test.util.TestBase;
@@ -55,7 +55,7 @@ public class EvilMemcacheBugTests extends TestBase
 	}
 
 	/** */
-	@Cached
+	@Cache
 	static class SimpleEntity
 	{
 		@Id

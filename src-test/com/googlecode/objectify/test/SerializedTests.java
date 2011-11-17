@@ -9,8 +9,8 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Serialized;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
 
@@ -23,15 +23,15 @@ public class SerializedTests extends TestBase
 	{
 		private static final long serialVersionUID = 1L;
 
-		@Serialized long[] longs;
+		@Serialize long[] longs;
 	}
 	
-	@Cached
+	@Cache
 	public static class SerializedStuff
 	{
 		@Id public Long id;
 		
-		@Serialized public Name[] names;
+		@Serialize public Name[] names;
 		
 		@Embedded public EmbeddedSerialized easy;
 		

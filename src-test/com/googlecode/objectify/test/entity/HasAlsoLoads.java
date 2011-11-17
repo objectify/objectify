@@ -9,14 +9,14 @@ import javax.persistence.Id;
 import javax.persistence.Transient;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  * A simple entity with some @AlsoLoad annotations
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Cached
+@Cache
 public class HasAlsoLoads
 {
 	@Id Long id;

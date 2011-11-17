@@ -4,7 +4,7 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 import com.googlecode.objectify.util.Monotonic;
@@ -13,7 +13,7 @@ import com.googlecode.objectify.util.Monotonic;
  */
 public class MonotonicTests extends TestBase
 {
-	@Cached
+	@Cache
 	public static class HasNumber
 	{
 		@Id Long id;

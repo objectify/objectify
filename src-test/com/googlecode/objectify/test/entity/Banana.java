@@ -5,7 +5,7 @@
 
 package com.googlecode.objectify.test.entity;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 
 /**
@@ -13,7 +13,7 @@ import com.googlecode.objectify.annotation.Cached;
  * 
  * @author Scott Hernandez
  */
-@Cached
+@Cache
 public class Banana extends Fruit
 {
 	public static final String COLOR = "yellow";

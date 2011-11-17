@@ -10,9 +10,9 @@ import javax.persistence.Id;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cached;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -28,70 +28,70 @@ public class IndexingInheritanceTests extends TestBase
 	private static Logger log = Logger.getLogger(IndexingInheritanceTests.class.getName());
 
 	@SuppressWarnings("unused")
-	@Cached
-	@Unindexed
+	@Cache
+	@Unindex
 	public static class UnindexedPojo
 	{
 		@Id Long id;
-		@Indexed private boolean indexed = true;
-		@Unindexed private boolean unindexed = true;
+		@Index private boolean indexed = true;
+		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
 	
 	@SuppressWarnings("unused")
-	@Cached
-	@Indexed
+	@Cache
+	@Index
 	public static class IndexedPojo
 	{
 		@Id Long id;
-		@Indexed private boolean indexed = true;
-		@Unindexed private boolean unindexed = true;
+		@Index private boolean indexed = true;
+		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
 	
 	@SuppressWarnings("unused")
-	@Cached
+	@Cache
 	public static class IndexedDefaultPojo
 	{
 		@Id Long id;
-		@Indexed private boolean indexed = true;
-		@Unindexed private boolean unindexed = true;
+		@Index private boolean indexed = true;
+		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
 	
 
 	@SuppressWarnings("unused")
-	@Cached
+	@Cache
 	public static class DefaultIndexedChildFromUnindexedPojo extends UnindexedPojo
 	{
-		@Indexed
+		@Index
 		private boolean indexedChild = true;
-		@Unindexed
+		@Unindex
 		private boolean unindexedChild = true;
 		private boolean defChild = true;
 	}
 
 	@SuppressWarnings("unused")
-	@Cached
+	@Cache
 	public static class DefaultIndexedGrandChildFromUnindexedPojo extends DefaultIndexedChildFromUnindexedPojo
 	{
-		@Indexed
+		@Index
 		private boolean indexedGrandChild = true;
-		@Unindexed
+		@Unindex
 		private boolean unindexedGrandChild = true;
 		private boolean defGrandChild = true;
 	}
 	
 	/** Switches the default from unindexed to indexed, but shouldn't have any effect on base */
-	@Cached
-	@Indexed
+	@Cache
+	@Index
 	public static class DerivedAndIndexed extends UnindexedPojo
 	{
 	}
 
 	/** Switches the default from indexed to unindexed, but shouldn't have any effect on base */
-	@Cached
-	@Unindexed
+	@Cache
+	@Unindex
 	public static class DerivedAndUnindexed extends IndexedPojo
 	{
 	}

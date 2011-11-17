@@ -5,7 +5,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.annotation.Serialized;
+import com.googlecode.objectify.annotation.Serialize;
 
 /** 
  * Wrapper which makes a method with a single parameter look just like a field.
@@ -42,7 +42,7 @@ public class MethodWrapper implements Wrapper
 	{
 		Annotation[] annos = this.method.getParameterAnnotations()[0];
 		for (Annotation anno: annos)
-			if (anno instanceof Serialized)
+			if (anno instanceof Serialize)
 				return true;
 		
 		return false;

@@ -5,9 +5,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.NotSaved;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.IgnoreSave;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -47,8 +47,8 @@ abstract public class FieldSaver implements Saver
 			this.defaultIndexed = TypeUtils.isClassIndexed(field.getDeclaringClass());
 
 		// Check @Indexed and @Unindexed conditions
-		Indexed indexedAnn = field.getAnnotation(Indexed.class);
-		Unindexed unindexedAnn = field.getAnnotation(Unindexed.class);
+		Index indexedAnn = field.getAnnotation(Index.class);
+		Unindex unindexedAnn = field.getAnnotation(Unindex.class);
 
 		if (indexedAnn != null && unindexedAnn != null)
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
@@ -60,7 +60,7 @@ abstract public class FieldSaver implements Saver
 			this.unindexConditions = this.generateIfConditions(unindexedAnn.value(), examinedClass);
 		
 		// Now watch out for @NotSaved conditions
-		NotSaved notSaved = field.getAnnotation(NotSaved.class);
+		IgnoreSave notSaved = field.getAnnotation(IgnoreSave.class);
 		if (notSaved != null)
 		{
 			if (collectionize && (notSaved.value().length != 1 || notSaved.value()[0] != Always.class))

@@ -5,7 +5,7 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
@@ -15,7 +15,7 @@ import com.googlecode.objectify.test.util.TestBase;
  */
 public class RegisterTests extends TestBase
 {
-	@Cached
+	@Cache
 	public static class NonPublicConstructor
 	{
 		@Id
@@ -24,7 +24,7 @@ public class RegisterTests extends TestBase
 		private NonPublicConstructor() { }
 	}
 
-	@Cached
+	@Cache
 	public static class NoNoargConstructors
 	{
 		@Id
@@ -44,7 +44,7 @@ public class RegisterTests extends TestBase
         }
     }
     
-	@Cached
+	@Cache
     public static class HasEmbedded {
         @Id
         Long id;

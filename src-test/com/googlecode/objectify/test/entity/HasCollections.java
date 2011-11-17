@@ -17,7 +17,7 @@ import java.util.TreeSet;
 import javax.persistence.Id;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 
 /**
  * An entity that has a variety of collection types.
@@ -25,7 +25,7 @@ import com.googlecode.objectify.annotation.Cached;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Cached
+@Cache
 public class HasCollections
 {
 	public @Id Long id;

@@ -13,8 +13,8 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -30,13 +30,13 @@ public class FieldVisibilityTests extends TestBase
 	private static Logger log = Logger.getLogger(FieldVisibilityTests.class.getName());
 	
 	/** */
-	@Unindexed
+	@Unindex
 	static class ThingWithPrivates
 	{
 		@Id
 		private Long id;
 		
-		@Indexed
+		@Index
 		private Set<String> stuff = new HashSet<String>();
 	}
 	

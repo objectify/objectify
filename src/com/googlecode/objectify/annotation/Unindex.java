@@ -29,7 +29,7 @@ import com.googlecode.objectify.condition.If;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
-public @interface Unindexed
+public @interface Unindex
 {
 	// Fully specifying the default value works around a bizarre compiler bug:
 	// http://stackoverflow.com/questions/1425088/incompatible-types-found-required-default-enums-in-annotations

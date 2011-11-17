@@ -6,8 +6,8 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.conv.Conversions;
 
@@ -36,7 +36,7 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 			throw new IllegalStateException("You cannot nest multiple @Embedded arrays or collections. A second was found at " + field);
 		
 		boolean ignoreClassIndexingAnnotations =
-			this.field.isAnnotationPresent(Indexed.class) || this.field.isAnnotationPresent(Unindexed.class);
+			this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);
 		
 		// Now we collectionize everything on down
 		// We use our indexed state to define everything below us

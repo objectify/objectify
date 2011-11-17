@@ -14,7 +14,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
@@ -41,7 +41,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedText
 	{
 		public @Id Long id;
@@ -49,7 +49,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedBlob
 	{
 		public @Id Long id;
@@ -57,7 +57,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedTextArray
 	{
 		public @Id Long id;
@@ -65,7 +65,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedBlobArray
 	{
 		public @Id Long id;
@@ -73,7 +73,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedTextList
 	{
 		public @Id Long id;
@@ -81,7 +81,7 @@ public class EmbeddedBlobTests extends TestBase
 	}
 	
 	/** */
-	@Cached
+	@Cache
 	public static class HasEmbeddedBlobList
 	{
 		public @Id Long id;

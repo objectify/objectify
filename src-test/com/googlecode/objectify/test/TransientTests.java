@@ -7,7 +7,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -15,7 +15,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
  */
 public class TransientTests extends TestBase
 {
-	@Cached
+	@Cache
 	public static class HasTransients
 	{
 		@Id Long id;

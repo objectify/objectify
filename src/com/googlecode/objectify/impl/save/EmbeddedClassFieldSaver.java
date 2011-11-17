@@ -3,8 +3,8 @@ package com.googlecode.objectify.impl.save;
 import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
@@ -25,7 +25,7 @@ public class EmbeddedClassFieldSaver extends FieldSaver
 		super(examinedClass, field, ignoreClassIndexing, collectionize);
 		
 		boolean ignoreClassIndexingAnnotations =
-			this.field.isAnnotationPresent(Indexed.class) || this.field.isAnnotationPresent(Unindexed.class);
+			this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);
 		
 		// Must pass the indexed from our member field, not from the inherited value
 		this.classSaver = new ClassSaver(conv, field.getType(), ignoreClassIndexingAnnotations, collectionize, true);

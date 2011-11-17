@@ -7,7 +7,7 @@ import javax.persistence.Id;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Fetch;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -28,7 +28,7 @@ public class FetchParentTests extends TestBase
 	/** */
 	public static class Child {
 		public @Id Long id;
-		public @Fetch @Parent Father father;
+		public @Load @Parent Father father;
 		public String bar;
 	}
 	
@@ -60,7 +60,7 @@ public class FetchParentTests extends TestBase
 	/** */
 	public static class TreeNode {
 		public @Id Long id;
-		public @Fetch @Parent TreeNode parent;
+		public @Load @Parent TreeNode parent;
 		public String foo;
 	}
 	
@@ -130,7 +130,7 @@ public class FetchParentTests extends TestBase
 	/** */
 	public static class ChildWithGroup {
 		public @Id Long id;
-		public @Fetch("group") @Parent Father father;
+		public @Load("group") @Parent Father father;
 		public String bar;
 	}
 	

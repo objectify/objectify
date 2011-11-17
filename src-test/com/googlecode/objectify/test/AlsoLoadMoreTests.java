@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -32,7 +32,7 @@ public class AlsoLoadMoreTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 	
 	/** */
-	@Cached
+	@Cache
 	static class MethodOverridesField
 	{
 		@Id Long id;

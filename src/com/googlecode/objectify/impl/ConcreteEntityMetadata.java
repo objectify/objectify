@@ -15,7 +15,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Cached;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.conv.Conversions;
 
@@ -52,7 +52,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	protected Transmog<T> transmog;
 	
 	/** The cached annotation, or null if entity should not be cached */
-	protected Cached cached;
+	protected Cache cached;
 
 	/**
 	 * Inspects and stores the metadata for a particular entity class.
@@ -63,7 +63,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.entityClass = clazz;
 		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);
 		this.kind = Key.getKind(clazz);
-		this.cached = clazz.getAnnotation(Cached.class);
+		this.cached = clazz.getAnnotation(Cache.class);
 		
 		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
 		this.processKeyFields(clazz);

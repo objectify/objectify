@@ -12,8 +12,8 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Indexed;
-import com.googlecode.objectify.annotation.Unindexed;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.IndexingInheritanceTests.IndexedDefaultPojo;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -30,14 +30,14 @@ public class IndexingEmbeddedTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(IndexingEmbeddedTests.class.getName());
 
-	@Indexed
+	@Index
 	public static class LevelTwoIndexedClass 
 	{
 	   String bar="A";
 	}
 	public static class LevelTwoIndexedField 
 	{
-		@Indexed String bar="A"; 
+		@Index String bar="A"; 
 	}
 
 	public static class LevelOne {
@@ -46,7 +46,7 @@ public class IndexingEmbeddedTests extends TestBase
 	    @Embedded LevelTwoIndexedField twoField = new LevelTwoIndexedField();
 	}
 
-	@Entity @Unindexed 
+	@Entity @Unindex 
  	public static class EntityWithEmbedded {
 	    @Id Long id;
 	    @Embedded LevelOne one = new LevelOne();
@@ -58,10 +58,10 @@ public class IndexingEmbeddedTests extends TestBase
 	{
 		@Id Long id;
 
-		@Unindexed 				private boolean aProp = true;
+		@Unindex 				private boolean aProp = true;
 		
-		@Indexed 	@Embedded 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
-		@Unindexed 	@Embedded 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
+		@Index 	@Embedded 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
+		@Unindex 	@Embedded 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
 					@Embedded 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
 
 // 		Fundamentally broken; how to test bad-hetro behavior?
