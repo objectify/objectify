@@ -57,7 +57,7 @@ public class NotSavedTests extends TestBase
 		
 		Entity ent = new Entity(Key.getKind(CompletelyUnsaved.class));
 		ent.setProperty("foo", TEST_VALUE);
-		ds().put(ent);
+		ds().put(null, ent);
 		
 		Key<CompletelyUnsaved> key = Key.create(ent.getKey());
 		CompletelyUnsaved fetched = ofy.get(key);
@@ -186,7 +186,7 @@ public class NotSavedTests extends TestBase
 		Key<UnsavedDefaults> key = ofy.put(thing);
 		
 		// Now get the raw entity and verify that it doesn't have properties saved
-		Entity ent = ds().get(this.fact.getRawKey(key));
+		Entity ent = ds().get(null, this.fact.getRawKey(key));
 		assert ent.getProperties().isEmpty();
 	}
 

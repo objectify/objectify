@@ -43,7 +43,7 @@ public class AllocateTests extends TestBase
 		
 		// Create an id with a put and verify it is > than the last
 		Trivial triv = new Trivial("foo", 3);
-		this.fact.begin().put().entity(triv);
+		this.fact.begin().put().entity(triv).now();
 		
 		assert triv.getId() > previousId;
 	}
@@ -67,7 +67,7 @@ public class AllocateTests extends TestBase
 		
 		// Create an id with a put and verify it is > than the last
 		Child ch = new Child(parentKey, "foo");
-		this.fact.begin().put().entity(ch);
+		this.fact.begin().put().entity(ch).now();
 		
 		assert ch.getId() > previousId;
 	}

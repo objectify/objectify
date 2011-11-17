@@ -37,7 +37,7 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterator;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify
+public class ObjectifyImpl implements Objectify, Cloneable
 {
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
@@ -84,7 +84,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
 	public Transaction getTxn() {
-		return txn == null ? null : this.getTxn();
+		return txn == null ? null : txn.now();
 	}
 
 	/* (non-Javadoc)
@@ -137,7 +137,7 @@ public class ObjectifyImpl implements Objectify
 			}
 		};
 
-		return ResultProxy.create(wrapper, Map.class);
+		return ResultProxy.create(Map.class, wrapper);
 	}
 
 	/**
@@ -273,13 +273,35 @@ public class ObjectifyImpl implements Objectify
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
+	 */
 	@Override
 	public Objectify consistency(Consistency policy) {
-		return null;
+		ObjectifyImpl next = this.clone();
+		next.opts = opts.consistency(policy);
+		return next;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
+	 */
 	@Override
 	public Objectify deadline(Double value) {
-		return null;
+		ObjectifyImpl next = this.clone();
+		next.opts = opts.deadline(value);
+		return next;
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	protected ObjectifyImpl clone()
+	{
+		try {
+			return (ObjectifyImpl)super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e); // impossible
+		}
 	}
 }

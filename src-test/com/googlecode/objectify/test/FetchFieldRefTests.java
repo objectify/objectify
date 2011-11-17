@@ -8,7 +8,7 @@ import java.util.List;
 
 import javax.persistence.Id;
 
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -35,7 +35,7 @@ public class FetchFieldRefTests extends TestBase
 	Key<Trivial> kNone2;
 	
 	/** */
-	@BeforeTest
+	@BeforeMethod
 	public void createTwo() {
 		TestObjectify ofy = fact.begin();
 		

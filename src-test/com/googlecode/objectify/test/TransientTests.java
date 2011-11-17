@@ -45,7 +45,7 @@ public class TransientTests extends TestBase
 		assert o.transientKeyword == 42;
 		assert o.transientAnnotation == 0;	// fails with caching objectify, this is ok
 
-		Entity e = ds().get(k.getRaw());
+		Entity e = ds().get(null, k.getRaw());
 
 		assert e.getProperties().size() == 2;
 		assert e.getProperty("name") != null;

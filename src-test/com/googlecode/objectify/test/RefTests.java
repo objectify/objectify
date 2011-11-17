@@ -6,7 +6,7 @@ package com.googlecode.objectify.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.annotations.BeforeTest;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -29,7 +29,7 @@ public class RefTests extends TestBase
 	Key<Trivial> kNone;
 	
 	/** */
-	@BeforeTest
+	@BeforeMethod
 	public void createTwo() {
 		TestObjectify ofy = fact.begin();
 		
@@ -67,9 +67,6 @@ public class RefTests extends TestBase
 
 		ofy.load().ref(ref);
 		assert ref.get().getSomeString().equals(t1.getSomeString());
-		
-		Ref<Trivial> refNone = Ref.create(kNone);
-		assert refNone.get() == null;
 	}
 
 	/** */

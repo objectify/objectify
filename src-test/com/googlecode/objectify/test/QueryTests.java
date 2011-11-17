@@ -80,14 +80,14 @@ public class QueryTests extends TestBase
 		// Just for the hell of it, test the other methods
 		assert q.count() == keys.size();
 		
-		q.limit(2);
+		q = q.limit(2);
 		for (Key<Trivial> k: q.keys())
 			assert keys.contains(k);
 		
 		Key<Trivial> first = q.keysOnly().first().key();
 		assert first.equals(this.keys.get(0));
 		
-		q.offset(1);
+		q = q.offset(1);
 		Key<Trivial> second = q.keysOnly().first().key();
 		assert second.equals(this.keys.get(1));
 	}
@@ -105,8 +105,7 @@ public class QueryTests extends TestBase
 			ofy.put(new Trivial("foo", i));
 		}
 
-		Query<Trivial> q1 = ofy.load().type(Trivial.class).filter("someString", "foo");
-		q1.limit(20);
+		Query<Trivial> q1 = ofy.load().type(Trivial.class).filter("someString", "foo").limit(20);
 		QueryResultIterator<Trivial> i1 = q1.iterator();
 		List<Trivial> l1 = new ArrayList<Trivial>();
 		Cursor cursor = null;
@@ -127,8 +126,7 @@ public class QueryTests extends TestBase
 
 		assert l1.size() == 20;
 
-		Query<Trivial> q2 = ofy.load().type(Trivial.class).filter("someString =", "foo");
-		q2.limit(20).startAt(cursor);
+		Query<Trivial> q2 = ofy.load().type(Trivial.class).filter("someString =", "foo").limit(20).startAt(cursor);
 		QueryResultIterator<Trivial> i2 = q2.iterator();
 		List<Trivial> l2 = new ArrayList<Trivial>();
 		while (i2.hasNext())

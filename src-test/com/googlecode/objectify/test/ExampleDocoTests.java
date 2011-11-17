@@ -160,6 +160,6 @@ public class ExampleDocoTests extends TestBase
 	{
 		TestObjectify ofy = fact.begin();
 		Key<Town> k = ofy.put(town);
-		return ds().get(fact.getRawKey(k));
+		return ds().get(null, fact.getRawKey(k));
 	}
 }

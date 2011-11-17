@@ -74,7 +74,7 @@ public class NullDefaultFieldTests extends TestBase
 		// e1 has absent properties
 		Entity e1 = new Entity("EntityWithDefault");
 		e1.setProperty("a", "1");
-		com.google.appengine.api.datastore.Key k1 = ds().put(e1);
+		com.google.appengine.api.datastore.Key k1 = ds().put(null, e1);
 
 		EntityWithDefault o = ofy.get(Key.create(EntityWithDefault.class, k1.getId()));
 

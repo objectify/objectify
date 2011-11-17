@@ -96,7 +96,7 @@ public class TestBase
 
 		try
 		{
-			Entity ent = ds().get(key.getRaw());
+			Entity ent = ds().get(null, key.getRaw());
 			System.out.println(ent);
 		}
 		catch (EntityNotFoundException e) { throw new RuntimeException(e); }

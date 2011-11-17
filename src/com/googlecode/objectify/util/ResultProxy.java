@@ -14,7 +14,7 @@ import com.googlecode.objectify.Result;
 public class ResultProxy<T> implements InvocationHandler
 {
 	@SuppressWarnings("unchecked")
-	public static <T> T create(Result<T> result, Class<?> interf) {
+	public static <T> T create(Class<?> interf, Result<T> result) {
 		return (T)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<T>(result));
 	}
 	

@@ -61,7 +61,7 @@ public class Monotonic
 	 */
 	private static long getMax(Objectify ofy, Class<?> entityClass, String fieldName)
 	{
-		Object thing = ofy.load().type(entityClass).order("-" + fieldName).first();
+		Object thing = ofy.load().type(entityClass).order("-" + fieldName).first().get();
 		
 		if (thing != null)
 		{

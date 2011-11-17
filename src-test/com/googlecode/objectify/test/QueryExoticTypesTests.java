@@ -160,8 +160,9 @@ public class QueryExoticTypesTests extends TestBase
 		cal1.set(2010, 7, 26);
 		Date thruDate = cal1.getTime();
 
-		Query<HasFromThruDate> q = ofy.load().type(HasFromThruDate.class);
-		q.filter("dateList >=", fromDate).filter("dateList <=", thruDate);
+		Query<HasFromThruDate> q =
+			ofy.load().type(HasFromThruDate.class)
+				.filter("dateList >=", fromDate).filter("dateList <=", thruDate);
 
 		List<HasFromThruDate> listresult = q.list();
 		assert listresult.size() == 2;

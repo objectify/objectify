@@ -382,7 +382,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		com.google.appengine.api.datastore.Query cloned = DatastoreUtils.cloneQuery(this.actual);
 		cloned.setKeysOnly();
 		
-		return ofy.query(cloned, this.fetchOptions());
+		return ofy.queryKeys(cloned, this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -419,7 +419,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 			}
 		};
 		
-		return ResultProxy.create(result, List.class);
+		return ResultProxy.create(List.class, result);
 	}
 
 	/* (non-Javadoc)
