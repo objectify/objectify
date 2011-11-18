@@ -88,7 +88,7 @@ public class EvilMemcacheBugTests extends TestBase
 		nonTxnOfy.put(simple);
 		
 
-		TestObjectify txnOfy = this.fact.beginTransaction();
+		TestObjectify txnOfy = this.fact.begin().transaction();
 		SimpleEntity simple2;
 		try {
 			simple2 = txnOfy.get(SimpleEntity.getSimpleChildKey(simpleId));

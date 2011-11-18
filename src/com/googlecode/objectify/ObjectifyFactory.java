@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService.KeyRangeState;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.ReadPolicy;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.CacheControlImpl;
@@ -71,52 +70,17 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * Creates the default options for begin() and beginTransaction().  You can
-	 * override this if, for example, you wanted to enable session caching by default.
-	 */
-	protected ObjectifyOpts createDefaultOpts() {
-		return ObjectifyOpts.defaults();
-	}
-	
-	/**
-	 * Override this in your factory if you wish to use a different impl, say,
-	 * one based on the ObjectifyWrapper.
-	 * 
-	 * @param opts the options for creating this Objectify
-	 * @param transactional - whether or not to start a transaction in the instance
-	 * @return an instance of Objectify configured appropriately
-	 */
-	protected Objectify createObjectify(ObjectifyOpts opts, boolean transactional) {
-		return new ObjectifyImpl(this, opts, transactional);
-	}
-	
-	/**
-	 * Make a datastore service config that corresponds to the specified options.
-	 * Note that not all options are defined by the config; some options (e.g. caching)
-	 * have no analogue in the native datastore.
-	 */
-	protected DatastoreServiceConfig createDatastoreServiceConfig(ObjectifyOpts opts) {
-		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(opts.getConsistency()));
-		
-		if (opts.getDeadline() != null)
-			cfg.deadline(opts.getDeadline());
-
-		return cfg;
-	}
-	
-	/**
 	 * Get an AsyncDatastoreService facade appropriate to the options.  All Objectify
 	 * datastore interaction goes through an AsyncDatastoreService.  This might or
 	 * might not produce a CachingAsyncDatastoreService.
 	 * 
 	 * @return an AsyncDatastoreService configured per the specified options.
 	 */
-	public AsyncDatastoreService createAsyncDatastoreService(ObjectifyOpts opts)
+	public AsyncDatastoreService createAsyncDatastoreService(DatastoreServiceConfig cfg, boolean globalCache)
 	{
-		DatastoreServiceConfig cfg = this.createDatastoreServiceConfig(opts);
 		AsyncDatastoreService ads = this.createRawAsyncDatastoreService(cfg);
 
-		if (opts.getGlobalCache() && this.registrar.isCacheEnabled())
+		if (globalCache && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastoreService(ads, this.entityMemcache);
 		else
 			return ads;
@@ -130,33 +94,14 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * Create an Objectify instance with the default options.
-	 * Equivalent to begin(ObjectifyOpts.defaults()) unless you override this.createDefaultOpts().
+	 * This is the beginning of any Objectify session.  It creates an Objectify instance with the default
+	 * options, unless you override this method to alter the options.  You can also override this method
+	 * to produce a wholly different Objectify implementation (possibly using ObjectifyWrapper).
+	 * 
+	 * @return a new Objectify instance
 	 */
 	public Objectify begin() {
-		return this.begin(this.createDefaultOpts());
-	}
-	
-	/**
-	 * Create an Objectify instance with the specified options.
-	 */
-	public Objectify begin(ObjectifyOpts opts) {
-		return this.createObjectify(opts, false);
-	}
-	
-	/**
-	 * Create a transactional Objectify instance with the default options.
-	 * Equivalent to beginTransaction(ObjectifyOpts.defaults()) unless you override this.createDefaultOpts().
-	 */
-	public Objectify beginTransaction() {
-		return this.beginTransaction(this.createDefaultOpts());
-	}
-	
-	/**
-	 * Create a transactional Objectify instance with the specified options.
-	 */
-	public Objectify beginTransaction(ObjectifyOpts opts) {
-		return this.createObjectify(opts, true);
+		return new ObjectifyImpl(this);
 	}
 	
 	/**

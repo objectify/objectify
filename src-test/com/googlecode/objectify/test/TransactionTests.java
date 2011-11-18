@@ -38,7 +38,7 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> k = null;
 		
-		TestObjectify tOfy = this.fact.beginTransaction();
+		TestObjectify tOfy = this.fact.begin().transaction();
 		try
 		{
 			k = tOfy.put(triv);
@@ -78,7 +78,7 @@ public class TransactionTests extends TestBase
 		TestObjectify nonTxnOfy = this.fact.begin();
 		nonTxnOfy.put(simple);
 		
-		TestObjectify txnOfy = this.fact.beginTransaction();
+		TestObjectify txnOfy = this.fact.begin().transaction();
 		HasSimpleCollection simple2;
 		try
 		{
@@ -110,8 +110,8 @@ public class TransactionTests extends TestBase
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> tk = this.fact.begin().put(triv);
 		
-		TestObjectify tOfy1 = this.fact.beginTransaction();
-		TestObjectify tOfy2 = this.fact.beginTransaction();
+		TestObjectify tOfy1 = this.fact.begin().transaction();
+		TestObjectify tOfy2 = this.fact.begin().transaction();
 
 		Trivial triv1 = tOfy1.get(tk);
 		Trivial triv2 = tOfy2.get(tk);

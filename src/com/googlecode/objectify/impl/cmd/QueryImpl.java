@@ -331,7 +331,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		int oldLimit = this.limit;
 		try {
 			this.limit = 1;
-			Iterator<T> it = ofy.<T>query(actual, fetchOptions()).iterator();
+			Iterator<T> it = ofy.getEngine().<T>query(actual, fetchOptions()).iterator();
 			
 			Result<T> result = new ResultTranslator<Iterator<T>, T>(it) {
 				@Override
@@ -353,7 +353,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public int count() {
-		return ofy.queryCount(actual, this.fetchOptions());
+		return ofy.getEngine().queryCount(actual, this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -361,7 +361,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> entities() {
-		return ofy.query(actual, this.fetchOptions());
+		return ofy.getEngine().query(actual, this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -382,7 +382,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		com.google.appengine.api.datastore.Query cloned = DatastoreUtils.cloneQuery(this.actual);
 		cloned.setKeysOnly();
 		
-		return ofy.queryKeys(cloned, this.fetchOptions());
+		return ofy.getEngine().queryKeys(cloned, this.fetchOptions());
 	}
 
 	/* (non-Javadoc)

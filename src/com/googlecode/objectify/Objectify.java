@@ -79,8 +79,14 @@ public interface Objectify
 	public ObjectifyFactory getFactory();
 
 	/**
-	 * Provides a new Objectify instance which has all of the same characteristics of this one (transaction,
-	 * cache policy, session cache contents, etc) but with the specified Consistency.
+	 * <p>Provides a new Objectify instance with the specified Consistency.  Generally speaking, STRONG consistency
+	 * provides more consistent results more slowly; EVENTUAL consistency produces results quickly but they
+	 * might be out of date.  See the 
+	 * <a href="http://code.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/ReadPolicy.Consistency.html">Appengine Docs</a>
+	 * for more explanation.</p>
+	 * 
+	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
+	 * from this instance.</p>
 	 *  
 	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
 	 *  are faster.
@@ -89,12 +95,56 @@ public interface Objectify
 	Objectify consistency(Consistency policy);
 	
 	/**
-	 * Provides a new Objectify instance which has all of the same characteristics of this one (transaction,
-	 * cache policy, session cache contents, etc) but with the specified deadline.
+	 * <p>Provides a new Objectify instance with a limit, in seconds, for datastore calls.  If datastore calls take longer
+	 * than this amount, a timeout exception will be thrown.</p>
+	 * 
+	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
+	 * from this instance.</p>
 	 *  
-	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
-	 *  are faster.
-	 * @return a new Objectify instance with the consistency policy replaced
+	 * @param value - limit in seconds, or null to indicate no deadline (other than the standard whole request deadline of 30s/10m).
+	 * @return a new Objectify instance with the specified deadline
 	 */
 	Objectify deadline(Double value);
+	
+	/**
+	 * <p>Provides a new Objectify instance with (or without) a session cache.  If true,
+	 * a new session cache is started (even if there was a pre-existing one).  If false,
+	 * the new Objectify will not have a session cache.</p>
+	 * 
+	 * <p>With a session cache, all entities fetched from the datastore (or the 2nd level memcache)
+	 * will be stored as-is in a hashmap within the Objectify instance.  Repeated
+	 * get()s or queries for the same entity will return the same object.</p>
+	 * 
+	 * @return a new Objectify instance with an empty or disabled cache
+	 */
+	Objectify sessionCache(boolean value);
+
+	/**
+	 * <p>Provides a new Objectify instance which uses (or doesn't use) a 2nd-level memcache.
+	 * If true, Objectify will obey the @Cache annotation on entity classes,
+	 * saving entity data to the GAE memcache service.  Fetches from the datastore
+	 * for @Cache entities will look in the memcache service first.  This cache
+	 * is shared across all versions of your application across the entire GAE
+	 * cluster.</p>
+	 * 
+	 * @return a new Objectify instance which will (or won't) use the global cache
+	 */
+	Objectify globalCache(boolean value);
+	
+	/**
+	 * Creates a new Objectify instance that wraps a transaction.  The instance inherits any
+	 * settings (including the session cache).
+	 * 
+	 * @return a new Objectify instance with a fresh transaction
+	 */
+	Objectify transaction();
+
+	/**
+	 * Creates a new Objectify instance that does not have a transaction.  The instance inherits any
+	 * settings (including the session cache).  This can be useful to continue an existing session
+	 * cache beyond the commit() of a transaction.
+	 * 
+	 * @return a new Objectify instance without a transaction
+	 */
+	Objectify transactionless();
 }

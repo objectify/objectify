@@ -6,7 +6,6 @@ package com.googlecode.objectify.util;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.ObjectifyOpts;
 import com.googlecode.objectify.ObjectifyService;
 
 
@@ -37,27 +36,9 @@ public class DAOBase
 	 * Creates a DAO possibly with a transaction.
 	 */
 	public DAOBase(boolean transactional) {
+		ofy = fact().begin();
 		if (transactional)
-			ofy = fact().beginTransaction();
-		else
-			ofy = fact().begin();
-	}
-	
-	/**
-	 * Creates a DAO with a certain set of options
-	 */
-	public DAOBase(ObjectifyOpts opts) {
-		this(opts, false);
-	}
-	
-	/**
-	 * Creates a DAO with a certain set of options
-	 */
-	public DAOBase(ObjectifyOpts opts, boolean transactional) {
-		if (transactional)
-			ofy = fact().beginTransaction(opts);
-		else
-			ofy = fact().begin(opts);
+			ofy = ofy.transaction();
 	}
 	
 	/**

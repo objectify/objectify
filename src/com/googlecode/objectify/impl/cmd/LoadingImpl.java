@@ -84,7 +84,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	public void refs(Iterable<? extends Ref<?>> refs) {
 		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.getRawKeys(refs);
 		
-		final Map<Key<Object>, Object> fetched = ofy.get(keys);
+		final Map<Key<Object>, Object> fetched = ofy.getEngine().get(keys);
 		
 		for (final Ref<?> ref: refs) {
 			Result<?> result = new Result<Object>() {
@@ -137,6 +137,6 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	@Override
 	public <K, E extends K> Map<Key<K>, E> entities(Iterable<?> values) {
 		List<com.google.appengine.api.datastore.Key> raw = ofy.getFactory().getRawKeys(values);
-		return ofy.get(raw);
+		return ofy.getEngine().get(raw);
 	}
 }

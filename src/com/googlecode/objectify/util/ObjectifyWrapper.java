@@ -78,6 +78,38 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 		return next;
 	}
 
+	@Override
+	public T sessionCache(boolean value)
+	{
+		T next = (T)this.clone();
+		next.base = base.sessionCache(value);
+		return next;
+	}
+
+	@Override
+	public T globalCache(boolean value)
+	{
+		T next = (T)this.clone();
+		next.base = base.globalCache(value);
+		return next;
+	}
+
+	@Override
+	public T transaction()
+	{
+		T next = (T)this.clone();
+		next.base = base.transaction();
+		return next;
+	}
+
+	@Override
+	public T transactionless()
+	{
+		T next = (T)this.clone();
+		next.base = base.transactionless();
+		return next;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
@@ -90,5 +122,4 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 			throw new RuntimeException(e); // impossible
 		}
 	}
-
 }

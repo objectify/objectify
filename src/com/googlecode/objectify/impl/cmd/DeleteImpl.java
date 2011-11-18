@@ -56,6 +56,6 @@ class DeleteImpl implements Delete
 	@Override
 	public Result<Void> entities(Iterable<?> keysOrEntities) {
 		List<com.google.appengine.api.datastore.Key> keys = ofy.getFactory().getRawKeys(keysOrEntities);
-		return ofy.delete(keys);
+		return ofy.getEngine().delete(keys);
 	}
 }
