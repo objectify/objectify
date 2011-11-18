@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
@@ -26,87 +27,88 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	/** */
 	private Objectify base;
 	
-	/** Wraps the  */
-	public ObjectifyWrapper(Objectify ofy)
-	{
+	/** Wraps the base objectify */
+	public ObjectifyWrapper(Objectify ofy) {
 		this.base = ofy;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#load()
+	 */
 	@Override
-	public LoadCmd load()
-	{
+	public LoadCmd load() {
 		return base.load();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#put()
+	 */
 	@Override
-	public Put put()
-	{
+	public Put put() {
 		return base.put();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#delete()
+	 */
 	@Override
-	public Delete delete()
-	{
+	public Delete delete() {
 		return base.delete();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getTxn()
+	 */
 	@Override
-	public Transaction getTxn()
-	{
+	public Transaction getTxn() {
 		return base.getTxn();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getFactory()
+	 */
 	@Override
-	public ObjectifyFactory getFactory()
-	{
+	public ObjectifyFactory getFactory() {
 		return base.getFactory();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
+	 */
 	@Override
-	public T consistency(Consistency policy)
-	{
+	public T consistency(Consistency policy) {
 		T next = (T)this.clone();
 		next.base = base.consistency(policy);
 		return next;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
+	 */
 	@Override
-	public T deadline(Double value)
-	{
+	public T deadline(Double value) {
 		T next = (T)this.clone();
 		next.base = base.deadline(value);
 		return next;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#cache(boolean)
+	 */
 	@Override
-	public T sessionCache(boolean value)
-	{
+	public T cache(boolean value) {
 		T next = (T)this.clone();
-		next.base = base.sessionCache(value);
+		next.base = base.cache(value);
 		return next;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transaction()
+	 */
 	@Override
-	public T globalCache(boolean value)
-	{
-		T next = (T)this.clone();
-		next.base = base.globalCache(value);
-		return next;
-	}
-
-	@Override
-	public T transaction()
-	{
+	public T transaction() {
 		T next = (T)this.clone();
 		next.base = base.transaction();
-		return next;
-	}
-
-	@Override
-	public T transactionless()
-	{
-		T next = (T)this.clone();
-		next.base = base.transactionless();
 		return next;
 	}
 
@@ -121,5 +123,21 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#clear()
+	 */
+	@Override
+	public void clear() {
+		base.clear();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
+		return base.transact(work);
 	}
 }

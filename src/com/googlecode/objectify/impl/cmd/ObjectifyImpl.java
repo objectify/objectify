@@ -12,6 +12,7 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
@@ -32,8 +33,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected ObjectifyFactory factory;
 
 	/** Our options */
-	protected boolean sessionCache = false;
-	protected boolean globalCache = true;
+	protected boolean cache = true;
 	protected Consistency consistency = Consistency.STRONG;
 	protected Double deadline;
 	
@@ -109,22 +109,12 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#sessionCache(boolean)
+	 * @see com.googlecode.objectify.Objectify#cache(boolean)
 	 */
 	@Override
-	public Objectify sessionCache(boolean value) {
+	public Objectify cache(boolean value) {
 		ObjectifyImpl clone = this.clone();
-		clone.sessionCache = value;
-		return clone;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#globalCache(boolean)
-	 */
-	@Override
-	public Objectify globalCache(boolean value) {
-		ObjectifyImpl clone = this.clone();
-		clone.globalCache = value;
+		clone.cache = value;
 		return clone;
 	}
 	
@@ -132,8 +122,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#transaction()
 	 */
 	@Override
-	public Objectify transaction()
-	{
+	public Objectify transaction() {
 		ObjectifyImpl clone = this.clone();
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
@@ -143,28 +132,42 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transactionless()
-	 */
-	@Override
-	public Objectify transactionless()
-	{
-		ObjectifyImpl clone = this.clone();
-		clone.txn = null;
-		return clone;
-	}
-
-	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	protected ObjectifyImpl clone()
-	{
+	protected ObjectifyImpl clone() {
 		try {
 			return (ObjectifyImpl)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
+		@SuppressWarnings("unchecked")
+		O txnOfy = (O)this.transaction();
+		try {
+			R result = work.run(txnOfy);
+			txnOfy.getTxn().commit();
+			return result;
+		}
+		finally
+		{
+			if (txnOfy.getTxn().isActive())
+				txnOfy.getTxn().rollback();
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#clear()
+	 */
+	@Override
+	public void clear() {
+	}
+
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */
@@ -181,7 +184,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * Make a datastore service config that corresponds to our options.
 	 */
 	protected AsyncDatastoreService createAsyncDatastoreService() {
-		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), globalCache);
+		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), cache);
 	}
 	
 	/**

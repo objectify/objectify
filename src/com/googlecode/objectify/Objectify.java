@@ -60,7 +60,8 @@ public interface Objectify
 	Delete delete();
 	
 	/**
-	 * <p>Get the underlying transaction object associated with this Objectify instance.</p>
+	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
+	 * do not need to use this; use transact() instead.</p>
 	 * 
 	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
 	 * which uses implicit transaction management.  Objectify does not use implicit (thread
@@ -107,19 +108,6 @@ public interface Objectify
 	Objectify deadline(Double value);
 	
 	/**
-	 * <p>Provides a new Objectify instance with (or without) a session cache.  If true,
-	 * a new session cache is started (even if there was a pre-existing one).  If false,
-	 * the new Objectify will not have a session cache.</p>
-	 * 
-	 * <p>With a session cache, all entities fetched from the datastore (or the 2nd level memcache)
-	 * will be stored as-is in a hashmap within the Objectify instance.  Repeated
-	 * get()s or queries for the same entity will return the same object.</p>
-	 * 
-	 * @return a new Objectify instance with an empty or disabled cache
-	 */
-	Objectify sessionCache(boolean value);
-
-	/**
 	 * <p>Provides a new Objectify instance which uses (or doesn't use) a 2nd-level memcache.
 	 * If true, Objectify will obey the @Cache annotation on entity classes,
 	 * saving entity data to the GAE memcache service.  Fetches from the datastore
@@ -129,22 +117,38 @@ public interface Objectify
 	 * 
 	 * @return a new Objectify instance which will (or won't) use the global cache
 	 */
-	Objectify globalCache(boolean value);
+	Objectify cache(boolean value);
 	
 	/**
-	 * Creates a new Objectify instance that wraps a transaction.  The instance inherits any
-	 * settings (including the session cache).
+	 * <p>Creates a new Objectify instance that wraps a transaction.  The instance inherits any
+	 * settings, but the session cache will be empty.  Upon successful commit, the contents
+	 * of the session cache will be loaded back into the main session.</p>
+	 * 
+	 * <p>You typically don't need to use this.  Use the transact() method instead.</p>
 	 * 
 	 * @return a new Objectify instance with a fresh transaction
 	 */
 	Objectify transaction();
 
 	/**
-	 * Creates a new Objectify instance that does not have a transaction.  The instance inherits any
-	 * settings (including the session cache).  This can be useful to continue an existing session
-	 * cache beyond the commit() of a transaction.
-	 * 
-	 * @return a new Objectify instance without a transaction
+	 * The Work interface for an Objectify transaction.  This is typically what you will use to execute
+	 * a transaction in transact().  It shortens the amount of typing you need to perform. 
 	 */
-	Objectify transactionless();
+	interface Work<R> extends TxnWork<Objectify, R> {}
+	
+	/**
+	 * Executes the work in a transaction.  The Objectify instance passed in will have a transaction
+	 * associated with it.  Typically you will pass in a subclass of Work, not TxnWork.
+	 * 
+	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
+	 * @return the result of the work
+	 */
+	<O extends Objectify, R> R transact(TxnWork<O, R> work);
+
+	/**
+	 * <p>Clears the session.  If, for example, you are iterating through large quantities of data
+	 * you should clear the session after every iteration to prevent memory problems.</p>
+	 */
+	void clear();
+
 }
