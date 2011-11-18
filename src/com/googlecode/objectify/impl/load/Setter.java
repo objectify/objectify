@@ -8,7 +8,7 @@ import com.googlecode.objectify.impl.LoadContext;
  * The value being set is a <strong>leaf</strong> value from the datastore; that is,
  * something that it persists directly (basic type or collection of basic types).</p>
  * 
- * <p>For example, imagine a Setter for a Person entity with property "name.firstName".</p>
+ * <p>For example, imagine a Setter for a property "name.firstName" on a Person entity.</p>
  * <ul>
  * <li>Transmog will find a property in the Entity called "name.firstName" with value "Bob".</li>
  * <li>Transmog will look up a Setter for "name.firstName".</li>
