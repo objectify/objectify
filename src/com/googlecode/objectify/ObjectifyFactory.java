@@ -98,6 +98,16 @@ public class ObjectifyFactory
 	 * options, unless you override this method to alter the options.  You can also override this method
 	 * to produce a wholly different Objectify implementation (possibly using ObjectifyWrapper).
 	 * 
+	 * <p>The default options are:</p>
+	 * 
+	 * <ul>
+	 * <li>Do NOT begin a transaction.</li>
+	 * <li>Do NOT use a session cache.</li>
+	 * <li>DO use a global cache.</li>
+	 * <li>Use STRONG consistency.</li>
+	 * <li>Apply no deadline to calls.</li>
+	 * </ul>
+	 * 
 	 * @return a new Objectify instance
 	 */
 	public Objectify begin() {
