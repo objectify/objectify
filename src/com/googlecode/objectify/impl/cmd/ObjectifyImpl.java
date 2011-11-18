@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.util.Set;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
@@ -15,6 +16,8 @@ import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.impl.engine.Engine;
+import com.googlecode.objectify.impl.engine.GetEngine;
 import com.googlecode.objectify.util.DatastoreIntrospector;
 
 /**
@@ -63,7 +66,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public LoadCmd load() {
-		return new LoadingImpl(this);
+		return new LoadCmdImpl(this);
 	}
 
 	/* (non-Javadoc)
@@ -182,9 +185,19 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	}
 	
 	/**
-	 * @return the engine that handles fundamental datastore operations for the commands
+	 * Use this once for one operation and then throw it away
+	 * @param groups is the set of load groups that are active
+	 * @return a fresh engine that handles fundamental datastore operations for the commands
 	 */
-	public Engine getEngine() {
+	public GetEngine createGetEngine(Set<String> groups) {
+		return new GetEngine(this, createAsyncDatastoreService(), groups);
+	}
+
+	/**
+	 * Use this once for one operation and then throw it away
+	 * @return a fresh engine that handles fundamental datastore operations for the commands
+	 */
+	public Engine createEngine() {
 		return new Engine(this, createAsyncDatastoreService());
 	}
 }

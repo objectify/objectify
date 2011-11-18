@@ -95,7 +95,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	public <S> Map<S, T> ids(Iterable<?> ids) {
 		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.createKeys(parent.getRaw(), Key.getKind(type), ids);
 		
-		Map<Key<T>, T> fetched = ofy.getEngine().get(keys);
+		Map<Key<T>, T> fetched = ofy.createGetEngine(fetchGroups).get(keys);
 		
 		return ResultProxy.create(Map.class, new ResultTranslator<Map<Key<T>, T>, Map<S, T>>(fetched) {
 			@Override

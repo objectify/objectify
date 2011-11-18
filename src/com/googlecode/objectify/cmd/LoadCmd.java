@@ -109,7 +109,7 @@ public interface LoadCmd extends Query<Object>
 	 * @param entity defines the entity to fetch; it must be of a registered entity type and have valid id/parent fields.
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K> Ref<K> entity(K entity);
+	<E, K extends E> Ref<K> entity(E entity);
 	
 	/**
 	 * <p>Fetch multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -133,10 +133,10 @@ public interface LoadCmd extends Query<Object>
 	 * entity instances with valid id/parent fields.
 	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
 	 */
-	<K, E extends K> Map<Key<K>, E> entities(Iterable<?> keysOrEntities);
+	<E, K extends E> Map<Key<K>, E> entities(Iterable<?> keysOrEntities);
 	
 	/**
 	 * <p>A convenient substitute for entities(Iterable)</p>
 	 */
-	<K, E extends K> Map<Key<K>, E> entities(Object... keysOrEntities);
+	<E, K extends E> Map<Key<K>, E> entities(Object... keysOrEntities);
 }

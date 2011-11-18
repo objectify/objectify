@@ -20,17 +20,17 @@ import com.googlecode.objectify.util.DatastoreUtils;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class LoadingImpl extends Queryable<Object> implements LoadCmd
+class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 {
 	/** */
-	LoadingImpl(ObjectifyImpl ofy) {
+	LoadCmdImpl(ObjectifyImpl ofy) {
 		super(ofy, Collections.<String>emptySet());
 	}
 
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	LoadingImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
+	LoadCmdImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
 		super(ofy, fetchGroups);
 	}
 
@@ -49,7 +49,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	public LoadCmd group(String... groupName) {
 		Set<String> next = new HashSet<String>(Arrays.asList(groupName));
 		next.addAll(this.fetchGroups);
-		return new LoadingImpl(ofy, next);
+		return new LoadCmdImpl(ofy, next);
 	}
 
 	/* (non-Javadoc)
@@ -84,7 +84,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	public void refs(Iterable<? extends Ref<?>> refs) {
 		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.getRawKeys(refs);
 		
-		final Map<Key<Object>, Object> fetched = ofy.getEngine().get(keys);
+		final Map<Key<Object>, Object> fetched = ofy.createGetEngine(fetchGroups).get(keys);
 		
 		for (final Ref<?> ref: refs) {
 			Result<?> result = new Result<Object>() {
@@ -119,7 +119,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#entity(java.lang.Object)
 	 */
 	@Override
-	public <K> Ref<K> entity(K entity) {
+	public <E, K extends E> Ref<K> entity(E entity) {
 		return entity(ofy.getFactory().<K>getKey(entity));
 	}
 
@@ -127,7 +127,7 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Object[])
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(Object... values) {
+	public <E, K extends E> Map<Key<K>, E> entities(Object... values) {
 		return entities(Arrays.asList(values));
 	}
 
@@ -135,8 +135,8 @@ class LoadingImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(Iterable<?> values) {
+	public <E, K extends E> Map<Key<K>, E> entities(Iterable<?> values) {
 		List<com.google.appengine.api.datastore.Key> raw = ofy.getFactory().getRawKeys(values);
-		return ofy.getEngine().get(raw);
+		return ofy.createGetEngine(fetchGroups).get(raw);
 	}
 }

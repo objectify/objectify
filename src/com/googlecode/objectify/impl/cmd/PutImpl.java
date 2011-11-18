@@ -53,7 +53,7 @@ class PutImpl implements Put
 	 */
 	@Override
 	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<? extends E> entities) {
-		return ofy.getEngine().put(entities);
+		return ofy.createEngine().put(entities);
 	}
 
 }

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl.engine;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,13 +18,13 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
-import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.TranslatingQueryResultIterator;
 
 /**
- * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
- * methods that use transactions to avoid the confusion of implicit transactions.
+ * This is the master logic for loading, saving, and deleting entities from the datastore.  It provides the
+ * fundamental operations that enable the rest of the API.  One of these engines is created for every operation;
+ * upon completion, it is thrown away.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -44,35 +44,6 @@ public class Engine
 		this.ads = ads;
 	}
 	
-	/**
-	 * The fundamental get() operation.
-	 */
-	public <K, E extends K> Map<Key<K>, E> get(final Iterable<com.google.appengine.api.datastore.Key> rawKeys) {
-		
-		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxn(), rawKeys);
-		Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
-		
-		Result<Map<Key<K>, E>> wrapper = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<K>, E>>(adapted) {
-			@Override
-			protected Map<Key<K>, E> wrap(Map<com.google.appengine.api.datastore.Key, Entity> base) {
-				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
-				
-				// We preserve the order of the original keys
-				for (com.google.appengine.api.datastore.Key rawKey: rawKeys) {
-					Entity entity = base.get(rawKey);
-					if (entity != null) {
-						EntityMetadata<E> metadata = ofy.getFactory().getMetadata(rawKey);
-						result.put(Key.<K>create(rawKey), (E)metadata.toObject(entity, ofy));
-					}
-				}
-				
-				return result;
-			}
-		};
-
-		return ResultProxy.create(Map.class, wrapper);
-	}
-
 	/**
 	 * The fundamental put() operation.
 	 */
