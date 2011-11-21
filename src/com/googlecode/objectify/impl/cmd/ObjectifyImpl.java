@@ -1,25 +1,25 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.util.ConcurrentModificationException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
-import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.engine.GetEngine;
-import com.googlecode.objectify.util.DatastoreIntrospector;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
@@ -29,6 +29,9 @@ import com.googlecode.objectify.util.DatastoreIntrospector;
  */
 public class ObjectifyImpl implements Objectify, Cloneable
 {
+	/** */
+	private static final Logger log = Logger.getLogger(ObjectifyImpl.class.getName());
+	
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
 
@@ -37,14 +40,23 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected Consistency consistency = Consistency.STRONG;
 	protected Double deadline;
 	
-	/** The transaction to use.  If null, do not use transactions. */
-	protected Result<Transaction> txn;
-	
+	/** The session is a simple hashmap */
+	protected Map<com.google.appengine.api.datastore.Key, Object> session = new HashMap<com.google.appengine.api.datastore.Key, Object>();
+
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
 	public ObjectifyImpl(ObjectifyFactory fact) {
 		this.factory = fact;
+	}
+	
+	/** Copy constructor */
+	ObjectifyImpl(ObjectifyImpl other) {
+		this.factory = other.factory;
+		this.cache = other.cache;
+		this.consistency = other.consistency;
+		this.deadline = other.deadline;
+		this.session = other.session;
 	}
 	
 	/* (non-Javadoc)
@@ -58,7 +70,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
 	public Transaction getTxn() {
-		return txn == null ? null : txn.now();
+		// This version doesn't have a transaction
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -123,12 +136,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Objectify transaction() {
-		ObjectifyImpl clone = this.clone();
-		// There is no overhead for XG transactions on a single entity group, so there is
-		// no good reason to ever have withXG false when on the HRD.
-		Future<Transaction> fut = createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
-		clone.txn = new ResultAdapter<Transaction>(fut);
-		return clone;
+		return new ObjectifyImplTxn(this);
 	}
 
 	/* (non-Javadoc)
@@ -147,6 +155,32 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
+		return this.transact(Integer.MAX_VALUE, work);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
+		while (true) {
+			try {
+				return transactOnce(work);
+			} catch (ConcurrentModificationException ex) {
+				if (limitTries-- > 0) {
+					if (log.isLoggable(Level.WARNING))
+						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
+				} else {
+					throw ex;
+				}
+			}
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
+	 */
+	private <O extends Objectify, R> R transactOnce(TxnWork<O, R> work) {
 		@SuppressWarnings("unchecked")
 		O txnOfy = (O)this.transaction();
 		try {
@@ -166,6 +200,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public void clear() {
+		session.clear();
 	}
 
 	/**
@@ -193,7 +228,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @return a fresh engine that handles fundamental datastore operations for the commands
 	 */
 	public GetEngine createGetEngine(Set<String> groups) {
-		return new GetEngine(this, createAsyncDatastoreService(), groups);
+		return new GetEngine(this, createAsyncDatastoreService(), session, groups);
 	}
 
 	/**
@@ -201,6 +236,6 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @return a fresh engine that handles fundamental datastore operations for the commands
 	 */
 	public Engine createEngine() {
-		return new Engine(this, createAsyncDatastoreService());
+		return new Engine(this, createAsyncDatastoreService(), session);
 	}
 }

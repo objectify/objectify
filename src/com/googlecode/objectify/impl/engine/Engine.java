@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.engine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,18 +31,25 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterator;
  */
 public class Engine
 {
+	/** Value which gets put in the cache for negative results */
+	protected static final Object NEGATIVE_RESULT = new Object();
+
 	/** */
 	protected Objectify ofy;
 	
 	/** */
 	protected AsyncDatastoreService ads;
 	
+	/** */
+	protected Map<com.google.appengine.api.datastore.Key, Object> session = new HashMap<com.google.appengine.api.datastore.Key, Object>();
+	
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public Engine(Objectify ofy, AsyncDatastoreService ads) {
+	public Engine(Objectify ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session) {
 		this.ofy = ofy;
 		this.ads = ads;
+		this.session = session;
 	}
 	
 	/**
@@ -73,6 +81,7 @@ public class Engine
 					metadata.setKey(obj, k);
 					
 					result.put(Key.<K>create(k), obj);
+					session.put(k, obj);
 				}
 				
 				return result;
@@ -83,9 +92,18 @@ public class Engine
 	/**
 	 * The fundamental delete() operation.
 	 */
-	public Result<Void> delete(Iterable<com.google.appengine.api.datastore.Key> keys) {
+	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
 		Future<Void> fut = ads.delete(ofy.getTxn(), keys);
-		return new ResultAdapter<Void>(fut);
+		Result<Void> result = new ResultAdapter<Void>(fut);
+		return new ResultWrapper<Void, Void>(result) {
+			@Override
+			protected Void wrap(Void orig) {
+				for (com.google.appengine.api.datastore.Key key: keys)
+					session.put(key, NEGATIVE_RESULT);
+				
+				return orig;
+			}
+		};
 	}
 	
 	/**
@@ -172,8 +190,16 @@ public class Engine
 
 		@Override
 		protected T translate(Entity from) {
-			EntityMetadata<T> meta = ofy.getFactory().getMetadata(from.getKey());
-			return meta.toObject(from, ofy);
+			@SuppressWarnings("unchecked")
+			T cached = (T)session.get(from.getKey());
+			
+			if (cached == null || cached == NEGATIVE_RESULT) {
+				EntityMetadata<T> meta = ofy.getFactory().getMetadata(from.getKey());
+				cached = meta.toObject(from, ofy);
+				session.put(from.getKey(), cached);
+			}
+			
+			return cached;
 		}
 	}
 }

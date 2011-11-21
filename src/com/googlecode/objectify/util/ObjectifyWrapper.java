@@ -140,4 +140,12 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
 		return base.transact(work);
 	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(int, com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
+		return base.transact(limitTries, work);
+	}
 }
