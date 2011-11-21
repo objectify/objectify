@@ -9,7 +9,7 @@ import java.util.Collection;
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Wrapper;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 
 /**
@@ -21,7 +21,7 @@ import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 public class LeafSetter extends CollisionDetectingSetter implements ConverterLoadContext
 {
 	/** */
-	Conversions conversions;
+	StandardConversions conversions;
 	
 	/** The field or method we set */
 	Wrapper field;
@@ -30,7 +30,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 	boolean serialized;
 	
 	/** */
-	public LeafSetter(Conversions conv, Wrapper field, Collection<String> collisionPaths)
+	public LeafSetter(StandardConversions conv, Wrapper field, Collection<String> collisionPaths)
 	{
 		super(collisionPaths);
 		

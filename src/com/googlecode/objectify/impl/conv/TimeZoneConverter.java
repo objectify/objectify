@@ -6,23 +6,25 @@ import java.util.TimeZone;
 /**
  * Converts java.util.TimeZone 
  */
-public class TimeZoneConverter implements Converter
+public class TimeZoneConverter extends SimpleConverterFactory<TimeZone, String>
 {
-	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (value instanceof TimeZone)
-			return ((TimeZone)value).getID();
-		else
-			return null;
+	public TimeZoneConverter() {
+		super(TimeZone.class);
 	}
-
+	
 	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if (value instanceof String && fieldType == TimeZone.class)
-			return TimeZone.getTimeZone((String)value);
-		else
-			return null;
+	protected Converter<TimeZone, String> create(Class<?> type, ConverterCreateContext ctx) {
+		return new Converter<TimeZone, String>() {
+			
+			@Override
+			public TimeZone toPojo(String value, ConverterLoadContext ctx) {
+				return TimeZone.getTimeZone(value);
+			}
+			
+			@Override
+			public String toDatastore(TimeZone value, ConverterSaveContext ctx) {
+				return value.getID();
+			}
+		};
 	}
 }

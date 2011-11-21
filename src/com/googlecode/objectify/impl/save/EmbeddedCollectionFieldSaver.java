@@ -3,8 +3,9 @@ package com.googlecode.objectify.impl.save;
 import java.lang.reflect.Field;
 import java.util.Collection;
 
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 
 /**
  * <p>Knows how to save an embedded collection.</p>
@@ -14,11 +15,11 @@ import com.googlecode.objectify.impl.conv.Conversions;
 public class EmbeddedCollectionFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(Conversions, Class, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(StandardConversions, Class, Field, boolean, boolean)
 	 */
-	public EmbeddedCollectionFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public EmbeddedCollectionFieldSaver(ObjectifyFactory fact, Class<?> examinedClass, Field field, boolean ignoreClassIndexing)
 	{
-		super(conv, examinedClass, field, ignoreClassIndexing, collectionize);
+		super(fact, examinedClass, field, ignoreClassIndexing);
 		
 		assert Collection.class.isAssignableFrom(field.getType());
 	}

@@ -16,7 +16,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
@@ -52,7 +52,7 @@ public class ObjectifyFactory
 	protected Registrar registrar = new Registrar(this);
 	
 	/** All the various converters */
-	protected Conversions conversions = new Conversions(this);
+	protected StandardConversions conversions = new StandardConversions(this);
 	
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -331,7 +331,7 @@ public class ObjectifyFactory
 	/**
 	 * @return the repository of Converter objects
 	 */
-	public Conversions getConversions() {
+	public StandardConversions getConversions() {
 		return this.conversions;
 	}
 }

@@ -6,23 +6,26 @@ import com.googlecode.objectify.Key;
 /**
  * Knows how to convert Key<?> objects to datastore-native Key objects and vice-versa.
  */
-public class KeyConverter implements Converter
+public class KeyConverter extends SimpleConverterFactory<Key<?>, com.google.appengine.api.datastore.Key>
 {
-	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (value instanceof Key<?>)
-			return ((Key<?>)value).getRaw();
-		else
-			return null;
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public KeyConverter() {
+		super((Class)Key.class);
 	}
-
+	
 	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if (Key.class.isAssignableFrom(fieldType) && value instanceof com.google.appengine.api.datastore.Key)
-			return Key.create((com.google.appengine.api.datastore.Key)value);
-		else
-			return null;
+	protected Converter<Key<?>, com.google.appengine.api.datastore.Key> create(Class<?> type, ConverterCreateContext ctx) {
+		return new Converter<Key<?>, com.google.appengine.api.datastore.Key>() {
+			
+			@Override
+			public Key<?> toPojo(com.google.appengine.api.datastore.Key value, ConverterLoadContext ctx) {
+				return Key.create(value);
+			}
+			
+			@Override
+			public com.google.appengine.api.datastore.Key toDatastore(Key<?> value, ConverterSaveContext ctx) {
+				return value.getRaw();
+			}
+		};
 	}
 }

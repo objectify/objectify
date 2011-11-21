@@ -11,7 +11,7 @@ import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
@@ -22,7 +22,7 @@ import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 {
 	/** */
-	Conversions conversions;
+	StandardConversions conversions;
 	
 	/** If true, we add values to a collection inside the entity */
 	boolean collectionize;
@@ -40,7 +40,7 @@ public class LeafFieldSaver extends FieldSaver implements ConverterSaveContext
 	 *  types in a collection inside the entity property.  If set is called multiple times,
 	 *  the collection will be appended to. 
 	 */
-	public LeafFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public LeafFieldSaver(StandardConversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
 		super(examinedClass, field, ignoreClassIndexing, collectionize);
 		

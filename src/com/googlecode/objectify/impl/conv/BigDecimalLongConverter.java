@@ -16,7 +16,7 @@ import java.math.BigDecimal;
  * <p>The default factor of 1,000 is good for currency, which usually has 0-3 digits of precision past
  * the decimal point.  But you can pick any other factor appropriate to your application.</p>
  */
-public class BigDecimalLongConverter implements Converter
+public class BigDecimalLongConverter extends SimpleConverterFactory<BigDecimal, Long>
 {
 	/** Default factor is 1000, which gives you three digits of precision past the decimal point */
 	public static final long DEFAULT_FACTOR = 1000;
@@ -41,24 +41,24 @@ public class BigDecimalLongConverter implements Converter
 	 */
 	public BigDecimalLongConverter(long factor)
 	{
+		super(BigDecimal.class);
+		
 		this.factor = new BigDecimal(factor);
 	}
 	
 	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (value instanceof BigDecimal)
-			return ((BigDecimal)value).multiply(this.factor).longValueExact();
-		else
-			return null;
-	}
-
-	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if (value instanceof Long && fieldType == BigDecimal.class)
-			return new BigDecimal((Long)value).divide(this.factor);
-		else
-			return null;
+	protected Converter<BigDecimal, Long> create(Class<?> type, ConverterCreateContext ctx) {
+		return new Converter<BigDecimal, Long>() {
+			
+			@Override
+			public BigDecimal toPojo(Long value, ConverterLoadContext ctx) {
+				return new BigDecimal(value).divide(factor);
+			}
+			
+			@Override
+			public Long toDatastore(BigDecimal value, ConverterSaveContext ctx) {
+				return value.multiply(factor).longValueExact();
+			}
+		};
 	}
 }

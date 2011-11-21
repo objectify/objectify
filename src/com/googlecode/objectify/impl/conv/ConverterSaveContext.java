@@ -17,4 +17,9 @@ public interface ConverterSaveContext
 	 * @return the field that is being saved.
 	 */
 	Field getField();
+
+	/**
+	 * Creates and an error message with details about where the problem happened.
+	 */
+	String createErrorMessage(String detail);
 }

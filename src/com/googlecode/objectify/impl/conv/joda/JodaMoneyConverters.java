@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.conv.joda;
 
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 
 /**
  * <p>A convenient static method that adds all the joda-money related converters to your factory's conversions.
@@ -11,7 +11,8 @@ import com.googlecode.objectify.impl.conv.Conversions;
  */
 public class JodaMoneyConverters
 {
-	public static void add(Conversions conv) {
+	public static void add(StandardConversions conv) {
 		conv.add(new MoneyStringConverter());
+		conv.add(new BigMoneyStringConverter());
 	}
 }

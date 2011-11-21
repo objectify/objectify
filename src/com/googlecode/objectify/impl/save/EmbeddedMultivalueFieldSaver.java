@@ -6,10 +6,10 @@ import java.util.Collection;
 import java.util.List;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.Conversions;
 
 /**
  * <p>Base class for EmbeddedArrayFieldSaver and EmbeddedCollectionFieldSaver
@@ -19,7 +19,7 @@ import com.googlecode.objectify.impl.conv.Conversions;
 abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 {
 	/** Used to actually save the object in the field */
-	ClassSaver classSaver;
+	EmbeddedClassSaver classSaver;
 
 	/**
 	 * @param field must be an array type
@@ -28,19 +28,16 @@ abstract public class EmbeddedMultivalueFieldSaver extends FieldSaver
 	 *  or collections.  This parameter is here so that it is always passed in the code,
 	 *  never forgotten, and will always generate the appropriate runtime error.
 	 */
-	public EmbeddedMultivalueFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public EmbeddedMultivalueFieldSaver(ObjectifyFactory fact, Class<?> examinedClass, Field field, boolean ignoreClassIndexing)
 	{
-		super(examinedClass, field, ignoreClassIndexing, collectionize);
-		
-		if (collectionize)
-			throw new IllegalStateException("You cannot nest multiple @Embed arrays or collections. A second was found at " + field);
+		super(examinedClass, field, ignoreClassIndexing);
 		
 		boolean ignoreClassIndexingAnnotations =
 			this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);
 		
 		// Now we collectionize everything on down
 		// We use our indexed state to define everything below us
-		this.classSaver = new ClassSaver(conv, this.getComponentType(), ignoreClassIndexingAnnotations, true, true);
+		this.classSaver = new EmbeddedClassSaver(fact, this.getComponentType(), ignoreClassIndexingAnnotations, true);
 	}
 	
 	/** Gets the component type of the field */

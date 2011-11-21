@@ -1,81 +1,63 @@
 package com.googlecode.objectify.impl.conv;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
-import com.google.appengine.api.datastore.Blob;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
 /**
- * Knows how to convert java arrays.  Note that each individual element must be
- * converted as well. 
+ * The datastore can't persist native java arrays, but it can persist ArrayList.
+ * Note that each individual element must be converted as well.
+ * 
+ * This doesn't do any special handling of bye arrays (which get converted to blob); for that,
+ * make sure the ByteArrayConverter is registered before this one.
  */
-public class ArrayConverter implements Converter
+public class ArrayConverter implements ConverterFactory<Object, List<?>>
 {
-	/** Need this to convert members */
-	Conversions conversions;
-	
-	/** */
-	public ArrayConverter(Conversions conv)
-	{
-		this.conversions = conv;
-	}
-	
 	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (!value.getClass().isArray())
-			return null;
-
-		if (ctx.inEmbeddedCollection())
-			throw new IllegalStateException("You cannot have arrays within @Embed arrays or collections");
-		
-		if (value.getClass().getComponentType() == Byte.TYPE)
-		{
-			// Special case!  byte[] gets turned into Blob.
-			return new Blob((byte[])value);
-		}
-		else
-		{
-			// The datastore cannot persist arrays, but it can persist ArrayList
-			int length = Array.getLength(value);
-			ArrayList<Object> list = new ArrayList<Object>(length);
+	public Converter<Object, List<?>> create(Type type, ConverterCreateContext ctx, final StandardConversions conv) {
+		final Type componentType = GenericTypeReflector.getArrayComponentType(type);
+		if (componentType != null) {
+			if (ctx.inEmbeddedCollection())
+				throw new IllegalStateException("You cannot have arrays within @Embed arrays or collections");
 			
-			for (int i=0; i<length; i++)
-				list.add(this.conversions.forDatastore(Array.get(value, i), ctx));
+			@SuppressWarnings("unchecked")
+			final Converter<Object, Object> componentConverter = (Converter<Object, Object>)conv.create(componentType, ctx);
 			
-			return list;
-		}
-	}
+			return new Converter<Object, List<?>>() {
+				
+				@Override
+				public Object toPojo(List<?> value, ConverterLoadContext ctx) {
+					Class<?> componentTypeClass = GenericTypeReflector.erase(componentType);
 
-	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if (fieldType.isArray())
-		{
-			if (value instanceof Blob && fieldType.getComponentType().equals(Byte.TYPE))
-			{
-				return ((Blob)value).getBytes();
-			}
-			else if (value instanceof Collection<?>)
-			{
-				Class<?> componentType = fieldType.getComponentType();
-				Collection<?> datastoreCollection = (Collection<?>)value;
+					Object array = Array.newInstance(componentTypeClass, value.size());
 
-				Object array = Array.newInstance(componentType, datastoreCollection.size());
+					int index = 0;
+					for (Object componentValue: value) {
+						componentValue = componentConverter.toPojo(componentValue, ctx);
+						Array.set(array, index++, componentValue);
+					}
 
-				int index = 0;
-				for (Object componentValue: datastoreCollection)
-				{
-					componentValue = this.conversions.forPojo(componentValue, componentType, ctx, onPojo);
-					Array.set(array, index++, componentValue);
+					return array;
 				}
-
-				return array;
-			}
+				
+				@Override
+				public List<?> toDatastore(Object value, ConverterSaveContext ctx) {
+					// The datastore cannot persist arrays, but it can persist ArrayList
+					int length = Array.getLength(value);
+					ArrayList<Object> list = new ArrayList<Object>(length);
+					
+					for (int i=0; i<length; i++)
+						list.add(componentConverter.toDatastore(Array.get(value, i), ctx));
+					
+					return list;
+				}
+			};
+		} else {
+			return null;
 		}
-
-		return null;
 	}
 }

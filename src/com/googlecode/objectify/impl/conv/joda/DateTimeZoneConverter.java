@@ -2,31 +2,34 @@ package com.googlecode.objectify.impl.conv.joda;
 
 import org.joda.time.DateTimeZone;
 
-import com.googlecode.objectify.impl.conv.Converter;
+import com.googlecode.objectify.impl.conv.ConverterCreateContext;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
+import com.googlecode.objectify.impl.conv.SimpleConverterFactory;
+import com.googlecode.objectify.impl.conv.Converter;
 
 
 /**
- * Stores a joda DateTimeZone as its id. 
+ * Stores a joda DateTimeZone as its String id. 
  */
-public class DateTimeZoneConverter implements Converter
+public class DateTimeZoneConverter extends SimpleConverterFactory<DateTimeZone, String>
 {
-	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (value instanceof DateTimeZone)
-			return ((DateTimeZone) value).getID();
-		else
-			return null;
+	public DateTimeZoneConverter() {
+		super(DateTimeZone.class);
 	}
-
+	
 	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if (value instanceof String && DateTimeZone.class.isAssignableFrom(fieldType))
-			return DateTimeZone.forID((String)value);
-		else
-			return null;
+	protected Converter<DateTimeZone, String> create(Class<?> type, ConverterCreateContext ctx) {
+		return new Converter<DateTimeZone, String>() {
+			@Override
+			public String toDatastore(DateTimeZone value, ConverterSaveContext ctx) {
+				return value.getID();
+			}
+
+			@Override
+			public DateTimeZone toPojo(String value, ConverterLoadContext ctx) {
+				return DateTimeZone.forID(value);
+			}
+		};
 	}
 }

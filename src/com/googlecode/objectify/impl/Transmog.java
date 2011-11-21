@@ -13,7 +13,8 @@ import java.util.Set;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 import com.googlecode.objectify.impl.TypeUtils.MethodMetadata;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.load.ClassLoadr;
 import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
 import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
 import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
@@ -67,7 +68,7 @@ import com.googlecode.objectify.impl.save.Path;
 public class Transmog<T>
 {
 	/** */
-	Conversions conversions;
+	StandardConversions conversions;
 	
 	/** Useful to have around for error logging purposes */
 	Class<T> clazz;
@@ -75,8 +76,11 @@ public class Transmog<T>
 	/** Maps full "blah.blah.blah" property name to a particular Setter implementation */
 	Map<String, Setter> rootSetters = new HashMap<String, Setter>();
 	
-	/** The root saver that knows how to persist an object of type T */
+	/** The root saver that knows how to save an object of type T */
 	ClassSaver rootSaver;
+	
+	/** The root loader that knows how to load an object of type T */
+	ClassLoadr rootLoader;
 	
 	/**
 	 * <p>Object which visits various levels of the pojo class graph does two things:
@@ -310,7 +314,7 @@ public class Transmog<T>
 	 * Creats a transmog for the specified class, introspecting it and discovering
 	 * how to load/save its properties.
 	 */
-	public Transmog(Conversions conversions, Class<T> clazz)
+	public Transmog(StandardConversions conversions, Class<T> clazz)
 	{
 		this.conversions = conversions;
 		this.clazz = clazz;
@@ -318,7 +322,8 @@ public class Transmog<T>
 		// This creates the setters in the rootSetters collection and validates the pojo
 		new Visitor().visitClass(clazz);
 		
-		// Construction of the savers is relatively straighforward
+		this.rootLoader = new ClassLoadr(conversions, clazz, false);
+		
 		this.rootSaver = new ClassSaver(conversions, clazz);
 	}
 	

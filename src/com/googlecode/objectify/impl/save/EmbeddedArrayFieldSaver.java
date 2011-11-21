@@ -4,7 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 
 /**
  * <p>Knows how to save an embedded array.</p>
@@ -14,9 +14,9 @@ import com.googlecode.objectify.impl.conv.Conversions;
 public class EmbeddedArrayFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(Conversions, Class, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(StandardConversions, Class, Field, boolean, boolean)
 	 */
-	public EmbeddedArrayFieldSaver(Conversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
+	public EmbeddedArrayFieldSaver(StandardConversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing, boolean collectionize)
 	{
 		super(conv, examinedClass, field, ignoreClassIndexing, collectionize);
 		

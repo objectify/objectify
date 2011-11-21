@@ -22,7 +22,7 @@ abstract public class FieldSaver implements Saver
 
 	/** 
 	 * If this is non-null, it means we have a class-provided default value that should override the current save mode.
-	 * However, local @Indexed/@Unindexed conditions get the final say. 
+	 * However, local @Index/@Unindex conditions get the final say. 
 	 */
 	Boolean defaultIndexed;
 
@@ -46,7 +46,7 @@ abstract public class FieldSaver implements Saver
 		if (!ignoreClassIndexing)
 			this.defaultIndexed = TypeUtils.isClassIndexed(field.getDeclaringClass());
 
-		// Check @Indexed and @Unindexed conditions
+		// Check @Index and @Unindex conditions
 		Index indexedAnn = field.getAnnotation(Index.class);
 		Unindex unindexedAnn = field.getAnnotation(Unindex.class);
 

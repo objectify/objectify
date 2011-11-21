@@ -16,7 +16,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.conv.Conversions;
+import com.googlecode.objectify.impl.conv.StandardConversions;
 
 
 /**
@@ -57,7 +57,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * Inspects and stores the metadata for a particular entity class.
 	 * @param clazz must be a properly-annotated Objectify entity class.
 	 */
-	public ConcreteEntityMetadata(Conversions conversions, Class<T> clazz)
+	public ConcreteEntityMetadata(StandardConversions conversions, Class<T> clazz)
 	{
 		this.entityClass = clazz;
 		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);

@@ -9,23 +9,25 @@ package com.googlecode.objectify.impl.conv;
  * converter is just smart enough to recognize Boolean.TYPE and continue on as normal
  * for the (expected) wrapper type.
  */
-public class BooleanConverter implements Converter
+public class BooleanConverter extends SimpleConverterFactory<Boolean, Boolean>
 {
-	@Override
-	public Object forDatastore(Object value, ConverterSaveContext ctx)
-	{
-		if (value instanceof Boolean)
-			return value;
-		else
-			return null;
+	public BooleanConverter() {
+		super(Boolean.TYPE);
 	}
-
+	
 	@Override
-	public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-	{
-		if ((fieldType == Boolean.TYPE) && (value instanceof Boolean))
-			return value;
-		else
-			return null;
+	protected Converter<Boolean, Boolean> create(final Class<?> type, ConverterCreateContext ctx) {
+		return new Converter<Boolean, Boolean>() {
+			
+			@Override
+			public Boolean toPojo(Boolean value, ConverterLoadContext ctx) {
+				return value;
+			}
+			
+			@Override
+			public Boolean toDatastore(Boolean value, ConverterSaveContext ctx) {
+				return value;
+			}
+		};
 	}
 }

@@ -12,4 +12,14 @@ public interface ConverterLoadContext
 	 * @return the field/method wrapper that we are trying to set
 	 */
 	Wrapper getField();
+	
+	/**
+	 * Gets the pojo instance 
+	 */
+	Object getPojo();
+
+	/**
+	 * Creates and an error message with details about where the problem happened.
+	 */
+	String createErrorMessage(String detail);
 }

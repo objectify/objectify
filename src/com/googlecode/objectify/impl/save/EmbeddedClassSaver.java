@@ -7,17 +7,18 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 import com.googlecode.objectify.impl.conv.StandardConversions;
 
+if (collectionize)
+	throw new IllegalStateException("You cannot nest multiple @Embed arrays or collections. A second was found at " + field);
+
 
 /**
- * <p>Save which discovers how to save a class, either root pojo or simple embedded.  Does NOT
- * cover classes embedded in collections.</p>
+ * <p>Save which discovers how to save a class, either root pojo or embedded.</p>
  */
-public class ClassSaver implements Saver
+public class EmbeddedClassSaver implements Saver
 {
 	/** Classes are composed of fields, each of which could be a LeafSaver or an EmbeddedArraySaver etc */
 	List<Saver> fieldSavers = new ArrayList<Saver>();
@@ -26,19 +27,22 @@ public class ClassSaver implements Saver
 	 * Creates a ClassSaver for a root entity pojo class.  If nothing is specified otherwise, all
 	 * fields default to indexed
 	 */
-	public ClassSaver(ObjectifyFactory fact, Class<?> rootClazz)
+	public EmbeddedClassSaver(StandardConversions conv, Class<?> rootClazz)
 	{
-		this(fact, rootClazz, false, false);
+		this(conv, rootClazz, false, false, false);
 	}
 	
 	/**
 	 * @param clazz is the class we want to save.
 	 * @param ignoreClassIndexing will cause the saver to ignore the @Indexed or @Unindexed annotations on the class
 	 *  (ie we are processing an @Embedded class and the field itself was annotated)
+	 * @param collectionize causes all leaf setters to create and append to a simple list of
+	 *  values rather than to set the value directly.  After we hit an embedded array or
+	 *  an embedded collection, all subsequent savers are collectionized.
 	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
 	 *  persistent fields rather than real ids.
 	 */
-	public ClassSaver(ObjectifyFactory fact, Class<?> clazz, boolean ignoreClassIndexing, boolean embedding)
+	public EmbeddedClassSaver(StandardConversions conv, Class<?> clazz, boolean ignoreClassIndexing, boolean collectionize, boolean embedding)
 	{
 		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, embedding);
 
@@ -50,22 +54,22 @@ public class ClassSaver implements Saver
 			{
 				if (field.getType().isArray())
 				{
-					Saver saver = new EmbeddedArrayFieldSaver(fact, clazz, field, ignoreClassIndexing);
+					Saver saver = new EmbeddedArrayFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else if (Map.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedMapFieldSaver(fact, clazz, field, ignoreClassIndexing);
+					Saver saver = new EmbeddedMapFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else if (Collection.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedCollectionFieldSaver(fact, clazz, field, ignoreClassIndexing);
+					Saver saver = new EmbeddedCollectionFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
 					this.fieldSavers.add(saver);
 				}
 				else	// basic class
 				{
-					Saver saver = new EmbeddedClassFieldSaver(fact, clazz, field, ignoreClassIndexing);
+					Saver saver = new EmbeddedClassFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
 					this.fieldSavers.add(saver);
 				}
 			}
