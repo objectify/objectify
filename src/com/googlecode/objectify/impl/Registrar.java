@@ -66,7 +66,7 @@ public class Registrar
 			EntityMetadata<?> meta = this.byKind.get(kind);
 			if (meta == null)
 			{
-				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
+				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 				this.byKind.put(kind, cmeta);
 				this.byClass.put(clazz, cmeta);
 				
@@ -104,7 +104,7 @@ public class Registrar
 			// We're at the end of the recursion, deal with the base
 			EntityMetadata<?> meta = this.byKind.get(kind);
 			if (meta == null)
-				meta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
+				meta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 			
 			if (meta instanceof ConcreteEntityMetadata<?>)
 			{
@@ -125,7 +125,7 @@ public class Registrar
 			// We only register @Subclass entities; other intermediate classes are not registered
 			if (clazz.isAnnotationPresent(Subclass.class) && !this.byClass.containsKey(clazz))
 			{
-				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
+				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 				polymeta.addSubclass(clazz, cmeta);
 				this.byClass.put(clazz, polymeta);	// always the poly version when available
 			}

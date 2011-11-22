@@ -59,7 +59,7 @@ abstract public class FieldSaver implements Saver
 		if (unindexedAnn != null)
 			this.unindexConditions = this.generateIfConditions(unindexedAnn.value(), examinedClass);
 		
-		// Now watch out for @NotSaved conditions
+		// Now watch out for @IgnoreSave conditions
 		IgnoreSave notSaved = field.getAnnotation(IgnoreSave.class);
 		if (notSaved != null)
 		{
@@ -156,7 +156,7 @@ abstract public class FieldSaver implements Saver
 	
 	/**
 	 * Actually save the value in the entity.  This is the real value, already obtained
-	 * from the POJO and checked against the @Unsaved mechanism..
+	 * from the POJO and checked against the @IgnoreSave mechanism..
 	 * @param path TODO
 	 */
 	abstract protected void saveValue(Object value, Entity entity, Path path, boolean index);
@@ -173,4 +173,11 @@ abstract public class FieldSaver implements Saver
 			entity.setUnindexedProperty(path.toPathString(), value);
 	}
 
+	/**
+	 * @return true if the field has an explicit indexing instruction (this will override any index instruction on the class)
+	 */
+	protected boolean hasExplicitIndexingInstruction()
+	{
+		return this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);
+	}
 }

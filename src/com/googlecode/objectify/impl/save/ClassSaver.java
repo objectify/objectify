@@ -72,7 +72,7 @@ public class ClassSaver implements Saver
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a leaf saver
-				Saver saver = new LeafFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
+				Saver saver = new LeafFieldSaver(fact, clazz, field, ignoreClassIndexing, false);
 				this.fieldSavers.add(saver);
 			}
 		}

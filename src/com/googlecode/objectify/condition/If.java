@@ -3,7 +3,7 @@ package com.googlecode.objectify.condition;
 /**
  * <p>A simple interface that defines a condition test for a field value or whole
  * entity.  For example, you could have a class that tests against null values called IfNull.
- * This interface is used by the @NotSaved, @Indexed, and @Unindexed annotations.</p>
+ * This interface is used by the @IgnoreSave, @Index, and @Unindex annotations.</p>
  * 
  * <p>Because the entity object is provided, partial indexes can be based on values
  * other than the actual field in question.</p>

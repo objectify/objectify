@@ -54,7 +54,7 @@ public class IndexingInheritanceTests extends TestBase
 	@SuppressWarnings("unused")
 	@Entity
 	@Cache
-	public static class IndexedDefaultPojo
+	public static class DefaultIndexedPojo
 	{
 		@Id Long id;
 		@Index private boolean indexed = true;
@@ -68,10 +68,8 @@ public class IndexingInheritanceTests extends TestBase
 	@Cache
 	public static class DefaultIndexedChildFromUnindexedPojo extends UnindexedPojo
 	{
-		@Index
-		private boolean indexedChild = true;
-		@Unindex
-		private boolean unindexedChild = true;
+		@Index private boolean indexedChild = true;
+		@Unindex private boolean unindexedChild = true;
 		private boolean defChild = true;
 	}
 
@@ -80,10 +78,8 @@ public class IndexingInheritanceTests extends TestBase
 	@Cache
 	public static class DefaultIndexedGrandChildFromUnindexedPojo extends DefaultIndexedChildFromUnindexedPojo
 	{
-		@Index
-		private boolean indexedGrandChild = true;
-		@Unindex
-		private boolean unindexedGrandChild = true;
+		@Index private boolean indexedGrandChild = true;
+		@Unindex private boolean unindexedGrandChild = true;
 		private boolean defGrandChild = true;
 	}
 	
@@ -109,7 +105,7 @@ public class IndexingInheritanceTests extends TestBase
 	{
 		super.setUp();
 		
-		this.fact.register(IndexedDefaultPojo.class);
+		this.fact.register(DefaultIndexedPojo.class);
 		this.fact.register(IndexedPojo.class);
 		this.fact.register(UnindexedPojo.class);
 		this.fact.register(DefaultIndexedChildFromUnindexedPojo.class);
@@ -143,14 +139,14 @@ public class IndexingInheritanceTests extends TestBase
 	}
 	/** */
 	@Test
-	public void testIndexedDefaultPojo() throws Exception
+	public void testDefaultIndexedPojo() throws Exception
 	{
 		TestObjectify ofy = this.fact.begin();
-		ofy.put(new IndexedDefaultPojo());
+		ofy.put(new DefaultIndexedPojo());
 
-		assert ofy.load().type(IndexedDefaultPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert ofy.load().type(IndexedDefaultPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(IndexedDefaultPojo.class).filter("unindexed =", true).iterator().hasNext();
+		assert ofy.load().type(DefaultIndexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy.load().type(DefaultIndexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy.load().type(DefaultIndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 		
 	}
 
@@ -165,7 +161,7 @@ public class IndexingInheritanceTests extends TestBase
 		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 
 		assert ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
-		assert ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
 		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
 	}
 
@@ -180,11 +176,11 @@ public class IndexingInheritanceTests extends TestBase
 		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 
 		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
-		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
 		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
 
 		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedGrandChild =", true).iterator().hasNext();
-		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defGrandChild =", true).iterator().hasNext();
+		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defGrandChild =", true).iterator().hasNext();
 		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedGrandChild =", true).iterator().hasNext();
 	}
 	

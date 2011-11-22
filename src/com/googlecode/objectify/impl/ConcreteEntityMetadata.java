@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -11,12 +10,12 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.conv.StandardConversions;
 
 
 /**
@@ -28,8 +27,10 @@ import com.googlecode.objectify.impl.conv.StandardConversions;
 public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 {
 	/** */
+	protected ObjectifyFactory fact;
+	
+	/** */
 	protected Class<T> entityClass;
-	protected Constructor<T> entityClassConstructor;
 
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
 	protected String kind;
@@ -57,10 +58,10 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * Inspects and stores the metadata for a particular entity class.
 	 * @param clazz must be a properly-annotated Objectify entity class.
 	 */
-	public ConcreteEntityMetadata(StandardConversions conversions, Class<T> clazz)
+	public ConcreteEntityMetadata(ObjectifyFactory fact, Class<T> clazz)
 	{
+		this.fact = fact;
 		this.entityClass = clazz;
-		this.entityClassConstructor = TypeUtils.getNoArgConstructor(clazz);
 		this.kind = Key.getKind(clazz);
 		this.cached = clazz.getAnnotation(Cache.class);
 		
@@ -71,7 +72,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.processLifecycleCallbacks(clazz);
 		
 		// Now figure out how to handle normal properties
-		this.transmog = new Transmog<T>(conversions, clazz);
+		this.transmog = new Transmog<T>(fact, clazz);
 		
 		// There must be some field marked with @Id
 		if ((this.idField == null) && (this.nameField == null))
@@ -194,7 +195,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	@Override
 	public T toObject(Entity ent, Objectify ofy)
 	{
-		T pojo = TypeUtils.newInstance(this.entityClassConstructor);
+		T pojo = fact.construct(this.entityClass);
 
 		// This will set the id and parent fields as appropriate.
 		this.setKey(pojo, ent.getKey());

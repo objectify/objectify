@@ -19,8 +19,10 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
 import com.googlecode.objectify.impl.conv.Converter;
+import com.googlecode.objectify.impl.conv.ConverterCreateContext;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
+import com.googlecode.objectify.impl.conv.SimpleConverterFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -221,23 +223,21 @@ public class ConversionTests extends TestBase
 		}
 		catch (IllegalArgumentException ex) {}
 		
-		this.fact.getConversions().add(new Converter() {
+		this.fact.getConversions().add(new SimpleConverterFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
-			public Object forPojo(Object value, Class<?> fieldType, ConverterLoadContext ctx, Object onPojo)
-			{
-				if (fieldType == BigDecimal.class && value instanceof String)
-					return new BigDecimal((String)value);
-				else
-					return null;
-			}
-			
-			@Override
-			public Object forDatastore(Object value, ConverterSaveContext ctx)
-			{
-				if (value instanceof BigDecimal)
-					return value.toString();
-				else
-					return null;
+			protected Converter<BigDecimal, String> create(Class<?> type, ConverterCreateContext ctx) {
+				return new Converter<BigDecimal, String>() {
+
+					@Override
+					public String toDatastore(BigDecimal value, ConverterSaveContext ctx) {
+						return value.toString();
+					}
+
+					@Override
+					public BigDecimal toPojo(String value, ConverterLoadContext ctx) {
+						return new BigDecimal(value);
+					}
+				};
 			}
 		});
 		

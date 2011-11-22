@@ -11,26 +11,13 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
 import com.googlecode.objectify.impl.conv.StandardConversions;
 
-if (collectionize)
-	throw new IllegalStateException("You cannot nest multiple @Embed arrays or collections. A second was found at " + field);
-
-
 /**
  * <p>Save which discovers how to save a class, either root pojo or embedded.</p>
  */
-public class EmbeddedClassSaver implements Saver
+public class InCollectionEmbeddedClassSaver implements Saver
 {
 	/** Classes are composed of fields, each of which could be a LeafSaver or an EmbeddedArraySaver etc */
 	List<Saver> fieldSavers = new ArrayList<Saver>();
-	
-	/**
-	 * Creates a ClassSaver for a root entity pojo class.  If nothing is specified otherwise, all
-	 * fields default to indexed
-	 */
-	public EmbeddedClassSaver(StandardConversions conv, Class<?> rootClazz)
-	{
-		this(conv, rootClazz, false, false, false);
-	}
 	
 	/**
 	 * @param clazz is the class we want to save.
@@ -42,9 +29,9 @@ public class EmbeddedClassSaver implements Saver
 	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
 	 *  persistent fields rather than real ids.
 	 */
-	public EmbeddedClassSaver(StandardConversions conv, Class<?> clazz, boolean ignoreClassIndexing, boolean collectionize, boolean embedding)
+	public InCollectionEmbeddedClassSaver(StandardConversions conv, Class<?> clazz, boolean ignoreClassIndexing)
 	{
-		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, embedding);
+		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, true);
 
 		for (FieldMetadata metadata: fields)
 		{
@@ -52,31 +39,22 @@ public class EmbeddedClassSaver implements Saver
 			
 			if (TypeUtils.isEmbedded(field))
 			{
-				if (field.getType().isArray())
+				if (field.getType().isArray()
+						|| Map.class.isAssignableFrom(field.getType())
+						|| Collection.class.isAssignableFrom(field.getType()))
 				{
-					Saver saver = new EmbeddedArrayFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
-					this.fieldSavers.add(saver);
-				}
-				else if (Map.class.isAssignableFrom(field.getType()))
-				{
-					Saver saver = new EmbeddedMapFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
-					this.fieldSavers.add(saver);
-				}
-				else if (Collection.class.isAssignableFrom(field.getType()))
-				{
-					Saver saver = new EmbeddedCollectionFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
-					this.fieldSavers.add(saver);
+					throw new IllegalStateException("You cannot nest multiple @Embed arrays or collections. A second was found at " + field);
 				}
 				else	// basic class
 				{
-					Saver saver = new EmbeddedClassFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
+					Saver saver = new EmbeddedClassFieldSaver(conv, clazz, field, ignoreClassIndexing);
 					this.fieldSavers.add(saver);
 				}
 			}
 			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
 			{
 				// Add a leaf saver
-				Saver saver = new LeafFieldSaver(conv, clazz, field, ignoreClassIndexing, collectionize);
+				Saver saver = new LeafFieldSaver(conv, clazz, field, ignoreClassIndexing, true);
 				this.fieldSavers.add(saver);
 			}
 		}

@@ -4,26 +4,31 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 
 /**
  * <p>Saver which knows how to save simple embedded classes, not arrays or collections.</p>
  * 
  * <p>If the field is null, store a null</p>
  */
-public class EmbeddedClassFieldSaver extends FieldSaver
+public class InCollectionEmbeddedClassFieldSaver extends FieldSaver
 {
 	/** Used to actually save the object in the field */
-	ClassSaver classSaver;
+	InCollectionEmbeddedClassSaver classSaver;
 	
 	/**
 	 * @param ignoreClassIndexing is for the class that contains this embedded class field, not the embedded class.
 	 */
-	public EmbeddedClassFieldSaver(ObjectifyFactory fact, Class<?> examinedClass, Field field, boolean ignoreClassIndexing)
+	public InCollectionEmbeddedClassFieldSaver(ObjectifyFactory fact, Class<?> examinedClass, Field field, boolean ignoreClassIndexing)
 	{
 		super(examinedClass, field, ignoreClassIndexing, false);
 		
+		boolean ignoreClassIndexingAnnotations =
+			this.field.isAnnotationPresent(Index.class) || this.field.isAnnotationPresent(Unindex.class);
+		
 		// Must pass the indexed from our member field, not from the inherited value
-		this.classSaver = new ClassSaver(fact, field.getType(), hasExplicitIndexingInstruction(), true);
+		this.classSaver = new InCollectionEmbeddedClassSaver(fact, field.getType(), ignoreClassIndexingAnnotations);
 	}
 	
 	/* (non-Javadoc)

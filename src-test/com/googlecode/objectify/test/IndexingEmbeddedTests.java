@@ -13,12 +13,12 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.test.IndexingInheritanceTests.IndexedDefaultPojo;
+import com.googlecode.objectify.test.IndexingInheritanceTests.DefaultIndexedPojo;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
- * Tests of @Indexed and @Unindexed
+ * Tests of @Index and @Unindex
  * 
  * @author Scott Hernandez
  * @author Jeff Schnitzer
@@ -61,9 +61,9 @@ public class IndexingEmbeddedTests extends TestBase
 
 		@Unindex 			private boolean aProp = true;
 		
-		@Index 		@Embed 	private IndexedDefaultPojo[] indexed = {new IndexedDefaultPojo()};
-		@Unindex 	@Embed 	private IndexedDefaultPojo[] unindexed = {new IndexedDefaultPojo()};
-					@Embed 	private IndexedDefaultPojo[] def = {new IndexedDefaultPojo()};
+		@Index 		@Embed 	private DefaultIndexedPojo[] indexed = {new DefaultIndexedPojo()};
+		@Unindex 	@Embed 	private DefaultIndexedPojo[] unindexed = {new DefaultIndexedPojo()};
+					@Embed 	private DefaultIndexedPojo[] def = {new DefaultIndexedPojo()};
 
 // 		Fundamentally broken; how to test bad-hetro behavior?
 
@@ -85,7 +85,7 @@ public class IndexingEmbeddedTests extends TestBase
 	{
 		super.setUp();
 		
-		this.fact.register(IndexedDefaultPojo.class);
+		this.fact.register(DefaultIndexedPojo.class);
 		this.fact.register(EmbeddedIndexedPojo.class);
 		this.fact.register(EntityWithEmbedded.class);
 	}	
