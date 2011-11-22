@@ -22,7 +22,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
 import com.googlecode.objectify.impl.QueryRef;
 import com.googlecode.objectify.util.DatastoreUtils;
@@ -99,7 +99,8 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		// If we have a class restriction, check to see if the property is the @Id
 		if (this.classRestriction != null)
 		{
-			EntityMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction);
+			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
+			
 			if (meta.isIdField(prop) || meta.isNameField(prop))
 			{
 				if (meta.hasParentField())
@@ -190,7 +191,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		// Check for @Id field
 		if (this.classRestriction != null)
 		{
-			EntityMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction);
+			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
 			if (meta.isIdField(condition) || meta.isNameField(condition))
 				condition = "__key__";
 		}

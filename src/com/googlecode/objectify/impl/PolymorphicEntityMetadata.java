@@ -111,14 +111,6 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 			this.byDiscriminator.put(alsoLoad, subclassMeta);
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getKind()
-	 */
-	public String getKind()
-	{
-		return this.base.metadata.getKind();
-	}
-	
 	/**
 	 * If the entity is null, return the metadata for the root entity of the polymorphic hierarchy.
 	 * This will have the effect of making cache misses use the @Cached annotation of the @Entity.
@@ -189,43 +181,12 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#setKey(java.lang.Object, com.google.appengine.api.datastore.Key)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getKeyMetadata()
 	 */
-	public void setKey(T obj, com.google.appengine.api.datastore.Key key)
+	@Override
+	public KeyMetadata<T> getKeyMetadata()
 	{
-		this.base.metadata.setKey(obj, key);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getRawKey(java.lang.Object)
-	 */
-	public com.google.appengine.api.datastore.Key getRawKey(Object obj)
-	{
-		return this.base.metadata.getRawKey(obj);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#isIdField(java.lang.String)
-	 */
-	public boolean isIdField(String propertyName)
-	{
-		return this.base.metadata.isIdField(propertyName);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#isNameField(java.lang.String)
-	 */
-	public boolean isNameField(String propertyName)
-	{
-		return this.base.metadata.isNameField(propertyName);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#hasParentField()
-	 */
-	public boolean hasParentField()
-	{
-		return this.base.metadata.hasParentField();
+		return base.metadata.getKeyMetadata();
 	}
 
 	/* (non-Javadoc)

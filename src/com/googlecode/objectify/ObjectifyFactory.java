@@ -197,7 +197,7 @@ public class ObjectifyFactory
 		else if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return Key.create((com.google.appengine.api.datastore.Key)keyOrEntity);
 		else
-			return Key.create(this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity));
+			return Key.create(this.getMetadataForEntity(keyOrEntity).getKeyMetadata().getRawKey(keyOrEntity));
 	}
 	
 	/**
@@ -214,7 +214,7 @@ public class ObjectifyFactory
 		else if (keyOrEntity instanceof Key<?>)
 			return ((Key<?>)keyOrEntity).getRaw();
 		else
-			return this.getMetadataForEntity(keyOrEntity).getRawKey(keyOrEntity);
+			return this.getMetadataForEntity(keyOrEntity).getKeyMetadata().getRawKey(keyOrEntity);
 	}
 	
 	/**
@@ -254,7 +254,7 @@ public class ObjectifyFactory
 		if (meta == null)
 			return this.getConversions().forDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else
-			return meta.getRawKey(keyOrEntityOrOther);
+			return meta.getKeyMetadata().getRawKey(keyOrEntityOrOther);
 	}
 	
 	/**
