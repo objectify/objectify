@@ -60,7 +60,7 @@ public class Engine
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
 			EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-			entityList.add(metadata.toEntity(obj, ofy));
+			entityList.add(metadata.save(obj, ofy));
 		}
 
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxn(), entityList);
@@ -195,7 +195,7 @@ public class Engine
 			
 			if (cached == null || cached == NEGATIVE_RESULT) {
 				EntityMetadata<T> meta = ofy.getFactory().getMetadata(from.getKey());
-				cached = meta.toObject(from, ofy);
+				cached = meta.load(from, ofy);
 				session.put(from.getKey(), cached);
 			}
 			

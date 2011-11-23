@@ -9,7 +9,7 @@ import java.util.Map;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 
 /**
  * <p>Save which discovers how to save a class, either root pojo or embedded.</p>
@@ -29,7 +29,7 @@ public class InCollectionEmbeddedClassSaver implements Saver
 	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
 	 *  persistent fields rather than real ids.
 	 */
-	public InCollectionEmbeddedClassSaver(StandardConversions conv, Class<?> clazz, boolean ignoreClassIndexing)
+	public InCollectionEmbeddedClassSaver(ConverterRegistry conv, Class<?> clazz, boolean ignoreClassIndexing)
 	{
 		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, true);
 
@@ -37,7 +37,7 @@ public class InCollectionEmbeddedClassSaver implements Saver
 		{
 			Field field = metadata.field;
 			
-			if (TypeUtils.isEmbedded(field))
+			if (TypeUtils.isEmbed(field))
 			{
 				if (field.getType().isArray()
 						|| Map.class.isAssignableFrom(field.getType())

@@ -57,7 +57,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.processLifecycleCallbacks(clazz);
 		
 		// Now figure out how to handle normal properties
-		this.transmog = new Transmog<T>(fact, clazz);
+		this.transmog = new Transmog<T>(fact, this);
 	}
 
 	/* (non-Javadoc)
@@ -118,14 +118,9 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
 	@Override
-	public T toObject(Entity ent, Objectify ofy)
+	public T load(Entity ent, Objectify ofy)
 	{
-		T pojo = fact.construct(this.entityClass);
-
-		// This will set the id and parent fields as appropriate.
-		keyMetadata.setKey(pojo, ent.getKey());
-
-		this.transmog.load(ent, pojo);
+		T pojo = this.transmog.load(ent, ofy);
 		
 		// If there are any @OnLoad methods, call them
 		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ent, ofy);
@@ -137,7 +132,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#toEntity(java.lang.Object, com.googlecode.objectify.Objectify)
 	 */
 	@Override
-	public Entity toEntity(T pojo, Objectify ofy)
+	public Entity save(T pojo, Objectify ofy)
 	{
 		Entity ent = keyMetadata.initEntity(pojo);
 
@@ -206,4 +201,5 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	{
 		return this.keyMetadata;
 	}
+
 }

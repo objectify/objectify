@@ -2,7 +2,7 @@ package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Field;
 
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.save.Path;
 
 /**
@@ -13,11 +13,11 @@ import com.googlecode.objectify.impl.save.Path;
 public class LeafFieldLoader extends FieldLoader
 {
 	/** */
-	StandardConversions conversions;
+	ConverterRegistry conversions;
 	
 	/**
 	 */
-	public LeafFieldLoader(StandardConversions conv, Field field) {
+	public LeafFieldLoader(ConverterRegistry conv, Field field) {
 		super(field);
 		
 		this.conversions = conv;

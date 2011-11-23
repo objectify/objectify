@@ -48,11 +48,13 @@ public class Registrar
 	 * <p>All POJO entity classes which are to be managed by Objectify
 	 * must be registered first.  This method must be called in a single-threaded
 	 * mode sometime around application initialization.</p> 
+	 * 
+	 * @param clazz must be annotated with either @Entity or @Subclass
 	 */
 	public <T> void register(Class<T> clazz)
 	{
 		// There are two possible cases
-		// 1) This might be a simple class with @Entity or unannotated
+		// 1) This might be a simple class with @Entity
 		// 2) This might be a class annotated with @Subclass
 		
 		String kind = Key.getKind(clazz);
@@ -61,7 +63,7 @@ public class Registrar
 		{
 			this.registerPolymorphicHierarchy(kind, clazz);
 		}
-		else
+		else if (clazz.isAnnotationPresent(Entity.class))
 		{
 			EntityMetadata<?> meta = this.byKind.get(kind);
 			if (meta == null)
@@ -81,6 +83,10 @@ public class Registrar
 			{
 				throw new IllegalArgumentException("Attempted to register kind '" + kind + "' twice");
 			}
+		}
+		else
+		{
+			throw new IllegalArgumentException(clazz + " must have an @Entity or @Subclass annotation");
 		}
 	}
 	

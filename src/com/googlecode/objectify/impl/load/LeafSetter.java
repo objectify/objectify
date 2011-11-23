@@ -8,8 +8,8 @@ import java.util.Collection;
 
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.impl.LoadContext;
-import com.googlecode.objectify.impl.Wrapper;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.Loadable;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 
 /**
@@ -21,22 +21,22 @@ import com.googlecode.objectify.impl.conv.ConverterLoadContext;
 public class LeafSetter extends CollisionDetectingSetter implements ConverterLoadContext
 {
 	/** */
-	StandardConversions conversions;
+	ConverterRegistry conversions;
 	
 	/** The field or method we set */
-	Wrapper field;
+	Loadable field;
 	
 	/** If true, we expect a Blob and need to de-serialize it */
 	boolean serialized;
 	
 	/** */
-	public LeafSetter(StandardConversions conv, Wrapper field, Collection<String> collisionPaths)
+	public LeafSetter(ConverterRegistry conv, Loadable field, Collection<String> collisionPaths)
 	{
 		super(collisionPaths);
 		
 		this.conversions = conv;
 		this.field = field;
-		this.serialized = field.isSerialized();
+		this.serialized = field.isSerialize();
 	}
 	
 	/* (non-Javadoc)
@@ -93,7 +93,7 @@ public class LeafSetter extends CollisionDetectingSetter implements ConverterLoa
 	 * @see com.googlecode.objectify.impl.conv.ConverterLoadContext#getField()
 	 */
 	@Override
-	public Wrapper getField()
+	public Loadable getField()
 	{
 		return this.field;
 	}

@@ -18,7 +18,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class ArrayConverter implements ConverterFactory<Object, List<?>>
 {
 	@Override
-	public Converter<Object, List<?>> create(Type type, ConverterCreateContext ctx, final StandardConversions conv) {
+	public Converter<Object, List<?>> create(Type type, ConverterCreateContext ctx, final ConverterRegistry conv) {
 		final Type componentType = GenericTypeReflector.getArrayComponentType(type);
 		if (componentType != null) {
 			if (ctx.inEmbeddedCollection())

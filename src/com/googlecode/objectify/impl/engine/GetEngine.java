@@ -115,7 +115,7 @@ public class GetEngine extends Engine
 					Entity entity = base.get(rawKey);
 					if (entity != null) {
 						EntityMetadata<E> metadata = ofy.getFactory().getMetadata(rawKey);
-						result.put(Key.<K>create(rawKey), (E)metadata.toObject(entity, ofy));
+						result.put(Key.<K>create(rawKey), (E)metadata.load(entity, ofy));
 					}
 				}
 				

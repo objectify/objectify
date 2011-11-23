@@ -1,29 +1,12 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
-import com.googlecode.objectify.impl.TypeUtils.MethodMetadata;
-import com.googlecode.objectify.impl.conv.StandardConversions;
 import com.googlecode.objectify.impl.load.ClassLoadr;
-import com.googlecode.objectify.impl.load.EmbeddedArraySetter;
-import com.googlecode.objectify.impl.load.EmbeddedClassSetter;
-import com.googlecode.objectify.impl.load.EmbeddedCollectionSetter;
-import com.googlecode.objectify.impl.load.EmbeddedMapSetter;
-import com.googlecode.objectify.impl.load.EmbeddedMultivalueSetter;
-import com.googlecode.objectify.impl.load.EmbeddedNullIndexSetter;
-import com.googlecode.objectify.impl.load.LeafSetter;
-import com.googlecode.objectify.impl.load.RootSetter;
+import com.googlecode.objectify.impl.load.EntityNode;
 import com.googlecode.objectify.impl.load.Setter;
 import com.googlecode.objectify.impl.save.ClassSaver;
 import com.googlecode.objectify.impl.save.Path;
@@ -72,38 +55,89 @@ public class Transmog<T>
 	ClassSaver rootSaver;
 	
 	/** The root loader that knows how to load an object of type T */
-	ClassLoadr rootLoader;
+	ClassLoadr<T> rootLoader;
+	
+	/** */
+	KeyMetadata<T> keyMeta;
 	
 	/**
 	 * Creats a transmog for the specified class, introspecting it and discovering
 	 * how to load/save its properties.
 	 */
-	public Transmog(ObjectifyFactory fact, Class<T> clazz)
+	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
 	{
-		this.rootLoader = new ClassLoadr(fact, clazz, false);
-		
-		this.rootSaver = new ClassSaver(fact, clazz);
+		this.keyMeta = meta.getKeyMetadata();
+		this.rootLoader = new ClassLoadr<T>(fact, meta.getEntityClass());
+		this.rootSaver = new RootClassSaver(fact, clazz);
 	}
 	
 	/**
-	 * Loads the property data in an Entity into a POJO.  Does not affect id/parent
-	 * (ie key) fields; those are assumed to already have been set.
+	 * Create a pojo from the Entity.
 	 * 
 	 * @param fromEntity is a raw datastore entity
-	 * @param toPojo is your typed entity
+	 * @return the entity converted into the relevant pojo
 	 */
-	public void load(Entity fromEntity, T toPojo)
+	public T load(Entity fromEntity, Objectify ofy)
 	{
-		LoadContext context = new LoadContext(toPojo, fromEntity);
+		EntityNode root = createEntityNode(fromEntity);
+		LoadContext context = new LoadContext(fromEntity, ofy);
 		
-		for (Map.Entry<String, Object> property: fromEntity.getProperties().entrySet())
-		{
-			String key = property.getKey();
-			Object value = property.getValue();
-			loadSingleValue(key, value, toPojo, context);
-		}
+		T pojo = rootLoader.load(root, context);
 		
 		context.done();
+		
+		return pojo;
+	}
+	
+	/**
+	 * Break down the Entity into a series of nested EntityNode (HashMap) objects
+	 * which reflect the x.y paths.  The root EntityNode will also contain the key
+	 * fields and values.
+	 * 
+	 * @return a root EntityNode corresponding to the Entity
+	 */
+	private EntityNode createEntityNode(Entity fromEntity) {
+		EntityNode root = new EntityNode(Path.root());
+		
+		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
+			EntityNode here = root;
+			String[] parts = prop.getKey().split("\\.");
+			Path path = Path.root();
+			
+			for (String part: parts) {
+				path = path.extend(part);
+				EntityNode node = (EntityNode)here.get(part);
+				if (node == null) {
+					node = new EntityNode(path);
+					here.put(part, node);
+				}
+				
+				here = node;
+			}
+			
+			here.setPropertyValue(prop.getValue());
+		}
+		
+		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
+		String idName = keyMeta.getIdFieldName();
+		
+		if (root.containsKey(idName))
+			throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Id field: " + fromEntity);
+		
+		if (fromEntity.getKey().getName() != null)
+			root.put(idName, fromEntity.getKey().getName());
+		else
+			root.put(idName, fromEntity.getKey().getId());
+		
+		String parentName = keyMeta.getParentFieldName();
+		if (parentName != null) {
+			if (root.containsKey(parentName))
+				throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Parent field: " + fromEntity);
+			
+			root.put(parentName, fromEntity.getKey().getParent());
+		}
+		
+		return root;
 	}
 
 	/**

@@ -12,7 +12,7 @@ import com.googlecode.objectify.ObjectifyFactory;
  * types that the Datastore can actually persist.  Essentially acts as an
  * aggregator for all the Converter objects.</p>
  */
-public class StandardConversions
+public class ConverterRegistry
 {
 	LinkedList<ConverterFactory<?, ?>> converters = new LinkedList<ConverterFactory<?, ?>>();
 	
@@ -22,7 +22,7 @@ public class StandardConversions
 	/**
 	 * Initialize the default set of converters.
 	 */
-	public StandardConversions(ObjectifyFactory fact)
+	public ConverterRegistry(ObjectifyFactory fact)
 	{
 		this.converters.add(fact.construct(StringConverter.class));
 		this.converters.add(fact.construct(NumberConverter.class));
@@ -58,7 +58,7 @@ public class StandardConversions
 				return soFar;
 		}
 		
-		throw new IllegalArgumentException("Don't know how to convert " + type + " for " + ctx.getField());
+		throw new IllegalArgumentException("Don't know how to convert " + type);
 	}
 	
 //	/** Get a type converter for a field */

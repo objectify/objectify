@@ -7,7 +7,8 @@ import java.lang.annotation.Target;
 
 /**
  * <p>When placed on an entity field, the field will be written as a single Blob
- * property using java serialization.</p>
+ * property using java serialization.  Can also be placed on a class to indicate
+ * that all fields of that type should be serialized.</p>
  * 
  * <ul>
  * <li>The field can contain an arbitrary object graph.</li>
@@ -26,7 +27,7 @@ import java.lang.annotation.Target;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Serialize
 {
 }

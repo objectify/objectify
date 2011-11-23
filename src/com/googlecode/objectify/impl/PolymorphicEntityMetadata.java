@@ -148,27 +148,30 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.EntityMetadata#getCacheExpirySeconds()
 	 */
+	@Override
 	public Integer getCacheExpirySeconds()
 	{
 		return this.base.metadata.getCacheExpirySeconds();
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#load(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
-	public T toObject(Entity ent, Objectify ofy)
+	@Override
+	public T load(Entity ent, Objectify ofy)
 	{
-		return this.getConcrete(ent).toObject(ent, ofy);
+		return this.getConcrete(ent).load(ent, ofy);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#toEntity(java.lang.Object, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#save(java.lang.Object, com.googlecode.objectify.Objectify)
 	 */
-	public Entity toEntity(T pojo, Objectify ofy)
+	@Override
+	public Entity save(T pojo, Objectify ofy)
 	{
 		SubclassInfo<T> info = this.getConcrete(pojo);
 
-		Entity ent = info.metadata.toEntity(pojo, ofy);
+		Entity ent = info.metadata.save(pojo, ofy);
 		
 		// Now put the discriminator value in entity
 		if (info.discriminator != null)

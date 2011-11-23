@@ -8,7 +8,7 @@ import java.util.Map;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 
 /**
  * Creates objects or stores primitive values within a map embedded in a component.
@@ -23,7 +23,7 @@ public class EmbeddedMapSetter extends CollisionDetectingSetter
 	Transmog<Object> nestedTransmog;
 
 	@SuppressWarnings("unchecked")
-	public EmbeddedMapSetter(Field field, Class<?> componentType, StandardConversions conversions,
+	public EmbeddedMapSetter(Field field, Class<?> componentType, ConverterRegistry conversions,
 			Collection<String> collisionPaths)
 	{
 		super(collisionPaths);

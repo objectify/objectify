@@ -2,39 +2,43 @@ package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
+import javax.jdo.metadata.FieldMetadata;
+
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.LoadContext;
+import com.googlecode.objectify.impl.Loadable;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
-import com.googlecode.objectify.impl.conv.StandardConversions;
-import com.googlecode.objectify.impl.save.Path;
 
 
 /**
- * <p>Loader which discovers how to load a class, either root pojo or embedded.</p>
+ * <p>Loader which discovers how to load a class.  Can handle both the root class (because the key fields get stuffed
+ * into the EntityNode) and simple (non-collection) embedded classes (which don't recognze @Id/@Parent as significant).</p>
  */
-public class ClassLoadr implements Loader
+public class ClassLoadr<T> implements Loader
 {
+	/** */
+	ObjectifyFactory fact;
+	
+	/** */
+	Class<T> entityClass;
+	
 	/** Classes are composed of fields, duh */
 	List<FieldLoader> fieldLoaders = new ArrayList<FieldLoader>();
 	
 	/**
 	 * @param clazz is the class we want to load.
-	 * @param embedding is true if we are embedding a class.  Causes @Id and @Parent fields to be treated as normal
-	 *  persistent fields rather than real ids.
 	 */
-	public ClassLoadr(StandardConversions conv, Class<?> clazz, boolean embedding)
+	public ClassLoadr(ObjectifyFactory fact, Class<T> clazz)
 	{
-		List<FieldMetadata> fields = TypeUtils.getPesistentFields(clazz, embedding);
+		List<Loadable> loadables = TypeUtils.getLoadables(clazz);
 
-		for (FieldMetadata metadata: fields)
-		{
-			Field field = metadata.field;
+		for (Loadable loadable: loadables) {
+			Loader loader = new LoadableLoader(fact, loadable);
 			
-			if (TypeUtils.isEmbedded(field))
-			{
+			if (loadable.isEmbed()) {
+				
 //				if (field.getType().isArray())
 //				{
 //					Loader loader = new EmbeddedArrayFieldLoader(conv, clazz, field);
@@ -66,16 +70,38 @@ public class ClassLoadr implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Loader#load(java.lang.Object, java.lang.Object, com.googlecode.objectify.impl.save.Path)
+	 * @see com.googlecode.objectify.impl.load.Loader#load(com.googlecode.objectify.impl.load.EntityNode, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
-	public void load(Object value, Object pojo, Path path)
+	public T load(EntityNode node, LoadContext ctx)
 	{
-		EntityNode node = (EntityNode)value;
+		T pojo = fact.construct(entityClass);
 		
 		for (FieldLoader fieldLoader: this.fieldLoaders) {
+			
 			Object val = node.get(fieldLoader.getFieldName());
 			fieldLoader.load(val, pojo, path);
 		}
+	}
+	
+	/**
+	 * @param parent is the collection in which to look
+	 * @param names is a list of names to look for in the parent 
+	 * @return one child which has a name in the parent
+	 * @throws IllegalStateException if there are multiple name matches
+	 */
+	private EntityNode getChild(EntityNode parent, String[] names) {
+		EntityNode child = null;
+		
+		for (String name: names) {
+			EntityNode child2 = parent.get(name);
+			
+			if (child != null && child2 != null)
+				throw new IllegalStateException("Collision trying to load field; multiple name matches at " + parent.getPath());
+			
+			child = child2;
+		}
+		
+		return child;
 	}
 }

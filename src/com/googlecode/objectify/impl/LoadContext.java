@@ -2,23 +2,77 @@ package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.impl.load.EntityNode;
+import com.googlecode.objectify.impl.load.Loader;
+import com.googlecode.objectify.impl.load.EntityNode.DoneIteratingException;
 
 /** 
  * The context of a load or save operation to a single entity. 
  */
 public class LoadContext
 {
-	/** The root pojo entity */
-	Object pojo;
-	public Object getPojo() { return this.pojo; }
-	
 	/** The datastore entity */
 	Entity entity;
 	public Entity getEntity() { return this.entity; }
+	
+	/** The objectify instance */
+	Objectify ofy;
+	public Objectify getObjectify() { return this.ofy; }
+	
+	/** When iterating, this holds the current index... otherwise null */
+	Integer currentIndex;
+	public Integer getCurrentIndex() { return this.currentIndex; }
+	
+	/**
+	 * Creates an iterator that will execute a load() for each step in a collection.
+	 * Note that only one of these iterators can execute at once, and it must be
+	 * completely exhausted before another is started.  Also this slightly violates
+	 * the standard iterator spec; you cannot call next() without calling hasNext()
+	 * first.
+	 */
+	public Iterator<Object> iterateLoad(final EntityNode node, final Loader componentLoader) {
+		if (currentIndex != null)
+			throw new IllegalStateException("Started an iterateLoad while another was in progress!");
+		
+		currentIndex = 0;
+		
+		return new Iterator<Object>() {
+			Boolean hasNext;	// if null, this means unknown and we must fetch
+			Object next;
+			
+			@Override
+			public boolean hasNext() {
+				if (hasNext == null) {
+					try {
+						next = componentLoader.load(node, LoadContext.this);
+						hasNext = true;
+					} catch (DoneIteratingException ex) {
+						currentIndex = null;
+						hasNext = false;
+					}
+				}
+				
+				return hasNext;
+			}
+
+			@Override
+			public Object next() {
+				assert hasNext != null && hasNext;	// just a sanity check
+				hasNext = null;
+				currentIndex++;
+				return next;
+			}
+
+			@Override
+			public void remove() { throw new UnsupportedOperationException(); }
+		};
+	}
 
 	/**
 	 * <p>Whenver we stumble across an embedded multivalue, we build it up in an ArrayList *before* putting it in
@@ -50,10 +104,10 @@ public class LoadContext
 	List<Runnable> doneHandlers;
 	
 	/** */
-	public LoadContext(Object pojo, Entity entity)
+	public LoadContext(Entity entity, Objectify ofy)
 	{
-		this.pojo = pojo;
 		this.entity = entity;
+		this.ofy = ofy;
 	}
 	
 	/**

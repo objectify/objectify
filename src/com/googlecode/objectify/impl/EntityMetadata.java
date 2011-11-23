@@ -26,19 +26,20 @@ public interface EntityMetadata<T>
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
-	public T toObject(Entity ent, Objectify ofy);
+	public T load(Entity ent, Objectify ofy);
 
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
-	public Entity toEntity(T pojo, Objectify ofy);
+	public Entity save(T pojo, Objectify ofy);
 
 	/**
-	 * Gets the class associated with this entity. For concrete metadata it will be the actual class;
-	 * for polymorphic metadata this will be the base class.
+	 * Gets the class associated with this entity.
 	 */
 	public Class<T> getEntityClass(); 
 	
-	
+	/**
+	 * Get specific metadata about the key for this type.
+	 */
 	public KeyMetadata<T> getKeyMetadata();
 }

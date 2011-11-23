@@ -1,12 +1,14 @@
 package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
+import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 
 
@@ -26,11 +28,10 @@ public class KeyMetadata<T>
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
 	protected String kind;
 	
-	/** We treat the @Id key field specially - it will be either Long id or String name */
+	/** The @Id field on the pojo - it will be Long, long, or String */
 	protected Field idField;
-	protected Field nameField;
 
-	/** If the entity has a @Parent field, treat it specially */
+	/** The @Parent field on the pojo, or null if there is no parent */
 	protected Field parentField;
 	
 	/** For translating between pojos and entities */
@@ -50,7 +51,7 @@ public class KeyMetadata<T>
 		this.processKeyFields(clazz);
 
 		// There must be some field marked with @Id
-		if ((this.idField == null) && (this.nameField == null))
+		if (this.idField == null)
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + clazz.getName());
 	}
 
@@ -83,13 +84,11 @@ public class KeyMetadata<T>
 
 			if (field.isAnnotationPresent(Id.class))
 			{
-				if ((this.idField != null) || (this.nameField != null))
+				if (this.idField != null)
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
 
-				if ((field.getType() == Long.class) || (field.getType() == Long.TYPE))
+				if ((field.getType() == Long.class) || (field.getType() == Long.TYPE) || (field.getType() == String.class))
 					this.idField = field;
-				else if (field.getType() == String.class)
-					this.nameField = field;
 				else
 					throw new IllegalStateException("Only fields of type Long, long, or String are allowed as @Id. Invalid on field "
 							+ field + " in " + clazz.getName());
@@ -117,88 +116,16 @@ public class KeyMetadata<T>
 	 * 
 	 * @return an empty Entity object whose key has been set but no other properties.
 	 */
-	public Entity initEntity(T obj)
+	public Entity initEntity(T pojo)
 	{
-		try
-		{
-			com.google.appengine.api.datastore.Key parentKey = null;
-
-			// First thing, get the parentKey (if appropriate). It could still be null.
-			if (this.parentField != null)
-				parentKey = this.getRawKey(this.parentField, obj);
-
-			if (this.idField != null)
-			{
-				Long id = (Long)this.idField.get(obj);	// possibly null
-				if (id != null)
-				{
-					if (parentKey != null)
-						return new Entity(KeyFactory.createKey(parentKey, this.kind, id));
-					else
-						return new Entity(KeyFactory.createKey(this.kind, id));
-				}
-				else // id is null, must autogenerate
-				{
-					if (parentKey != null)
-						return new Entity(this.kind, parentKey);
-					else
-						return new Entity(this.kind);
-				}
-			}
-			else	// this.nameField contains id
-			{
-				String name = (String)this.nameField.get(obj);
-				if (name == null)
-					throw new IllegalStateException("Tried to persist null String @Id for " + obj);
-
-				if (parentKey != null)
-					return new Entity(this.kind, name, parentKey);
-				else
-					return new Entity(this.kind, name);
-			}
-		}
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
-	}
-
-	/**
-	 * Sets the relevant id and parent fields of the object to the values stored in the key.
-	 * @param obj must be of the entityClass type for this metadata.
-	 */
-	public void setKey(T obj, com.google.appengine.api.datastore.Key key)
-	{
-		if (!this.entityClass.isAssignableFrom(obj.getClass()))
-			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + obj.getClass().getName());
-
-		try
-		{
-			if (key.getName() != null)
-			{
-				if (this.nameField == null)
-					throw new IllegalStateException("Loaded Entity has name but " + this.entityClass.getName() + " has no String @Id");
-
-				this.nameField.set(obj, key.getName());
-			}
+		Object id = getId(pojo);
+		if (id == null)
+			if (isIdNumeric())
+				return new Entity(this.kind, getParentRaw(pojo));
 			else
-			{
-				if (this.idField == null)
-					throw new IllegalStateException("Loaded Entity has numeric id but " + this.entityClass.getName() + " has no Long (or long) @Id");
-
-				this.idField.set(obj, key.getId());
-			}
-
-			com.google.appengine.api.datastore.Key parentKey = key.getParent();
-			if (parentKey != null)
-			{
-				if (this.parentField == null)
-					throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
-
-				if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
-					this.parentField.set(obj, parentKey);
-				else
-					this.parentField.set(obj, Key.create(parentKey));
-			}
-		}
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+				throw new IllegalStateException("Cannot save an entity with a null String @Id: " + pojo);
+		else
+			return new Entity(getRawKey(pojo));
 	}
 
 	/**
@@ -207,84 +134,91 @@ public class KeyMetadata<T>
 	 * @param obj must be of the entityClass type for this metadata.
 	 * @throws IllegalArgumentException if obj has a null id
 	 */
-	public com.google.appengine.api.datastore.Key getRawKey(Object obj)
-	{
-		if (!this.entityClass.isAssignableFrom(obj.getClass()))
-			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + obj.getClass().getName());
+	public com.google.appengine.api.datastore.Key getRawKey(T pojo) {
+		
+		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
+			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + pojo.getClass().getName());
 
-		try
-		{
-			if (this.nameField != null)
-			{
-				String name = (String)this.nameField.get(obj);
-
-				if (this.parentField != null)
-				{
-					com.google.appengine.api.datastore.Key parent = this.getRawKey(this.parentField, obj);
-					return KeyFactory.createKey(parent, this.kind, name);
-				}
-				else	// name yes parent no
-				{
-					return KeyFactory.createKey(this.kind, name);
-				}
-			}
-			else	// has id not name
-			{
-				Long id = (Long) this.idField.get(obj);
-				if (id == null)
-					throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + obj);
-
-				if (this.parentField != null)
-				{
-					com.google.appengine.api.datastore.Key parent = this.getRawKey(this.parentField, obj);
-					return KeyFactory.createKey(parent, this.kind, id);
-				}
-				else	// id yes parent no
-				{
-					return KeyFactory.createKey(this.kind, id);
-				}
-			}
-		}
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-	}
-
-	/** @return the raw key even if the field is an Key */
-	private com.google.appengine.api.datastore.Key getRawKey(Field keyField, Object obj) throws IllegalAccessException
-	{
-		Object key = keyField.get(obj);
-		if (key == null)
-			return null;
-		else if (key instanceof com.google.appengine.api.datastore.Key)
-			return (com.google.appengine.api.datastore.Key)key;
+		com.google.appengine.api.datastore.Key parent = getParentRaw(pojo);
+		Object id = getId(pojo);
+		
+		if (id == null)
+			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
+		
+		if (id instanceof String)
+			return KeyFactory.createKey(parent, this.kind, (String)id);
 		else
-			return ((Key<?>)key).getRaw();
+			return KeyFactory.createKey(parent, this.kind, (Long)id);
 	}
-
+		
+	/**
+	 * Get whatever is in the @Parent field of the pojo doing no type checking or conversion
+	 * @return null if there was no @Parent field, or the field is null.
+	 */
+	public Object getParent(T pojo) {
+		return parentField == null ? null : TypeUtils.field_get(parentField, pojo);
+	}
+	
+	/**
+	 * Get the contents of the @Parent field as a datastore key.
+	 * @return null if there was no @Parent field, or the field is null.
+	 */
+	public com.google.appengine.api.datastore.Key getParentRaw(T pojo) {
+		Object parent = getParent(pojo);
+		return parent == null ? null : fact.getRawKey(parent);
+	}
 
 	/**
-	 * @return true if the property name corresponds to a Long/long @Id
-	 *  field.  If the entity has a String name @Id, this will return false.
+	 * Get whatever is in the @Id field of the pojo doing no type checking or conversion
+	 * @return Long or String or null
 	 */
-	public boolean isIdField(String propertyName)
-	{
-		return this.idField != null && this.idField.getName().equals(propertyName);
+	public Object getId(T pojo) {
+		return TypeUtils.field_get(idField, pojo);
+	}
+	
+	/** @return the name of the parent field, or null if there wasn't one */
+	public String getParentFieldName() {
+		return parentField == null ? null : parentField.getName();
 	}
 
+	/** @return the name of the id field */
+	public String getIdFieldName() {
+		return idField.getName();
+	}
+	
 	/**
-	 * @return true if the property name corresponds to a String @Id
-	 *  field.  If the entity has a Long/long @Id, this will return false.
+	 * @return true if the id field is numeric, false if it is String
 	 */
-	public boolean isNameField(String propertyName)
-	{
-		return this.nameField != null && this.nameField.getName().equals(propertyName);
+	public boolean isIdNumeric() {
+		return !(this.idField.getType() == String.class);
 	}
-
-
+	
 	/**
 	 * @return true if the entity has a parent field
 	 */
-	public boolean hasParentField()
-	{
+	public boolean hasParentField() {
 		return this.parentField != null;
+	}
+	
+	/**
+	 * @return true if the parent should be loaded given the enabled fetch groups
+	 */
+	public boolean shouldLoadParent(Set<String> enabledGroups)
+	{
+		if (this.parentField == null)
+			return false;
+		
+		Load load = this.parentField.getAnnotation(Load.class);
+		if (load == null)
+			return false;
+		
+		if (load.value().length == 0)
+			return true;
+		
+		for (String group: load.value())
+			if (enabledGroups.contains(group))
+				return true;
+		
+		return false;
 	}
 }

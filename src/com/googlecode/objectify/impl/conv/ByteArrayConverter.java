@@ -12,7 +12,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class ByteArrayConverter implements ConverterFactory<byte[], Blob>
 {
 	@Override
-	public Converter<byte[], Blob> create(Type type, ConverterCreateContext ctx, StandardConversions conv) {
+	public Converter<byte[], Blob> create(Type type, ConverterCreateContext ctx, ConverterRegistry conv) {
 		
 		if (GenericTypeReflector.getArrayComponentType(type) == Byte.TYPE)	{ // only the primitive, not the Byte
 			return new Converter<byte[], Blob>() {

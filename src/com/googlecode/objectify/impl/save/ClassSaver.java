@@ -10,7 +10,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.TypeUtils.FieldMetadata;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 
 
 /**
@@ -46,7 +46,7 @@ public class ClassSaver implements Saver
 		{
 			Field field = metadata.field;
 			
-			if (TypeUtils.isEmbedded(field))
+			if (TypeUtils.isEmbed(field))
 			{
 				if (field.getType().isArray())
 				{

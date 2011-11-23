@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
@@ -16,9 +16,9 @@ public class EmbeddedMapFieldSaver extends FieldSaver implements ConverterSaveCo
 
 	boolean ignoreClassIndexing;
 	ClassSaver nestedSaver;
-	StandardConversions conversions;
+	ConverterRegistry conversions;
 
-	public EmbeddedMapFieldSaver(StandardConversions conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing,
+	public EmbeddedMapFieldSaver(ConverterRegistry conv, Class<?> examinedClass, Field field, boolean ignoreClassIndexing,
 			boolean collectionize)
 	{
 		super(examinedClass, field, ignoreClassIndexing, collectionize);

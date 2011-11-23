@@ -5,7 +5,7 @@ import java.util.Collection;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 
 /**
  * <p>Knows how to save an embedded collection.</p>
@@ -15,7 +15,7 @@ import com.googlecode.objectify.impl.conv.StandardConversions;
 public class EmbeddedCollectionFieldSaver extends EmbeddedMultivalueFieldSaver
 {
 	/**
-	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(StandardConversions, Class, Field, boolean, boolean)
+	 * @see EmbeddedMultivalueFieldSaver#EmbeddedMultivalueFieldSaver(ConverterRegistry, Class, Field, boolean, boolean)
 	 */
 	public EmbeddedCollectionFieldSaver(ObjectifyFactory fact, Class<?> examinedClass, Field field, boolean ignoreClassIndexing)
 	{

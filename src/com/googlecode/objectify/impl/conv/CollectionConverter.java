@@ -18,10 +18,13 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class CollectionConverter implements ConverterFactory<Collection<?>, List<?>>
 {
 	@Override
-	public Converter<Collection<?>, List<?>> create(Type type, ConverterCreateContext ctx, StandardConversions conv) {
-		if (Collection.class.isAssignableFrom(GenericTypeReflector.erase(type))) {
+	public Converter<Collection<?>, List<?>> create(Type type, ConverterCreateContext ctx, ConverterRegistry conv) {
+		
+		final Class<?> erasedType = GenericTypeReflector.erase(type);
+		
+		if (Collection.class.isAssignableFrom(erasedType)) {
 			if (ctx.inEmbeddedCollection())
-				throw new IllegalStateException("You cannot have collections inside @Embed arrays or collections: " + ctx.getField());
+				throw new IllegalStateException("You cannot have collections inside @Embed arrays or collections");
 
 			// Get type converter for the component 
 			ParameterizedType superType = (ParameterizedType)GenericTypeReflector.getExactSuperType(type, Collection.class);
@@ -34,8 +37,13 @@ public class CollectionConverter implements ConverterFactory<Collection<?>, List
 				/* */
 				@Override
 				public Collection<?> toPojo(List<?> value, ConverterLoadContext ctx) {
-					Collection<Object> target = TypeUtils.prepareCollection(ctx.getPojo(), ctx.getField(), value.size());
-
+					@SuppressWarnings("unchecked")
+					Collection<Object> target = (Collection<Object>)ctx.getField().get(ctx.getPojo());
+					if (target == null) {
+						target = TypeUtils.createCollection(erasedType, value.size());
+						ctx.getField().set(ctx.getPojo(), target);
+					}
+							
 					for (Object datastoreValue: value)
 						target.add(componentConverter.toPojo(datastoreValue, ctx));
 					

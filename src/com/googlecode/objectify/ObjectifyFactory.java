@@ -16,7 +16,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 
 /**
@@ -52,7 +52,7 @@ public class ObjectifyFactory
 	protected Registrar registrar = new Registrar(this);
 	
 	/** All the various converters */
-	protected StandardConversions conversions = new StandardConversions(this);
+	protected ConverterRegistry conversions = new ConverterRegistry(this);
 	
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -252,7 +252,7 @@ public class ObjectifyFactory
 		// classes would otherwise collide with real kinds eg User vs User.
 		EntityMetadata<?> meta = this.registrar.getMetadata(keyOrEntityOrOther.getClass());
 		if (meta == null)
-			return this.getConversions().forDatastore(keyOrEntityOrOther, NO_CONTEXT);
+			return this.getConversions().create(keyOrEntityOrOther.getClass(), ctx).toDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else
 			return meta.getKeyMetadata().getRawKey(keyOrEntityOrOther);
 	}
@@ -331,7 +331,7 @@ public class ObjectifyFactory
 	/**
 	 * @return the repository of Converter objects
 	 */
-	public StandardConversions getConversions() {
+	public ConverterRegistry getConversions() {
 		return this.conversions;
 	}
 }

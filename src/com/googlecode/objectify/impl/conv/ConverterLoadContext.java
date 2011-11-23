@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.conv;
 
-import com.googlecode.objectify.impl.Wrapper;
+import com.googlecode.objectify.impl.Loadable;
 
 
 /** 
@@ -11,7 +11,7 @@ public interface ConverterLoadContext
 	/**
 	 * @return the field/method wrapper that we are trying to set
 	 */
-	Wrapper getField();
+	Loadable getField();
 	
 	/**
 	 * Gets the pojo instance 

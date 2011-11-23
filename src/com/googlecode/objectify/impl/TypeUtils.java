@@ -25,10 +25,8 @@ import java.util.TreeSet;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
@@ -40,7 +38,7 @@ import com.googlecode.objectify.impl.save.Path;
 public class TypeUtils
 {
 	/** We do not persist fields with any of these modifiers */
-	static final int NOT_SAVED_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
+	static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 	
 	/** A map of the primitive types to their wrapper types */
 	static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>();
@@ -54,29 +52,6 @@ public class TypeUtils
 		PRIMITIVE_TO_WRAPPER.put(double.class, Double.class);
 	}
 	
-	/**
-	 * Simple container that groups the names associated with fields.  Names
-	 * will include the actual name of the field.
-	 */
-	public static class FieldMetadata
-	{
-		public Set<String> names = new HashSet<String>();
-		public Field field;
-		
-		public FieldMetadata(Field f) { this.field = f; }
-	}
-
-	/**
-	 * Simple container that groups the names associated with @AlsoLoad methods.
-	 */
-	public static class MethodMetadata
-	{
-		public Set<String> names = new HashSet<String>();
-		public Method method;
-		
-		public MethodMetadata(Method meth) { this.method = meth; }
-	}
-
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */
@@ -117,51 +92,15 @@ public class TypeUtils
 	}
 	
 	/**
-	 * @return true if the field can be saved (is persistable), false if it
-	 *  is static, final, @Ignore, etc.
+	 * @return true if the field can be saved (is persistable), false if it is static, final, @Ignore, etc.
 	 */
 	public static boolean isSaveable(Field field)
 	{
 		return !field.isAnnotationPresent(Ignore.class)
-			&& ((field.getModifiers() & NOT_SAVED_MODIFIERS) == 0)
+			&& ((field.getModifiers() & NOT_SAVEABLE_MODIFIERS) == 0)
 			&& !field.isSynthetic();
 	}
 
-	/**
-	 * If getType() is an array or Collection, returns the component type - otherwise null
-	 */
-	public static Class<?> getComponentType(Class<?> type, Type genericType)
-	{
-		if (type.isArray())
-		{
-			return type.getComponentType();
-		}
-		else if (Collection.class.isAssignableFrom(type))
-		{
-			while (genericType instanceof Class<?>)
-				genericType = ((Class<?>) genericType).getGenericSuperclass();
-
-			if (genericType instanceof ParameterizedType)
-			{
-				Type actualTypeArgument = ((ParameterizedType) genericType).getActualTypeArguments()[0];
-				if (actualTypeArgument instanceof Class<?>)
-					return (Class<?>) actualTypeArgument;
-				else if (actualTypeArgument instanceof ParameterizedType)
-					return (Class<?>) ((ParameterizedType) actualTypeArgument).getRawType();
-				else
-					return null;
-			}
-			else
-			{
-				return null;
-			}
-		}
-		else	// not array or collection
-		{
-			return null;
-		}
-	}
-	
 	/**
 	 * Returns the value type, i.e. the argument {@code T} for a generic {@code Map<String, T>}.
 	 */
@@ -202,32 +141,6 @@ public class TypeUtils
 			return name;
 		else
 			return prefix + '.' + name;
-	}
-	
-	/**
-	 * <p>Prepare a collection of the appropriate type and place it on the pojo's field.
-	 * The rules are described in createCollection(), with the addition that any
-	 * collection already found in the object's field will be returned as-is; a new
-	 * collection will not be created.</p>
-	 * 
-	 * @param collectionField is a Collection-derived field on the pojo.
-	 * @param onPojo is the object whose field should be set 
-	 */
-	public static Collection<Object> prepareCollection(Object onPojo, Wrapper collectionField, int size)
-	{
-		assert Collection.class.isAssignableFrom(collectionField.getType());
-		
-		@SuppressWarnings("unchecked")
-		Collection<Object> coll = (Collection<Object>)collectionField.get(onPojo);
-
-		if (coll != null)
-			return coll;
-		else
-			coll = createCollection(collectionField.getType(), size);
-		
-		collectionField.set(onPojo, coll);
-		
-		return coll;
 	}
 	
 	/**
@@ -334,15 +247,23 @@ public class TypeUtils
 	}
 	
 	/**
-	 * Determines if the field is embedded or not.  Today this checks for
-	 * an @Embed annotation, but in the future it could check the type
-	 * (or component type) is one of the natively persistable classes.
+	 * Determines if the field is embedded or not.
 	 * 
 	 * @return true if field is an embedded class, collection, or array.
 	 */
-	public static boolean isEmbedded(Field field)
+	public static boolean isEmbed(Field field)
 	{
-		return field.isAnnotationPresent(Embed.class);
+		return field.isAnnotationPresent(Embed.class) || field.getType().isAnnotationPresent(Embed.class);
+	}
+	
+	/**
+	 * Determines if the field is serialized or not.
+	 * 
+	 * @return true if field is an embedded class, collection, or array.
+	 */
+	public static boolean isSerialize(Field field)
+	{
+		return field.isAnnotationPresent(Embed.class) || field.getType().isAnnotationPresent(Embed.class);
 	}
 	
 	/** Checked exceptions are LAME. */
@@ -391,134 +312,45 @@ public class TypeUtils
 	}
 
 	/**
-	 * Get all the persistent fields on a class, checking the superclasses as well.
+	 * Get all the loadable fields and methods on a class, checking the superclasses as well.
 	 * 
-	 * @param embedded will add fields marked with @Id and @Parent to the persistent fields.
-	 *  You only do this when you are embedding entities within other entities.
-	 * 
-	 * @return the fields we load and save, *not* including @Id & @Parent fields.
-	 *  All fields will be set accessable, and returned in order starting with superclass
-	 *  fields.
+	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
+	 *  and returned in order starting with superclass fields.
 	 */
-	public static List<FieldMetadata> getPesistentFields(Class<?> clazz, boolean embedded)
-	{
-		List<FieldMetadata> goodFields = new ArrayList<FieldMetadata>();
-
-		getPersistentFields(clazz, goodFields, embedded);
-		
-		return goodFields;
+	public static List<Loadable> getLoadables(Class<?> clazz) {
+		List<Loadable> good = new ArrayList<Loadable>();
+		getLoadables(clazz, good);
+		return good;
 	}
-	
-	/** Recursive implementation of getPersistentFields() */
-	private static void getPersistentFields(Class<?> clazz, List<FieldMetadata> goodFields, boolean embedded)
-	{
+
+	/** Recursive implementation of getLoadables() */
+	private static void getLoadables(Class<?> clazz, List<Loadable> good) {
 		if (clazz == null || clazz == Object.class)
 			return;
 		
-		getPersistentFields(clazz.getSuperclass(), goodFields, embedded);
+		getLoadables(clazz.getSuperclass(), good);
 		
-		for (Field field: clazz.getDeclaredFields())
-		{
-			if (TypeUtils.isSaveable(field) &&
-					(embedded || (!field.isAnnotationPresent(Id.class) && !field.isAnnotationPresent(Parent.class))))
-			{
+		for (Field field: clazz.getDeclaredFields()) {
+			if (TypeUtils.isSaveable(field)) {
 				if (field.isAnnotationPresent(Embed.class) && field.isAnnotationPresent(Serialize.class))
 					throw new IllegalStateException("Cannot have @Embed and @Serialize on the same field! Check " + field);
 
-				FieldMetadata metadata = new FieldMetadata(field);
-				metadata.names.add(field.getName());
-				
-				// Now any additional names, either @AlsoLoad or the deprecated @OldName
-				AlsoLoad alsoLoad = field.getAnnotation(AlsoLoad.class);
-				if (alsoLoad != null)
-					if (alsoLoad.value() == null || alsoLoad.value().length == 0)
-						throw new IllegalStateException("Illegal value '" + Arrays.toString(alsoLoad.value()) + "' in @AlsoLoad for " + field);
-					else
-						for (String value: alsoLoad.value())
-							if (value == null || value.trim().length() == 0)
-								throw new IllegalStateException("Illegal value '" + value + "' in @AlsoLoad for " + field);
-							else
-								metadata.names.add(value);
-
-				field.setAccessible(true);
-				goodFields.add(metadata);
+				good.add(new LoadableField(field));
 			}
 		}
-	}
-	
-	/**
-	 * Get all the methods that are appropriate for saving into on this
-	 * class and all superclasses.  Validates that @AlsoLoad methods are
-	 * properly created (one parameter, not @Embed).
-	 * 
-	 * @return all the correctly specified @AlsoLoad and @OldName methods.
-	 *  Methods will be set accessable.  Key will be the immediate name in the annotation.
-	 */
-	public static List<MethodMetadata> getAlsoLoadMethods(Class<?> clazz)
-	{
-		List<MethodMetadata> goodMethods = new ArrayList<MethodMetadata>();
-
-		getAlsoLoadMethods(clazz, goodMethods);
 		
-		return goodMethods;
-	}
-	
-	/** Recursive implementation of getAlsoLoadMethods() */
-	private static void getAlsoLoadMethods(Class<?> clazz, List<MethodMetadata> goodMethods)
-	{
-		if (clazz == null || clazz == Object.class)
-			return;
-		
-		getAlsoLoadMethods(clazz.getSuperclass(), goodMethods);
-		
-		for (Method method: clazz.getDeclaredMethods())
-		{
+		for (Method method: clazz.getDeclaredMethods()) {
 			// This seems like a good idea
 			if (method.isAnnotationPresent(Embed.class))
 				throw new IllegalStateException("@Embed is not a legal annotation for methods");
 
-			MethodMetadata metadata = new MethodMetadata(method);
-			
 			for (Annotation[] paramAnnotations: method.getParameterAnnotations())
-			{
 				for (Annotation ann: paramAnnotations)
-				{
 					if (ann instanceof AlsoLoad)
-					{
-						// Method must have only one parameter
-						if (method.getParameterTypes().length != 1)
-							throw new IllegalStateException("@AlsoLoad methods must have a single parameter. Can't use " + method);
-						
-						// Parameter cannot be @Embed
-						for (Annotation maybeEmbedded: paramAnnotations)
-							if (maybeEmbedded instanceof Embed)
-								throw new IllegalStateException("@Embed cannot be used on @AlsoLoad methods. The offender is " + method);
-						
-						// It's good, let's add it
-						method.setAccessible(true);
-						
-						if (ann instanceof AlsoLoad)
-						{
-							AlsoLoad alsoLoad = (AlsoLoad)ann;
-							if (alsoLoad.value() == null || alsoLoad.value().length == 0)
-								throw new IllegalStateException("@AlsoLoad must have a value on " + method);
-							
-							for (String name: alsoLoad.value())
-							{
-								if (name == null || name.trim().length() == 0)
-									throw new IllegalStateException("Illegal value '" + name + "' in @AlsoLoad for " + method);
-								
-								metadata.names.add(name);
-							}
-						}
-					}
-				}
-			}
-			
-			goodMethods.add(metadata);
+						good.add(new LoadableMethod(method, (AlsoLoad)ann));
 		}
 	}
-	
+
 	/**
 	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking  
 	 */

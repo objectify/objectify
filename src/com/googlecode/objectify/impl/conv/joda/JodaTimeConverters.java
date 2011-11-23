@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.conv.joda;
 
-import com.googlecode.objectify.impl.conv.StandardConversions;
+import com.googlecode.objectify.impl.conv.ConverterRegistry;
 
 /**
  * <p>A convenient static method that adds all the joda-time related converters to your factory's conversions.
@@ -11,7 +11,7 @@ import com.googlecode.objectify.impl.conv.StandardConversions;
  */
 public class JodaTimeConverters
 {
-	public static void add(StandardConversions conv) {
+	public static void add(ConverterRegistry conv) {
 		conv.add(new ReadableInstantConverter());
 		conv.add(new LocalDateConverter());
 		conv.add(new DateTimeZoneConverter());

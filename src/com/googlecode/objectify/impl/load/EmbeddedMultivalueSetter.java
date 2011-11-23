@@ -7,7 +7,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
-import com.googlecode.objectify.impl.FieldWrapper;
+import com.googlecode.objectify.impl.LoadableField;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.TypeUtils;
 
@@ -20,7 +20,7 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 	 * The field which holds the embedded collection. We use FieldWrapper instead of
 	 * Field because we want to use methods that take a the wrapper type.
 	 */
-	FieldWrapper field;
+	LoadableField field;
 	
 	/**
 	 * The blah.blah.blah path to the embedded collection.  This is used as
@@ -33,10 +33,10 @@ abstract public class EmbeddedMultivalueSetter extends CollisionDetectingSetter
 	{
 		super(collisionPaths);
 		
-		assert TypeUtils.isEmbedded(field);
+		assert TypeUtils.isEmbed(field);
 		assert TypeUtils.isArrayOrCollection(field.getType());
 		
-		this.field = new FieldWrapper(field);
+		this.field = new LoadableField(field);
 		this.path = path;
 	}
 	

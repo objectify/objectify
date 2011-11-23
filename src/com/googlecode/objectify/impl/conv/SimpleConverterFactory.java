@@ -16,7 +16,7 @@ abstract public class SimpleConverterFactory<P, D> implements ConverterFactory<P
 	}
 	
 	@Override
-	final public Converter<P, D> create(Type type, ConverterCreateContext ctx, StandardConversions conv) {
+	final public Converter<P, D> create(Type type, ConverterCreateContext ctx, ConverterRegistry conv) {
 		if (type instanceof Class<?> && this.pojoType.isAssignableFrom((Class<?>)type)) {
 			return create((Class<?>)type, ctx);
 		} else {
