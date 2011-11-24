@@ -1,13 +1,15 @@
 package com.googlecode.objectify.impl;
 
+import java.util.Collection;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.load.ClassLoadr;
-import com.googlecode.objectify.impl.load.EntityNode;
-import com.googlecode.objectify.impl.load.Setter;
+import com.googlecode.objectify.impl.load.Loader;
+import com.googlecode.objectify.impl.node.EntityNode;
+import com.googlecode.objectify.impl.node.ListNode;
+import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.save.ClassSaver;
 import com.googlecode.objectify.impl.save.Path;
 
@@ -55,7 +57,7 @@ public class Transmog<T>
 	ClassSaver rootSaver;
 	
 	/** The root loader that knows how to load an object of type T */
-	ClassLoadr<T> rootLoader;
+	Loader<T> rootLoader;
 	
 	/** */
 	KeyMetadata<T> keyMeta;
@@ -67,8 +69,8 @@ public class Transmog<T>
 	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
 	{
 		this.keyMeta = meta.getKeyMetadata();
-		this.rootLoader = new ClassLoadr<T>(fact, meta.getEntityClass());
-		this.rootSaver = new RootClassSaver(fact, clazz);
+		this.rootLoader = fact.getLoaders().createRoot(meta.getEntityClass());
+		//this.rootSaver = new RootClassSaver(fact, clazz);
 	}
 	
 	/**
@@ -84,38 +86,45 @@ public class Transmog<T>
 		
 		T pojo = rootLoader.load(root, context);
 		
-		context.done();
-		
 		return pojo;
 	}
 	
 	/**
-	 * Break down the Entity into a series of nested EntityNode (HashMap) objects
-	 * which reflect the x.y paths.  The root EntityNode will also contain the key
+	 * Break down the Entity into a series of nested EntityNodes
+	 * which reflect the x.y.z paths.  The root EntityNode will also contain the key
 	 * fields and values.
 	 * 
 	 * @return a root EntityNode corresponding to the Entity
 	 */
-	private EntityNode createEntityNode(Entity fromEntity) {
-		EntityNode root = new EntityNode(Path.root());
+	private MapNode createEntityNode(Entity fromEntity) {
+		MapNode root = new MapNode(Path.root());
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
-			EntityNode here = root;
+			MapNode here = root;
 			String[] parts = prop.getKey().split("\\.");
-			Path path = Path.root();
 			
-			for (String part: parts) {
-				path = path.extend(part);
-				EntityNode node = (EntityNode)here.get(part);
-				if (node == null) {
-					node = new EntityNode(path);
-					here.put(part, node);
-				}
-				
-				here = node;
+			int end = parts.length - 1;
+			for (int i=0; i<end; i++) {
+				String part = parts[i];
+				here = here.pathMap(part);
 			}
 			
-			here.setPropertyValue(prop.getValue());
+			// The last one gets handled specially, it might need to be a ListNode
+			String part = parts[end];
+			
+			if (prop.getValue() instanceof Collection) {
+				@SuppressWarnings("unchecked")
+				Collection<Object> coll = (Collection<Object>)prop.getValue();
+				
+				ListNode list = here.pathList(part);
+				for (Object obj: coll) {
+					MapNode map = list.add();
+					map.setPropertyValue(obj);
+				}
+			} else {
+				here = here.pathMap(part);
+				here.setPropertyValue(prop.getValue());
+			}
 		}
 		
 		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
@@ -124,68 +133,18 @@ public class Transmog<T>
 		if (root.containsKey(idName))
 			throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Id field: " + fromEntity);
 		
-		if (fromEntity.getKey().getName() != null)
-			root.put(idName, fromEntity.getKey().getName());
-		else
-			root.put(idName, fromEntity.getKey().getId());
+		Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
+		root.pathMap(idName).setPropertyValue(idValue);
 		
 		String parentName = keyMeta.getParentFieldName();
 		if (parentName != null) {
 			if (root.containsKey(parentName))
 				throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Parent field: " + fromEntity);
 			
-			root.put(parentName, fromEntity.getKey().getParent());
+			root.pathMap(parentName).setPropertyValue(fromEntity.getKey().getParent());
 		}
 		
 		return root;
-	}
-
-	/**
-	 * Loads the single value {@code value} into {@code toPojo} using {@code key} as the key within
-	 * the entity. Will use any of {@link #rootSetters} or might delegate through a map setter.
-	 * 
-	 * @param key the key for this value
-	 * @param value the value from the datastore
-	 * @param toPojo the target pojo to load into
-	 */
-	public void loadSingleValue(String key, Object value, Object toPojo, LoadContext context)
-	{
-		Setter setter = this.rootSetters.get(key);
-		if (setter != null)
-		{
-			setter.set(toPojo, value, context);
-		}
-		else
-		{
-			String mapPrefix = key;
-			int lastDotIndex = mapPrefix.lastIndexOf('.');
-			while (setter == null && lastDotIndex != -1)
-			{
-				mapPrefix = mapPrefix.substring(0, lastDotIndex);
-				setter = this.rootSetters.get(mapPrefix);
-				if (setter != null)
-				{
-					int mapKeyEnd = mapPrefix.length() + 1;
-					int followingDot = key.indexOf('.', mapKeyEnd);
-					if (followingDot == -1)
-					{
-						context.currentMapEntry = key.substring(mapKeyEnd);
-						context.currentMapSuffix = "";
-					}
-					else
-					{
-						context.currentMapEntry = key.substring(mapKeyEnd, followingDot);
-						context.currentMapSuffix = key.substring(followingDot + 1);
-					}
-					break;
-				}
-				lastDotIndex = mapPrefix.lastIndexOf('.');
-			}
-			if (setter != null)
-			{
-				setter.set(toPojo, value, context);
-			}
-		}
 	}
 	
 	/**

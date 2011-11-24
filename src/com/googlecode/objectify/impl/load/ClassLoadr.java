@@ -1,107 +1,109 @@
 package com.googlecode.objectify.impl.load;
 
-import java.lang.reflect.Field;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jdo.metadata.FieldMetadata;
-
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Loadable;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.node.EntityNode;
+import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
 /**
  * <p>Loader which discovers how to load a class.  Can handle both the root class (because the key fields get stuffed
  * into the EntityNode) and simple (non-collection) embedded classes (which don't recognze @Id/@Parent as significant).</p>
  */
-public class ClassLoadr<T> implements Loader
+public class ClassLoadr<T> implements LoaderFactory<T>
 {
-	/** */
-	ObjectifyFactory fact;
+	/** Exists only so that we can get an array with the @Embed annotation */
+	@Embed
+	private static class HasEmbed {}
 	
-	/** */
-	Class<T> entityClass;
-	
-	/** Classes are composed of fields, duh */
-	List<FieldLoader> fieldLoaders = new ArrayList<FieldLoader>();
+	/** Associates a Loader with a Loadable*/
+	private static class FieldLoader {
+		Loadable loadable;
+		Loader<?> loader;
+		
+		public FieldLoader(Loadable loadable, Loader<?> loader) {
+			this.loadable = loadable;
+			this.loader = loader;
+		}
+		
+		/** Executes loading this value from the node and setting it on the field */
+		public void execute(Object pojo, MapNode node, LoadContext ctx) {
+			EntityNode actual = getChild(node, loadable.getNames());
+			Object value = loader.load(actual, ctx);
+			loadable.set(pojo, value);
+		}
+		
+		/**
+		 * @param parent is the collection in which to look
+		 * @param names is a list of names to look for in the parent 
+		 * @return one child which has a name in the parent
+		 * @throws IllegalStateException if there are multiple name matches
+		 */
+		private EntityNode getChild(MapNode parent, String[] names) {
+			EntityNode child = null;
+			
+			for (String name: names) {
+				EntityNode child2 = parent.get(name);
+				
+				if (child != null && child2 != null)
+					throw new IllegalStateException("Collision trying to load field; multiple name matches at " + parent.getPath());
+				
+				child = child2;
+			}
+			
+			return child;
+		}
+	}
 	
 	/**
-	 * @param clazz is the class we want to load.
+	 * Create a class loader for a root entity by making it work just like an embedded class.  Fakes
+	 * the @Embed annotation as a fieldAnnotation. 
 	 */
-	public ClassLoadr(ObjectifyFactory fact, Class<T> clazz)
-	{
-		List<Loadable> loadables = TypeUtils.getLoadables(clazz);
-
-		for (Loadable loadable: loadables) {
-			Loader loader = new LoadableLoader(fact, loadable);
-			
-			if (loadable.isEmbed()) {
-				
-//				if (field.getType().isArray())
-//				{
-//					Loader loader = new EmbeddedArrayFieldLoader(conv, clazz, field);
-//					this.fieldLoaders.add(saver);
-//				}
-//				else if (Map.class.isAssignableFrom(field.getType()))
-//				{
-//					Loader loader = new EmbeddedMapLoader(conv, clazz, field);
-//					this.fieldLoaders.add(saver);
-//				}
-//				else if (Collection.class.isAssignableFrom(field.getType()))
-//				{
-//					Loader loader = new EmbeddedCollectionFieldLoader(conv, clazz, field);
-//					this.fieldLoaders.add(saver);
-//				}
-//				else	// basic class
-//				{
-//					Loader loader = new EmbeddedClassFieldLoader(conv, clazz, field);
-//					this.fieldLoaders.add(saver);
-//				}
-			}
-			else	// not embedded, so we're at a leaf object (including arrays and collections of basic types)
-			{
-				// Add a leaf saver
-				Loader saver = new LeafFieldLoader(conv, clazz, field);
-				this.fieldLoaders.add(saver);
-			}
-		}
+	public Loader<T> createRoot(ObjectifyFactory fact, Type type) {
+		return create(fact, type, HasEmbed.class.getAnnotations());
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Loader#load(com.googlecode.objectify.impl.load.EntityNode, com.googlecode.objectify.impl.LoadContext)
+	 * @see com.googlecode.objectify.impl.load.LoaderFactory#create(com.googlecode.objectify.ObjectifyFactory, java.lang.reflect.Type, java.lang.annotation.Annotation[])
 	 */
 	@Override
-	public T load(EntityNode node, LoadContext ctx)
+	public Loader<T> create(final ObjectifyFactory fact, final Type type, final Annotation[] fieldAnnotations)
 	{
-		T pojo = fact.construct(entityClass);
+		@SuppressWarnings("unchecked")
+		final Class<T> clazz = (Class<T>)GenericTypeReflector.erase(type);
 		
-		for (FieldLoader fieldLoader: this.fieldLoaders) {
-			
-			Object val = node.get(fieldLoader.getFieldName());
-			fieldLoader.load(val, pojo, path);
-		}
-	}
-	
-	/**
-	 * @param parent is the collection in which to look
-	 * @param names is a list of names to look for in the parent 
-	 * @return one child which has a name in the parent
-	 * @throws IllegalStateException if there are multiple name matches
-	 */
-	private EntityNode getChild(EntityNode parent, String[] names) {
-		EntityNode child = null;
+		// We only work with @Embed classes
+		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations) == null && clazz.getAnnotation(Embed.class) == null)
+			return null;
 		
-		for (String name: names) {
-			EntityNode child2 = parent.get(name);
-			
-			if (child != null && child2 != null)
-				throw new IllegalStateException("Collision trying to load field; multiple name matches at " + parent.getPath());
-			
-			child = child2;
+		final List<FieldLoader> fieldLoaders = new ArrayList<FieldLoader>();
+		
+		for (Loadable loadable: TypeUtils.getLoadables(clazz)) {
+			Loader<?> loader = fact.getLoaders().create(loadable.getType(), loadable.getAnnotations());
+			fieldLoaders.add(new FieldLoader(loadable, loader));
 		}
 		
-		return child;
+		return new Loader<T>() {
+			@Override
+			public T load(EntityNode node, LoadContext ctx)
+			{
+				T pojo = fact.construct(clazz);
+				
+				for (FieldLoader fieldLoader: fieldLoaders)
+					fieldLoader.execute(pojo, (MapNode)node, ctx);
+				
+				return pojo;
+			}
+			
+		};
 	}
 }

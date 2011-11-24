@@ -18,6 +18,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
+import com.googlecode.objectify.impl.load.LoaderRegistry;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -53,6 +54,9 @@ public class ObjectifyFactory
 	
 	/** All the various converters */
 	protected ConverterRegistry conversions = new ConverterRegistry(this);
+	
+	/** All the various loaders */
+	protected LoaderRegistry loaders = new LoaderRegistry(this);
 	
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -333,5 +337,12 @@ public class ObjectifyFactory
 	 */
 	public ConverterRegistry getConversions() {
 		return this.conversions;
+	}
+
+	/**
+	 * @return the repository of Loader objects
+	 */
+	public LoaderRegistry getLoaders() {
+		return this.loaders;
 	}
 }

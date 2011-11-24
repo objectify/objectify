@@ -1,9 +1,12 @@
 package com.googlecode.objectify.impl.load;
 
-import com.googlecode.objectify.impl.LoadContext;
-import com.googlecode.objectify.impl.node.EntityNode;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+
+import com.googlecode.objectify.ObjectifyFactory;
 
 /**
+ * 
  * <p>A loader knows how to load a subtree of a datastore entity into a POJO object.</p>
  * 
  * <p>Loaders are composed of other loaders; through a chain of these a whole entity
@@ -13,14 +16,10 @@ import com.googlecode.objectify.impl.node.EntityNode;
  * (which itself may be composed of EntityNodes).  This allows each Loader to process only
  * the piece of the Entity it cares about.</p>
  */
-public interface Loader<T>
+public interface LoaderFactory<T>
 {
 	/**
-	 * Loads the content of the specified node, returning the generated value.
-	 * 
-	 * @param node is the part of the entity tree we are transforming.
-	 * @param ctx holds state information during an entity load.  
-	 * @return an assembled pojo corresponding to the node subtree
+	 * @return null if this factory does not know how to deal with that situation. 
 	 */
-	public T load(EntityNode node, LoadContext ctx);
+	Loader<T> create(ObjectifyFactory fact, Type type, Annotation[] fieldAnnotations);
 }

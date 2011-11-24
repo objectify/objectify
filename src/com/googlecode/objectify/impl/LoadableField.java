@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.HashSet;
@@ -12,13 +13,16 @@ import com.googlecode.objectify.annotation.AlsoLoad;
  */
 public class LoadableField implements Loadable
 {
-	String[] names;
 	Field field;
+	String[] names;
+	Annotation[] annotations;
 	
+	/** */
 	public LoadableField(Field field) {
-		this.field = field;
-		
 		field.setAccessible(true);
+		
+		this.field = field;
+		this.annotations = field.getAnnotations();
 		
 		Set<String> nameSet = new HashSet<String>();
 		nameSet.add(field.getName());
@@ -43,36 +47,26 @@ public class LoadableField implements Loadable
 	
 	@Override
 	public Type getType() { return this.field.getGenericType(); }
+
+	@Override
+	public Annotation[] getAnnotations() {
+		return annotations;
+	}
 	
 	@Override
-	public void set(Object pojo, Object value)
-	{
+	public void set(Object pojo, Object value) {
 		try { this.field.set(pojo, value); }
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 	}
 	
 	@Override
-	public Object get(Object pojo)
-	{
+	public Object get(Object pojo) {
 		try { return this.field.get(pojo); }
 		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
 	}
 
 	@Override
-	public boolean isSerialize()
-	{
-		return TypeUtils.isSerialize(field);
-	}
-	
-	@Override
-	public boolean isEmbed()
-	{
-		return TypeUtils.isEmbed(field);
-	}
-
-	@Override
-	public String toString()
-	{
+	public String toString() {
 		return this.field.toString();
 	}
 

@@ -2,10 +2,11 @@ package com.googlecode.objectify.impl.load;
 
 import java.lang.reflect.Type;
 import java.util.Collection;
-import java.util.Iterator;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.LoadContext;
+import com.googlecode.objectify.impl.node.EntityNode;
+import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -43,15 +44,19 @@ public class CollectionLoader implements Loader
 	@Override
 	public Object load(EntityNode node, LoadContext ctx)
 	{
+		if (!(node instanceof ListNode))
+			throw new IllegalStateException("Expected a list structure at " + node.getPath() + "; got " + node);
+		
+		ListNode listNode = (ListNode)node;
+		
 		@SuppressWarnings("unchecked")
 		Collection<Object> collection = (Collection<Object>)fact.construct(collectionType);
 		
-		Iterator<Object> loaded = ctx.iterateLoad(node, componentLoader);
-		while (loaded.hasNext()) {
-			Object value = loaded.next();
+		for (EntityNode child: listNode) {
+			Object value = componentLoader.load(child, ctx);
 			collection.add(value);
 		}
-		
+
 		return collection;
 	}
 }

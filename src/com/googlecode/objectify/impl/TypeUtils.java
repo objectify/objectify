@@ -541,5 +541,14 @@ public class TypeUtils
 		else
 			return null;
 	}
-	
+
+	/** Gets the annotation that has the specified type, or null if there isn't one */
+	@SuppressWarnings("unchecked")
+	public static <A extends Annotation> A getAnnotation(Class<A> type, Annotation[] annotations) {
+		for (Annotation anno: annotations)
+			if (anno.getClass() == type)
+				return (A)anno;
+		
+		return null;
+	}
 }
