@@ -9,6 +9,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**

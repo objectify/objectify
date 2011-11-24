@@ -30,7 +30,6 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
-import com.googlecode.objectify.impl.save.Path;
 
 
 /**
@@ -544,11 +543,23 @@ public class TypeUtils
 
 	/** Gets the annotation that has the specified type, or null if there isn't one */
 	@SuppressWarnings("unchecked")
-	public static <A extends Annotation> A getAnnotation(Class<A> type, Annotation[] annotations) {
+	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations) {
 		for (Annotation anno: annotations)
-			if (anno.getClass() == type)
+			if (anno.getClass() == annotationType)
 				return (A)anno;
 		
 		return null;
+	}
+
+	/** 
+	 * Checks both the annotations list and the annotations on the class for the type
+	 * @return null if annotation is not in list or on class.
+	 */
+	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations, Class<?> onClass) {
+		A anno = getAnnotation(annotationType, annotations);
+		if (anno == null)
+			return onClass.getAnnotation(annotationType);
+		else
+			return anno;
 	}
 }

@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.node;
 
-import com.googlecode.objectify.impl.save.Path;
+import com.googlecode.objectify.impl.Path;
 
 /**
  * <p>A tree repesentation of a datastore Entity object.  Note that actual propertyValue property values

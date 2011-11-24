@@ -256,7 +256,7 @@ public class ObjectifyFactory
 		// classes would otherwise collide with real kinds eg User vs User.
 		EntityMetadata<?> meta = this.registrar.getMetadata(keyOrEntityOrOther.getClass());
 		if (meta == null)
-			return this.getConversions().create(keyOrEntityOrOther.getClass(), ctx).toDatastore(keyOrEntityOrOther, NO_CONTEXT);
+			return this.getConversions().create(null, ctx, keyOrEntityOrOther.getClass()).toDatastore(keyOrEntityOrOther, NO_CONTEXT);
 		else
 			return meta.getKeyMetadata().getRawKey(keyOrEntityOrOther);
 	}

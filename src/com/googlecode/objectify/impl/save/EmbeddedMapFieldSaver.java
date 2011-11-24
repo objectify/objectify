@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;

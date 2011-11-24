@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.save;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.impl.Path;
 
 /**
  * <p>A saver knows how to save part (or all) of a pojo to a datastore entity.  Any

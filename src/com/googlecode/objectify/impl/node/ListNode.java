@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import com.googlecode.objectify.impl.save.Path;
+import com.googlecode.objectify.impl.Path;
 
 /**
  * ListNodes don't really have a path per-se, but they convey their path
@@ -19,6 +19,11 @@ public class ListNode extends EntityNode implements Iterable<MapNode>
 	/** */
 	public ListNode(Path path) {
 		super(path);
+	}
+	
+	/** */
+	public int size() {
+		return list().size();
 	}
 	
 	/** */

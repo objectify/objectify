@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.ListIterator;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
 
 
 /** 
@@ -25,18 +26,22 @@ public class LoaderRegistry
 	ListIterator<LoaderFactory<?>> inserter;
 	
 	/** We hold on to the root factory because it gets used specially for root entities */
-	ClassLoadr<?> rootFactory;
+	EmbedLoader<?> rootFactory;
 	
 	/**
-	 * Initialize the default set of converters.
+	 * Initialize the default set of converters in the proper order.
 	 */
 	public LoaderRegistry(ObjectifyFactory fact)
 	{
 		this.fact = fact;
 		
-		rootFactory = fact.construct(ClassLoadr.class);
+		rootFactory = fact.construct(EmbedLoader.class);
 		
-		this.loaders.add(rootFactory);
+		// The order is CRITICAL!
+		this.loaders.add(fact.construct(SerializeLoader.class));
+		this.loaders.add(fact.construct(CollectionLoader.class));
+		this.loaders.add(fact.construct(ArrayLoader.class));
+		this.loaders.add(rootFactory);	// EmbeddedClassLoader
 		
 //		this.converters.add(fact.construct(StringConverter.class));
 //		this.converters.add(fact.construct(NumberConverter.class));
@@ -66,17 +71,18 @@ public class LoaderRegistry
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> Loader<T> createRoot(Type type) {
-		return ((ClassLoadr<T>)rootFactory).createRoot(fact, type);
+		return ((EmbedLoader<T>)rootFactory).createRoot(fact, type);
 	}
 	
 	/**
 	 * Goes through our list of known loaders and returns the first one that succeeds
+	 * @param path is the path to this type, used for logging and debugging
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
-	public <T> Loader<T> create(Type type, Annotation[] fieldAnnotations) {
+	public <T> Loader<T> create(Path path, Annotation[] fieldAnnotations, Type type) {
 		for (LoaderFactory<?> cvt: this.loaders) {
 			@SuppressWarnings("unchecked")
-			Loader<T> soFar = (Loader<T>)cvt.create(fact, type, fieldAnnotations);
+			Loader<T> soFar = (Loader<T>)cvt.create(fact, path, fieldAnnotations, type);
 			if (soFar != null)
 				return soFar;
 		}

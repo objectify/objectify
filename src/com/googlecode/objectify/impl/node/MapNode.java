@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.node;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.googlecode.objectify.impl.save.Path;
+import com.googlecode.objectify.impl.Path;
 
 /**
  */

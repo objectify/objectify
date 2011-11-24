@@ -43,6 +43,9 @@ public class LoadableField implements Loadable
 	}
 	
 	@Override
+	public String getPathName() { return field.getName(); }
+	
+	@Override
 	public String[] getNames() { return names; }
 	
 	@Override

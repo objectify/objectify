@@ -11,7 +11,6 @@ import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.save.ClassSaver;
-import com.googlecode.objectify.impl.save.Path;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>

@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
 
 /**
  * <p>Saver which knows how to save simple embedded classes, not arrays or collections.</p>

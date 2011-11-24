@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
 
 /**
  * 
@@ -19,7 +20,8 @@ import com.googlecode.objectify.ObjectifyFactory;
 public interface LoaderFactory<T>
 {
 	/**
+	 * @param path current path to this part of the tree, important for logging and exceptions
 	 * @return null if this factory does not know how to deal with that situation. 
 	 */
-	Loader<T> create(ObjectifyFactory fact, Type type, Annotation[] fieldAnnotations);
+	Loader<T> create(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type);
 }

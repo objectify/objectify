@@ -46,6 +46,9 @@ public class LoadableMethod implements Loadable
 	}
 	
 	@Override
+	public String getPathName() { return method.getName() + "()"; }
+	
+	@Override
 	public String[] getNames() { return names; }
 	
 	@Override

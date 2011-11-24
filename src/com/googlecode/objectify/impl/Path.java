@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.save;
+package com.googlecode.objectify.impl;
 
 /**
  * Path represents the individual steps from the root object to the current property.
@@ -54,5 +54,15 @@ public class Path
 	@Override
 	public String toString() {
 		return toPathString();
+	}
+
+	/** Convenient way to include path location in the exception message.  Never returns. */
+	public Object throwIllegalState(String message) {
+		throw new IllegalStateException("Error at " + this + ": " + message);
+	}
+
+	/** Convenient way to include path location in the exception message.  Never returns. */
+	public Object throwIllegalState(String message, Throwable cause) {
+		throw new IllegalStateException("Error at " + this + ": " + message, cause);
 	}
 }

@@ -10,6 +10,7 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**

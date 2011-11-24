@@ -9,6 +9,9 @@ import java.lang.reflect.Type;
  */
 public interface Loadable
 {
+	/** Get the primary name associated with this Loadable */
+	String getPathName();
+	
 	/** Get all the names associated with this Loadable (ie, due to @AlsoLoad). Includes the primary name. */
 	String[] getNames();
 	
