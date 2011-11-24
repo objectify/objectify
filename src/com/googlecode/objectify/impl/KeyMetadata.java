@@ -77,7 +77,7 @@ public class KeyMetadata<T>
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
 		{
-			if (!TypeUtils.isSaveable(field))
+			if (!TypeUtils.isOfInterest(field))
 				continue;
 
 			field.setAccessible(true);

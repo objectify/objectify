@@ -25,10 +25,8 @@ import java.util.TreeSet;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 
@@ -92,13 +90,25 @@ public class TypeUtils
 	}
 	
 	/**
-	 * @return true if the field can be saved (is persistable), false if it is static, final, @Ignore, etc.
+	 * Determine if we should create a Property for the field.  Things we ignore:  static, final, @Ignore, synthetic
 	 */
-	public static boolean isSaveable(Field field)
+	public static boolean isOfInterest(Field field)
 	{
 		return !field.isAnnotationPresent(Ignore.class)
 			&& ((field.getModifiers() & NOT_SAVEABLE_MODIFIERS) == 0)
 			&& !field.isSynthetic();
+	}
+
+	/**
+	 * Determine if we should create a Property for the method (ie, @AlsoLoad)
+	 */
+	public static boolean isOfInterest(Method method)
+	{
+		for (Annotation[] annos: method.getParameterAnnotations())
+			if (getAnnotation(AlsoLoad.class, annos) != null)
+				return true;
+		
+		return false;
 	}
 
 	/**
@@ -310,38 +320,23 @@ public class TypeUtils
 		
 		getProperties(clazz.getSuperclass(), good);
 		
-		for (Field field: clazz.getDeclaredFields()) {
-			if (TypeUtils.isSaveable(field)) {
-				if (field.isAnnotationPresent(Embed.class) && field.isAnnotationPresent(Serialize.class))
-					throw new IllegalStateException("Cannot have @Embed and @Serialize on the same field! Check " + field);
-
+		for (Field field: clazz.getDeclaredFields())
+			if (isOfInterest(field))
 				good.add(new FieldProperty(field));
-			}
-		}
 		
-		for (Method method: clazz.getDeclaredMethods()) {
-			// This seems like a good idea
-			if (method.isAnnotationPresent(Embed.class))
-				throw new IllegalStateException("@Embed is not a legal annotation for methods");
-
-			for (Annotation[] paramAnnotations: method.getParameterAnnotations())
-				for (Annotation ann: paramAnnotations)
-					if (ann instanceof AlsoLoad)
-						good.add(new MethodProperty(method, (AlsoLoad)ann));
-		}
+		for (Method method: clazz.getDeclaredMethods())
+			if (isOfInterest(method))
+				good.add(new MethodProperty(method));
 	}
 
 	/**
 	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking  
 	 */
-	public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException
-	{
-		try
-		{
+	public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
+		try {
 			return clazz.getDeclaredField(fieldName);
 		}
-		catch (NoSuchFieldException ex)
-		{
+		catch (NoSuchFieldException ex) {
 			if (clazz.getSuperclass() == Object.class)
 				throw ex;
 			else
@@ -355,16 +350,13 @@ public class TypeUtils
 	 */
 	public static Class<?> getClass(Type type)
 	{
-		if (type instanceof Class<?>)
-		{
+		if (type instanceof Class<?>) {
 			return (Class<?>)type;
 		}
-		else if (type instanceof ParameterizedType)
-		{
+		else if (type instanceof ParameterizedType) {
 			return getClass(((ParameterizedType)type).getRawType());
 		}
-		else if (type instanceof GenericArrayType)
-		{
+		else if (type instanceof GenericArrayType) {
 			Type componentType = ((GenericArrayType)type).getGenericComponentType();
 			Class<?> componentClass = getClass(componentType);
 			if (componentClass != null)
@@ -376,8 +368,7 @@ public class TypeUtils
 				return null;
 			}
 		}
-		else
-		{
+		else {
 			return null;
 		}
 	}

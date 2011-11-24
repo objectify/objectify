@@ -19,7 +19,7 @@ public class MethodProperty implements Property
 	String[] names;
 	Annotation[] annotations;
 	
-	public MethodProperty(Method method, AlsoLoad annotation) {
+	public MethodProperty(Method method) {
 		method.setAccessible(true);
 		
 		this.method = method;
@@ -30,12 +30,14 @@ public class MethodProperty implements Property
 		
 		annotations = method.getParameterAnnotations()[0];
 		
-		if (annotation.value() == null || annotation.value().length == 0)
+		AlsoLoad alsoLoad = TypeUtils.getAnnotation(AlsoLoad.class, annotations);
+		
+		if (alsoLoad.value() == null || alsoLoad.value().length == 0)
 			throw new IllegalStateException("@AlsoLoad must have a value on " + method);
 		
 		Set<String> nameSet = new HashSet<String>();
 		
-		for (String name: annotation.value()) {
+		for (String name: alsoLoad.value()) {
 			if (name == null || name.trim().length() == 0)
 				throw new IllegalStateException("Illegal empty value in @AlsoLoad for " + method);
 			
