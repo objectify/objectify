@@ -2,7 +2,12 @@ package com.googlecode.objectify;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService.KeyRangeState;
@@ -18,7 +23,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
-import com.googlecode.objectify.impl.load.LoaderRegistry;
+import com.googlecode.objectify.impl.load.TranslatorRegistry;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -56,7 +61,7 @@ public class ObjectifyFactory
 	protected ConverterRegistry conversions = new ConverterRegistry(this);
 	
 	/** All the various loaders */
-	protected LoaderRegistry loaders = new LoaderRegistry(this);
+	protected TranslatorRegistry loaders = new TranslatorRegistry(this);
 	
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -65,12 +70,33 @@ public class ObjectifyFactory
 	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	
 	/**
-	 * Construct an instance of the specified type.  Objectify uses this method whenever possible to create
+	 * <p>Construct an instance of the specified type.  Objectify uses this method whenever possible to create
 	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other
-	 * dependency injection mechanisms.  The default is simple construction.
+	 * dependency injection mechanisms.  By default it constructs with a simple no-args constructor.</p>
 	 */
 	public <T> T construct(Class<T> type) {
 		return TypeUtils.newInstance(type);
+	}
+
+	/**
+	 * <p>Construct a collection of the specified type and the specified size for use on a POJO field.  You can override
+	 * this with Guice or whatnot.</p>
+	 * 
+	 * <p>The default is to call construct(Class), with one twist - if a Set, SortedSet, or List interface is presented,
+	 * Objectify will construct a HashSet, TreeSet, or ArrayList (respectively).  If you override this method with
+	 * dependency injection and you use uninitialized fields of these interface types in your entity pojos, you will
+	 * need to bind these interfaces to concrete types.</p>
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends Collection<?>> T constructCollection(Class<T> type, int size) {
+		if (type == Set.class)
+			return (T)new HashSet<Object>((int)(size * 1.5));
+		else if (type == SortedSet.class)
+			return (T)new TreeSet<Object>();
+		else if (type == List.class)
+			return (T)new ArrayList<Object>(size);
+		else
+			return construct(type);
 	}
 	
 	/**
@@ -342,7 +368,7 @@ public class ObjectifyFactory
 	/**
 	 * @return the repository of Loader objects
 	 */
-	public LoaderRegistry getLoaders() {
+	public TranslatorRegistry getLoaders() {
 		return this.loaders;
 	}
 }

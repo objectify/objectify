@@ -139,7 +139,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		// If there are any @OnSave methods, call them
 		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ent, ofy);
 		
-		this.transmog.save(pojo, ent);
+		this.transmog.saveMap(pojo, ent);
 		
 		return ent;
 	}

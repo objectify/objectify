@@ -19,6 +19,19 @@ public class MapNode extends EntityNode
 	Object propertyValue;
 	public Object getPropertyValue() { return this.propertyValue; }
 	public void setPropertyValue(Object value) { this.propertyValue = value; }
+
+	/** */
+	public void setPropertyValue(Object value, boolean index) {
+		setPropertyValue(value);
+		setPropertyIndexed(index);
+	}
+	
+	/**
+	 * Whether or not the property should be indexed on save.  During the load process this is ignored.
+	 */
+	boolean propertyIndexed;
+	public boolean isPropertyIndexed() { return propertyIndexed; }
+	public void setPropertyIndexed(boolean value) { propertyIndexed = value; }
 	
 	/** */
 	public MapNode(Path path) {

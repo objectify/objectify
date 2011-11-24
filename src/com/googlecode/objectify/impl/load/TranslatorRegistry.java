@@ -10,38 +10,40 @@ import com.googlecode.objectify.impl.Path;
 
 
 /** 
- * <p>Manages all the converters used to translate between POJO fields and the
+ * <p>Manages all the translators used to map between POJO fields and the
  * types that the Datastore can actually persist.  Essentially acts as an
- * aggregator for all the Converter objects.</p>
+ * aggregator for all the TranslatorFactory objects.</p>
  */
-public class LoaderRegistry
+public class TranslatorRegistry
 {
 	/** */
 	ObjectifyFactory fact;
 	
 	/** */
-	LinkedList<LoaderFactory<?>> loaders = new LinkedList<LoaderFactory<?>>();
+	LinkedList<TranslatorFactory<?>> translators = new LinkedList<TranslatorFactory<?>>();
 	
 	/** This lets us insert in order at the head of the list*/
-	ListIterator<LoaderFactory<?>> inserter;
+	ListIterator<TranslatorFactory<?>> inserter;
 	
 	/** We hold on to the root factory because it gets used specially for root entities */
-	EmbedLoader<?> rootFactory;
+	EmbedTranslatorFactory<?> rootFactory;
 	
 	/**
 	 * Initialize the default set of converters in the proper order.
 	 */
-	public LoaderRegistry(ObjectifyFactory fact)
+	public TranslatorRegistry(ObjectifyFactory fact)
 	{
 		this.fact = fact;
 		
-		rootFactory = fact.construct(EmbedLoader.class);
+		// This is special, lets us create translators for root objects
+		rootFactory = fact.construct(EmbedTranslatorFactory.class);
 		
 		// The order is CRITICAL!
-		this.loaders.add(fact.construct(SerializeLoader.class));
-		this.loaders.add(fact.construct(CollectionLoader.class));
-		this.loaders.add(fact.construct(ArrayLoader.class));
-		this.loaders.add(rootFactory);	// EmbeddedClassLoader
+		this.translators.add(fact.construct(SerializeTranslatorFactory.class));
+		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
+		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
+		this.translators.add(fact.construct(ArrayTranslatorFactory.class));
+		this.translators.add(rootFactory);	// EmbedLoader
 		
 //		this.converters.add(fact.construct(StringConverter.class));
 //		this.converters.add(fact.construct(NumberConverter.class));
@@ -54,14 +56,17 @@ public class LoaderRegistry
 //		this.converters.add(fact.construct(TimeZoneConverter.class));
 //		this.converters.add(fact.construct(KeyConverter.class));
 		
-		this.inserter = this.loaders.listIterator();
+		this.inserter = this.translators.listIterator();
+		
+		// LAST!  It catches everything.
+		this.translators.add(fact.construct(UnmodifiedValueTranslatorFactory.class));
 	}
 	
 	/**
-	 * Add a new loader to the list.  Loaders are added in order but before the builtin loaders.
+	 * Add a new translator to the list.  Translators are added in order at a very particular place in the chain.
 	 */
-	public void add(LoaderFactory<?> cvt) {
-		this.inserter.add(cvt);
+	public void add(TranslatorFactory<?> trans) {
+		this.inserter.add(trans);
 	}
 	
 	/**
@@ -70,19 +75,19 @@ public class LoaderRegistry
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> Loader<T> createRoot(Type type) {
-		return ((EmbedLoader<T>)rootFactory).createRoot(fact, type);
+	public <T> Translator<T> createRoot(Type type) {
+		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(fact, type);
 	}
 	
 	/**
-	 * Goes through our list of known loaders and returns the first one that succeeds
+	 * Goes through our list of known translators and returns the first one that succeeds
 	 * @param path is the path to this type, used for logging and debugging
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
-	public <T> Loader<T> create(Path path, Annotation[] fieldAnnotations, Type type) {
-		for (LoaderFactory<?> cvt: this.loaders) {
+	public <T> Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type) {
+		for (TranslatorFactory<?> trans: this.translators) {
 			@SuppressWarnings("unchecked")
-			Loader<T> soFar = (Loader<T>)cvt.create(fact, path, fieldAnnotations, type);
+			Translator<T> soFar = (Translator<T>)trans.create(fact, path, fieldAnnotations, type);
 			if (soFar != null)
 				return soFar;
 		}

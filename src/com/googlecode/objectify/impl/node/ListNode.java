@@ -11,10 +11,10 @@ import com.googlecode.objectify.impl.Path;
  * to any MapNodes below.  Also note that since we can only ever have one
  * list structure in an Entity, ListNodes will always contain MapNodes.
  */
-public class ListNode extends EntityNode implements Iterable<MapNode>
+public class ListNode extends EntityNode implements Iterable<EntityNode>
 {
 	/** */
-	List<MapNode> list;
+	List<EntityNode> list;
 	
 	/** */
 	public ListNode(Path path) {
@@ -27,7 +27,7 @@ public class ListNode extends EntityNode implements Iterable<MapNode>
 	}
 	
 	/** */
-	public Iterator<MapNode> iterator() {
+	public Iterator<EntityNode> iterator() {
 		return list().iterator();
 	}
 	
@@ -39,9 +39,14 @@ public class ListNode extends EntityNode implements Iterable<MapNode>
 	}
 	
 	/** */
-	private List<MapNode> list() {
+	public void add(EntityNode node) {
+		list().add(node);
+	}
+	
+	/** */
+	private List<EntityNode> list() {
 		if (this.list == null)
-			this.list = new ArrayList<MapNode>();
+			this.list = new ArrayList<EntityNode>();
 		
 		return this.list;
 	}

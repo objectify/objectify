@@ -6,11 +6,10 @@ import java.util.Map;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.load.Loader;
+import com.googlecode.objectify.impl.load.Translator;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
-import com.googlecode.objectify.impl.save.ClassSaver;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
@@ -52,11 +51,8 @@ import com.googlecode.objectify.impl.save.ClassSaver;
  */
 public class Transmog<T>
 {
-	/** The root saver that knows how to save an object of type T */
-	ClassSaver rootSaver;
-	
-	/** The root loader that knows how to load an object of type T */
-	Loader<T> rootLoader;
+	/** The root translator that knows how to deal with an object of type T */
+	Translator<T> rootTranslator;
 	
 	/** */
 	KeyMetadata<T> keyMeta;
@@ -68,8 +64,7 @@ public class Transmog<T>
 	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
 	{
 		this.keyMeta = meta.getKeyMetadata();
-		this.rootLoader = fact.getLoaders().createRoot(meta.getEntityClass());
-		//this.rootSaver = new RootClassSaver(fact, clazz);
+		this.rootTranslator = fact.getLoaders().createRoot(meta.getEntityClass());
 	}
 	
 	/**
@@ -80,14 +75,33 @@ public class Transmog<T>
 	 */
 	public T load(Entity fromEntity, Objectify ofy)
 	{
-		EntityNode root = createEntityNode(fromEntity);
+		EntityNode root = createNode(fromEntity);
+		
 		LoadContext context = new LoadContext(fromEntity, ofy);
 		
-		T pojo = rootLoader.load(root, context);
+		T pojo = rootTranslator.load(root, context);
 		
 		return pojo;
 	}
 	
+	/**
+	 * Saves the fields of a POJO into the properties of an Entity.  Does not affect id/parent
+	 * (ie key) fields; those are assumed to already have been set.
+	 * 
+	 * @param fromPojo is your typed entity
+	 */
+	public Entity save(T fromPojo, Objectify ofy)
+	{
+		SaveContext context = new SaveContext(ofy);
+		
+		// Default index state is false!
+		MapNode root = (MapNode)rootTranslator.save(fromPojo, false, context);
+		
+		Entity entity = createEntity(root);
+		
+		return entity;
+	}
+
 	/**
 	 * Break down the Entity into a series of nested EntityNodes
 	 * which reflect the x.y.z paths.  The root EntityNode will also contain the key
@@ -95,7 +109,7 @@ public class Transmog<T>
 	 * 
 	 * @return a root EntityNode corresponding to the Entity
 	 */
-	private MapNode createEntityNode(Entity fromEntity) {
+	private MapNode createNode(Entity fromEntity) {
 		MapNode root = new MapNode(Path.root());
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
@@ -147,15 +161,16 @@ public class Transmog<T>
 	}
 	
 	/**
-	 * Saves the fields of a POJO into the properties of an Entity.  Does not affect id/parent
-	 * (ie key) fields; those are assumed to already have been set.
+	 * Reconstitute an Entity from a broken down series of nested EntityNodes.
 	 * 
-	 * @param fromPojo is your typed entity
-	 * @param toEntity is a raw datastore entity
+	 * @return an Entity with the propery key set
 	 */
-	public void save(T fromPojo, Entity toEntity)
-	{
-		// The default is to index all fields
-		this.rootSaver.save(fromPojo, toEntity, Path.root(), false);
+	private Entity createEntity(MapNode root) {
+		
+		// Step one is extract the id/parent from root and create the Entity
+		
+		// Step two is populate the entity fields
+		
+		return null;
 	}
 }

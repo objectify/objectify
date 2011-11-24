@@ -10,16 +10,16 @@ import java.util.Set;
 import com.googlecode.objectify.annotation.AlsoLoad;
 
 /** 
- * Loadable which encapsulates a method with an @AlsoLoad parameter. 
+ * Property which encapsulates a method with an @AlsoLoad parameter. 
  * If you try to get() the value it is always null.
  */
-public class LoadableMethod implements Loadable
+public class MethodProperty implements Property
 {
 	Method method;
 	String[] names;
 	Annotation[] annotations;
 	
-	public LoadableMethod(Method method, AlsoLoad annotation) {
+	public MethodProperty(Method method, AlsoLoad annotation) {
 		method.setAccessible(true);
 		
 		this.method = method;
@@ -46,10 +46,10 @@ public class LoadableMethod implements Loadable
 	}
 	
 	@Override
-	public String getPathName() { return method.getName() + "()"; }
+	public String getName() { return method.getName() + "()"; }
 	
 	@Override
-	public String[] getNames() { return names; }
+	public String[] getAllNames() { return names; }
 	
 	@Override
 	public Type getType() { return this.method.getGenericParameterTypes()[0]; }
@@ -74,6 +74,18 @@ public class LoadableMethod implements Loadable
 	@Override
 	public String toString() {
 		return this.method.toString();
+	}
+
+	/** Never saved */
+	@Override
+	public boolean isSaved(Object onPojo) {
+		return false;
+	}
+
+	/** Since we are never saved this is never called */
+	@Override
+	public Boolean getIndexInstruction(Object onPojo) {
+		throw new UnsupportedOperationException("This should never have been called!");
 	}
 
 }

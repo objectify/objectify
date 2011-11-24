@@ -9,16 +9,16 @@ import java.util.Set;
 import com.googlecode.objectify.annotation.AlsoLoad;
 
 /** 
- * Loadable which encapsulates a simple field. 
+ * Property which encapsulates a simple field. 
  */
-public class LoadableField implements Loadable
+public class FieldProperty implements Property
 {
 	Field field;
 	String[] names;
 	Annotation[] annotations;
 	
 	/** */
-	public LoadableField(Field field) {
+	public FieldProperty(Field field) {
 		field.setAccessible(true);
 		
 		this.field = field;
@@ -43,10 +43,10 @@ public class LoadableField implements Loadable
 	}
 	
 	@Override
-	public String getPathName() { return field.getName(); }
+	public String getName() { return field.getName(); }
 	
 	@Override
-	public String[] getNames() { return names; }
+	public String[] getAllNames() { return names; }
 	
 	@Override
 	public Type getType() { return this.field.getGenericType(); }
@@ -71,6 +71,16 @@ public class LoadableField implements Loadable
 	@Override
 	public String toString() {
 		return this.field.toString();
+	}
+
+	@Override
+	public boolean isSaved(Object onPojo) {
+		return false;
+	}
+
+	@Override
+	public Boolean getIndexInstruction(Object onPojo) {
+		return null;
 	}
 
 }

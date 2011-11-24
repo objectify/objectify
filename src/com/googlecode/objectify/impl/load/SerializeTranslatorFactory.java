@@ -1,7 +1,10 @@
 package com.googlecode.objectify.impl.load;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
@@ -11,6 +14,7 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -18,10 +22,10 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 /**
  * <p>Loader which can load any serialized thing from a Blob.</p>
  */
-public class SerializeLoader implements LoaderFactory<Object>
+public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Loader<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
 
 		final Class<?> clazz = (Class<?>)GenericTypeReflector.erase(type);
 		
@@ -31,19 +35,36 @@ public class SerializeLoader implements LoaderFactory<Object>
 		
 		// Sanity check so we don't have @Serialize and @Embed
 		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations, clazz) == null)
-			throw new IllegalStateException("You cannot both @Serialize and @Embed " + path);
+			path.throwIllegalState("You cannot both @Serialize and @Embed; check the field and the target class for annotations");
 		
-		return new LoaderPropertyValue<Object, Blob>(path, Blob.class) {
+		return new ValueTranslator<Object, Blob>(path, Blob.class) {
 			@Override
-			public Object load(Blob value, LoadContext ctx) {
-				try
-				{
+			public Object loadValue(Blob value, LoadContext ctx) {
+				try {
 					ByteArrayInputStream bais = new ByteArrayInputStream(value.getBytes());
 					ObjectInputStream ois = new ObjectInputStream(bais);
 					
 					return ois.readObject();
+					
+				} catch (Exception ex) {
+					path.throwIllegalState("Unable to deserialize " + value, ex);
+					return null;	// never gets here
 				}
-				catch (Exception ex) { return path.throwIllegalState("Unable to deserialize " + value, ex); }
+			}
+
+			@Override
+			protected Blob saveValue(Object value, SaveContext ctx) {
+				try {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					ObjectOutputStream oos = new ObjectOutputStream(baos);
+					oos.writeObject(value);
+					
+					return new Blob(baos.toByteArray());
+					
+				} catch (IOException ex) {
+					path.throwIllegalState("Unable to serialize " + value, ex);
+					return null;	// never gets here
+				}
 			}
 		};
 	}

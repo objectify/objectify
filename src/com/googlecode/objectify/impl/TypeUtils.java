@@ -23,6 +23,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Ignore;
@@ -155,13 +156,13 @@ public class TypeUtils
 	 * @param type is a Collection-derived type
 	 */
 	@SuppressWarnings("unchecked")
-	public static Collection<Object> createCollection(Class<?> type, int size)
+	public static Collection<Object> createCollection(ObjectifyFactory fact, Class<?> type, int size)
 	{
 		assert Collection.class.isAssignableFrom(type);
 		
 		if (!type.isInterface())
 		{
-			return (Collection<Object>)TypeUtils.newInstance(type);
+			return (Collection<Object>)fact.construct(type);
 		}
 		else if (SortedSet.class.isAssignableFrom(type))
 		{
@@ -245,26 +246,6 @@ public class TypeUtils
 		return clazz.isArray() || Collection.class.isAssignableFrom(clazz);
 	}
 	
-	/**
-	 * Determines if the field is embedded or not.
-	 * 
-	 * @return true if field is an embedded class, collection, or array.
-	 */
-	public static boolean isEmbed(Field field)
-	{
-		return field.isAnnotationPresent(Embed.class) || field.getType().isAnnotationPresent(Embed.class);
-	}
-	
-	/**
-	 * Determines if the field is serialized or not.
-	 * 
-	 * @return true if field is an embedded class, collection, or array.
-	 */
-	public static boolean isSerialize(Field field)
-	{
-		return field.isAnnotationPresent(Embed.class) || field.getType().isAnnotationPresent(Embed.class);
-	}
-	
 	/** Checked exceptions are LAME. */
 	public static <T> T newInstance(Class<T> clazz)
 	{
@@ -311,30 +292,30 @@ public class TypeUtils
 	}
 
 	/**
-	 * Get all the loadable fields and methods on a class, checking the superclasses as well.
+	 * Get all the persistable fields and methods on a class, checking the superclasses as well.
 	 * 
 	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
 	 *  and returned in order starting with superclass fields.
 	 */
-	public static List<Loadable> getLoadables(Class<?> clazz) {
-		List<Loadable> good = new ArrayList<Loadable>();
-		getLoadables(clazz, good);
+	public static List<Property> getProperties(Class<?> clazz) {
+		List<Property> good = new ArrayList<Property>();
+		getProperties(clazz, good);
 		return good;
 	}
 
-	/** Recursive implementation of getLoadables() */
-	private static void getLoadables(Class<?> clazz, List<Loadable> good) {
+	/** Recursive implementation of getProperties() */
+	private static void getProperties(Class<?> clazz, List<Property> good) {
 		if (clazz == null || clazz == Object.class)
 			return;
 		
-		getLoadables(clazz.getSuperclass(), good);
+		getProperties(clazz.getSuperclass(), good);
 		
 		for (Field field: clazz.getDeclaredFields()) {
 			if (TypeUtils.isSaveable(field)) {
 				if (field.isAnnotationPresent(Embed.class) && field.isAnnotationPresent(Serialize.class))
 					throw new IllegalStateException("Cannot have @Embed and @Serialize on the same field! Check " + field);
 
-				good.add(new LoadableField(field));
+				good.add(new FieldProperty(field));
 			}
 		}
 		
@@ -346,7 +327,7 @@ public class TypeUtils
 			for (Annotation[] paramAnnotations: method.getParameterAnnotations())
 				for (Annotation ann: paramAnnotations)
 					if (ann instanceof AlsoLoad)
-						good.add(new LoadableMethod(method, (AlsoLoad)ann));
+						good.add(new MethodProperty(method, (AlsoLoad)ann));
 		}
 	}
 
