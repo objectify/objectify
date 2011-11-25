@@ -45,7 +45,10 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	@Override
 	final protected MapNode saveMap(P pojo, boolean index, SaveContext ctx) {
 		MapNode node = new MapNode(path);
-		D translated = saveValue(pojo, ctx);
+		
+		D translated = (pojo == null)
+				? null
+				: saveValue(pojo, ctx);
 		
 		// A quick sanity check - some things we cannot index!
 		if (index && (translated instanceof Blob || translated instanceof Text))

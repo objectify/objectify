@@ -7,6 +7,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -20,6 +21,8 @@ public class Employee
 {
 	@Id
 	public String name;
+	
+	@Index
 	public Key<Employee> manager;
 
 	/** Default constructor must always exist */

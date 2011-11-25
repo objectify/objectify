@@ -41,20 +41,21 @@ public class TranslatorRegistry
 		rootFactory = fact.construct(EmbedTranslatorFactory.class);
 		
 		// The order is CRITICAL!
-		this.translators.add(fact.construct(SerializeTranslatorFactory.class));
+		this.translators.add(fact.construct(SerializeTranslatorFactory.class));	// Serialize has priority over everything
 		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
-		this.translators.add(fact.construct(ArrayTranslatorFactory.class));
+		this.translators.add(fact.construct(ArrayTranslatorFactory.class));		// AFTER byte array otherwise we will occlude it
 		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
 		this.translators.add(fact.construct(MapTranslatorFactory.class));
-		this.translators.add(rootFactory);	// EmbedTranslatorFactory
+		this.translators.add(rootFactory);	// EmbedTranslatorFactory			// AFTER the various collections so we only process the content
+		this.translators.add(fact.construct(ReferenceTranslatorFactory.class));	// AFTER embed so that you can embed entities if you want
 		
 		// Magic inflection point at which we want to prioritize added translators
 		this.inserter = this.translators.listIterator();
 		
 		this.translators.add(fact.construct(StringTranslatorFactory.class));
-		this.translators.add(fact.construct(EnumTranslatorFactory.class));
-		this.translators.add(fact.construct(KeyTranslatorFactory.class));
 		this.translators.add(fact.construct(NumberTranslatorFactory.class));
+		this.translators.add(fact.construct(KeyTranslatorFactory.class));
+		this.translators.add(fact.construct(EnumTranslatorFactory.class));
 		this.translators.add(fact.construct(SqlDateTranslatorFactory.class));
 		this.translators.add(fact.construct(TimeZoneTranslatorFactory.class));
 		
