@@ -9,11 +9,13 @@ import com.googlecode.objectify.impl.node.MapNode;
 
 /**
  * <p>Helper which expects a ListNode in the data structure and throws an exception if a MapNode is found.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
+abstract public class AbstractListNodeTranslator<T> extends AbstractTranslator<T>
 {
 	/** */
-	public ListNodeTranslator(Path path) {
+	public AbstractListNodeTranslator(Path path) {
 		super(path);
 	}
 

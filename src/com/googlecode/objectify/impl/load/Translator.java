@@ -11,6 +11,8 @@ import com.googlecode.objectify.impl.node.EntityNode;
  * 
  * <p>Translators are composed of other translators; through a chain of these a whole entity
  * object is assembled or disassembled.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Translator<T>
 {

@@ -15,6 +15,8 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * <p>Translator which can load an array of things.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 {
@@ -26,16 +28,16 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 			return null;
 		
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object> componentLoader = fact.getLoaders().create(path, fieldAnnotations, componentType);
+		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
 		
-		return new ListNodeTranslator<Object>(path) {
+		return new AbstractListNodeTranslator<Object>(path) {
 			@Override
 			public Object loadList(ListNode node, LoadContext ctx) {
 				Object array = Array.newInstance(GenericTypeReflector.erase(componentType), node.size());
 				
 				int index = 0;
 				for (EntityNode componentNode: node) {
-					Object value = componentLoader.load(componentNode, ctx);
+					Object value = componentTranslator.load(componentNode, ctx);
 					Array.set(array, index++, value);
 				}
 
@@ -48,7 +50,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 				int len = Array.getLength(pojo);
 				for (int i=0; i<len; i++) {
 					Object value = Array.get(pojo, i);
-					EntityNode addNode = componentLoader.save(value, index, ctx);
+					EntityNode addNode = componentTranslator.save(value, index, ctx);
 					node.add(addNode);
 				}
 				return null;

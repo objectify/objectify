@@ -22,6 +22,8 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 /**
  * <p>Translator which can map whole embedded classes.  Note that root classes are just a special case of an embedded
  * class, so there is a method here to create a root translator.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 {
@@ -131,7 +133,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		final Boolean classIndexInstruction = ind != null ? true : unind != null ? false : null;
 		
-		return new MapNodeTranslator<T>(path) {
+		return new AbstractMapNodeTranslator<T>(path) {
 			@Override
 			public T loadMap(MapNode node, LoadContext ctx) {
 				T pojo = fact.construct(clazz);

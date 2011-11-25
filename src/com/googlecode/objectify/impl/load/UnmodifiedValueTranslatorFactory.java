@@ -16,13 +16,15 @@ import com.googlecode.objectify.impl.SaveContext;
  * the entity property is set.</p>
  * 
  * <p>Also - this fixes the boolean.class vs Boolean.class mismatch.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class UnmodifiedValueTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
 	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
 
-		return new ValueTranslator<Object, Object>(path, Object.class) {
+		return new AbstractValueTranslator<Object, Object>(path, Object.class) {
 			@Override
 			public Object loadValue(Object value, LoadContext ctx) {
 				return value;

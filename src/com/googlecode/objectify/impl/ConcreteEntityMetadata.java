@@ -123,7 +123,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		T pojo = this.transmog.load(ent, ofy);
 		
 		// If there are any @OnLoad methods, call them
-		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ent, ofy);
+		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ofy);
 
 		return pojo;
 	}
@@ -134,12 +134,10 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	@Override
 	public Entity save(T pojo, Objectify ofy)
 	{
-		Entity ent = keyMetadata.initEntity(pojo);
-
 		// If there are any @OnSave methods, call them
-		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ent, ofy);
+		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ofy);
 		
-		this.transmog.saveMap(pojo, ent);
+		Entity ent = this.transmog.save(pojo, ofy);
 		
 		return ent;
 	}
@@ -149,7 +147,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * 
 	 * @param callbacks can be null if there are no callbacks
 	 */
-	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Entity ent, Objectify ofy)
+	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Objectify ofy)
 	{
 		try
 		{
@@ -165,8 +163,6 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 							Class<?> ptype = method.getParameterTypes()[i];
 							if (ptype == Objectify.class)
 								params[i] = ofy;
-							else if (ptype == Entity.class)
-								params[i] = ent;
 							else
 								throw new IllegalStateException("Lifecycle callback cannot have parameter type " + ptype);
 						}

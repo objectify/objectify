@@ -33,7 +33,7 @@ public class MapNode extends EntityNode
 	public boolean isPropertyIndexed() { return propertyIndexed; }
 	public void setPropertyIndexed(boolean value) { propertyIndexed = value; }
 	
-	/** */
+	/** Constructor for save() operations */
 	public MapNode(Path path) {
 		super(path);
 	}

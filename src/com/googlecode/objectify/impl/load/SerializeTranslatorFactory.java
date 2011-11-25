@@ -21,6 +21,8 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * <p>Loader which can load any serialized thing from a Blob.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 {
@@ -37,7 +39,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations, clazz) == null)
 			path.throwIllegalState("You cannot both @Serialize and @Embed; check the field and the target class for annotations");
 		
-		return new ValueTranslator<Object, Blob>(path, Blob.class) {
+		return new AbstractValueTranslator<Object, Blob>(path, Blob.class) {
 			@Override
 			public Object loadValue(Blob value, LoadContext ctx) {
 				try {

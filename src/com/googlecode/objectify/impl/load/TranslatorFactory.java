@@ -16,6 +16,8 @@ import com.googlecode.objectify.impl.Path;
  * <p>Before the load process is started, the Entity must be broken down into an EntityNode
  * (which itself may be composed of EntityNodes).  This allows each Loader to process only
  * the piece of the Entity it cares about.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface TranslatorFactory<T>
 {

@@ -15,6 +15,8 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * <p>Loader which can load things into a collection field.  Might be embedded items, might not.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CollectionTranslatorFactory implements TranslatorFactory<Collection<?>>
 {
@@ -27,16 +29,16 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			return null;
 		
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
-		final Translator<?> componentLoader = fact.getLoaders().create(path, fieldAnnotations, componentType);
+		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
 		
-		return new ListNodeTranslator<Collection<?>>(path) {
+		return new AbstractListNodeTranslator<Collection<?>>(path) {
 			@Override
 			public Collection<?> loadList(ListNode node, LoadContext ctx) {
 				@SuppressWarnings("unchecked")
 				Collection<Object> collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
 				
 				for (EntityNode child: node) {
-					Object value = componentLoader.load(child, ctx);
+					Object value = componentTranslator.load(child, ctx);
 					collection.add(value);
 				}
 
@@ -45,7 +47,15 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 			@Override
 			protected ListNode saveList(Collection<?> pojo, boolean index, SaveContext ctx) {
-				return null;
+				ListNode node = new ListNode(path);
+				
+				for (Object obj: pojo) {
+					EntityNode child = componentTranslator.save(obj, index, ctx);
+					node.add(child);
+				}
+				
+				return node;
+				
 			}
 		};
 	}

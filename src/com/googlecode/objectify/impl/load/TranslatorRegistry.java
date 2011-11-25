@@ -13,6 +13,8 @@ import com.googlecode.objectify.impl.Path;
  * <p>Manages all the translators used to map between POJO fields and the
  * types that the Datastore can actually persist.  Essentially acts as an
  * aggregator for all the TranslatorFactory objects.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TranslatorRegistry
 {
@@ -40,21 +42,18 @@ public class TranslatorRegistry
 		
 		// The order is CRITICAL!
 		this.translators.add(fact.construct(SerializeTranslatorFactory.class));
-		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
 		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(ArrayTranslatorFactory.class));
+		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
 		this.translators.add(rootFactory);	// EmbedLoader
 		
-//		this.converters.add(fact.construct(StringConverter.class));
-//		this.converters.add(fact.construct(NumberConverter.class));
-//		this.converters.add(fact.construct(BooleanConverter.class));
-//		this.converters.add(fact.construct(EnumConverter.class));
-//		this.converters.add(fact.construct(ByteArrayConverter.class));	// BEFORE the ArrayConverter
-//		this.converters.add(fact.construct(ArrayConverter.class));
-//		this.converters.add(fact.construct(CollectionConverter.class));
+		this.translators.add(fact.construct(EnumTranslatorFactory.class));
+		this.translators.add(fact.construct(KeyTranslatorFactory.class));
+		this.translators.add(fact.construct(NumberTranslatorFactory.class));
+		this.translators.add(fact.construct(StringTranslatorFactory.class));
+		
 //		this.converters.add(fact.construct(SqlDateConverter.class));
 //		this.converters.add(fact.construct(TimeZoneConverter.class));
-//		this.converters.add(fact.construct(KeyConverter.class));
 		
 		this.inserter = this.translators.listIterator();
 		

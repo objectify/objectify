@@ -44,7 +44,7 @@ public class EntityNode
 	/** Current path to this node */
 	Path path;
 	
-	/** */
+	/** Only use this constructor during save() operations */
 	public EntityNode(Path path) {
 		this.path = path;
 	}

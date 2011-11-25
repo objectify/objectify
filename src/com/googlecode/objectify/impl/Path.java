@@ -2,6 +2,8 @@ package com.googlecode.objectify.impl;
 
 /**
  * Path represents the individual steps from the root object to the current property.
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class Path
 {

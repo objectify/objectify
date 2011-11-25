@@ -7,14 +7,16 @@ import com.googlecode.objectify.impl.node.MapNode;
 
 /**
  * <p>Helper which helps take a mapnode's property value and converts it from datastore representation to pojo representation.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
+abstract public class AbstractValueTranslator<P, D> extends AbstractMapNodeTranslator<P>
 {
 	/** */
 	Class<D> datastoreClass;
 	
 	/** */
-	public ValueTranslator(Path path, Class<D> datastoreClass) {
+	public AbstractValueTranslator(Path path, Class<D> datastoreClass) {
 		super(path);
 		this.datastoreClass = datastoreClass;
 	}
