@@ -10,8 +10,7 @@ package com.googlecode.objectify.condition;
 public class IfNotZero extends ValueIf<Number>
 {
 	@Override
-	public boolean matches(Number value)
-	{
+	public boolean matchesValue(Number value) {
 		return value != null && value.doubleValue() != 0;
 	}
 }

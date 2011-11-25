@@ -80,7 +80,7 @@ public class FieldProperty implements Property
 
 	@Override
 	public Boolean getIndexInstruction(Object onPojo) {
-		return null;
+		return null;  todo
 	}
 
 }

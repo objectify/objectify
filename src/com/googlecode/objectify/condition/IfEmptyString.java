@@ -10,8 +10,7 @@ package com.googlecode.objectify.condition;
 public class IfEmptyString extends ValueIf<String>
 {
 	@Override
-	public boolean matches(String value)
-	{
+	public boolean matchesValue(String value) {
 		return value != null && value.isEmpty();
 	}
 }

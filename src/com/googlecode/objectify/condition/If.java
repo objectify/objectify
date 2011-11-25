@@ -13,7 +13,7 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface If<T, V>
+public interface If<V, P>
 {
 	/**
 	 * Test a simple property value.
@@ -21,14 +21,14 @@ public interface If<T, V>
 	 * @param value is the actual value of a particular field
 	 * @return true if the value matches the condition defined by an instance of this interface.
 	 */
-	public boolean matchesValue(T value);
+	public boolean matchesValue(V value);
 
 	/**
-	 * Test a whole entity. Because the entity object is provided, partial indexes can be based on values
-	 * other than the actual field in question.
+	 * Override this method to test a whole pojo for your condition.  The pojo might
+	 * be an entity or an embedded class object - whichever holds the field being tested. 
 	 * 
 	 * @param onPojo is the entity object on which the field/value exists
 	 * @return true if the value matches the condition defined by an instance of this interface.
 	 */
-	public boolean matchesPojo(V pojo);
+	public boolean matchesPojo(P pojo);
 }

@@ -10,8 +10,7 @@ package com.googlecode.objectify.condition;
 public class IfTrue extends ValueIf<Boolean>
 {
 	@Override
-	public boolean matches(Boolean value)
-	{
+	public boolean matchesValue(Boolean value) {
 		return value != null && value;
 	}
 }

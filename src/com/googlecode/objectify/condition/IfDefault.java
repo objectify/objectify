@@ -40,7 +40,7 @@ public class IfDefault extends ValueIf<Object>
 	}
 	
 	@Override
-	public boolean matches(Object value)
+	public boolean matchesValue(Object value)
 	{
 		if (this.defaultValue == null)
 			return value == null;
