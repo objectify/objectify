@@ -3,7 +3,9 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Embed;
@@ -13,7 +15,10 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.node.EntityNode;
+import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
+import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -41,13 +46,32 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		}
 		
 		/** Executes loading this value from the node and setting it on the field */
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public void executeLoad(MapNode node, Object onPojo, LoadContext ctx) {
 			EntityNode actual = getChild(node, property.getAllNames());
 			
 			// We only execute if there is a real node.  Note that even a null value in the data will have a real
 			// MapNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
 			if (actual != null) {
-				Object value = translator.load(actual, ctx);
+				
+				// We have a couple special cases - for collection/map fields we would like to preserve the original
+				// instance, if one exists.  It might have been initialized with custom comparators, etc.
+				Object value;
+				if (translator instanceof CollectionListNodeTranslator && actual instanceof ListNode)
+				{
+					Collection coll = (Collection)this.property.get(onPojo);
+					value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((ListNode)actual, ctx, coll);
+				}
+				else if (translator instanceof MapMapNodeTranslator && actual instanceof MapNode) 
+				{
+					Map map = (Map)this.property.get(onPojo);
+					value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((MapNode)actual, ctx, map);
+				}
+				else
+				{
+					value = translator.load(actual, ctx);
+				}
+				
 				property.set(onPojo, value);
 			}
 		}

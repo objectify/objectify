@@ -88,4 +88,10 @@ public class MapNode extends EntityNode
 		
 		return node;
 	}
+	
+	/** */
+	@Override
+	public String toString() {
+		return map().toString();
+	}
 }

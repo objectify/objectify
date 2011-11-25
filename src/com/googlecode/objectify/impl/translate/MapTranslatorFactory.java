@@ -21,10 +21,30 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
+public class MapTranslatorFactory implements TranslatorFactory<Map<String, Object>>
 {
+	abstract public static class MapMapNodeTranslator<T> extends MapNodeTranslator<Map<String, T>> {
+		public MapMapNodeTranslator(Path path) {
+			super(path);
+		}
+		
+		/** Same as having a null existing collection */
+		@Override
+		final protected Map<String, T> loadMap(MapNode node, LoadContext ctx) {
+			return loadMapIntoExistingMap(node, ctx, null);
+		}
+		
+		/**
+		 * Load into an existing map; allows us to recycle map instances on entities, which might have
+		 * exotic concrete types or special initializers (comparators, etc).
+		 * 
+		 * @param coll can be null to trigger creating a new map 
+		 */
+		abstract public Map<String, T> loadMapIntoExistingMap(MapNode node, LoadContext ctx, Map<String, T> coll);
+	}
+	
 	@Override
-	public Translator<Map<String, ?>> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	public Translator<Map<String, Object>> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Map<String, ?>> mapType = (Class<? extends Map<String, ?>>)GenericTypeReflector.erase(type);
 		
@@ -41,11 +61,14 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 		
 		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 		
-		return new MapNodeTranslator<Map<String, ?>>(path) {
+		return new MapMapNodeTranslator<Object>(path) {
 			@Override
-			protected Map<String, ?> loadMap(MapNode node, LoadContext ctx) {
-				@SuppressWarnings("unchecked")
-				Map<String, Object> map = (Map<String, Object>)fact.constructMap(mapType);
+			@SuppressWarnings("unchecked")
+			public Map<String, Object> loadMapIntoExistingMap(MapNode node, LoadContext ctx, Map<String, Object> map) {
+				if (map == null)
+					map = (Map<String, Object>)fact.constructMap(mapType);
+				else
+					map.clear();
 				
 				for (Map.Entry<String, EntityNode> entry: node.entrySet()) {
 					Object value = componentTranslator.load(entry.getValue(), ctx);
@@ -56,7 +79,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 			}
 
 			@Override
-			protected MapNode saveMap(Map<String, ?> pojo, boolean index, SaveContext ctx) {
+			protected MapNode saveMap(Map<String, Object> pojo, boolean index, SaveContext ctx) {
 				// Note that maps are not like embedded collections; they don't form a list structure so you can embed
 				// as many of these as you want.
 				MapNode node = new MapNode(path);

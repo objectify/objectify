@@ -39,7 +39,7 @@ import com.googlecode.objectify.impl.Path;
  * </li>
  * <ul>
  */
-public class EntityNode
+abstract public class EntityNode
 {
 	/** Current path to this node */
 	Path path;

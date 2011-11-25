@@ -50,4 +50,9 @@ public class ListNode extends EntityNode implements Iterable<EntityNode>
 		
 		return this.list;
 	}
+	
+	@Override
+	public String toString() {
+		return list().toString();
+	}
 }
