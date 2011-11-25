@@ -78,7 +78,7 @@ public class Engine
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-					metadata.setKey(obj, k);
+					metadata.getKeyMetadata().setKey(obj, k);
 					
 					result.put(Key.<K>create(k), obj);
 					session.put(k, obj);

@@ -87,11 +87,10 @@ public class KeyMetadata<T>
 				if (this.idField != null)
 					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + this.entityClass.getName());
 
-				if ((field.getType() == Long.class) || (field.getType() == Long.TYPE) || (field.getType() == String.class))
-					this.idField = field;
-				else
-					throw new IllegalStateException("Only fields of type Long, long, or String are allowed as @Id. Invalid on field "
-							+ field + " in " + clazz.getName());
+				if ((field.getType() != Long.class) && (field.getType() != long.class) && (field.getType() != String.class))
+					throw new IllegalStateException("@Id field '" + field.getName() + "' in " + clazz.getName() + " must be of type Long, long, or String");
+				
+				this.idField = field;
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
@@ -220,5 +219,30 @@ public class KeyMetadata<T>
 				return true;
 		
 		return false;
+	}
+	
+	/**
+	 * Sets the key onto the POJO id/parent fields
+	 * TODO:  this will have to change when we allow entity reference for parents
+	 */
+	public void setKey(T pojo, com.google.appengine.api.datastore.Key key) {
+		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
+			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
+
+		if (key.getName() != null)
+			TypeUtils.field_set(this.idField, pojo, key.getName());
+		else
+			TypeUtils.field_set(this.idField, pojo, key.getId());
+
+		com.google.appengine.api.datastore.Key parentKey = key.getParent();
+		if (parentKey != null) {
+			if (this.parentField == null)
+				throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
+
+			if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
+				TypeUtils.field_set(this.parentField, pojo, parentKey);
+			else
+				TypeUtils.field_set(this.parentField, pojo, Key.create(parentKey));
+		}
 	}
 }
