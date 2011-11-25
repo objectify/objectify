@@ -125,18 +125,10 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, 
 	}
 	
 	@Override
-	public H chunkSize(int value)
+	public H chunk(int value)
 	{
 		H next = this.clone();
-		next.base = base.chunkSize(value);
-		return next;
-	}
-
-	@Override
-	public H prefetchSize(int value)
-	{
-		H next = this.clone();
-		next.base = base.prefetchSize(value);
+		next.base = base.chunk(value);
 		return next;
 	}
 

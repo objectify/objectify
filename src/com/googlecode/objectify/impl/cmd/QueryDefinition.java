@@ -112,27 +112,16 @@ abstract class QueryDefinition<T> implements Query<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#chunkSize(int)
+	 * @see com.googlecode.objectify.cmd.Query#chunk(int)
 	 */
 	@Override
-	public Query<T> chunkSize(int value)
+	public Query<T> chunk(int value)
 	{
 		QueryImpl<T> q = createQuery();
-		q.setChunkSize(value);
+		q.setChunk(value);
 		return q;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#prefetchSize(int)
-	 */
-	@Override
-	public Query<T> prefetchSize(int value)
-	{
-		QueryImpl<T> q = createQuery();
-		q.setPrefetchSize(value);
-		return q;
-	}
-	
 	@Override
 	public Query<T> keysOnly()
 	{

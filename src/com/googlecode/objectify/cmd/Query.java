@@ -27,10 +27,10 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <li>{@code filter("age in", ageList)}</li>
 	 * </ul>
 	 * 
-	 * <p><strong>The space is required.</strong>  Filtering a condition of
-	 * {@code "age>="} will perform an <em>equality</em> test on an entity property
-	 * with that exact name.  You can't create properties like this with Objectify,
-	 * but you can with the Low-Level API.</p>
+	 * <p><strong>The space between the property name and the operator is required.</strong>
+	 * Filtering a condition of {@code "age>="} will perform an <em>equality</em> test on an entity
+	 * property exactly named "age>=".  You can't create properties like this with Objectify, but you
+	 * can with the Low-Level API.</p>
 	 * 
 	 * <p>See the Google documentation for 
 	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
@@ -101,20 +101,12 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Query<T> endAt(Cursor value);
 	
 	/**
-	 * Sets the internal chunking strategy within the low-level API.  Affects
-	 * performance only; the result set will be the same.
-	 *  
-	 * @param value must be > 0
-	 */
-	public Query<T> chunkSize(int value);
-	
-	/**
-	 * Sets the number of results retreived on the first call to the datastore.  Affects
+	 * Sets the internal chunking and prefetching strategy within the low-level API.  Affects
 	 * performance only; the result set will be the same.
 	 *  
 	 * @param value must be >= 0
 	 */
-	public Query<T> prefetchSize(int value);
+	public Query<T> chunk(int value);
 	
 	/**
 	 * Causes this query to return only key information (id and parent).  This is cheaper and

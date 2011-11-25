@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl.cmd;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
@@ -42,13 +41,22 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	/** The actual datastore query constructed by this object */
 	com.google.appengine.api.datastore.Query actual;
 	
+	/**
+	 * We need to maintain the __key__ predicates outside of the Query because we create them one at a time,
+	 * ie filter("parent", parentValue).filter("id", idValue).  If we set __key__ on the first filter() we can't
+	 * reset it for the second.  So we populate these at the last second.
+	 */
+	FilterOperator keyOp;
+	Object idValue;
+	com.google.appengine.api.datastore.Key parentValue;
+	SortDirection keyOrder;
+	
 	/** */
 	int limit;
 	int offset;
 	Cursor startAt;
 	Cursor endAt;
-	Integer chunkSize;
-	Integer prefetchSize;
+	Integer chunk;
 	
 	/** */
 	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
@@ -82,8 +90,24 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	}
 
 	/** @return the underlying datastore query object */
-	protected com.google.appengine.api.datastore.Query getActual() {
-		return this.actual;
+	private com.google.appengine.api.datastore.Query getActualForQuery() {
+		if (this.keyOp != null) {
+			if (parentValue != null && this.idValue == null)
+				throw new IllegalStateException("If you filter by the @Parent field, you must also filter by the @Id field");
+			
+			
+			String kind = Key.getKind(this.classRestriction);
+			
+			com.google.appengine.api.datastore.Key key = (idValue instanceof String)
+					? KeyFactory.createKey(parentValue, kind, (String)idValue)
+					: KeyFactory.createKey(parentValue, kind, (Long)idValue);
+				
+			com.google.appengine.api.datastore.Query q = DatastoreUtils.cloneQuery(this.actual);
+			q.addFilter("__key__", keyOp, key);
+			return q;
+		} else {
+			return this.actual;
+		}
 	}
 	
 	/** Modifies the instance */
@@ -96,57 +120,38 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		String prop = parts[0].trim();
 		FilterOperator op = (parts.length == 2) ? this.translate(parts[1]) : FilterOperator.EQUAL;
 
-		// If we have a class restriction, check to see if the property is the @Id
+		// If we have a class restriction, check to see if the property is the @Parent or @Id
 		if (this.classRestriction != null)
 		{
 			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
 			
-			if (meta.isIdField(prop) || meta.isNameField(prop))
-			{
-				if (meta.hasParentField())
-					throw new IllegalStateException("Cannot (yet) filter by @Id fields on entities which have @Parent fields. Tried '" + prop + "' on " + this.classRestriction.getName() + ".");
-
-				boolean isNumericId = meta.isIdField(prop);
+			if (prop.equals(meta.getParentFieldName())) {
+				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
+					throw new IllegalStateException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
 				
-				if (op == FilterOperator.IN)
-				{
-					if (!(value instanceof Iterable<?> || value instanceof Object[]))
-						throw new IllegalStateException("IN operator requires a collection value.  Value was " + value);
-
-					if (value instanceof Object[])
-						value = Arrays.asList(((Object[])value));
-					
-					// This is a bit complicated - we need to make a list of vanilla datastore Key objects.
-					
-					List<Object> keys = (value instanceof Collection<?>)
-						? new ArrayList<Object>(((Collection<?>)value).size())
-						: new ArrayList<Object>();
-						
-					for (Object obj: (Iterable<?>)value)
-					{
-						if (isNumericId)
-							keys.add(KeyFactory.createKey(meta.getKind(), ((Number)obj).longValue()));
-						else
-							keys.add(KeyFactory.createKey(meta.getKind(), obj.toString()));
-					}
-					
-					value = keys;
-				}
-				else
-				{
-					if (isNumericId)
-						value = KeyFactory.createKey(meta.getKind(), ((Number)value).longValue());
-					else
-						value = KeyFactory.createKey(meta.getKind(), value.toString());
-				}
+				keyOp = op;
+				parentValue = ofy.getFactory().getRawKey(value);
+				return;
+			}
+			else if (prop.equals(meta.getIdFieldName())) {
+				if (meta.hasParentField() && parentValue == null)
+					throw new IllegalStateException("Since " + classRestriction.getName() + " has a @Parent, you must specify a" +
+							" filter on the parent field '" + meta.getParentFieldName() + "' before you can filter by the id field '" + prop + "'");
 				
-				prop = "__key__";
+				if (keyOp != null && keyOp != op)
+					throw new IllegalStateException("Filter operation on id must exactly match the filter operation on parent");
+				
+				if (!(value instanceof Long || value instanceof String))
+					throw new IllegalStateException("Id filter values must be Long or String");
+				
+				keyOp = op;
+				idValue = value;
+				return;
 			}
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys
 		value = ofy.makeFilterable(value);
-		
 		this.actual.addFilter(prop, op, value);
 	}
 	
@@ -188,12 +193,17 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 			condition = condition.substring(1).trim();
 		}
 		
-		// Check for @Id field
+		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
 		if (this.classRestriction != null)
 		{
 			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
-			if (meta.isIdField(condition) || meta.isNameField(condition))
+			if (condition.equals(meta.getParentFieldName()) || condition.equals(meta.getIdFieldName())) {
+				if (keyOrder != dir)
+					throw new IllegalStateException("You cannot order @Parent one direction and @Id the other. Both must be ascending or descending.");
+				
 				condition = "__key__";
+				keyOrder = dir;
+			}
 		}
 
 		this.actual.addSort(condition, dir);
@@ -225,13 +235,8 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	}
 
 	/** Modifies the instance */
-	void setChunkSize(int value) {
-		this.chunkSize = value;
-	}
-
-	/** Modifies the instance */
-	void setPrefetchSize(int value) {
-		this.prefetchSize = value;
+	void setChunk(int value) {
+		this.chunk = value;
 	}
 
 	/** Modifies the instance */
@@ -253,6 +258,10 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		if (this.actual.getAncestor() != null)
 			bld.append(KeyFactory.keyToString(this.actual.getAncestor()));
 
+		// The key predicates
+		if (parentValue != null || idValue != null)
+			bld.append(",key").append(keyOp.name()).append('(').append(parentValue).append(',').append(idValue).append(')');
+		
 		// We need to sort filters to make a stable string value
 		FilterPredicate[] filters = this.actual.getFilterPredicates().toArray(new FilterPredicate[this.actual.getFilterPredicates().size()]);
 		Arrays.sort(filters, new Comparator<FilterPredicate>() {
@@ -354,7 +363,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public int count() {
-		return ofy.createEngine().queryCount(actual, this.fetchOptions());
+		return ofy.createEngine().queryCount(this.getActualForQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -362,7 +371,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> entities() {
-		return ofy.createEngine().query(actual, this.fetchOptions());
+		return ofy.createEngine().query(this.getActualForQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -380,7 +389,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	public QueryResultIterable<Key<T>> keys()
 	{
 		// Can't modify the query, we might need to use it again
-		com.google.appengine.api.datastore.Query cloned = DatastoreUtils.cloneQuery(this.actual);
+		com.google.appengine.api.datastore.Query cloned = DatastoreUtils.cloneQuery(this.getActualForQuery());
 		cloned.setKeysOnly();
 		
 		return ofy.createEngine().queryKeys(cloned, this.fetchOptions());
@@ -461,12 +470,9 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		
 		if (this.offset != 0)
 			opts = opts.offset(this.offset);
-		
-		if (this.prefetchSize != null)
-			opts = opts.prefetchSize(this.prefetchSize);
 
-		if (this.chunkSize != null)
-			opts = opts.chunkSize(this.chunkSize);
+		if (this.chunk != null)
+			opts = opts.chunkSize(this.chunk);
 
 		return opts;
 	}
