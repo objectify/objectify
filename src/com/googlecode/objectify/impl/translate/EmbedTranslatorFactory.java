@@ -161,7 +161,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			if (ind != null && unind != null)
 				throw new IllegalStateException("You cannot have @Index and @Unindex on the same class");
 			
-			final Boolean classIndexInstruction = ind != null ? true : unind != null ? false : null;
+			final Boolean classIndexInstruction = (ind != null) ? Boolean.TRUE : ((unind != null) ? Boolean.FALSE : null);
 			
 			return new MapNodeTranslator<T>(path) {
 				@Override

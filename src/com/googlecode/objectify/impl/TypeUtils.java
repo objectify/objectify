@@ -517,7 +517,7 @@ public class TypeUtils
 	@SuppressWarnings("unchecked")
 	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations) {
 		for (Annotation anno: annotations)
-			if (anno.getClass() == annotationType)
+			if (annotationType.isAssignableFrom(anno.getClass()))
 				return (A)anno;
 		
 		return null;

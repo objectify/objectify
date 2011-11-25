@@ -95,15 +95,12 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 			if (parentValue != null && this.idValue == null)
 				throw new IllegalStateException("If you filter by the @Parent field, you must also filter by the @Id field");
 			
-			
 			String kind = Key.getKind(this.classRestriction);
+			com.google.appengine.api.datastore.Key key = DatastoreUtils.createKey(parentValue, kind, idValue);
 			
-			com.google.appengine.api.datastore.Key key = (idValue instanceof String)
-					? KeyFactory.createKey(parentValue, kind, (String)idValue)
-					: KeyFactory.createKey(parentValue, kind, (Long)idValue);
-				
 			com.google.appengine.api.datastore.Query q = DatastoreUtils.cloneQuery(this.actual);
 			q.addFilter("__key__", keyOp, key);
+			
 			return q;
 		} else {
 			return this.actual;

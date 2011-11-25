@@ -53,7 +53,7 @@ public class DatastoreUtils
 		else if (id instanceof Long)
 			return KeyFactory.createKey(parent, kind, (Long)id);
 		else
-			throw new IllegalArgumentException("Id + '" + id + "' must be String or Long");
+			throw new IllegalArgumentException("Id '" + id + "' must be String or Long");
 	}
 
 	/**

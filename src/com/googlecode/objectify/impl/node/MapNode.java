@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.node;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -66,6 +67,24 @@ public class MapNode extends EntityNode
 	/** */
 	public Set<Map.Entry<String, EntityNode>> entrySet() {
 		return map().entrySet();
+	}
+	
+	/** */
+	public Collection<EntityNode> values() {
+		return map().values();
+	}
+	
+	/** */
+	public EntityNode remove(String key) {
+		return map().remove(key);
+	}
+	
+	/** Test for empty generating the least amount of garbage possible */
+	public boolean isEmpty() {
+		if (map == null)
+			return true;
+		else
+			return map.isEmpty();
 	}
 	
 	/** */

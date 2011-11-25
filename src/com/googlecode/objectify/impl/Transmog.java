@@ -12,6 +12,7 @@ import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
@@ -170,9 +171,48 @@ public class Transmog<T>
 	private Entity createEntity(MapNode root) {
 		
 		// Step one is extract the id/parent from root and create the Entity
+		com.google.appengine.api.datastore.Key parent = null;
+		if (keyMeta.hasParentField()) {
+			MapNode parentNode = (MapNode)root.remove(keyMeta.getParentFieldName());
+			parent = (com.google.appengine.api.datastore.Key)parentNode.getPropertyValue();
+		}
 		
-		// Step two is populate the entity fields
+		MapNode idNode = (MapNode)root.remove(keyMeta.getIdFieldName());
+		Object id = idNode == null ? null : idNode.getPropertyValue();
 		
-		return null;
+		Entity ent = (id == null)
+				? new Entity(keyMeta.getKind(), parent)
+				: new Entity(DatastoreUtils.createKey(parent, keyMeta.getKind(), id));
+		
+		// Step two is populate the entity fields recursively
+		populateFields(ent, root);
+		
+		return ent;
+	}
+	
+	/**
+	 * Recursively populate all the nodes onto the entity
+	 */
+	private void populateFields(Entity entity, EntityNode node) {
+		if (node instanceof ListNode) {
+			ListNode listNode = (ListNode)node;
+			for (EntityNode child: listNode) {
+				populateFields(entity, child);
+			}
+		} else {	// MapNode
+			MapNode mapNode = (MapNode)node;
+			
+			if (mapNode.hasPropertyValue())
+				if (mapNode.isPropertyIndexed())
+					entity.setProperty(mapNode.getPath().toPathString(), mapNode.getPropertyValue());
+				else
+					entity.setUnindexedProperty(mapNode.getPath().toPathString(), mapNode.getPropertyValue());
+					
+			if (!mapNode.isEmpty()) {
+				for (EntityNode child: mapNode.values()) {
+					populateFields(entity, child);
+				}
+			}
+		}
 	}
 }
