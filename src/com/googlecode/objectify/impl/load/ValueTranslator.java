@@ -10,13 +10,13 @@ import com.googlecode.objectify.impl.node.MapNode;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class AbstractValueTranslator<P, D> extends AbstractMapNodeTranslator<P>
+abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 {
 	/** */
 	Class<D> datastoreClass;
 	
 	/** */
-	public AbstractValueTranslator(Path path, Class<D> datastoreClass) {
+	public ValueTranslator(Path path, Class<D> datastoreClass) {
 		super(path);
 		this.datastoreClass = datastoreClass;
 	}

@@ -8,8 +8,8 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.SaveContext;
-import com.googlecode.objectify.impl.load.AbstractValueTranslator;
-import com.googlecode.objectify.impl.load.AbstractValueTranslatorFactory;
+import com.googlecode.objectify.impl.load.ValueTranslator;
+import com.googlecode.objectify.impl.load.ValueTranslatorFactory;
 
 /**
  * <p>This a simple strategy for storing BigDecimal in the datastore.  BigDecimalLongConverter multiplies
@@ -27,7 +27,7 @@ import com.googlecode.objectify.impl.load.AbstractValueTranslatorFactory;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BigDecimalLongTranslatorFactory extends AbstractValueTranslatorFactory<BigDecimal, Long>
+public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigDecimal, Long>
 {
 	/** Default factor is 1000, which gives you three digits of precision past the decimal point */
 	public static final long DEFAULT_FACTOR = 1000;
@@ -58,9 +58,9 @@ public class BigDecimalLongTranslatorFactory extends AbstractValueTranslatorFact
 	}
 
 	@Override
-	protected AbstractValueTranslator<BigDecimal, Long> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<BigDecimal, Long> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
 	{
-		return new AbstractValueTranslator<BigDecimal, Long>(path, Long.class) {
+		return new ValueTranslator<BigDecimal, Long>(path, Long.class) {
 			@Override
 			protected BigDecimal loadValue(Long value, LoadContext ctx) {
 				return new BigDecimal(value).divide(factor);

@@ -15,7 +15,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class NumberTranslatorFactory extends AbstractValueTranslatorFactory<Number, Object>
+public class NumberTranslatorFactory extends ValueTranslatorFactory<Number, Object>
 {
 	/** */
 	public NumberTranslatorFactory() {
@@ -23,11 +23,11 @@ public class NumberTranslatorFactory extends AbstractValueTranslatorFactory<Numb
 	}
 	
 	@Override
-	protected AbstractValueTranslator<Number, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<Number, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
 		
-		return new AbstractValueTranslator<Number, Object>(path, Object.class) {
+		return new ValueTranslator<Number, Object>(path, Object.class) {
 			@Override
 			protected Number loadValue(Object value, LoadContext ctx) {
 				if (value instanceof String) {

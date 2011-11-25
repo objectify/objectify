@@ -31,7 +31,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
 		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
 		
-		return new AbstractListNodeTranslator<Collection<?>>(path) {
+		return new ListNodeTranslator<Collection<?>>(path) {
 			@Override
 			public Collection<?> loadList(ListNode node, LoadContext ctx) {
 				@SuppressWarnings("unchecked")

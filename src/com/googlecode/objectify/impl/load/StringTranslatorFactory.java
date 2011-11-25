@@ -16,7 +16,7 @@ import com.googlecode.objectify.impl.SaveContext;
  * convenient for converting between say Number and the String representation, possibly dangerous
  * otherwise. 
  */
-public class StringTranslatorFactory extends AbstractValueTranslatorFactory<String, Object>
+public class StringTranslatorFactory extends ValueTranslatorFactory<String, Object>
 {
 	/** */
 	public StringTranslatorFactory() {
@@ -24,9 +24,9 @@ public class StringTranslatorFactory extends AbstractValueTranslatorFactory<Stri
 	}
 	
 	@Override
-	protected AbstractValueTranslator<String, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<String, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
 	{
-		return new AbstractValueTranslator<String, Object>(path, Object.class) {
+		return new ValueTranslator<String, Object>(path, Object.class) {
 			@Override
 			protected String loadValue(Object value, LoadContext ctx) {
 				if (value instanceof Text)

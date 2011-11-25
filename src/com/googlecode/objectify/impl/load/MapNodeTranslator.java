@@ -11,10 +11,10 @@ import com.googlecode.objectify.impl.node.MapNode;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class AbstractMapNodeTranslator<T> extends AbstractTranslator<T>
+abstract public class MapNodeTranslator<T> extends AbstractTranslator<T>
 {
 	/** */
-	public AbstractMapNodeTranslator(Path path) {
+	public MapNodeTranslator(Path path) {
 		super(path);
 	}
 

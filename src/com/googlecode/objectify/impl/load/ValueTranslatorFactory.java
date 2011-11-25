@@ -12,13 +12,13 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class AbstractValueTranslatorFactory<P, D> implements TranslatorFactory<P>
+abstract public class ValueTranslatorFactory<P, D> implements TranslatorFactory<P>
 {
 	/** */
 	Class<? extends P> pojoType;
 	
 	/** */
-	protected AbstractValueTranslatorFactory(Class<? extends P> pojoType) {
+	protected ValueTranslatorFactory(Class<? extends P> pojoType) {
 		this.pojoType = pojoType;
 	}
 
@@ -35,5 +35,5 @@ abstract public class AbstractValueTranslatorFactory<P, D> implements Translator
 	 * Create a translator, knowing that we have the appropriate type.  You don't need to check for type matching.
 	 * @param type is guaranteed to erase to something assignable to Class<P>
 	 */
-	abstract protected AbstractValueTranslator<P, D> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type);
+	abstract protected ValueTranslator<P, D> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type);
 }

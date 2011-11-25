@@ -16,7 +16,7 @@ import com.googlecode.objectify.impl.SaveContext;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ByteArrayTranslatorFactory extends AbstractValueTranslatorFactory<byte[], Blob>
+public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], Blob>
 {
 	private static final Class<? extends byte[]> BYTE_ARRAY_TYPE = new byte[0].getClass();
 	
@@ -25,9 +25,9 @@ public class ByteArrayTranslatorFactory extends AbstractValueTranslatorFactory<b
 	}
 	
 	@Override
-	public AbstractValueTranslator<byte[], Blob> createSafe(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public ValueTranslator<byte[], Blob> createSafe(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
 
-		return new AbstractValueTranslator<byte[], Blob>(path, Blob.class) {
+		return new ValueTranslator<byte[], Blob>(path, Blob.class) {
 			@Override
 			public byte[] loadValue(Blob value, LoadContext ctx) {
 				return value.getBytes();

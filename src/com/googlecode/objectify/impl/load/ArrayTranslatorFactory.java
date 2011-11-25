@@ -30,7 +30,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
 		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
 		
-		return new AbstractListNodeTranslator<Object>(path) {
+		return new ListNodeTranslator<Object>(path) {
 			@Override
 			public Object loadList(ListNode node, LoadContext ctx) {
 				Object array = Array.newInstance(GenericTypeReflector.erase(componentType), node.size());

@@ -45,17 +45,17 @@ public class TranslatorRegistry
 		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(ArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
-		this.translators.add(rootFactory);	// EmbedLoader
+		this.translators.add(rootFactory);	// EmbedTranslatorFactory
 		
+		// Magic inflection point at which we want to prioritize added translators
+		this.inserter = this.translators.listIterator();
+		
+		this.translators.add(fact.construct(StringTranslatorFactory.class));
 		this.translators.add(fact.construct(EnumTranslatorFactory.class));
 		this.translators.add(fact.construct(KeyTranslatorFactory.class));
 		this.translators.add(fact.construct(NumberTranslatorFactory.class));
-		this.translators.add(fact.construct(StringTranslatorFactory.class));
-		
-//		this.converters.add(fact.construct(SqlDateConverter.class));
-//		this.converters.add(fact.construct(TimeZoneConverter.class));
-		
-		this.inserter = this.translators.listIterator();
+		this.translators.add(fact.construct(SqlDateTranslatorFactory.class));
+		this.translators.add(fact.construct(TimeZoneTranslatorFactory.class));
 		
 		// LAST!  It catches everything.
 		this.translators.add(fact.construct(UnmodifiedValueTranslatorFactory.class));

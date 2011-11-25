@@ -15,7 +15,7 @@ import com.googlecode.objectify.impl.SaveContext;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class KeyTranslatorFactory extends AbstractValueTranslatorFactory<Key<?>, com.google.appengine.api.datastore.Key>
+public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.google.appengine.api.datastore.Key>
 {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public KeyTranslatorFactory() {
@@ -23,9 +23,9 @@ public class KeyTranslatorFactory extends AbstractValueTranslatorFactory<Key<?>,
 	}
 
 	@Override
-	protected AbstractValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
 	{
-		return new AbstractValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
+		return new ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
 			@Override
 			protected Key<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx) {
 				return Key.create(value);

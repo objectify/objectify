@@ -133,7 +133,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		final Boolean classIndexInstruction = ind != null ? true : unind != null ? false : null;
 		
-		return new AbstractMapNodeTranslator<T>(path) {
+		return new MapNodeTranslator<T>(path) {
 			@Override
 			public T loadMap(MapNode node, LoadContext ctx) {
 				T pojo = fact.construct(clazz);

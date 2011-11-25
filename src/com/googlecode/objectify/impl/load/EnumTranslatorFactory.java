@@ -13,7 +13,7 @@ import com.googlecode.objectify.impl.SaveContext;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EnumTranslatorFactory extends AbstractValueTranslatorFactory<Enum<?>, String> {
+public class EnumTranslatorFactory extends ValueTranslatorFactory<Enum<?>, String> {
 	
 	/** */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -22,9 +22,9 @@ public class EnumTranslatorFactory extends AbstractValueTranslatorFactory<Enum<?
 	}
 
 	@Override
-	protected AbstractValueTranslator<Enum<?>, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, final Type type)
+	protected ValueTranslator<Enum<?>, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, final Type type)
 	{
-		return new AbstractValueTranslator<Enum<?>, String>(path, String.class) {
+		return new ValueTranslator<Enum<?>, String>(path, String.class) {
 			@Override
 			@SuppressWarnings({ "unchecked", "rawtypes" })
 			public Enum<?> loadValue(String value, LoadContext ctx) {

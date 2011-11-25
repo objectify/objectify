@@ -24,7 +24,7 @@ public class UnmodifiedValueTranslatorFactory implements TranslatorFactory<Objec
 	@Override
 	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
 
-		return new AbstractValueTranslator<Object, Object>(path, Object.class) {
+		return new ValueTranslator<Object, Object>(path, Object.class) {
 			@Override
 			public Object loadValue(Object value, LoadContext ctx) {
 				return value;
