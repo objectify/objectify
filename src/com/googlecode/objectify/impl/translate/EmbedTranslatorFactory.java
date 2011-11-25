@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl.translate;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;

@@ -23,7 +23,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.conv.ConverterRegistry;
 import com.googlecode.objectify.impl.conv.ConverterSaveContext;
-import com.googlecode.objectify.impl.load.TranslatorRegistry;
+import com.googlecode.objectify.impl.translate.TranslatorRegistry;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.

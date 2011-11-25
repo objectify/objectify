@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load.opt.joda;
+package com.googlecode.objectify.impl.translate.opt.joda;
 
 import com.googlecode.objectify.ObjectifyFactory;
 

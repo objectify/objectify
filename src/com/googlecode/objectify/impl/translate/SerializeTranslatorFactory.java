@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl.translate;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;

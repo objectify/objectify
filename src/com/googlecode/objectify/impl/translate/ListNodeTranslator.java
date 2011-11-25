@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load;
+package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;

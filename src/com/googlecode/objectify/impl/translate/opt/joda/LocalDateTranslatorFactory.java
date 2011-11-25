@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.load.opt.joda;
+package com.googlecode.objectify.impl.translate.opt.joda;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -9,8 +9,8 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.SaveContext;
-import com.googlecode.objectify.impl.load.ValueTranslator;
-import com.googlecode.objectify.impl.load.ValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.ValueTranslator;
+import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 
 /**
  * Stores LocalDate as a String in ISO format:  yyyy-MM-dd 

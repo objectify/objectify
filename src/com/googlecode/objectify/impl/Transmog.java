@@ -6,10 +6,10 @@ import java.util.Map;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.load.Translator;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.Translator;
 
 /**
  * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
