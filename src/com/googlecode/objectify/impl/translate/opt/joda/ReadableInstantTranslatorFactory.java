@@ -7,11 +7,11 @@ import java.util.Date;
 
 import org.joda.time.ReadableInstant;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -29,7 +29,7 @@ public class ReadableInstantTranslatorFactory extends ValueTranslatorFactory<Rea
 	}
 
 	@Override
-	protected ValueTranslator<ReadableInstant, Date> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<ReadableInstant, Date> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
 		

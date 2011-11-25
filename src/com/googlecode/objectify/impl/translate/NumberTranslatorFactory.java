@@ -3,10 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
@@ -23,7 +20,7 @@ public class NumberTranslatorFactory extends ValueTranslatorFactory<Number, Obje
 	}
 	
 	@Override
-	protected ValueTranslator<Number, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<Number, Object> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
 		

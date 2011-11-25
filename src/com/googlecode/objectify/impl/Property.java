@@ -41,4 +41,10 @@ public interface Property
 	 * @return true if this field should be indexed, false if it should be unindexed, null is "no information, continue with defaults".
 	 */
 	Boolean getIndexInstruction(Object onPojo);
+	
+	/**
+	 * @return true if the property has @IgnoreSave with conditions; there are some cases where this
+	 *  won't work (ie in embedded collections) so we need to throw an exception at registration time.
+	 */
+	boolean hasIgnoreSaveConditions();
 }

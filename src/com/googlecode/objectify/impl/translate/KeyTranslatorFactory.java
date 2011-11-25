@@ -4,10 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 
 /**
@@ -23,7 +20,7 @@ public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
 			@Override

@@ -3,10 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 /**
  * Knows how to convert Enums to the datastore String
@@ -22,7 +19,7 @@ public class EnumTranslatorFactory extends ValueTranslatorFactory<Enum<?>, Strin
 	}
 
 	@Override
-	protected ValueTranslator<Enum<?>, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, final Type type)
+	protected ValueTranslator<Enum<?>, String> createSafe(Path path, Annotation[] fieldAnnotations, final Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<Enum<?>, String>(path, String.class) {
 			@Override

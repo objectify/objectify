@@ -76,7 +76,7 @@ public class TranslatorRegistry
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> Translator<T> createRoot(Type type) {
-		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(fact, type);
+		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(type, new CreateContext(fact));
 	}
 	
 	/**
@@ -85,9 +85,11 @@ public class TranslatorRegistry
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
 	public <T> Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type) {
+		CreateContext ctx = new CreateContext(fact);
+		
 		for (TranslatorFactory<?> trans: this.translators) {
 			@SuppressWarnings("unchecked")
-			Translator<T> soFar = (Translator<T>)trans.create(fact, path, fieldAnnotations, type);
+			Translator<T> soFar = (Translator<T>)trans.create(path, fieldAnnotations, type, ctx);
 			if (soFar != null)
 				return soFar;
 		}

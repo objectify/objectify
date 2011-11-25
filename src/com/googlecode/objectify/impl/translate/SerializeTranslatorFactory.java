@@ -9,12 +9,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Blob;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -27,7 +24,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, final CreateContext ctx) {
 
 		final Class<?> clazz = (Class<?>)GenericTypeReflector.erase(type);
 		

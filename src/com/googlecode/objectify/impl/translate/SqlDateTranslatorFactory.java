@@ -3,10 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 /**
  * The datastore can't store java.sql.Date, but it can do java.util.Date.
@@ -21,7 +18,7 @@ public class SqlDateTranslatorFactory extends ValueTranslatorFactory<java.sql.Da
 	}
 	
 	@Override
-	protected ValueTranslator<java.sql.Date, java.util.Date> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<java.sql.Date, java.util.Date> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<java.sql.Date, java.util.Date>(path, java.util.Date.class) {
 			@Override

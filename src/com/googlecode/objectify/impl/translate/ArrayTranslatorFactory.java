@@ -4,12 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
-import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -23,39 +18,33 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
 		final Class<?> arrayType = (Class<?>)GenericTypeReflector.erase(type);
 		
 		if (!arrayType.isArray())
 			return null;
-		
-		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 
-		final boolean embedded = TypeUtils.getAnnotation(Embed.class, fieldAnnotations, GenericTypeReflector.erase(componentType)) != null;
-		
-		return new ListNodeTranslator<Object>(path) {
-			@Override
-			public Object loadList(ListNode node, LoadContext ctx) {
-				Object array = Array.newInstance(GenericTypeReflector.erase(componentType), node.size());
-				
-				int index = 0;
-				for (EntityNode componentNode: node) {
-					Object value = componentTranslator.load(componentNode, ctx);
-					Array.set(array, index++, value);
+		ctx.setInCollection(true);
+		try {
+			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
+			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType);
+	
+			return new ListNodeTranslator<Object>(path) {
+				@Override
+				public Object loadList(ListNode node, LoadContext ctx) {
+					Object array = Array.newInstance(GenericTypeReflector.erase(componentType), node.size());
+					
+					int index = 0;
+					for (EntityNode componentNode: node) {
+						Object value = componentTranslator.load(componentNode, ctx);
+						Array.set(array, index++, value);
+					}
+	
+					return array;
 				}
-
-				return array;
-			}
-			
-			@Override
-			protected ListNode saveList(Object pojo, boolean index, SaveContext ctx) {
-				// We need to be careful to note when we are in embedded collections, because some features work
-				// differently (or not at all).  In particular, String->Text conversion.
-				if (embedded)
-					ctx.setInEmbeddedCollection(true);
-
-				try {
+				
+				@Override
+				protected ListNode saveList(Object pojo, boolean index, SaveContext ctx) {
 					ListNode node = new ListNode(path);
 					int len = Array.getLength(pojo);
 					for (int i=0; i<len; i++) {
@@ -64,12 +53,11 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 						node.add(addNode);
 					}
 					return node;
-					
-				} finally {
-					if (embedded)
-						ctx.setInEmbeddedCollection(false);
 				}
-			}
-		};
+			};
+		}
+		finally {
+			ctx.setInCollection(false);
+		}
 	}
 }

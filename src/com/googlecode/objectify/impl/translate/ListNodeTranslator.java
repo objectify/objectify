@@ -1,8 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;

@@ -9,10 +9,8 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.MapNode;
@@ -100,15 +98,15 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 	 * Create a class loader for a root entity by making it work just like an embedded class.  Fakes
 	 * the @Embed annotation as a fieldAnnotation. 
 	 */
-	public Translator<T> createRoot(ObjectifyFactory fact, Type type) {
-		return create(fact, Path.root(), HasEmbed.class.getAnnotations(), type);
+	public Translator<T> createRoot(Type type, CreateContext ctx) {
+		return create(Path.root(), HasEmbed.class.getAnnotations(), type, ctx);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.load.LoaderFactory#create(com.googlecode.objectify.ObjectifyFactory, java.lang.reflect.Type, java.lang.annotation.Annotation[])
 	 */
 	@Override
-	public Translator<T> create(final ObjectifyFactory fact, final Path path, final Annotation[] fieldAnnotations, final Type type)
+	public Translator<T> create(final Path path, final Annotation[] fieldAnnotations, final Type type, CreateContext ctx)
 	{
 		@SuppressWarnings("unchecked")
 		final Class<T> clazz = (Class<T>)GenericTypeReflector.erase(type);
@@ -117,46 +115,57 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations) == null && clazz.getAnnotation(Embed.class) == null)
 			return null;
 		
-		final List<EachProperty> fieldLoaders = new ArrayList<EachProperty>();
-		
-		for (Property loadable: TypeUtils.getProperties(clazz)) {
-			Path loaderPath = path.extend(loadable.getName());
-			Translator<?> loader = fact.getTranslators().create(loaderPath, loadable.getAnnotations(), loadable.getType());
-			fieldLoaders.add(new EachProperty(loadable, loader));
-		}
-		
-		// If there is an index/unindex instruction on the class, it should override any default
-		Index ind = clazz.getAnnotation(Index.class);
-		Unindex unind = clazz.getAnnotation(Unindex.class);
-		if (ind != null && unind != null)
-			throw new IllegalStateException("You cannot have @Index and @Unindex on the same class");
-		
-		final Boolean classIndexInstruction = ind != null ? true : unind != null ? false : null;
-		
-		return new MapNodeTranslator<T>(path) {
-			@Override
-			protected T loadMap(MapNode node, LoadContext ctx) {
-				T pojo = fact.construct(clazz);
+		ctx.setInEmbed(true);
+		try {
+			final ObjectifyFactory fact = ctx.getFactory();
+			
+			final List<EachProperty> fieldLoaders = new ArrayList<EachProperty>();
+			
+			for (Property prop: TypeUtils.getProperties(clazz)) {
+				Path propPath = path.extend(prop.getName());
+				Translator<?> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType());
+				fieldLoaders.add(new EachProperty(prop, loader));
 				
-				for (EachProperty fieldLoader: fieldLoaders)
-					fieldLoader.executeLoad(node, pojo, ctx);
-				
-				return pojo;
-			}
-
-			@Override
-			protected MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
-				MapNode node = new MapNode(path);
-				
-				if (classIndexInstruction != null)
-					index = classIndexInstruction;
-				
-				for (EachProperty fieldLoader: fieldLoaders)
-					fieldLoader.executeSave(pojo, node, index, ctx);
-				
-				return node;
+				// Sanity check here
+				if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
+					propPath.throwIllegalState("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
 			}
 			
-		};
+			// If there is an index/unindex instruction on the class, it should override any default
+			Index ind = clazz.getAnnotation(Index.class);
+			Unindex unind = clazz.getAnnotation(Unindex.class);
+			if (ind != null && unind != null)
+				throw new IllegalStateException("You cannot have @Index and @Unindex on the same class");
+			
+			final Boolean classIndexInstruction = ind != null ? true : unind != null ? false : null;
+			
+			return new MapNodeTranslator<T>(path) {
+				@Override
+				protected T loadMap(MapNode node, LoadContext ctx) {
+					T pojo = fact.construct(clazz);
+					
+					for (EachProperty fieldLoader: fieldLoaders)
+						fieldLoader.executeLoad(node, pojo, ctx);
+					
+					return pojo;
+				}
+	
+				@Override
+				protected MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
+					MapNode node = new MapNode(path);
+					
+					if (classIndexInstruction != null)
+						index = classIndexInstruction;
+					
+					for (EachProperty fieldLoader: fieldLoaders)
+						fieldLoader.executeSave(pojo, node, index, ctx);
+					
+					return node;
+				}
+			};
+		}
+		finally {
+			ctx.setInEmbed(false);
+		}
 	}
 }

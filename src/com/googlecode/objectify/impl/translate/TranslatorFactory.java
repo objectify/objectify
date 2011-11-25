@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -25,5 +24,5 @@ public interface TranslatorFactory<T>
 	 * @param path current path to this part of the tree, important for logging and exceptions
 	 * @return null if this factory does not know how to deal with that situation. 
 	 */
-	Translator<T> create(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type);
+	Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx);
 }

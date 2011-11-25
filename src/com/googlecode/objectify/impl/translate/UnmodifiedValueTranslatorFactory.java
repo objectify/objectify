@@ -3,10 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 
 /**
@@ -22,7 +19,7 @@ import com.googlecode.objectify.impl.SaveContext;
 public class UnmodifiedValueTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, final CreateContext ctx) {
 
 		return new ValueTranslator<Object, Object>(path, Object.class) {
 			@Override

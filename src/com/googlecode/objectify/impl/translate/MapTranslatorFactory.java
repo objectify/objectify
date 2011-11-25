@@ -5,9 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -26,7 +24,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 {
 	@Override
-	public Translator<Map<String, ?>> create(final ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type) {
+	public Translator<Map<String, ?>> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Map<String, ?>> mapType = (Class<? extends Map<String, ?>>)GenericTypeReflector.erase(type);
 		
@@ -36,6 +34,8 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 		Type keyType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[0]);
 		if (keyType != String.class)
 			return null;
+		
+		final ObjectifyFactory fact = ctx.getFactory();
 		
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[1]);
 		

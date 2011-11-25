@@ -5,10 +5,10 @@ import java.lang.reflect.Type;
 
 import org.joda.money.Money;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
+import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 
@@ -26,7 +26,7 @@ public class MoneyStringTranslatorFactory extends ValueTranslatorFactory<Money, 
 	}
 	
 	@Override
-	protected ValueTranslator<Money, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<Money, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<Money, String>(path, String.class) {
 			@Override

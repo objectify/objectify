@@ -4,10 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.TimeZone;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 
 /**
@@ -22,7 +19,7 @@ public class TimeZoneTranslatorFactory extends ValueTranslatorFactory<TimeZone, 
 	}
 	
 	@Override
-	protected ValueTranslator<TimeZone, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<TimeZone, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<TimeZone, String>(path, String.class) {
 			@Override

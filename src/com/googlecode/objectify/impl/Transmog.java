@@ -9,6 +9,8 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
 /**

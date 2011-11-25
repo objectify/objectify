@@ -90,4 +90,9 @@ public class MethodProperty implements Property
 		throw new UnsupportedOperationException("This should never have been called!");
 	}
 
+	/** Never saved, so never has conditions */
+	@Override
+	public boolean hasIgnoreSaveConditions() {
+		return false;
+	}
 }

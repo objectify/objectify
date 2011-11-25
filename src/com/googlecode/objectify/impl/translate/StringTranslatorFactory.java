@@ -4,10 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
 
 
 /**
@@ -24,8 +21,10 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 	}
 	
 	@Override
-	protected ValueTranslator<String, Object> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<String, Object> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
+		final boolean disallowConversion = ctx.isInCollection() && ctx.isInEmbed();
+				
 		return new ValueTranslator<String, Object>(path, Object.class) {
 			@Override
 			protected String loadValue(Object value, LoadContext ctx) {
@@ -39,7 +38,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 			protected Object saveValue(String value, SaveContext ctx) {
 				// Check to see if it's too long and needs to be Text instead
 				if (value.length() > 500) {
-					if (ctx.isInEmbeddedCollection())
+					if (disallowConversion)
 						path.throwIllegalState("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embed collections." +
 								"  Use Text for the field type instead." +
 								"  You tried to save: " + value);

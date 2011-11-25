@@ -5,10 +5,10 @@ import java.lang.reflect.Type;
 
 import org.joda.time.LocalDate;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.SaveContext;
+import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 
@@ -24,7 +24,7 @@ public class LocalDateTranslatorFactory extends ValueTranslatorFactory<LocalDate
 	}
 
 	@Override
-	protected ValueTranslator<LocalDate, String> createSafe(ObjectifyFactory fact, Path path, Annotation[] fieldAnnotations, Type type)
+	protected ValueTranslator<LocalDate, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<LocalDate, String>(path, String.class) {
 			@Override

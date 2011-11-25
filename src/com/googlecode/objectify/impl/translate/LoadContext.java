@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl;
+package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
