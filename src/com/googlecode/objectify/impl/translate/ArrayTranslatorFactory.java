@@ -30,7 +30,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 			return null;
 		
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
+		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 
 		final boolean embedded = TypeUtils.getAnnotation(Embed.class, fieldAnnotations, GenericTypeReflector.erase(componentType)) != null;
 		

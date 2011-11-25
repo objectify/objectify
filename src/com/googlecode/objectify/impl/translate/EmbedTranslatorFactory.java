@@ -121,7 +121,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		for (Property loadable: TypeUtils.getProperties(clazz)) {
 			Path loaderPath = path.extend(loadable.getName());
-			Translator<?> loader = fact.getLoaders().create(loaderPath, loadable.getAnnotations(), loadable.getType());
+			Translator<?> loader = fact.getTranslators().create(loaderPath, loadable.getAnnotations(), loadable.getType());
 			fieldLoaders.add(new EachProperty(loadable, loader));
 		}
 		

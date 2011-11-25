@@ -64,7 +64,7 @@ public class Transmog<T>
 	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
 	{
 		this.keyMeta = meta.getKeyMetadata();
-		this.rootTranslator = fact.getLoaders().createRoot(meta.getEntityClass());
+		this.rootTranslator = fact.getTranslators().createRoot(meta.getEntityClass());
 	}
 	
 	/**

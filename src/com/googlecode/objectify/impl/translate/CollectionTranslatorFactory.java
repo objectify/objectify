@@ -31,7 +31,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			return null;
 		
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
-		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
+		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 		
 		final boolean embedded = TypeUtils.getAnnotation(Embed.class, fieldAnnotations, GenericTypeReflector.erase(componentType)) != null;
 		

@@ -21,8 +21,6 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.impl.conv.ConverterRegistry;
-import com.googlecode.objectify.impl.conv.ConverterSaveContext;
 import com.googlecode.objectify.impl.translate.TranslatorRegistry;
 
 /**
@@ -57,11 +55,8 @@ public class ObjectifyFactory
 	/** Encapsulates entity registration info */
 	protected Registrar registrar = new Registrar(this);
 	
-	/** All the various converters */
-	protected ConverterRegistry conversions = new ConverterRegistry(this);
-	
 	/** All the various loaders */
-	protected TranslatorRegistry loaders = new TranslatorRegistry(this);
+	protected TranslatorRegistry translators = new TranslatorRegistry(this);
 	
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -359,16 +354,9 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * @return the repository of Converter objects
+	 * @return the repository of Translator objects
 	 */
-	public ConverterRegistry getConversions() {
-		return this.conversions;
-	}
-
-	/**
-	 * @return the repository of Loader objects
-	 */
-	public TranslatorRegistry getLoaders() {
-		return this.loaders;
+	public TranslatorRegistry getTranslators() {
+		return this.translators;
 	}
 }
