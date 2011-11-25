@@ -45,5 +45,5 @@ abstract public class MapNodeTranslator<T> extends AbstractTranslator<T>
 	/**
 	 * Implement this, returning a MapNode
 	 */
-	abstract public MapNode saveMap(T pojo, boolean index, SaveContext ctx);
+	abstract protected MapNode saveMap(T pojo, boolean index, SaveContext ctx);
 }

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.node;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.googlecode.objectify.impl.Path;
 
@@ -51,6 +52,11 @@ public class MapNode extends EntityNode
 	/** */
 	public boolean containsKey(String key) {
 		return map().containsKey(key);
+	}
+	
+	/** */
+	public Set<Map.Entry<String, EntityNode>> entrySet() {
+		return map().entrySet();
 	}
 	
 	/** */

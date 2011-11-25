@@ -45,7 +45,7 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	 * @see com.googlecode.objectify.impl.load.MapNodeTranslator#saveMap(java.lang.Object, boolean, com.googlecode.objectify.impl.SaveContext)
 	 */
 	@Override
-	final public MapNode saveMap(P pojo, boolean index, SaveContext ctx) {
+	final protected MapNode saveMap(P pojo, boolean index, SaveContext ctx) {
 		MapNode node = new MapNode(path);
 		D translated = saveValue(pojo, ctx);
 		

@@ -45,6 +45,7 @@ public class TranslatorRegistry
 		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(ArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
+		this.translators.add(fact.construct(MapTranslatorFactory.class));
 		this.translators.add(rootFactory);	// EmbedTranslatorFactory
 		
 		// Magic inflection point at which we want to prioritize added translators

@@ -135,7 +135,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		return new MapNodeTranslator<T>(path) {
 			@Override
-			public T loadMap(MapNode node, LoadContext ctx) {
+			protected T loadMap(MapNode node, LoadContext ctx) {
 				T pojo = fact.construct(clazz);
 				
 				for (EachProperty fieldLoader: fieldLoaders)
@@ -145,7 +145,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			}
 
 			@Override
-			public MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
+			protected MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
 				MapNode node = new MapNode(path);
 				
 				if (classIndexInstruction != null)

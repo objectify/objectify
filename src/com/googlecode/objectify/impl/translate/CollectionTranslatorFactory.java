@@ -16,7 +16,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
 /**
- * <p>Loader which can load things into a collection field.  Might be embedded items, might not.</p>
+ * <p>Translator which can load things into a collection field.  Might be embedded items, might not.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

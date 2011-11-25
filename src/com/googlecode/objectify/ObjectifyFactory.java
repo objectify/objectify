@@ -3,10 +3,14 @@ package com.googlecode.objectify;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.SortedSet;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
@@ -90,6 +94,24 @@ public class ObjectifyFactory
 			return (T)new TreeSet<Object>();
 		else if (type == List.class)
 			return (T)new ArrayList<Object>(size);
+		else
+			return construct(type);
+	}
+	
+	/**
+	 * <p>Construct a map of the specified type for use on a POJO field.  You can override this with Guice or whatnot.</p>
+	 * 
+	 * <p>The default is to call construct(Class), with one twist - if a Map or SortedMap List interface is presented,
+	 * Objectify will construct a HashMap or TreeMap (respectively).  If you override this method with
+	 * dependency injection and you use uninitialized fields of these interface types in your entity pojos, you will
+	 * need to bind these interfaces to concrete types.</p>
+	 */
+	@SuppressWarnings("unchecked")
+	public <T extends Map<?, ?>> T constructMap(Class<T> type) {
+		if (type == Map.class)
+			return (T)new HashMap<Object, Object>();
+		else if (type == SortedMap.class)
+			return (T)new TreeMap<Object, Object>();
 		else
 			return construct(type);
 	}

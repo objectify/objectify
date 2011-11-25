@@ -22,11 +22,6 @@ public class ListNode extends EntityNode implements Iterable<EntityNode>
 	}
 	
 	/** */
-	public ListNode(EntityNode parent, Path path) {
-		super(parent, path);
-	}
-	
-	/** */
 	public int size() {
 		return list().size();
 	}
@@ -38,7 +33,7 @@ public class ListNode extends EntityNode implements Iterable<EntityNode>
 	
 	/** */
 	public MapNode add() {
-		MapNode node = new MapNode(this, path);
+		MapNode node = new MapNode(path);
 		list().add(node);
 		return node;
 	}
