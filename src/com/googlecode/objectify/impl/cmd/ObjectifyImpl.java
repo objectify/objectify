@@ -1,7 +1,10 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -18,8 +21,14 @@ import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.engine.GetEngine;
+import com.googlecode.objectify.impl.node.EntityNode;
+import com.googlecode.objectify.impl.node.ListNode;
+import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.Translator;
 
 /**
  * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
@@ -237,5 +246,46 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	public Engine createEngine() {
 		return new Engine(this, createAsyncDatastoreService(), session);
+	}
+
+	/**
+	 * <p>Translates the value of a filter clause into something the datastore understands.  Key<?> goes to native Key,
+	 * entities go to native Key, java.sql.Date goes to java.util.Date, etc.  It uses the same translation system
+	 * that is used for standard entity fields, but does no checking to see if the value is appropriate for the field.</p>
+	 * 
+	 * <p>Unrecognized types are returned as-is.</p>
+	 * 
+	 * <p>A future version of this method might check for type validity.</p>
+	 * 
+	 * @return whatever can be put into a filter clause.
+	 */
+	public Object makeFilterable(Object value) {
+		if (value == null)
+			return null;
+
+		SaveContext ctx = new SaveContext(this);
+		
+		Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass());
+		EntityNode node = translator.save(value, false, ctx);
+		if (node instanceof ListNode) {
+			// ugh, we need to destructure the contents
+			ListNode listNode = (ListNode)node;
+			List<Object> fresh = new ArrayList<Object>(listNode.size());
+			
+			for (EntityNode childNode: listNode)
+				fresh.add(getFilterableValue((MapNode)childNode, value));
+			
+			return fresh;
+		} else {
+			return getFilterableValue((MapNode)node, value);
+		}
+	}
+
+	/** Extracts a filterable value from the node, or throws an illegalstate exception */
+	private Object getFilterableValue(MapNode node, Object originalValue) {
+		if (!node.hasPropertyValue())
+			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
+		
+		return node.getPropertyValue();
 	}
 }

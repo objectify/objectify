@@ -145,7 +145,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys
-		value = ofy.getFactory().makeFilterable(value);
+		value = ofy.makeFilterable(value);
 		
 		this.actual.addFilter(prop, op, value);
 	}

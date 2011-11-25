@@ -13,13 +13,22 @@ public class MapNode extends EntityNode
 	/** */
 	Map<String, EntityNode> map;
 	
+	/** Because null is a legitimate value, we need to know if there is really a property value here */
+	boolean hasProp;
+	public boolean hasPropertyValue() { return this.hasProp; }
+	
 	/**
 	 * A property value could appear at any point in the entity tree.  This is because we might attach
 	 * denormalized data for the value at some point, and that data will likely be in a map underneath.
 	 */
 	Object propertyValue;
 	public Object getPropertyValue() { return this.propertyValue; }
-	public void setPropertyValue(Object value) { this.propertyValue = value; }
+	
+	/** */
+	public void setPropertyValue(Object value) {
+		this.propertyValue = value;
+		this.hasProp = true;
+	}
 
 	/** */
 	public void setPropertyValue(Object value, boolean index) {

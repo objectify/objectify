@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -279,31 +278,6 @@ public class ObjectifyFactory
 		return result;
 	}
 
-	/** This is used just for makeFilterable() */
-	private static final ConverterSaveContext NO_CONTEXT = new ConverterSaveContext() {
-		@Override public boolean isInEmbeddedCollection() { return false; }
-		@Override public Field getField() { return null; }
-	};
-	
-	/**
-	 * Translate Key<?> or Entity objects into something that can be used in a filter clause.
-	 * Anything unknown (including null) is simply returned as-is and we hope that the filter works.
-	 * 
-	 * @return whatever can be put into a filter clause.
-	 */
-	public Object makeFilterable(Object keyOrEntityOrOther) {
-		if (keyOrEntityOrOther == null)
-			return null;
-
-		// Very important that we use the class rather than the Kind; many unregistered
-		// classes would otherwise collide with real kinds eg User vs User.
-		EntityMetadata<?> meta = this.registrar.getMetadata(keyOrEntityOrOther.getClass());
-		if (meta == null)
-			return this.getConversions().create(null, ctx, keyOrEntityOrOther.getClass()).toDatastore(keyOrEntityOrOther, NO_CONTEXT);
-		else
-			return meta.getKeyMetadata().getRawKey(keyOrEntityOrOther);
-	}
-	
 	/**
 	 * Allocates a single id from the allocator for the specified kind.  Safe to use in concert
 	 * with the automatic generator.  This is just a convenience method for allocateIds().
