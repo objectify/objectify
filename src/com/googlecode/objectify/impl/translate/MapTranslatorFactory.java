@@ -5,11 +5,9 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.SaveContext;
-import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -19,6 +17,9 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * <p>Translator which manages an expando-style Map.  The key must be String, which becomes a normal path
  * element in the entity.  The value can be anything that goes into a Collection; a basic type, an embedded
  * type, a reference, etc.  Pretty much the same attribute rules apply as apply to Collections.</p>
+ * 
+ * <p>However, Maps are not list structures, so you don't have the same restriction on embedding; you
+ * can put maps inside of maps and lists inside of maps.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -40,8 +41,6 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 		
 		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 		
-		final boolean embedded = TypeUtils.getAnnotation(Embed.class, fieldAnnotations, GenericTypeReflector.erase(componentType)) != null;
-		
 		return new MapNodeTranslator<Map<String, ?>>(path) {
 			@Override
 			protected Map<String, ?> loadMap(MapNode node, LoadContext ctx) {
@@ -58,26 +57,17 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, ?>>
 
 			@Override
 			protected MapNode saveMap(Map<String, ?> pojo, boolean index, SaveContext ctx) {
-				// We need to be careful to note when we are in embedded collections, because some features work
-				// differently (or not at all).  In particular, String->Text conversion.
-				if (embedded)
-					ctx.setInEmbeddedCollection(true);
-
-				try {
-					MapNode node = new MapNode(path);
+				// Note that maps are not like embedded collections; they don't form a list structure so you can embed
+				// as many of these as you want.
+				MapNode node = new MapNode(path);
+				
+				for (Map.Entry<String, ?> entry: pojo.entrySet()) {
 					
-					for (Map.Entry<String, ?> entry: pojo.entrySet()) {
-						
-						EntityNode child = componentTranslator.save(entry.getValue(), index, ctx);
-						node.put(entry.getKey(), child);
-					}
-					
-					return node;
-					
-				} finally {
-					if (embedded)
-						ctx.setInEmbeddedCollection(false);
+					EntityNode child = componentTranslator.save(entry.getValue(), index, ctx);
+					node.put(entry.getKey(), child);
 				}
+				
+				return node;
 			}
 		};
 	}
