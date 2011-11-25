@@ -44,24 +44,6 @@ public class AlsoLoadMoreTests extends TestBase
 		}
 	}
 	
-	/** Should not be registerable */
-	@Entity
-	static class ConflictingFields
-	{
-		@Id Long id;
-		String foo;
-		@AlsoLoad("foo") String bar;
-	}
-	
-	/** Should not be registerable */
-	@Entity
-	static class ConflictingMethods
-	{
-		@Id Long id;
-		public void set1(@AlsoLoad("foo") String foo1) {}
-		public void set2(@AlsoLoad("foo") String foo2) {}
-	}
-	
 	/**
 	 * Add an entry to the database that should never come back from null queries.
 	 */
@@ -88,24 +70,5 @@ public class AlsoLoadMoreTests extends TestBase
 		
 		assert fetched.foo == null;
 		assert fetched.bar.equals(TEST_VALUE);
-	}
-	
-	/** */
-	@Test
-	public void testNotRegisterable() throws Exception
-	{
-		try
-		{
-			this.fact.register(ConflictingFields.class);
-			assert false;
-		}
-		catch (IllegalStateException ex) {}
-		
-		try
-		{
-			this.fact.register(ConflictingMethods.class);
-			assert false;
-		}
-		catch (IllegalStateException ex) {}
 	}
 }
