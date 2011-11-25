@@ -65,7 +65,7 @@ public class IndexingPartialTests extends TestBase
 	static class IfComplicated extends PojoIf<IndexedOnOtherField>
 	{
 		@Override
-		public boolean matches(IndexedOnOtherField pojo)
+		public boolean matchesPojo(IndexedOnOtherField pojo)
 		{
 			return pojo.indexBar;
 		}

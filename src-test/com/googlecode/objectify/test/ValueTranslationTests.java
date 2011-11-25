@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.TimeZone;
@@ -17,12 +19,13 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.conv.BigDecimalLongConverter;
-import com.googlecode.objectify.impl.conv.Converter;
-import com.googlecode.objectify.impl.conv.ConverterCreateContext;
-import com.googlecode.objectify.impl.conv.ConverterLoadContext;
-import com.googlecode.objectify.impl.conv.ConverterSaveContext;
-import com.googlecode.objectify.impl.conv.SimpleConverterFactory;
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.ValueTranslator;
+import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -33,11 +36,11 @@ import com.googlecode.objectify.test.util.TestObjectify;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ConversionTests extends TestBase
+public class ValueTranslationTests extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(ConversionTests.class.getName());
+	private static Logger log = Logger.getLogger(ValueTranslationTests.class.getName());
 	
 	/** Used for some of the tests here */
 	@com.googlecode.objectify.annotation.Entity
@@ -223,19 +226,18 @@ public class ConversionTests extends TestBase
 		}
 		catch (IllegalArgumentException ex) {}
 		
-		this.fact.getConversions().add(new SimpleConverterFactory<BigDecimal, String>(BigDecimal.class) {
+		this.fact.getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
-			protected Converter<BigDecimal, String> create(Class<?> type, ConverterCreateContext ctx) {
-				return new Converter<BigDecimal, String>() {
-
+			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+				return new ValueTranslator<BigDecimal, String>(path, String.class) {
 					@Override
-					public String toDatastore(BigDecimal value, ConverterSaveContext ctx) {
-						return value.toString();
+					protected BigDecimal loadValue(String value, LoadContext ctx) {
+						return new BigDecimal(value);
 					}
 
 					@Override
-					public BigDecimal toPojo(String value, ConverterLoadContext ctx) {
-						return new BigDecimal(value);
+					protected String saveValue(BigDecimal value, SaveContext ctx) {
+						return value.toString();
 					}
 				};
 			}
@@ -254,7 +256,7 @@ public class ConversionTests extends TestBase
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 		
-		this.fact.getConversions().add(new BigDecimalLongConverter());
+		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
 		
 		HasBigDecimal fetched = this.putAndGet(hbd);
 		assert hbd.data.equals(fetched.data);
