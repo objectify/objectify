@@ -39,7 +39,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 			protected Object saveValue(String value, SaveContext ctx) {
 				// Check to see if it's too long and needs to be Text instead
 				if (value.length() > 500) {
-					if (ctx.inEmbeddedCollection())
+					if (ctx.isInEmbeddedCollection())
 						path.throwIllegalState("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embed collections." +
 								"  Use Text for the field type instead." +
 								"  You tried to save: " + value);

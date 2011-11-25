@@ -5,9 +5,11 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.SaveContext;
+import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -29,6 +31,8 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
 		final Translator<Object> componentTranslator = fact.getLoaders().create(path, fieldAnnotations, componentType);
+
+		final boolean embedded = TypeUtils.getAnnotation(Embed.class, fieldAnnotations, GenericTypeReflector.erase(componentType)) != null;
 		
 		return new ListNodeTranslator<Object>(path) {
 			@Override
@@ -46,14 +50,25 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 			
 			@Override
 			protected ListNode saveList(Object pojo, boolean index, SaveContext ctx) {
-				ListNode node = new ListNode(path);
-				int len = Array.getLength(pojo);
-				for (int i=0; i<len; i++) {
-					Object value = Array.get(pojo, i);
-					EntityNode addNode = componentTranslator.save(value, index, ctx);
-					node.add(addNode);
+				// We need to be careful to note when we are in embedded collections, because some features work
+				// differently (or not at all).  In particular, String->Text conversion.
+				if (embedded)
+					ctx.setInEmbeddedCollection(true);
+
+				try {
+					ListNode node = new ListNode(path);
+					int len = Array.getLength(pojo);
+					for (int i=0; i<len; i++) {
+						Object value = Array.get(pojo, i);
+						EntityNode addNode = componentTranslator.save(value, index, ctx);
+						node.add(addNode);
+					}
+					return node;
+					
+				} finally {
+					if (embedded)
+						ctx.setInEmbeddedCollection(false);
 				}
-				return null;
 			}
 		};
 	}

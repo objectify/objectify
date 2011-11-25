@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl.load;
 
+import com.google.appengine.api.datastore.Blob;
+import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.LoadContext;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.SaveContext;
@@ -46,6 +48,11 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	final public MapNode saveMap(P pojo, boolean index, SaveContext ctx) {
 		MapNode node = new MapNode(path);
 		D translated = saveValue(pojo, ctx);
+		
+		// A quick sanity check - some things we cannot index!
+		if (index && (translated instanceof Blob || translated instanceof Text))
+			path.throwIllegalState("Request to index a value that cannot be indexed: " + translated);
+		
 		node.setPropertyValue(translated, index);
 		
 		return node;

@@ -264,7 +264,7 @@ public class ObjectifyFactory
 
 	/** This is used just for makeFilterable() */
 	private static final ConverterSaveContext NO_CONTEXT = new ConverterSaveContext() {
-		@Override public boolean inEmbeddedCollection() { return false; }
+		@Override public boolean isInEmbeddedCollection() { return false; }
 		@Override public Field getField() { return null; }
 	};
 	

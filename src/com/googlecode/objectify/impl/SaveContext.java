@@ -13,12 +13,12 @@ public class SaveContext
 	Objectify ofy;
 	public Objectify getObjectify() { return this.ofy; }
 	
-	boolean inEmbeddedCollection;   todo implement this
-	public boolean inEmbeddedCollection() { return inEmbeddedCollection; }
+	boolean inEmbeddedCollection;
+	public boolean isInEmbeddedCollection() { return inEmbeddedCollection; }
+	public void setInEmbeddedCollection(boolean value) { this.inEmbeddedCollection = value; }
 	
 	/** */
-	public SaveContext(Objectify ofy)
-	{
+	public SaveContext(Objectify ofy) {
 		this.ofy = ofy;
 	}
 }
