@@ -116,19 +116,49 @@ public class FieldProperty implements Property
 	/** */
 	@Override
 	public boolean isSaved(Object onPojo) {
-		return false;
+		return !this.matches(onPojo, ignoreSaveConditions);
 	}
 
 	/** */
 	@Override
 	public Boolean getIndexInstruction(Object onPojo) {
-		return null;  //todo
+		if (this.matches(onPojo, indexConditions))
+			return true;
+		else if (this.matches(onPojo, unindexConditions))
+			return false;
+		else
+			return null;
 	}
 	
 	/** */
 	@Override
 	public boolean hasIgnoreSaveConditions() {
 		return hasIgnoreSaveConditions;
+	}
+	
+	/**
+	 * Tests whether a set of conditions match.
+	 * @param conditions can be null; this always matches false
+	 * @return true if we match the conditions, false if we do not 
+	 */
+	private boolean matches(Object onPojo, If<?, ?>[] conditions) {
+		if (conditions == null)
+			return false;
+		
+		Object value = this.get(onPojo);
+		
+		for (int i=0; i<conditions.length; i++) {
+			@SuppressWarnings("unchecked")
+			If<Object, Object> cond = (If<Object, Object>)conditions[i];
+			
+			if (cond.matchesValue(value))
+				return true;
+			
+			if (cond.matchesPojo(onPojo))
+				return true;
+		}
+
+		return false;
 	}
 
 	/** */
