@@ -6,8 +6,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -16,7 +14,6 @@ import java.util.Map;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Ignore;
-
 
 /**
  */
@@ -40,16 +37,13 @@ public class TypeUtils
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */
-	public static <T> Constructor<T> getNoArgConstructor(Class<T> clazz)
-	{
-		try
-		{
+	public static <T> Constructor<T> getNoArgConstructor(Class<T> clazz) {
+		try {
 			Constructor<T> ctor = clazz.getDeclaredConstructor(new Class[0]);
 			ctor.setAccessible(true);
 			return ctor;
 		}
-		catch (NoSuchMethodException e)
-		{
+		catch (NoSuchMethodException e) {
 			// lame there is no way to tell if the class is a nonstatic inner class
 			if (clazz.isMemberClass() || clazz.isAnonymousClass() || clazz.isLocalClass())
 				throw new IllegalStateException(clazz.getName() + " must be static and must have a no-arg constructor", e);
@@ -62,16 +56,13 @@ public class TypeUtils
 	 * Gets a constructor that has the specified types of arguments.
 	 * Throw an IllegalStateException if the class does not have such a constructor.
 	 */
-	public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args)
-	{
-		try
-		{
+	public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args) {
+		try {
 			Constructor<T> ctor = clazz.getDeclaredConstructor(args);
 			ctor.setAccessible(true);
 			return ctor;
 		}
-		catch (NoSuchMethodException e)
-		{
+		catch (NoSuchMethodException e) {
 			throw new IllegalStateException(clazz.getName() + " has no constructor with args " + Arrays.toString(args), e);
 		}
 	}
@@ -79,8 +70,7 @@ public class TypeUtils
 	/**
 	 * Determine if we should create a Property for the field.  Things we ignore:  static, final, @Ignore, synthetic
 	 */
-	public static boolean isOfInterest(Field field)
-	{
+	public static boolean isOfInterest(Field field) {
 		return !field.isAnnotationPresent(Ignore.class)
 			&& ((field.getModifiers() & NOT_SAVEABLE_MODIFIERS) == 0)
 			&& !field.isSynthetic();
@@ -89,58 +79,15 @@ public class TypeUtils
 	/**
 	 * Determine if we should create a Property for the method (ie, @AlsoLoad)
 	 */
-	public static boolean isOfInterest(Method method)
-	{
+	public static boolean isOfInterest(Method method) {
 		for (Annotation[] annos: method.getParameterAnnotations())
 			if (getAnnotation(AlsoLoad.class, annos) != null)
 				return true;
 		
 		return false;
 	}
-
-	/**
-	 * Returns the value type, i.e. the argument {@code T} for a generic {@code Map<String, T>}.
-	 */
-	public static Class<?> getMapValueType(Type genericType)
-	{
-		if (genericType instanceof ParameterizedType)
-		{
-			Type[] actualTypeArguments = ((ParameterizedType) genericType).getActualTypeArguments();
-			if (actualTypeArguments.length != 2)
-			{
-				throw new IllegalStateException("Cannot handle subclass of Map with two type arguments");
-			}
-			Type keyType = actualTypeArguments[0];
-			Type valueType = actualTypeArguments[1];
-			if (!String.class.equals(keyType))
-			{
-				throw new IllegalStateException("Map key type must be string");
-			}
-			if (valueType instanceof Class)
-			{
-				return (Class<?>) valueType;
-			}
-			else if (valueType instanceof ParameterizedType)
-			{
-				return (Class<?>) ((ParameterizedType) valueType).getRawType();
-			}
-		}
-		throw new IllegalStateException("unexpected Map type " + genericType);
-	}
-
-	/**
-	 * Extend a property path, adding a '.' separator but also checking
-	 * for the first element.
-	 */
-	public static String extendPropertyPath(String prefix, String name)
-	{
-		if (prefix == null || prefix.length() == 0)
-			return name;
-		else
-			return prefix + '.' + name;
-	}
 	
-	/** Checked exceptions are LAME. */
+	/** Checked exceptions are LAME. By the way, don't use this since it causes security exceptions on private classes */
 	public static <T> T newInstance(Class<T> clazz) {
 		try {
 			return clazz.newInstance();
