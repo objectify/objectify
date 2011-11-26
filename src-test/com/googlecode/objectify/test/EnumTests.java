@@ -14,6 +14,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.EnumTests.HasEnums.Color;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -32,6 +33,7 @@ public class EnumTests extends TestBase
 	/** */
 	@Entity
 	@Cache
+	@Index
 	public static class HasEnums
 	{
 		public enum Color {

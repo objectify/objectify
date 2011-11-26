@@ -201,11 +201,12 @@ public class CollectionTests extends TestBase
 		hc.integerList = new ArrayList<Integer>();
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
+		ofy.clear();
 		hc = ofy.load().entity(key).get();
 
 		System.out.println(ds().get(fact.getRawKey(hc)));
 
-		// This isn't valid with the caching objectify turned on
+		// This wouldn't be valid if we didn't clear the session
 		assert hc.integerList == null;
 
 		Entity e = ds().get(fact.getRawKey(key));

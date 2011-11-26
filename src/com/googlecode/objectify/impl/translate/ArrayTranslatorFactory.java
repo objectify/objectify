@@ -15,6 +15,12 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 /**
  * <p>Translator which can load an array of things.</p>
  * 
+ * <p>Note that empty or null arrays are not stored in the datastore, and null values for the array
+ * field are ignored when they are loaded from the Entity.  This is because the datastore doesn't store empty
+ * collections, and storing null fields will confuse filtering for actual nulls in the array contents.</p>
+ * 
+ * @see CollectionTranslatorFactory
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ArrayTranslatorFactory implements TranslatorFactory<Object>

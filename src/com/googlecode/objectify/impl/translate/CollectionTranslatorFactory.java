@@ -14,6 +14,10 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 /**
  * <p>Translator which can load things into a collection field.  Might be embedded items, might not.</p>
  * 
+ * <p>Note that empty or null collections are not stored in the datastore, and null values for the collection
+ * field are ignored when they are loaded from the Entity.  This is because the datastore doesn't store empty
+ * collections, and storing null fields will confuse filtering for actual nulls in the collection contents.</p>
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>>
