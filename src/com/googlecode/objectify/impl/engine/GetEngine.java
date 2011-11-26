@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
@@ -25,6 +27,9 @@ import com.googlecode.objectify.util.ResultWrapper;
  */
 public class GetEngine extends Engine
 {
+	/** */
+	private static final Logger log = Logger.getLogger(GetEngine.class.getName());
+	
 	/** Fetch groups that we are after */
 	Set<String> groups;
 	
@@ -43,6 +48,9 @@ public class GetEngine extends Engine
 	 */
 	public <E, K extends E> Map<Key<K>, E> get(final Iterable<com.google.appengine.api.datastore.Key> keys) {
 		
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Getting " + keys);
+		
 		final List<com.google.appengine.api.datastore.Key> needFetching = new ArrayList<com.google.appengine.api.datastore.Key>();
 		Map<Key<K>, E> foundInCache = new LinkedHashMap<Key<K>, E>();
 		
@@ -54,21 +62,25 @@ public class GetEngine extends Engine
 			else if (obj != NEGATIVE_RESULT)
 				foundInCache.put(Key.<K>create(key), obj);
 		}
-
+		
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Session contained " + foundInCache.keySet());
+		
 		if (needFetching.isEmpty()) {
 			// We can just use the foundInCache as-is
 			return foundInCache;
 		} else {
-			Result<Map<Key<K>, E>> fromDatastore = this.getInternal(needFetching);
+			Result<Map<com.google.appengine.api.datastore.Key, E>> fromDatastore = this.getInternal(needFetching);
 
 			// Needs to add in the cached values, creating a map with the proper order
-			Result<Map<Key<K>, E>> together = new ResultWrapper<Map<Key<K>, E>, Map<Key<K>, E>>(fromDatastore) {
+			Result<Map<Key<K>, E>> together = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, E>, Map<Key<K>, E>>(fromDatastore) {
 				@Override
-				protected Map<Key<K>, E> wrap(Map<Key<K>, E> orig) {
+				protected Map<Key<K>, E> wrap(Map<com.google.appengine.api.datastore.Key, E> orig) {
 					Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>();
 					
 					for (com.google.appengine.api.datastore.Key key: keys) {
 						
+						// Instead of using the foundInCache collection (which has the wrong key), we'll use the session again
 						@SuppressWarnings("unchecked")
 						E pojo = (E)session.get(key);
 						
@@ -97,7 +109,10 @@ public class GetEngine extends Engine
 	/**
 	 * Performs the datastore get for actual data, no session cache
 	 */
-	public <E, K extends E> Result<Map<Key<K>, E>> getInternal(final Iterable<com.google.appengine.api.datastore.Key> rawKeys) {
+	public <E> Result<Map<com.google.appengine.api.datastore.Key, E>> getInternal(final Iterable<com.google.appengine.api.datastore.Key> rawKeys) {
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Getting session misses: " + rawKeys);
+		
 		// First step is to figure out what keys we are really going to fetch.  The list might expand if we @Load parents.
 		for (com.google.appengine.api.datastore.Key key: rawKeys)
 			need(key);
@@ -105,17 +120,20 @@ public class GetEngine extends Engine
 		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxn(), rawKeys);
 		Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
 		
-		return new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<K>, E>>(adapted) {
+		return new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<com.google.appengine.api.datastore.Key, E>>(adapted) {
 			@Override
-			protected Map<Key<K>, E> wrap(Map<com.google.appengine.api.datastore.Key, Entity> base) {
-				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
+			protected Map<com.google.appengine.api.datastore.Key, E> wrap(Map<com.google.appengine.api.datastore.Key, Entity> base) {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Retreived: " + base.keySet());
+				
+				Map<com.google.appengine.api.datastore.Key, E> result = new LinkedHashMap<com.google.appengine.api.datastore.Key, E>(base.size() * 2);
 				
 				// We preserve the order of the original keys
 				for (com.google.appengine.api.datastore.Key rawKey: rawKeys) {
 					Entity entity = base.get(rawKey);
 					if (entity != null) {
 						EntityMetadata<E> metadata = ofy.getFactory().getMetadata(rawKey);
-						result.put(Key.<K>create(rawKey), (E)metadata.load(entity, ofy));
+						result.put(rawKey, (E)metadata.load(entity, ofy));
 					}
 				}
 				

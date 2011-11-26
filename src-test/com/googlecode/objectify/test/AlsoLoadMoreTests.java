@@ -13,6 +13,7 @@ import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -36,7 +37,7 @@ public class AlsoLoadMoreTests extends TestBase
 	static class MethodOverridesField
 	{
 		@Id Long id;
-		String foo;
+		@IgnoreLoad String foo;
 		String bar;
 		public void set(@AlsoLoad("foo") String overrides)
 		{

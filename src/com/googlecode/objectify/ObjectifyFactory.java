@@ -1,5 +1,6 @@
 package com.googlecode.objectify;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -73,7 +74,9 @@ public class ObjectifyFactory
 	 * dependency injection mechanisms.  By default it constructs with a simple no-args constructor.</p>
 	 */
 	public <T> T construct(Class<T> type) {
-		return TypeUtils.newInstance(type);
+		// We do this instead of calling newInstance directly because this lets us work around accessiblity
+		Constructor<T> ctor = TypeUtils.getNoArgConstructor(type);
+		return TypeUtils.newInstance(ctor, new Object[0]);
 	}
 
 	/**
