@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -39,7 +39,7 @@ public class FieldProperty implements Property
 		this.field = field;
 		this.annotations = field.getAnnotations();
 		
-		Set<String> nameSet = new HashSet<String>();
+		Set<String> nameSet = new LinkedHashSet<String>();
 		nameSet.add(field.getName());
 		
 		// Now any additional names, either @AlsoLoad or the deprecated @OldName

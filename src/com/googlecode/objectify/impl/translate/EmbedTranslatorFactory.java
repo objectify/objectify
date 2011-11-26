@@ -116,7 +116,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				if (child != null && child2 != null)
 					throw new IllegalStateException("Collision trying to load field; multiple name matches at " + parent.getPath());
 				
-				child = child2;
+				if (child2 != null)
+					child = child2;
 			}
 			
 			return child;
@@ -148,12 +149,12 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		try {
 			final ObjectifyFactory fact = ctx.getFactory();
 			
-			final List<EachProperty> fieldLoaders = new ArrayList<EachProperty>();
+			final List<EachProperty> props = new ArrayList<EachProperty>();
 			
 			for (Property prop: TypeUtils.getProperties(clazz)) {
 				Path propPath = path.extend(prop.getName());
 				Translator<?> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType());
-				fieldLoaders.add(new EachProperty(prop, loader));
+				props.add(new EachProperty(prop, loader));
 				
 				// Sanity check here
 				if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
@@ -173,8 +174,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				protected T loadMap(MapNode node, LoadContext ctx) {
 					T pojo = fact.construct(clazz);
 					
-					for (EachProperty fieldLoader: fieldLoaders)
-						fieldLoader.executeLoad(node, pojo, ctx);
+					for (EachProperty prop: props)
+						prop.executeLoad(node, pojo, ctx);
 					
 					return pojo;
 				}
@@ -186,8 +187,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 					if (classIndexInstruction != null)
 						index = classIndexInstruction;
 					
-					for (EachProperty fieldLoader: fieldLoaders)
-						fieldLoader.executeSave(pojo, node, index, ctx);
+					for (EachProperty prop: props)
+						prop.executeSave(pojo, node, index, ctx);
 					
 					return node;
 				}
