@@ -5,7 +5,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -15,6 +14,7 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /** 
  * Property which encapsulates a simple field. 
@@ -174,16 +174,21 @@ public class FieldProperty implements Property
 			Class<? extends If<?, ?>> ifClass = ifClasses[i];
 			result[i] = this.createIf(ifClass, examinedClass);
 
-			// Sanity check the generic If class types to ensure that they matches the actual types of the field & entity.
-			List<Class<?>> typeArguments = TypeUtils.getTypeArguments(If.class, ifClass);
+			// Sanity check the generic If class types to ensure that they match the actual types of the field & entity.
 			
-			if (!TypeUtils.isAssignableFrom(typeArguments.get(0), field.getType()))
-				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
-						+ " because you cannot assign " + field.getType().getName() + " to " + typeArguments.get(0).getName());
+			Type valueType = GenericTypeReflector.getTypeParameter(ifClass, If.class.getTypeParameters()[0]);
+			Class<?> valueClass = GenericTypeReflector.erase(valueType);
 			
-			if (!TypeUtils.isAssignableFrom(typeArguments.get(1), examinedClass))
+			Type pojoType = GenericTypeReflector.getTypeParameter(ifClass, If.class.getTypeParameters()[1]);
+			Class<?> pojoClass = GenericTypeReflector.erase(pojoType);
+			
+			if (!TypeUtils.isAssignableFrom(valueClass, field.getType()))
 				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
-						+ " because the containing class " + examinedClass.getName() + " is not compatible with " + typeArguments.get(1).getName());
+						+ " because you cannot assign " + field.getType().getName() + " to " + valueClass.getName());
+			
+			if (!TypeUtils.isAssignableFrom(pojoClass, examinedClass))
+				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
+						+ " because the containing class " + examinedClass.getName() + " is not compatible with " + pojoClass.getName());
 		}
 		
 		return result;

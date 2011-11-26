@@ -55,6 +55,9 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			final ObjectifyFactory fact = ctx.getFactory();
 			
 			Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
+			if (componentType == null)	// if it was a raw type, just assume Object
+				componentType = Object.class;
+			
 			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
 			
 			return new CollectionListNodeTranslator<Object>(path) {
