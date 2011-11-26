@@ -120,6 +120,24 @@ public class MapNode extends EntityNode
 	/** */
 	@Override
 	public String toString() {
-		return map().toString();
+		StringBuilder bld = new StringBuilder();
+		
+		if (hasPropertyValue())
+			bld.append('\'').append(getPropertyValue()).append('\'');
+		
+		if (hasPropertyValue() && !isEmpty())
+			bld.append('+');
+		
+		if (!isEmpty())
+			bld.append(map().toString());
+		
+		return bld.toString();
 	}
+	
+	/** Get child assuming it is a map node */
+	public MapNode getMap(String key) {
+		return (MapNode)map().get(key);
+	}
+	
+
 }

@@ -1,11 +1,14 @@
 package com.googlecode.objectify.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TranslateException;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
@@ -78,13 +81,19 @@ public class Transmog<T>
 	 */
 	public T load(Entity fromEntity, Objectify ofy)
 	{
-		EntityNode root = createNode(fromEntity);
-		
-		LoadContext context = new LoadContext(fromEntity, ofy);
-		
-		T pojo = rootTranslator.load(root, context);
-		
-		return pojo;
+		try {
+			EntityNode root = createNode(fromEntity);
+			T pojo = load(root, new LoadContext(fromEntity, ofy));
+			return pojo;
+		}
+		catch (Exception ex) {
+			throw new TranslateException(fromEntity.getKey(), ex.getMessage(), ex);
+		}
+	}
+	
+	/** Public just for testing */
+	public T load(EntityNode root, LoadContext ctx) throws TranslateException {
+		return rootTranslator.load(root, ctx);
 	}
 	
 	/**
@@ -95,24 +104,30 @@ public class Transmog<T>
 	 */
 	public Entity save(T fromPojo, Objectify ofy)
 	{
-		SaveContext context = new SaveContext(ofy);
-		
+		try {
+			MapNode root = save(fromPojo, new SaveContext(ofy));
+			Entity entity = createEntity(root);
+			return entity;
+		}
+		catch (Exception ex) {
+			throw new TranslateException(keyMeta.getRawKey(fromPojo), ex.getMessage(), ex);
+		}
+	}
+	
+	/** Public just for testing */
+	public MapNode save(T fromPojo, SaveContext ctx) {
 		// Default index state is false!
-		MapNode root = (MapNode)rootTranslator.save(fromPojo, false, context);
-		
-		Entity entity = createEntity(root);
-		
-		return entity;
+		return (MapNode)rootTranslator.save(fromPojo, false, ctx);
 	}
 
 	/**
 	 * Break down the Entity into a series of nested EntityNodes
 	 * which reflect the x.y.z paths.  The root EntityNode will also contain the key
-	 * fields and values.
+	 * fields and values.  Public only so we can test.
 	 * 
 	 * @return a root EntityNode corresponding to the Entity
 	 */
-	private MapNode createNode(Entity fromEntity) {
+	public MapNode createNode(Entity fromEntity) {
 		MapNode root = new MapNode(Path.root());
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
@@ -165,10 +180,11 @@ public class Transmog<T>
 	
 	/**
 	 * Reconstitute an Entity from a broken down series of nested EntityNodes.
+	 * Public only so we can test.
 	 * 
 	 * @return an Entity with the propery key set
 	 */
-	private Entity createEntity(MapNode root) {
+	public Entity createEntity(MapNode root) {
 		
 		// Step one is extract the id/parent from root and create the Entity
 		com.google.appengine.api.datastore.Key parent = null;
@@ -196,9 +212,23 @@ public class Transmog<T>
 	private void populateFields(Entity entity, EntityNode node) {
 		if (node instanceof ListNode) {
 			ListNode listNode = (ListNode)node;
+			List<Object> things = new ArrayList<Object>(listNode.size());
+			boolean index = false;
+			
 			for (EntityNode child: listNode) {
-				populateFields(entity, child);
+				MapNode map = (MapNode)child;
+				if (!map.hasPropertyValue())
+					map.getPath().throwIllegalState("Expected property value, got " + map);
+				
+				things.add(map.getPropertyValue());
+				index = map.isPropertyIndexed();
 			}
+			
+			if (index)
+				entity.setProperty(listNode.getPath().toPathString(), things);
+			else
+				entity.setUnindexedProperty(listNode.getPath().toPathString(), things);
+			
 		} else {	// MapNode
 			MapNode mapNode = (MapNode)node;
 			

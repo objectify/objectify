@@ -184,8 +184,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#getEntityClass()
 	 */
 	@Override
-	public Class<T> getEntityClass()
-	{
+	public Class<T> getEntityClass() {
 		return this.entityClass;
 	}
 
@@ -193,9 +192,12 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#getKeyMetadata()
 	 */
 	@Override
-	public KeyMetadata<T> getKeyMetadata()
-	{
+	public KeyMetadata<T> getKeyMetadata() {
 		return this.keyMetadata;
 	}
 
+	/** Just for testing purposes; not part of the EntityMetadata interface */
+	public Transmog<T> getTransmog() {
+		return this.transmog;
+	}
 }

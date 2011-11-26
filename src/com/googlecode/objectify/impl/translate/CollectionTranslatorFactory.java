@@ -73,10 +73,17 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 				@Override
 				protected ListNode saveList(Collection<Object> pojo, boolean index, SaveContext ctx) {
 					ListNode node = new ListNode(path);
-					
-					for (Object obj: pojo) {
-						EntityNode child = componentTranslator.save(obj, index, ctx);
-						node.add(child);
+
+					// If the collection is null, make an empty list.  This is important because of the way filtering works;
+					// if we stored a null then the field would match when filtering for null (same as a null in the list).
+					// Also, storing a null would forcibly assign null to the collection field on load, screwing things up
+					// if the developer decided to initialize the collection in the default constructor later.  I'm not
+					// certain this is the right decision but it seems safest.
+					if (pojo != null) {
+						for (Object obj: pojo) {
+							EntityNode child = componentTranslator.save(obj, index, ctx);
+							node.add(child);
+						}
 					}
 					
 					return node;

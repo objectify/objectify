@@ -60,11 +60,11 @@ public class Path
 
 	/** Convenient way to include path location in the exception message.  Never returns. */
 	public Object throwIllegalState(String message) {
-		throw new IllegalStateException("Error at " + this + ": " + message);
+		throw new IllegalStateException(this + ": " + message);
 	}
 
 	/** Convenient way to include path location in the exception message.  Never returns. */
 	public Object throwIllegalState(String message, Throwable cause) {
-		throw new IllegalStateException("Error at " + this + ": " + message, cause);
+		throw new IllegalStateException(this + ": " + message, cause);
 	}
 }

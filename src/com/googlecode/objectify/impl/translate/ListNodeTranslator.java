@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
-import com.googlecode.objectify.impl.node.MapNode;
 
 /**
  * <p>Helper which expects a ListNode in the data structure and throws an exception if a MapNode is found.</p>
@@ -22,7 +21,7 @@ abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
 	 */
 	@Override
 	final public T load(EntityNode node, LoadContext ctx) {
-		if (!(node instanceof MapNode))
+		if (!(node instanceof ListNode))
 			path.throwIllegalState("Expected a list structure but found " + node);
 		
 		return this.loadList((ListNode)node, ctx);

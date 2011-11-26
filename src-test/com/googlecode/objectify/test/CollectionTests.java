@@ -63,6 +63,7 @@ public class CollectionTests extends TestBase
 		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
+		ofy.clear();
 		hc = ofy.load().entity(key).get();
 
 		assertContains123(hc.integerList, ArrayList.class);

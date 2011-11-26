@@ -201,7 +201,7 @@ public class ObjectifyFactory
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<? extends T> getMetadata(Class<T> clazz) {
+	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) {
 		EntityMetadata<T> metadata = this.registrar.getMetadata(clazz);
 		if (metadata == null)
 			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
