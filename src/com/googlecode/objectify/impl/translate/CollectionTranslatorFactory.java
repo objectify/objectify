@@ -63,8 +63,13 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 						collection.clear();
 					
 					for (EntityNode child: node) {
-						Object value = componentTranslator.load(child, ctx);
-						collection.add(value);
+						try {
+							Object value = componentTranslator.load(child, ctx);
+							collection.add(value);
+						}
+						catch (SkipException ex) {
+							// No prob, just skip that one
+						}
 					}
 	
 					return collection;
@@ -72,17 +77,29 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 	
 				@Override
 				protected ListNode saveList(Collection<Object> pojo, boolean index, SaveContext ctx) {
-					ListNode node = new ListNode(path);
-
-					// If the collection is null, make an empty list.  This is important because of the way filtering works;
+					
+					// If the collection is null, just skip it.  This is important because of the way filtering works;
 					// if we stored a null then the field would match when filtering for null (same as a null in the list).
 					// Also, storing a null would forcibly assign null to the collection field on load, screwing things up
-					// if the developer decided to initialize the collection in the default constructor later.  I'm not
-					// certain this is the right decision but it seems safest.
+					// if the developer decided to later initialize the collection in the default constructor.
+					if (pojo == null)
+						throw new SkipException();
+					
+					// If it's empty, might as well skip it - the datastore doesn't store empty lists
+					if (pojo.isEmpty())
+						throw new SkipException();
+					
+					ListNode node = new ListNode(path);
+
 					if (pojo != null) {
 						for (Object obj: pojo) {
-							EntityNode child = componentTranslator.save(obj, index, ctx);
-							node.add(child);
+							try {
+								EntityNode child = componentTranslator.save(obj, index, ctx);
+								node.add(child);
+							}
+							catch (SkipException ex) {
+								// Just skip that node, no prob
+							}
 						}
 					}
 					

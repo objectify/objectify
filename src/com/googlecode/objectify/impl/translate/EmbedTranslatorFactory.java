@@ -53,26 +53,27 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			// We only execute if there is a real node.  Note that even a null value in the data will have a real
 			// MapNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
 			if (actual != null) {
-				
-				// We have a couple special cases - for collection/map fields we would like to preserve the original
-				// instance, if one exists.  It might have been initialized with custom comparators, etc.
-				Object value;
-				if (translator instanceof CollectionListNodeTranslator && actual instanceof ListNode)
-				{
-					Collection coll = (Collection)this.property.get(onPojo);
-					value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((ListNode)actual, ctx, coll);
+				try {
+					// We have a couple special cases - for collection/map fields we would like to preserve the original
+					// instance, if one exists.  It might have been initialized with custom comparators, etc.
+					Object value;
+					if (translator instanceof CollectionListNodeTranslator && actual instanceof ListNode) {
+						Collection coll = (Collection)this.property.get(onPojo);
+						value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((ListNode)actual, ctx, coll);
+					}
+					else if (translator instanceof MapMapNodeTranslator && actual instanceof MapNode) {
+						Map map = (Map)this.property.get(onPojo);
+						value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((MapNode)actual, ctx, map);
+					}
+					else {
+						value = translator.load(actual, ctx);
+					}
+					
+					property.set(onPojo, value);
 				}
-				else if (translator instanceof MapMapNodeTranslator && actual instanceof MapNode) 
-				{
-					Map map = (Map)this.property.get(onPojo);
-					value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((MapNode)actual, ctx, map);
+				catch (SkipException ex) {
+					// No prob, skip this one
 				}
-				else
-				{
-					value = translator.load(actual, ctx);
-				}
-				
-				property.set(onPojo, value);
 			}
 		}
 		
@@ -90,9 +91,13 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 					index = propertyIndexInstruction;
 				
 				Object value = property.get(onPojo);
-				
-				EntityNode child = translator.save(value, index, ctx);
-				node.put(property.getName(), child);
+				try {
+					EntityNode child = translator.save(value, index, ctx);
+					node.put(property.getName(), child);
+				}
+				catch (SkipException ex) {
+					// No problem, do nothing
+				}
 			}
 		}
 		

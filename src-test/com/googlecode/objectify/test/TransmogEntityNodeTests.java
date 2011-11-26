@@ -81,21 +81,21 @@ public class TransmogEntityNodeTests extends TestBase
 	
 	/** */
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasSimpleCollection {
+	public static class HasSimpleList {
 		@Id long id;
 		List<String> stuff = new ArrayList<String>();
 	}
 	
 	/** */
 	@Test
-	public void testSimpleCollection() throws Exception
+	public void testSimpleList() throws Exception
 	{
-		fact.register(HasSimpleCollection.class);
+		fact.register(HasSimpleList.class);
 		
-		Transmog<HasSimpleCollection> transmog = getTransmog(HasSimpleCollection.class);
+		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
 		Objectify ofy = fact.begin();
 		
-		HasSimpleCollection pojo = new HasSimpleCollection();
+		HasSimpleList pojo = new HasSimpleList();
 		pojo.id = 123L;
 		pojo.stuff.add("foo");
 		pojo.stuff.add("bar");
@@ -134,10 +134,141 @@ public class TransmogEntityNodeTests extends TestBase
 		assert stuffNode.size() == 2;
 		
 		// Go back to a solid object
-		HasSimpleCollection pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
 		
 		assert pojo.id == pojo2.id;
 		assert pojo.stuff.equals(pojo2.stuff);
+	}
+
+	/** */
+	@Test
+	public void testSimpleListEmpty() throws Exception
+	{
+		fact.register(HasSimpleList.class);
+		
+		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
+		Objectify ofy = fact.begin();
+		
+		HasSimpleList pojo = new HasSimpleList();
+		pojo.id = 123L;
+		
+		// Check the tree structure
+		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Check the entity structure
+		Entity entity = transmog.createEntity(rootNode);
+		
+		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
+		assert entity.getKey().getParent() == null;
+		assert entity.getKey().getId() == pojo.id;
+		assert entity.getProperties().size() == 0;
+		
+		// Go back to the tree structure and run the same tests as before
+		rootNode = transmog.createNode(entity);
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Go back to a solid object
+		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		
+		assert pojo2.id == pojo.id;
+		assert pojo2.stuff.isEmpty(); 
+	}
+	
+	/** */
+	@Test
+	public void testSimpleListExplicitlySetNull() throws Exception
+	{
+		fact.register(HasSimpleList.class);
+		
+		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
+		Objectify ofy = fact.begin();
+		
+		HasSimpleList pojo = new HasSimpleList();
+		pojo.id = 123L;
+		pojo.stuff = null;	// explicitly null it out
+		
+		// Check the tree structure
+		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Check the entity structure
+		Entity entity = transmog.createEntity(rootNode);
+		
+		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
+		assert entity.getKey().getParent() == null;
+		assert entity.getKey().getId() == pojo.id;
+		assert entity.getProperties().size() == 0;
+		
+		// Go back to the tree structure and run the same tests as before
+		rootNode = transmog.createNode(entity);
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Go back to a solid object
+		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		
+		assert pojo2.id == pojo.id;
+		assert pojo2.stuff.isEmpty(); 
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasSimpleListUninitialized {
+		@Id long id;
+		List<String> stuff;
+	}
+	
+	/** */
+	@Test
+	public void testSimpleListUninitialized() throws Exception
+	{
+		fact.register(HasSimpleListUninitialized.class);
+		
+		Transmog<HasSimpleListUninitialized> transmog = getTransmog(HasSimpleListUninitialized.class);
+		Objectify ofy = fact.begin();
+		
+		HasSimpleListUninitialized pojo = new HasSimpleListUninitialized();
+		pojo.id = 123L;
+		
+		// Check the tree structure
+		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Check the entity structure
+		Entity entity = transmog.createEntity(rootNode);
+		
+		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
+		assert entity.getKey().getParent() == null;
+		assert entity.getKey().getId() == pojo.id;
+		assert entity.getProperties().size() == 0;
+		
+		// Go back to the tree structure and run the same tests as before
+		rootNode = transmog.createNode(entity);
+		
+		assert !rootNode.hasPropertyValue();
+		assertChildValue(rootNode, "id", pojo.id);
+		assert rootNode.entrySet().size() == 1;
+		
+		// Go back to a solid object
+		HasSimpleListUninitialized pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		
+		assert pojo2.id == pojo.id;
+		assert pojo2.stuff == null; 
 	}
 
 	/** Assert child is a propertynode with exactly the content specified, no other children */

@@ -61,15 +61,19 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	
 	/**
 	 * Decode from a property value as stored in the datastore to a type that will be stored in a pojo.
-	 * @param value will not be null
-	 * @return the format which should be stored in the pojo
+	 * @param value will not be null, that has already been tested for
+	 * @return the format which should be stored in the pojo; a null means store a literal null!
+	 * @throws SkipException if this field subtree should be skipped
 	 */
-	abstract protected P loadValue(D value, LoadContext ctx);
+	abstract protected P loadValue(D value, LoadContext ctx) throws SkipException;
 	
 	/**
-	 * Encode from a normal pojo value to a format that the datastore understands
-	 * @param value will not be null
-	 * @return the format which should be stored in the pojo
+	 * Encode from a normal pojo value to a format that the datastore understands.  Note that a null return value
+	 * is a literal instruction to store a null.
+	 * 
+	 * @param value will not be null, that has already been tested for
+	 * @return the format which should be stored in the datastore; null means actually store a null!
+	 * @throws SkipException if this subtree should be skipped
 	 */
-	abstract protected D saveValue(P value, SaveContext ctx);
+	abstract protected D saveValue(P value, SaveContext ctx) throws SkipException;
 }
