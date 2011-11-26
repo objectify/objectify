@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
@@ -40,7 +41,10 @@ public class FieldProperty implements Property
 		this.annotations = field.getAnnotations();
 		
 		Set<String> nameSet = new LinkedHashSet<String>();
-		nameSet.add(field.getName());
+		
+		// If we have @IgnoreLoad, don't add to the AllNames collection (which is used for loading)
+		if (field.getAnnotation(IgnoreLoad.class) == null)
+			nameSet.add(field.getName());
 		
 		// Now any additional names, either @AlsoLoad or the deprecated @OldName
 		AlsoLoad alsoLoad = field.getAnnotation(AlsoLoad.class);
@@ -83,7 +87,7 @@ public class FieldProperty implements Property
 	
 	/** */
 	@Override
-	public String[] getAllNames() { return names; }
+	public String[] getLoadNames() { return names; }
 	
 	/** */
 	@Override

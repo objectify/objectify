@@ -51,7 +51,7 @@ public class MethodProperty implements Property
 	public String getName() { return method.getName() + "()"; }
 	
 	@Override
-	public String[] getAllNames() { return names; }
+	public String[] getLoadNames() { return names; }
 	
 	@Override
 	public Type getType() { return this.method.getGenericParameterTypes()[0]; }

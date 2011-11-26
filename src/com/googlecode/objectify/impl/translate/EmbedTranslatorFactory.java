@@ -48,7 +48,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		/** Executes loading this value from the node and setting it on the field */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public void executeLoad(MapNode node, Object onPojo, LoadContext ctx) {
-			EntityNode actual = getChild(node, property.getAllNames());
+			EntityNode actual = getChild(node, property.getLoadNames());
 			
 			// We only execute if there is a real node.  Note that even a null value in the data will have a real
 			// MapNode with a propertyValue of null, so this is a legitimate test for data in the source Entity

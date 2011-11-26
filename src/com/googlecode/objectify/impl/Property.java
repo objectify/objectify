@@ -12,8 +12,8 @@ public interface Property
 	/** Get the primary name associated with this property */
 	String getName();
 	
-	/** Get all the names associated with this property (ie, due to @AlsoLoad). Includes the primary name. */
-	String[] getAllNames();
+	/** Get all the names associated with this property (ie, due to @AlsoLoad). Includes the primary name unless it is @IgnoreLoad. */
+	String[] getLoadNames();
 	
 	/** Get all the annotations associated with this property; ie on the field or the parameter */
 	Annotation[] getAnnotations();
@@ -31,7 +31,7 @@ public interface Property
 	 * @return true if this field should be saved, false if not
 	 */
 	boolean isSaved(Object onPojo);
-
+	
 	/**
 	 * Gets the index instruction for this property, if there is one.  Properties do not necessarily have a
 	 * specific index or unindex instruction, and even if they do, the instruction might be conditional.
