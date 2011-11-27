@@ -1,5 +1,7 @@
 package com.googlecode.objectify.condition;
 
+import com.googlecode.objectify.ObjectifyFactory;
+
 /**
  * <p>A simple interface that defines a condition test for a field value or whole
  * entity.  For example, you could have a class that tests against null values called IfNull.
@@ -8,8 +10,12 @@ package com.googlecode.objectify.condition;
  * <p>The matching engine will call both methods; if either return true the condition
  * is considered true.</p>
  * 
- * <p>All concrete instances of this interface must have either a no-arg constructor
- * or a constructor that takes {@code Class<?>, Field} parameters.</p>
+ * <p>All implementations of this interface will be created with {@code ObjectifyFactory.construct()}.
+ * If the implementation also implements the {@code InitializeIf} interface, the {@code init()} method
+ * will be called immediately after construction.</p>
+ * 
+ * @see InitializeIf
+ * @see ObjectifyFactory#construct(Class)
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

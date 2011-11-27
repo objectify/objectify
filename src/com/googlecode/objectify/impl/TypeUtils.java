@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Ignore;
 
@@ -130,22 +131,22 @@ public class TypeUtils
 	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
 	 *  and returned in order starting with superclass fields.
 	 */
-	public static List<Property> getProperties(Class<?> clazz) {
+	public static List<Property> getProperties(ObjectifyFactory fact, Class<?> clazz) {
 		List<Property> good = new ArrayList<Property>();
-		getProperties(clazz, good);
+		getProperties(fact, clazz, good, clazz);
 		return good;
 	}
 
 	/** Recursive implementation of getProperties() */
-	private static void getProperties(Class<?> clazz, List<Property> good) {
+	private static void getProperties(ObjectifyFactory fact, Class<?> clazz, List<Property> good, Class<?> topClass) {
 		if (clazz == null || clazz == Object.class)
 			return;
 		
-		getProperties(clazz.getSuperclass(), good);
+		getProperties(fact, clazz.getSuperclass(), good, topClass);
 		
 		for (Field field: clazz.getDeclaredFields())
 			if (isOfInterest(field))
-				good.add(new FieldProperty(field));
+				good.add(new FieldProperty(fact, topClass, field));
 		
 		for (Method method: clazz.getDeclaredMethods())
 			if (isOfInterest(method))
