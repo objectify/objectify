@@ -59,7 +59,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[1]);
 		
-		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
+		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 		
 		return new MapMapNodeTranslator<Object>(path) {
 			@Override

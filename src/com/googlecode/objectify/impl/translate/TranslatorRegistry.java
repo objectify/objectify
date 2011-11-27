@@ -93,11 +93,10 @@ public class TranslatorRegistry
 	/**
 	 * Goes through our list of known translators and returns the first one that succeeds
 	 * @param path is the path to this type, used for logging and debugging
+	 * @param ctx is the context we pass down from the root
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
-	public <T> Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type) {
-		CreateContext ctx = new CreateContext(fact);
-		
+	public <T> Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
 		for (TranslatorFactory<?> trans: this.translators) {
 			@SuppressWarnings("unchecked")
 			Translator<T> soFar = (Translator<T>)trans.create(path, fieldAnnotations, type, ctx);

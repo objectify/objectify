@@ -58,7 +58,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			if (componentType == null)	// if it was a raw type, just assume Object
 				componentType = Object.class;
 			
-			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType);
+			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 			
 			return new CollectionListNodeTranslator<Object>(path) {
 				@Override

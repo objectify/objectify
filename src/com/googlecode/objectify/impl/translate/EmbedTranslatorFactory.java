@@ -162,7 +162,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			
 			for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 				Path propPath = path.extend(prop.getName());
-				Translator<?> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType());
+				Translator<?> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType(), ctx);
 				props.add(new EachProperty(prop, loader));
 				
 				// Sanity check here

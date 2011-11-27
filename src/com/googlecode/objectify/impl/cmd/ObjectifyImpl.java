@@ -27,6 +27,7 @@ import com.googlecode.objectify.impl.engine.GetEngine;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
@@ -263,10 +264,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		if (value == null)
 			return null;
 
-		SaveContext ctx = new SaveContext(this);
-		
-		Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass());
-		EntityNode node = translator.save(value, false, ctx);
+		Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
+		EntityNode node = translator.save(value, false, new SaveContext(this));
 		if (node instanceof ListNode) {
 			// ugh, we need to destructure the contents
 			ListNode listNode = (ListNode)node;

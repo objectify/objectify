@@ -35,7 +35,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		ctx.setInCollection(true);
 		try {
 			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType);
+			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType, ctx);
 	
 			return new ListNodeTranslator<Object>(path) {
 				@Override
