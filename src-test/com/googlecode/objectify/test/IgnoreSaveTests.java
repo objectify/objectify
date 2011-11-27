@@ -143,24 +143,31 @@ public class IgnoreSaveTests extends TestBase
 	
 	/** */
 	@Test
-	public void testNotRegisterable() throws Exception
+	public void testBadFieldTypeNotRegisterable() throws Exception
 	{
-		try
-		{
+		try {
 			this.fact.register(BadFieldType.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
-		
-		try
-		{
+	}
+	
+	/** */
+	@Test
+	public void testDeeperBadFieldTypeNotRegisterable() throws Exception
+	{
+		try {
 			this.fact.register(DeeperBadFieldType.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
-		
-		try
-		{
+	}
+	
+	/** */
+	@Test
+	public void testEmbeddedCollectionWithUnsavedNotRegisterable() throws Exception
+	{
+		try {
 			this.fact.register(EmbeddedCollectionWithUnsaved.class);
 			assert false;
 		}
