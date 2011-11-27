@@ -33,7 +33,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 			return null;
 		
 		// Sanity check so we don't have @Serialize and @Embed
-		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations, clazz) == null)
+		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations, clazz) != null)
 			path.throwIllegalState("You cannot both @Serialize and @Embed; check the field and the target class for annotations");
 		
 		return new ValueTranslator<Object, Blob>(path, Blob.class) {

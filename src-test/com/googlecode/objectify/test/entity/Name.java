@@ -2,13 +2,13 @@ package com.googlecode.objectify.test.entity;
 
 import java.io.Serializable;
 
+import com.googlecode.objectify.util.LangUtils;
 
 /**
  */
+@SuppressWarnings("serial")
 public class Name implements Serializable
 {
-	private static final long serialVersionUID = 1L;
-	
 	public String firstName;
 	public String lastName;
 
@@ -24,24 +24,15 @@ public class Name implements Serializable
 	
 	public boolean equals(Object o)
 	{
-		// Doesn't do null check on names but good enough
 		return o != null
 			&& o.getClass() == this.getClass()
-			&& safeEquals(((Name)o).firstName, this.firstName)
-			&& safeEquals(((Name)o).lastName, this.lastName);
+			&& LangUtils.objectsEqual(((Name)o).firstName, this.firstName)
+			&& LangUtils.objectsEqual(((Name)o).lastName, this.lastName);
 	}
 	
 	@Override
 	public int hashCode()
 	{
 		return firstName.hashCode();
-	}
-
-	/**
-	 * Null safe equality comparison
-	 */
-	boolean safeEquals(Object o1, Object o2)
-	{
-		return (o1 == o2) || ((o1 != null) && o1.equals(o2));
 	}
 }
