@@ -38,12 +38,12 @@ public class TransientTests extends TestBase
 		o.transientAnnotation = 43;
 
 		Key<HasTransients> k = ofy.put(o);
-
+		ofy.clear();	// reset session
 		o = ofy.get(k);
 
 		assert "saved".equals(o.name);
 		assert o.transientKeyword == 42;
-		assert o.transientAnnotation == 0;	// fails with caching objectify, this is ok
+		assert o.transientAnnotation == 0;	// would fail without session clear
 
 		Entity e = ds().get(null, k.getRaw());
 

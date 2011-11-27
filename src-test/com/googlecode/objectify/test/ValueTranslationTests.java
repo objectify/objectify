@@ -93,7 +93,7 @@ public class ValueTranslationTests extends TestBase
 		Entity ent = new Entity(Key.getKind(Trivial.class));
 		ent.setProperty("someNumber", 1);
 		ent.setProperty("someString", 2);	// setting a number
-		ds.put(ent);
+		ds.put(null, ent);
 		
 		Key<Trivial> key = Key.create(ent.getKey());
 		Trivial fetched = ofy.load().entity(key).get();

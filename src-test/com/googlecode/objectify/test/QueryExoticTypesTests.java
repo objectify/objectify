@@ -14,6 +14,7 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
 import com.googlecode.objectify.test.util.TestBase;
@@ -42,7 +43,7 @@ public class QueryExoticTypesTests extends TestBase
 	public static class HasDate
 	{
 		@Id Long id;
-		Date when;
+		@Index Date when;
 	}
 	
 	/** */
@@ -92,8 +93,12 @@ public class QueryExoticTypesTests extends TestBase
 		
 		List<HasUser> result = q.list();
 		
-		assert result.size() == 1;
-		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
+		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
+		assert result.size() == 0;
+
+//		assert result.size() == 1;
+//		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 
 	/** */
@@ -112,8 +117,12 @@ public class QueryExoticTypesTests extends TestBase
 		
 		List<User> result = q.list();
 		
-		assert result.size() == 1;
-		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
+		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
+		assert result.size() == 0;
+		
+//		assert result.size() == 1;
+//		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 
 	/**
@@ -122,9 +131,8 @@ public class QueryExoticTypesTests extends TestBase
 	@Entity
 	public static class HasFromThruDate
 	{
-		@Id
-		Long id;
-		List<Date> dateList = new ArrayList<Date>();
+		@Id Long id;
+		@Index List<Date> dateList = new ArrayList<Date>();
 	}
 
 	/**

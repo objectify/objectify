@@ -145,9 +145,17 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations) == null && clazz.getAnnotation(Embed.class) == null)
 			return null;
 		
+		final ObjectifyFactory fact = ctx.getFactory();
+		
+		// Quick sanity check - can we construct one of these?  If not, blow up.
+		try {
+			fact.construct(clazz);
+		} catch (Exception ex) {
+			throw new IllegalStateException("Unable to construct an instance of " + clazz.getName() + "; perhaps it has no suitable constructor?", ex);
+		}
+		
 		ctx.setInEmbed(true);
 		try {
-			final ObjectifyFactory fact = ctx.getFactory();
 			
 			final List<EachProperty> props = new ArrayList<EachProperty>();
 			
