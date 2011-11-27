@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -18,6 +19,10 @@ import com.googlecode.objectify.annotation.Subclass;
  */
 public class Registrar
 {
+	/** */
+	@SuppressWarnings("unused")
+	private static final Logger log = Logger.getLogger(Registrar.class.getName());
+	
 	/** Needed to obtain the converters */
 	protected ObjectifyFactory fact;
 	
@@ -53,6 +58,9 @@ public class Registrar
 	 */
 	public <T> void register(Class<T> clazz)
 	{
+		// TODO: make this a bit smarter some day so that re-registration of same item doesn't reparse everything.
+		// However, that must be done carefully because sometimes you want to re-register something (say, after adding translators).
+		
 		// There are two possible cases
 		// 1) This might be a simple class with @Entity
 		// 2) This might be a class annotated with @Subclass
@@ -65,24 +73,12 @@ public class Registrar
 		}
 		else if (clazz.isAnnotationPresent(Entity.class))
 		{
-			EntityMetadata<?> meta = this.byKind.get(kind);
-			if (meta == null)
-			{
-				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
-				this.byKind.put(kind, cmeta);
-				this.byClass.put(clazz, cmeta);
-				
-				if (cmeta.getCacheExpirySeconds() != null)
-					this.cacheEnabled = true;
-			}
-			else if (meta instanceof PolymorphicEntityMetadata<?>)
-			{
-				// nothing special - the base class must already have been registered
-			}
-			else
-			{
-				throw new IllegalArgumentException("Attempted to register kind '" + kind + "' twice");
-			}
+			ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
+			this.byKind.put(kind, cmeta);
+			this.byClass.put(clazz, cmeta);
+			
+			if (cmeta.getCacheExpirySeconds() != null)
+				this.cacheEnabled = true;
 		}
 		else
 		{

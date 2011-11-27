@@ -16,6 +16,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
@@ -224,7 +225,7 @@ public class ValueTranslationTests extends TestBase
 			this.putAndGet(hbd);
 			assert false;	// shouldn't be possible without registering converter
 		}
-		catch (IllegalArgumentException ex) {}
+		catch (SaveException ex) {}
 		
 		this.fact.getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
@@ -242,6 +243,9 @@ public class ValueTranslationTests extends TestBase
 				};
 			}
 		});
+		
+		// Must re-register the class
+		this.fact.register(HasBigDecimal.class);
 		
 		HasBigDecimal fetched = this.putAndGet(hbd);
 		assert hbd.data.equals(fetched.data);
