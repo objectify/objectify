@@ -2,7 +2,6 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
@@ -22,21 +21,13 @@ public class LifecycleTests extends TestBase
 		@Id Long id;
 		boolean onSaved;
 		boolean onSavedWithObjectify;
-		boolean onSavedWithEntity;
-		boolean onSavedWithBoth;
 		boolean onLoaded;
 		boolean onLoadedWithObjectify;
-		boolean onLoadedWithEntity;
-		boolean onLoadedWithBoth;
 
 		@OnSave void onSave() { this.onSaved = true; }
 		@OnSave void onSave(Objectify ofy) { this.onSavedWithObjectify = true; }
-		@OnSave void onSave(Entity ent) { this.onSavedWithEntity = true; }
-		@OnSave void onSave(Objectify ofy, Entity ent) { this.onSavedWithBoth = true; }
 		@OnLoad void onLoad() { this.onLoaded = true; }
 		@OnLoad void onLoad(Objectify ofy) { this.onLoadedWithObjectify = true; }
-		@OnLoad void onLoad(Entity ent) { this.onLoadedWithEntity = true; }
-		@OnLoad void onLoad(Objectify ofy, Entity ent) { this.onLoadedWithBoth = true; }
 	}
 
 	@com.googlecode.objectify.annotation.Entity
@@ -55,24 +46,16 @@ public class LifecycleTests extends TestBase
 		
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
-		assert fetched.onSavedWithEntity;
-		assert fetched.onSavedWithBoth;
-		assert fetched.onLoaded;	// will fail with caching objectify, this is ok
+		assert fetched.onLoaded;	// would fail without session clear
 		assert fetched.onLoadedWithObjectify;
-		assert fetched.onLoadedWithEntity;
-		assert fetched.onLoadedWithBoth;
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
 		fetched = this.putAndGet(life2);
 		
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
-		assert fetched.onSavedWithEntity;
-		assert fetched.onSavedWithBoth;
-		assert fetched.onLoaded;	// will fail with caching objectify, this is ok
+		assert fetched.onLoaded;	// would fail without session clear
 		assert fetched.onLoadedWithObjectify;
-		assert fetched.onLoadedWithEntity;
-		assert fetched.onLoadedWithBoth;
 	}
 	
 	@com.googlecode.objectify.annotation.Entity

@@ -35,6 +35,7 @@ public class IndexingPartialTests extends TestBase
 	/** */
 	@Entity
 	@Cache
+	@Index
 	static class UnindexedWhenFalse
 	{
 		@Id Long id;
