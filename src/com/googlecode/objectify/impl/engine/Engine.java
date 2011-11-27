@@ -15,10 +15,10 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.TranslatingQueryResultIterator;
 
@@ -35,7 +35,7 @@ public class Engine
 	protected static final Object NEGATIVE_RESULT = new Object();
 
 	/** */
-	protected Objectify ofy;
+	protected ObjectifyImpl ofy;
 	
 	/** */
 	protected AsyncDatastoreService ads;
@@ -46,7 +46,7 @@ public class Engine
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public Engine(Objectify ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session) {
+	public Engine(ObjectifyImpl ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
@@ -63,7 +63,7 @@ public class Engine
 			entityList.add(metadata.save(obj, ofy));
 		}
 
-		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxn(), entityList);
+		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxnRaw(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
 		return new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<K>, E>>(adapted) {
@@ -93,7 +93,7 @@ public class Engine
 	 * The fundamental delete() operation.
 	 */
 	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
-		Future<Void> fut = ads.delete(ofy.getTxn(), keys);
+		Future<Void> fut = ads.delete(ofy.getTxnRaw(), keys);
 		Result<Void> result = new ResultAdapter<Void>(fut);
 		return new ResultWrapper<Void, Void>(result) {
 			@Override
@@ -111,7 +111,7 @@ public class Engine
 	 * only query though.
 	 */
 	public <T> QueryResultIterable<T> query(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(ofy.getTxn(), query);
+		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
 		return new ToObjectIterable<T>(pq.asQueryResultIterable(fetchOpts));
 	}
 
@@ -122,7 +122,7 @@ public class Engine
 	@SuppressWarnings("unchecked")
 	public <T> QueryResultIterable<T> queryKeys(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
 		assert query.isKeysOnly();
-		PreparedQuery pq = ads.prepare(ofy.getTxn(), query);
+		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
 		return (QueryResultIterable<T>)new ToKeyIterable(pq.asQueryResultIterable(fetchOpts));
 	}
 
@@ -130,7 +130,7 @@ public class Engine
 	 * The fundamental query count operation.  This is sufficiently different from normal query().
 	 */
 	public int queryCount(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(ofy.getTxn(), query);
+		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
 		return pq.countEntities(fetchOpts);
 	}
 

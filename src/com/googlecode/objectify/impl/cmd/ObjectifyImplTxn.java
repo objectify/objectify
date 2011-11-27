@@ -69,4 +69,12 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 			}
 		});
 	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#getTxnRaw()
+	 */
+	@Override
+	public Transaction getTxnRaw() {
+		return this.txn.now();
+	}
 }

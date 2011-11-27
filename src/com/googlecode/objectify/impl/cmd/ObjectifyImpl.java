@@ -83,6 +83,15 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		// This version doesn't have a transaction
 		return null;
 	}
+	
+	/**
+	 * Get the raw version, unwrapped by a proxy.  The engine needs this to pass through to the AsyncDatastoreService,
+	 * which might have given us a wrapped Transaction itself (ie, CachingAsyncDatastoreService).
+	 */
+	public Transaction getTxnRaw() {
+		// This version doesn't have a transaction
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find()

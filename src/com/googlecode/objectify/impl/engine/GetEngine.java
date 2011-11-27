@@ -13,10 +13,10 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -38,7 +38,7 @@ public class GetEngine extends Engine
 	
 	/**
 	 */
-	public GetEngine(Objectify ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session, Set<String> groups) {
+	public GetEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session, Set<String> groups) {
 		super(ofy, ads, session);
 		this.groups = groups;
 	}
@@ -117,7 +117,7 @@ public class GetEngine extends Engine
 		for (com.google.appengine.api.datastore.Key key: rawKeys)
 			need(key);
 		
-		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxn(), rawKeys);
+		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), rawKeys);
 		Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
 		
 		return new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<com.google.appengine.api.datastore.Key, E>>(adapted) {
