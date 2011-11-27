@@ -81,7 +81,7 @@ public class MapEmbedTests extends TestBase
 
 	@Test
 	public void testNestedEmbeddedMap() throws Exception {
-		this.fact.register(HasMapEmbed.class);
+		this.fact.register(HasNestedMapEmbed.class);
 		
 		HasNestedMapEmbed hasNested = new HasNestedMapEmbed();
 		

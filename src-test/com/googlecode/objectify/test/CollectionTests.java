@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
@@ -19,10 +20,9 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
-import com.googlecode.objectify.test.entity.HasCollections;
-import com.googlecode.objectify.test.entity.HasCollections.CustomSet;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -39,6 +39,38 @@ public class CollectionTests extends TestBase
 	private static Logger log = Logger.getLogger(CollectionTests.class.getName());
 
 	/** */
+	public static class CustomSet extends HashSet<Integer>
+	{
+		private static final long serialVersionUID = 1L;
+		public int tenTimesSize() { return this.size() * 10; }
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	static class HasCollections
+	{
+		public @Id Long id;
+
+		public List<Integer> integerList;
+		public LinkedList<Integer> integerLinkedList;
+		public ArrayList<Integer> integerArrayList;
+		
+		public Set<Integer> integerSet;
+		public SortedSet<Integer> integerSortedSet;
+		public HashSet<Integer> integerHashSet;
+		public TreeSet<Integer> integerTreeSet;
+		public LinkedHashSet<Integer> integerLinkedHashSet;
+		
+		public List<Integer> initializedList = new LinkedList<Integer>();
+		
+		public CustomSet customSet;
+		
+		/** This should give the system a workout */
+		public Set<Key<Trivial>> typedKeySet;
+	}
+	
+	/** */
 	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass)
 	{
 		assert coll.getClass() == expectedClass;	// will fail with caching objectify, this is ok
@@ -54,6 +86,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicLists() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
@@ -75,6 +108,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicSets() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
@@ -102,6 +136,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCustomSet() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
@@ -120,6 +155,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testTypedKeySet() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		Key<Trivial> key7 = Key.create(Trivial.class, 7);
@@ -146,6 +182,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCollectionContainingNull() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
@@ -172,6 +209,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testNullCollections() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();
@@ -195,6 +233,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testEmptyCollections() throws Exception
 	{
+		fact.register(HasCollections.class);
 		TestObjectify ofy = this.fact.begin();
 
 		HasCollections hc = new HasCollections();

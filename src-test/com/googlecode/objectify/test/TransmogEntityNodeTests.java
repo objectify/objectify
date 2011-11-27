@@ -37,6 +37,8 @@ public class TransmogEntityNodeTests extends TestBase
 	@Test
 	public void testTrivial() throws Exception
 	{
+		this.fact.register(Trivial.class);
+		
 		Transmog<Trivial> transmog = getTransmog(Trivial.class);
 		Objectify ofy = fact.begin();
 		

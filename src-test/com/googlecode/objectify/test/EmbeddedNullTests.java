@@ -27,6 +27,8 @@ public class EmbeddedNullTests extends TestBase
 	{
 		super.setUp();
 		
+		fact.register(Criminal.class);
+		
 		Criminal avoid = new Criminal();
 		avoid.aliases = new Name[] { new Name("Bob", "Dobbs") };
 		avoid.moreAliases = Collections.singletonList(new Name("Bob", "Dobbs"));

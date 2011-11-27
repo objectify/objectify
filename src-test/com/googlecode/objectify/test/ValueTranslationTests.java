@@ -88,6 +88,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testStringConversion() throws Exception
 	{
+		fact.register(Trivial.class);
+		
 		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
 		
@@ -110,6 +112,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStrings() throws Exception
 	{
+		this.fact.register(Trivial.class);
+		
 		Trivial triv = new Trivial(BIG_STRING, 0);
 		Trivial fetched = this.putAndGet(triv);
 		
@@ -261,6 +265,7 @@ public class ValueTranslationTests extends TestBase
 		hbd.data = new BigDecimal(32.25);
 		
 		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
+		this.fact.register(HasBigDecimal.class);
 		
 		HasBigDecimal fetched = this.putAndGet(hbd);
 		assert hbd.data.equals(fetched.data);

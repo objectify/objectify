@@ -12,9 +12,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -38,6 +38,15 @@ public class CachingTests extends TestBase
 		String stuff;
 	}
 	
+	/** */
+	@Entity
+	@Cache
+	static class Cached
+	{
+		@Id Long id;
+		String stuff;
+	}
+	
 	/**
 	 */
 	@BeforeMethod
@@ -46,6 +55,7 @@ public class CachingTests extends TestBase
 		super.setUp();
 		
 		this.fact.register(Uncached.class);
+		this.fact.register(Cached.class);
 	}
 	
 	/** */
@@ -58,25 +68,28 @@ public class CachingTests extends TestBase
 		Uncached un2 = new Uncached();
 		un2.stuff = "un2 stuff";
 
-		Trivial triv1 = new Trivial("foo1", 5);
-		Trivial triv2 = new Trivial("foo2", 6);
+		Cached ca1 = new Cached();
+		ca1.stuff = "ca1 stuff";
+		
+		Cached ca2 = new Cached();
+		ca2.stuff = "ca2 stuff";
 
 		List<Object> entities = new ArrayList<Object>();
 		entities.add(un1);
-		entities.add(triv1);
+		entities.add(ca1);
 		entities.add(un2);
-		entities.add(triv2);
+		entities.add(ca2);
 		
 		TestObjectify ofy = this.fact.begin();
 		
 		Map<Key<Object>, Object> keys = ofy.put().entities(entities).now();
-		
+		ofy.clear();
 		Map<Key<Object>, Object> fetched = ofy.load().entities(keys.keySet());
 		
 		assert fetched.size() == 4;
 		assert fetched.containsKey(this.fact.getKey(un1));
 		assert fetched.containsKey(this.fact.getKey(un2));
-		assert fetched.containsKey(this.fact.getKey(triv1));
-		assert fetched.containsKey(this.fact.getKey(triv2));
+		assert fetched.containsKey(this.fact.getKey(ca1));
+		assert fetched.containsKey(this.fact.getKey(ca2));
 	}
 }

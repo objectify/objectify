@@ -19,19 +19,6 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.cache.TriggerFutureHook;
-import com.googlecode.objectify.test.entity.Apple;
-import com.googlecode.objectify.test.entity.Banana;
-import com.googlecode.objectify.test.entity.Child;
-import com.googlecode.objectify.test.entity.Criminal;
-import com.googlecode.objectify.test.entity.Employee;
-import com.googlecode.objectify.test.entity.HasAlsoLoads;
-import com.googlecode.objectify.test.entity.HasArrays;
-import com.googlecode.objectify.test.entity.HasCollections;
-import com.googlecode.objectify.test.entity.HolderOfString;
-import com.googlecode.objectify.test.entity.HolderOfStringAndLong;
-import com.googlecode.objectify.test.entity.NamedTrivial;
-import com.googlecode.objectify.test.entity.Town;
-import com.googlecode.objectify.test.entity.Trivial;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -62,20 +49,6 @@ public class TestBase
 		this.helper.setUp();
 		
 		this.fact = new TestObjectifyFactory();
-		
-		this.fact.register(Trivial.class);
-		this.fact.register(NamedTrivial.class);
-		this.fact.register(HasAlsoLoads.class);
-		this.fact.register(Child.class);
-		this.fact.register(Employee.class);
-		this.fact.register(HasArrays.class);
-		this.fact.register(HasCollections.class);
-		this.fact.register(Apple.class);
-		this.fact.register(Banana.class);
-		this.fact.register(HolderOfString.class);
-		this.fact.register(HolderOfStringAndLong.class);
-		this.fact.register(Town.class);
-		this.fact.register(Criminal.class);
 	}
 
 	/** */

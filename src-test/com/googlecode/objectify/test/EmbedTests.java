@@ -104,6 +104,7 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testNullHandling() throws Exception
 	{
+		fact.register(Town.class);
 		TestObjectify ofy = this.fact.begin();
 
 		// null mayor

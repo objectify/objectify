@@ -35,6 +35,8 @@ public class TransactionTests extends TestBase
 	@Test
 	public void testSimpleTransaction() throws Exception
 	{
+		this.fact.register(Trivial.class);
+
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> k = null;
 		
@@ -107,6 +109,8 @@ public class TransactionTests extends TestBase
 	@Test
 	public void testConcurrencyFailure() throws Exception
 	{
+		this.fact.register(Trivial.class);
+		
 		Trivial triv = new Trivial("foo", 5);
 		Key<Trivial> tk = this.fact.begin().put(triv);
 		

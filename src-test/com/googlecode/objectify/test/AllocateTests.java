@@ -29,6 +29,8 @@ public class AllocateTests extends TestBase
 	@Test
 	public void testBasicAllocation() throws Exception
 	{
+		fact.register(Trivial.class);
+		
 		KeyRange<Trivial> range = this.fact.allocateIds(Trivial.class, 5);
 		
 		Iterator<Key<Trivial>> it = range.iterator();
@@ -52,6 +54,9 @@ public class AllocateTests extends TestBase
 	@Test
 	public void testParentAllocation() throws Exception
 	{
+		fact.register(Trivial.class);
+		fact.register(Child.class);
+		
 		Key<Trivial> parentKey = Key.create(Trivial.class, 123);
 		KeyRange<Child> range = this.fact.allocateIds(parentKey, Child.class, 5);
 		
@@ -76,6 +81,9 @@ public class AllocateTests extends TestBase
 	@Test
 	public void testKindNamespaceAllocation() throws Exception
 	{
+		fact.register(Trivial.class);
+		fact.register(Criminal.class);
+		
 		KeyRange<Trivial> rangeTrivial = this.fact.allocateIds(Trivial.class, 1);
 		KeyRange<Criminal> rangeCriminal = this.fact.allocateIds(Criminal.class, 1);
 		

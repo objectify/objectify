@@ -37,6 +37,7 @@ public class FetchFieldRefTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwo() {
+		fact.register(Trivial.class);
 		TestObjectify ofy = fact.begin();
 		
 		t1 = new Trivial("foo", 11);

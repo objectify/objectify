@@ -17,7 +17,7 @@ import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.test.entity.HasAlsoLoads;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -88,6 +88,42 @@ public class AlsoLoadTests extends TestBase
 		@AlsoLoad("oldMethodUsers") @Embed HasAlsoLoadMethod[] methodUsers;
 	}
 	
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	static class HasAlsoLoads
+	{
+		@Id Long id;
+		public Long getId() { return this.id; }
+		public void setId(Long value) { this.id = value; }
+		
+		@AlsoLoad("oldStuff")
+		String stuff;
+		public String getStuff() { return this.stuff; }
+		public void setStuff(String value) { this.stuff = value; }
+		
+		@AlsoLoad("oldOtherStuff")
+		String otherStuff;
+		public String getOtherStuff() { return this.otherStuff; }
+		public void setOtherStuff(String value) { this.otherStuff = value; }
+
+		/** Tests loading with @AlsoLoad on a method */
+		@Ignore Integer weird;
+		public Integer getWeird() { return this.weird; }
+		void namedAnything(@AlsoLoad("weirdStuff") String stuff)
+		{
+			this.weird = Integer.valueOf(stuff);
+		}
+		
+		/** Default constructor must always exist */
+		public HasAlsoLoads() {}
+		
+		public HasAlsoLoads(String stuff, String otherStuff)
+		{
+			this.stuff = stuff;
+			this.otherStuff = otherStuff;
+		}
+	}
+	
 	/**
 	 * Add an entry to the database that should never come back from null queries.
 	 */
@@ -96,6 +132,7 @@ public class AlsoLoadTests extends TestBase
 	{
 		super.setUp();
 		
+		this.fact.register(HasAlsoLoads.class);
 		this.fact.register(HasEmbedded.class);
 		this.fact.register(HasEmbeddedArray.class);
 	}
