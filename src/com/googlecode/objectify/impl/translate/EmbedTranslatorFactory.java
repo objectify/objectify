@@ -48,7 +48,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		/** Executes loading this value from the node and setting it on the field */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public void executeLoad(MapNode node, Object onPojo, LoadContext ctx) {
-			EntityNode actual = getChild(node, property.getLoadNames());
+			EntityNode actual = getChild(node, property);
 			
 			// We only execute if there is a real node.  Note that even a null value in the data will have a real
 			// MapNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
@@ -107,14 +107,15 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		 * @return one child which has a name in the parent
 		 * @throws IllegalStateException if there are multiple name matches
 		 */
-		private EntityNode getChild(MapNode parent, String[] names) {
+		private EntityNode getChild(MapNode parent, Property prop) {
 			EntityNode child = null;
 			
-			for (String name: names) {
+			for (String name: prop.getLoadNames()) {
 				EntityNode child2 = parent.get(name);
 				
 				if (child != null && child2 != null)
-					throw new IllegalStateException("Collision trying to load field; multiple name matches at " + parent.getPath());
+					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
+							+ prop.getName() + "' at '" + child.getPath() + "' and '" + child2.getPath() + "'");
 				
 				if (child2 != null)
 					child = child2;

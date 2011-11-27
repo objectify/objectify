@@ -23,7 +23,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  */
-public class EmbeddedTests extends TestBase
+public class EmbedTests extends TestBase
 {
 	public static class PartiallyUnindexedStruct
 	{

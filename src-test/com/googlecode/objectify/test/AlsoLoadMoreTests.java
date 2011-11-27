@@ -3,15 +3,19 @@
 
 package com.googlecode.objectify.test;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.TranslateException;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.test.util.TestBase;
@@ -32,7 +36,7 @@ public class AlsoLoadMoreTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 	
 	/** */
-	@Entity
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	static class MethodOverridesField
 	{
@@ -71,5 +75,37 @@ public class AlsoLoadMoreTests extends TestBase
 		
 		assert fetched.foo == null;
 		assert fetched.bar.equals(TEST_VALUE);
+	}
+
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasMap
+	{
+		@Id
+		Long id;
+		@AlsoLoad("alsoPrimitives")
+		Map<String, Long> primitives = new HashMap<String, Long>();
+	}
+
+	@Test
+	public void testAlsoLoadMap() throws Exception
+	{
+		this.fact.register(HasMap.class);
+
+		TestObjectify ofy = this.fact.begin();
+		DatastoreService ds = ds();
+
+		Entity ent = new Entity(Key.getKind(HasMap.class));
+		ent.setProperty("alsoPrimitives.one", 1L);
+		ent.setProperty("primitives.two", 2L);
+		ds.put(ent);
+
+		Key<HasMap> key = Key.create(ent.getKey());
+		
+		try {
+			ofy.load().entity(key).get();
+			assert false;
+		} catch (TranslateException ex) {
+			// couldn't load conflicting values
+		}
 	}
 }

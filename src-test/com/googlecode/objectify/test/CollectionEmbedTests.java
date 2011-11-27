@@ -12,7 +12,7 @@ import com.googlecode.objectify.test.util.TestBase;
 
 /**
  */
-public class EmbeddedSetTests extends TestBase
+public class CollectionEmbedTests extends TestBase
 {
 	@Entity
 	public static class HasSet

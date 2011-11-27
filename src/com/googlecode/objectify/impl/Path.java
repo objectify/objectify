@@ -27,9 +27,13 @@ public class Path
 
 	/** Create the full x.y.z string */
 	public String toPathString() {
-		StringBuilder builder = new StringBuilder();
-		toPathString(builder);
-		return builder.toString();
+		if (this == ROOT) {
+			return "top level";
+		} else {
+			StringBuilder builder = new StringBuilder();
+			toPathString(builder);
+			return builder.toString();
+		}
 	}
 	
 	/** */
