@@ -6,9 +6,10 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.TranslateException;
+import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
@@ -79,26 +80,26 @@ public class Transmog<T>
 	 * @param fromEntity is a raw datastore entity
 	 * @return the entity converted into the relevant pojo
 	 */
-	public T load(Entity fromEntity, Objectify ofy)
+	public T load(Entity fromEntity, Objectify ofy) throws LoadException
 	{
 		try {
 			EntityNode root = createNode(fromEntity);
 			T pojo = load(root, new LoadContext(fromEntity, ofy));
 			return pojo;
 		}
+		catch (LoadException ex) { throw ex; }
 		catch (Exception ex) {
-			throw new TranslateException(fromEntity.getKey(), ex.getMessage(), ex);
+			throw new LoadException(fromEntity, ex.getMessage(), ex);
 		}
 	}
 	
 	/** Public just for testing */
-	public T load(EntityNode root, LoadContext ctx) throws TranslateException {
+	public T load(EntityNode root, LoadContext ctx) throws LoadException {
 		return rootTranslator.load(root, ctx);
 	}
 	
 	/**
-	 * Saves the fields of a POJO into the properties of an Entity.  Does not affect id/parent
-	 * (ie key) fields; those are assumed to already have been set.
+	 * Creates an Entity that has been set up with the content of the pojo, including key fields.
 	 * 
 	 * @param fromPojo is your typed entity
 	 */
@@ -109,8 +110,9 @@ public class Transmog<T>
 			Entity entity = createEntity(root);
 			return entity;
 		}
+		catch (SaveException ex) { throw ex; }
 		catch (Exception ex) {
-			throw new TranslateException(keyMeta.getRawKey(fromPojo), ex.getMessage(), ex);
+			throw new SaveException(fromPojo, ex.getMessage(), ex);
 		}
 	}
 	
