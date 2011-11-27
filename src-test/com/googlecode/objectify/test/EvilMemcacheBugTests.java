@@ -82,16 +82,16 @@ public class EvilMemcacheBugTests extends TestBase
 		this.fact.register(SimpleEntity.class);
 		String simpleId = "btoc";
 		
+		Key<SimpleEntity> childKey = SimpleEntity.getSimpleChildKey(simpleId);
 		SimpleEntity simple = new SimpleEntity(simpleId);
 
 		TestObjectify nonTxnOfy = this.fact.begin();
 		nonTxnOfy.put(simple);
 		
-
 		TestObjectify txnOfy = this.fact.begin().transaction();
 		SimpleEntity simple2;
 		try {
-			simple2 = txnOfy.get(SimpleEntity.getSimpleChildKey(simpleId));
+			simple2 = txnOfy.get(childKey);
 			simple2.foo = "joe";
 			txnOfy.put(simple2);
 			txnOfy.getTxn().commit();
@@ -100,7 +100,8 @@ public class EvilMemcacheBugTests extends TestBase
 				txnOfy.getTxn().rollback();
 		}
 
-		SimpleEntity simple3 = nonTxnOfy.get(SimpleEntity.getSimpleChildKey(simpleId));
+		nonTxnOfy.clear();
+		SimpleEntity simple3 = nonTxnOfy.get(childKey);
 
 		assert simple2.foo.equals(simple3.foo);
 	}
