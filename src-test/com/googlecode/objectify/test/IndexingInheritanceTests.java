@@ -30,7 +30,7 @@ public class IndexingInheritanceTests extends TestBase
 	@SuppressWarnings("unused")
 	@Entity
 	@Cache
-	@Unindex
+	//@Unindex default is unindex
 	public static class UnindexedPojo
 	{
 		@Id Long id;

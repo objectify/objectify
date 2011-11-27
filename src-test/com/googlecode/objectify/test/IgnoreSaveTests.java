@@ -62,7 +62,7 @@ public class IgnoreSaveTests extends TestBase
 		assert fetched.foo.equals(TEST_VALUE);
 		
 		fetched = putAndGet(fetched);
-		assert fetched.foo == null;	// will fail if session caching objectify is turned on
+		assert fetched.foo == null;	// this would fail without the session clear()
 	}
 	
 	/** */
@@ -86,7 +86,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.bar = true;
 		
 		UnsavedWhenTrue fetched = putAndGet(thing);
-		assert fetched.foo == false;	// will fail with session caching turned on
+		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}
 
@@ -111,7 +111,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.bar = true;
 		
 		DeeperUnsavedWhenTrue fetched = putAndGet(thing);
-		assert fetched.foo == false;	// will fail with session caching objectify turned on
+		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}
 

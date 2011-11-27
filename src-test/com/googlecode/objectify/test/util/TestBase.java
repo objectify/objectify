@@ -87,7 +87,7 @@ public class TestBase
 		this.helper.tearDown();
 	}
 	
-	/** Utility methods that puts and immediately gets an entity */
+	/** Utility methods that puts, clears the session, and immediately gets an entity */
 	protected <T> T putAndGet(T saveMe)
 	{
 		Objectify ofy = this.fact.begin();
@@ -100,6 +100,8 @@ public class TestBase
 			System.out.println(ent);
 		}
 		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
+		
+		ofy.clear();
 
 		return ofy.load().entity(key).get();
 	}
