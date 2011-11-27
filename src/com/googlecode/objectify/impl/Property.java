@@ -35,8 +35,8 @@ public interface Property
 	/**
 	 * Gets the index instruction for this property, if there is one.  Properties do not necessarily have a
 	 * specific index or unindex instruction, and even if they do, the instruction might be conditional.
-	 * Note that this is just the index instruction on the property itself, not the class.  If the class
-	 * has an index instruction, it will override this one.
+	 * Also factors in any index instruction on the class as a default.  However, explicit index instruction
+	 * on the field overrides the class.
 	 * 
 	 * @return true if this field should be indexed, false if it should be unindexed, null is "no information, continue with defaults".
 	 */

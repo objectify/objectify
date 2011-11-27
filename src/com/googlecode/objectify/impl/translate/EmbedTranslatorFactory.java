@@ -9,8 +9,6 @@ import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
@@ -170,14 +168,6 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 					propPath.throwIllegalState("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
 			}
 			
-			// If there is an index/unindex instruction on the class, it should override any default
-			Index ind = clazz.getAnnotation(Index.class);
-			Unindex unind = clazz.getAnnotation(Unindex.class);
-			if (ind != null && unind != null)
-				throw new IllegalStateException("You cannot have @Index and @Unindex on the same class");
-			
-			final Boolean classIndexInstruction = (ind != null) ? Boolean.TRUE : ((unind != null) ? Boolean.FALSE : null);
-			
 			return new MapNodeTranslator<T>(path) {
 				@Override
 				protected T loadMap(MapNode node, LoadContext ctx) {
@@ -192,9 +182,6 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				@Override
 				protected MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
 					MapNode node = new MapNode(path);
-					
-					if (classIndexInstruction != null)
-						index = classIndexInstruction;
 					
 					for (EachProperty prop: props)
 						prop.executeSave(pojo, node, index, ctx);
