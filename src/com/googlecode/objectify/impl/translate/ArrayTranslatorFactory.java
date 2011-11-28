@@ -32,7 +32,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		if (!arrayType.isArray())
 			return null;
 
-		ctx.setInCollection(true);
+		ctx.enterCollection(path);
 		try {
 			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
 			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType, ctx);
@@ -91,7 +91,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 			};
 		}
 		finally {
-			ctx.setInCollection(false);
+			ctx.exitCollection();
 		}
 	}
 }

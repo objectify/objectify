@@ -47,7 +47,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		if (!Collection.class.isAssignableFrom(collectionType))
 			return null;
 		
-		ctx.setInCollection(true);
+		ctx.enterCollection(path);
 		try {
 			final ObjectifyFactory fact = ctx.getFactory();
 			
@@ -112,7 +112,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			};
 		}
 		finally {
-			ctx.setInCollection(false);
+			ctx.exitCollection();
 		}
 	}
 }

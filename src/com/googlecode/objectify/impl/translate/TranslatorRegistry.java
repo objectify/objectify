@@ -86,8 +86,8 @@ public class TranslatorRegistry
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> Translator<T> createRoot(Type type) {
-		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(type, new CreateContext(fact));
+	public <T> Translator<T> createRoot(Type type, CreateContext ctx) {
+		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(type, ctx);
 	}
 	
 	/**

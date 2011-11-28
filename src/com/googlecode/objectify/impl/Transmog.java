@@ -13,6 +13,7 @@ import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
+import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -64,6 +65,9 @@ public class Transmog<T>
 	/** */
 	KeyMetadata<T> keyMeta;
 	
+	/** */
+	List<Path> embedCollectionPoints;
+	
 	/**
 	 * Creats a transmog for the specified class, introspecting it and discovering
 	 * how to load/save its properties.
@@ -71,7 +75,10 @@ public class Transmog<T>
 	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
 	{
 		this.keyMeta = meta.getKeyMetadata();
-		this.rootTranslator = fact.getTranslators().createRoot(meta.getEntityClass());
+		
+		CreateContext ctx = new CreateContext(fact);
+		this.rootTranslator = fact.getTranslators().createRoot(meta.getEntityClass(), ctx);
+		this.embedCollectionPoints = ctx.getEmbedCollectionPoints();
 	}
 	
 	/**

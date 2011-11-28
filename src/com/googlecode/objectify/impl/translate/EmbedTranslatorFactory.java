@@ -154,7 +154,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			throw new IllegalStateException("Unable to construct an instance of " + clazz.getName() + "; perhaps it has no suitable constructor?", ex);
 		}
 		
-		ctx.setInEmbed(true);
+		ctx.enterEmbed(path);
 		try {
 			
 			final List<EachProperty> props = new ArrayList<EachProperty>();
@@ -192,7 +192,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			};
 		}
 		finally {
-			ctx.setInEmbed(false);
+			ctx.exitEmbed();
 		}
 	}
 }
