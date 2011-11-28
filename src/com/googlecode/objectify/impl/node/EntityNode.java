@@ -55,4 +55,9 @@ abstract public class EntityNode
 	public Path getPath() {
 		return this.path;
 	}
+	
+	/**
+	 * Adds a node, either appending it to a list or putting it in a map with the appropriate key.
+	 */
+	abstract public void add(EntityNode node);
 }

@@ -39,8 +39,20 @@ public class ListNode extends EntityNode implements Iterable<EntityNode>
 	}
 	
 	/** */
+	@Override
 	public void add(EntityNode node) {
 		list().add(node);
+	}
+	
+	/**
+	 * Gets the map node at the index, making sure that a map node exists there.  Assumes that the
+	 * indexes are always fed in order.
+	 */
+	public MapNode pathMap(int index) {
+		if (index == list().size())
+			return add();
+		else
+			return (MapNode)list().get(index);
 	}
 	
 	/** */

@@ -87,6 +87,14 @@ public class MapNode extends EntityNode
 			return map.isEmpty();
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.node.EntityNode#add(com.googlecode.objectify.impl.node.EntityNode)
+	 */
+	@Override
+	public void add(EntityNode node) {
+		map().put(node.getPath().getSegment(), node);
+	}
+	
 	/** */
 	private Map<String, EntityNode> map() {
 		if (map == null)
@@ -139,5 +147,9 @@ public class MapNode extends EntityNode
 		return (MapNode)map().get(key);
 	}
 	
+	/** Get child assuming it is a list node */
+	public ListNode getList(String key) {
+		return (ListNode)map().get(key);
+	}
 
 }

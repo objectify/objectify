@@ -53,4 +53,9 @@ public class ForwardPath
 		
 		return here.getPath();
 	}
+	
+	@Override
+	public String toString() {
+		return path.toPathString();
+	}
 }

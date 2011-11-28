@@ -142,9 +142,7 @@ public class Transmog<T>
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
 			Path path = Path.of(prop.getKey());
-		
-			EntityNode child = createNode(ForwardPath.of(path), prop.getValue());
-			root.put(path.getSegment(), child);
+			addToNode(root, ForwardPath.of(path), prop.getValue());
 		}
 		
 		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
@@ -153,8 +151,10 @@ public class Transmog<T>
 		if (root.containsKey(idName))
 			throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Id field: " + fromEntity);
 		
-		Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
-		root.pathMap(idName).setPropertyValue(idValue);
+		if (fromEntity.getKey().isComplete()) {
+			Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
+			root.pathMap(idName).setPropertyValue(idValue);
+		}
 		
 		String parentName = keyMeta.getParentFieldName();
 		if (parentName != null) {
@@ -173,7 +173,7 @@ public class Transmog<T>
 	 * @param forward is the path to this point, going down
 	 * @param value might be a value or might be a collection of values
 	 */
-	private EntityNode createNode(ForwardPath forward, Object value) {
+	private void addToNode(MapNode node, ForwardPath forward, Object value) {
 		if (forward.getNext() == null) {
 			if (value instanceof Collection) {
 				@SuppressWarnings("unchecked")
@@ -185,32 +185,32 @@ public class Transmog<T>
 					map.setPropertyValue(obj);
 				}
 				
-				return list;
+				node.add(list);
 			} else {
 				MapNode map = new MapNode(forward.getPath());
 				map.setPropertyValue(value);
 				
-				return map;
+				node.add(map);
 			}
 		} else if (embedCollectionPoints.contains(forward.getPath()) && value instanceof Collection) {
-			// We're at the point where we convert to a ListNode and de-collectionize the value, which should be a collection
-			ListNode listNode = new ListNode(forward.getPath());
+			// We're at 'things' in this example: {id='222', things=[{foo='asdf', bar='123'}]}
+			// Convert to a ListNode and de-collectionize the value, which should be a collection
+			ListNode listNode = node.pathList(forward.getPath().getSegment());
 			
 			@SuppressWarnings("unchecked")
 			Collection<Object> coll = (Collection<Object>)value;
 			
+			int index = 0;
 			for (Object obj: coll) {
-				EntityNode child = createNode(forward, obj);
-				listNode.add(child);
+				MapNode child = listNode.pathMap(index);
+				addToNode(child, forward.getNext(), obj);
+				index++;
 			}
-			
-			return listNode;
 		} else {
 			// Just a normal step down the map node tree
-			EntityNode child = createNode(forward.getNext(), value);
-			MapNode map = new MapNode(forward.getPath());
-			map.put(child.getPath().getSegment(), child);
-			return map;
+			ForwardPath next = forward.getNext();
+			MapNode child = node.pathMap(next.getPath().getSegment());
+			addToNode(child, next, value);
 		}
 	}
 	
@@ -237,48 +237,75 @@ public class Transmog<T>
 				: new Entity(DatastoreUtils.createKey(parent, keyMeta.getKind(), id));
 		
 		// Step two is populate the entity fields recursively
-		populateFields(ent, root);
+		populateFields(ent, root, false);
 		
 		return ent;
 	}
 	
 	/**
-	 * Recursively populate all the nodes onto the entity
+	 * Recursively populate all the nodes onto the entity.
+	 * 
+	 * @param collectionize if true means that the value should be put in a collection property value at the end of the chain.
+	 *  This goes to true whenever we hit an embedded collection.
 	 */
-	private void populateFields(Entity entity, EntityNode node) {
+	private void populateFields(Entity entity, EntityNode node, boolean collectionize) {
 		if (node instanceof ListNode) {
 			ListNode listNode = (ListNode)node;
-			List<Object> things = new ArrayList<Object>(listNode.size());
-			boolean index = false;
 			
-			for (EntityNode child: listNode) {
-				MapNode map = (MapNode)child;
-				if (!map.hasPropertyValue())
-					map.getPath().throwIllegalState("Expected property value, got " + map);
+			if (embedCollectionPoints.contains(node.getPath())) {
+				// We need to switch to collectionizing here, otherwise we don't need to do anything special
+				for (EntityNode child: listNode)
+					populateFields(entity, child, true);
 				
-				things.add(map.getPropertyValue());
-				index = map.isPropertyIndexed();
+			} else {
+				// A normal collection of leaf property values
+				List<Object> things = new ArrayList<Object>(listNode.size());
+				boolean index = false;	// everything in the list will have the same index state
+				
+				for (EntityNode child: listNode) {
+					MapNode map = (MapNode)child;
+					if (!map.hasPropertyValue())
+						map.getPath().throwIllegalState("Expected property value, got " + map);
+					
+					things.add(map.getPropertyValue());
+					index = map.isPropertyIndexed();
+				}
+				
+				setEntityProperty(entity, listNode.getPath().toPathString(), things, index);
 			}
-			
-			if (index)
-				entity.setProperty(listNode.getPath().toPathString(), things);
-			else
-				entity.setUnindexedProperty(listNode.getPath().toPathString(), things);
 			
 		} else {	// MapNode
 			MapNode mapNode = (MapNode)node;
 			
-			if (mapNode.hasPropertyValue())
-				if (mapNode.isPropertyIndexed())
-					entity.setProperty(mapNode.getPath().toPathString(), mapNode.getPropertyValue());
-				else
-					entity.setUnindexedProperty(mapNode.getPath().toPathString(), mapNode.getPropertyValue());
+			if (mapNode.hasPropertyValue()) {
+				String propertyName = mapNode.getPath().toPathString();
+				if (collectionize) {
+					@SuppressWarnings("unchecked")
+					List<Object> list = (List<Object>)entity.getProperty(propertyName);
+					if (list == null) {
+						list = new ArrayList<Object>();
+						setEntityProperty(entity, propertyName, list, mapNode.isPropertyIndexed());
+					}
+					
+					list.add(mapNode.getPropertyValue());
+				} else {
+					setEntityProperty(entity, propertyName, mapNode.getPropertyValue(), mapNode.isPropertyIndexed());
+				}
+			}
 					
 			if (!mapNode.isEmpty()) {
 				for (EntityNode child: mapNode.values()) {
-					populateFields(entity, child);
+					populateFields(entity, child, collectionize);
 				}
 			}
 		}
+	}
+	
+	/** Utility method */
+	private void setEntityProperty(Entity entity, String propertyName, Object value, boolean index) {
+		if (index)
+			entity.setProperty(propertyName, value);
+		else
+			entity.setUnindexedProperty(propertyName, value);
 	}
 }
