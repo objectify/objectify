@@ -12,26 +12,24 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.node.EntityNode;
 import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TransmogTestBase;
 
 /**
  * Tests the basic low-level functions of the Transmog.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransmogEntityNodeTests extends TestBase
+public class TransmogTests extends TransmogTestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(TransmogEntityNodeTests.class.getName());
+	private static Logger log = Logger.getLogger(TransmogTests.class.getName());
 
 	/** */
 	@Test
@@ -271,33 +269,5 @@ public class TransmogEntityNodeTests extends TestBase
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff == null; 
-	}
-
-	/** Assert child is a propertynode with exactly the content specified, no other children */
-	private void assertChildValue(MapNode parent, String childName, Object childValue) {
-		MapNode child = parent.getMap(childName);
-		assertNodeValue(child, childValue);
-	}
-
-	/** Assert child is a propertynode with exactly the content specified, no other children */
-	private void assertChildValue(ListNode parent, int index, Object childValue) {
-		EntityNode child = parent.get(index);
-		assertNodeValue(child, childValue);
-	}
-
-	/** Assert node is a propertynode with exactly the content specified, no other children */
-	private void assertNodeValue(EntityNode node, Object value) {
-		MapNode mapNode = (MapNode)node;
-		assert mapNode.isEmpty();
-		assert mapNode.hasPropertyValue();
-		if (mapNode.getPropertyValue() == null)
-			assert mapNode.getPropertyValue() == value;
-		else
-			assert mapNode.getPropertyValue().equals(value);
-	}
-
-	/** */
-	private <T> Transmog<T> getTransmog(Class<T> clazz) {
-		return ((ConcreteEntityMetadata<T>)fact.getMetadata(clazz)).getTransmog();
 	}
 }
