@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.LoadException;
@@ -66,7 +67,7 @@ public class Transmog<T>
 	KeyMetadata<T> keyMeta;
 	
 	/** */
-	List<Path> embedCollectionPoints;
+	Set<Path> embedCollectionPoints;
 	
 	/**
 	 * Creats a transmog for the specified class, introspecting it and discovering
@@ -140,31 +141,10 @@ public class Transmog<T>
 		MapNode root = new MapNode(Path.root());
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
-			MapNode here = root;
-			String[] parts = prop.getKey().split("\\.");
-			
-			int end = parts.length - 1;
-			for (int i=0; i<end; i++) {
-				String part = parts[i];
-				here = here.pathMap(part);
-			}
-			
-			// The last one gets handled specially, it might need to be a ListNode
-			String part = parts[end];
-			
-			if (prop.getValue() instanceof Collection) {
-				@SuppressWarnings("unchecked")
-				Collection<Object> coll = (Collection<Object>)prop.getValue();
-				
-				ListNode list = here.pathList(part);
-				for (Object obj: coll) {
-					MapNode map = list.add();
-					map.setPropertyValue(obj);
-				}
-			} else {
-				here = here.pathMap(part);
-				here.setPropertyValue(prop.getValue());
-			}
+			Path path = Path.of(prop.getKey());
+		
+			EntityNode child = createNode(ForwardPath.of(path), prop.getValue());
+			root.put(path.getSegment(), child);
 		}
 		
 		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
@@ -185,6 +165,53 @@ public class Transmog<T>
 		}
 		
 		return root;
+	}
+	
+	/** 
+	 * Recursive method that places the value at the path, possibly building node structures.
+	 * 
+	 * @param forward is the path to this point, going down
+	 * @param value might be a value or might be a collection of values
+	 */
+	private EntityNode createNode(ForwardPath forward, Object value) {
+		if (forward.getNext() == null) {
+			if (value instanceof Collection) {
+				@SuppressWarnings("unchecked")
+				Collection<Object> coll = (Collection<Object>)value;
+				
+				ListNode list = new ListNode(forward.getPath());
+				for (Object obj: coll) {
+					MapNode map = list.add();
+					map.setPropertyValue(obj);
+				}
+				
+				return list;
+			} else {
+				MapNode map = new MapNode(forward.getPath());
+				map.setPropertyValue(value);
+				
+				return map;
+			}
+		} else if (embedCollectionPoints.contains(forward.getPath()) && value instanceof Collection) {
+			// We're at the point where we convert to a ListNode and de-collectionize the value, which should be a collection
+			ListNode listNode = new ListNode(forward.getPath());
+			
+			@SuppressWarnings("unchecked")
+			Collection<Object> coll = (Collection<Object>)value;
+			
+			for (Object obj: coll) {
+				EntityNode child = createNode(forward, obj);
+				listNode.add(child);
+			}
+			
+			return listNode;
+		} else {
+			// Just a normal step down the map node tree
+			EntityNode child = createNode(forward.getNext(), value);
+			MapNode map = new MapNode(forward.getPath());
+			map.put(child.getPath().getSegment(), child);
+			return map;
+		}
 	}
 	
 	/**

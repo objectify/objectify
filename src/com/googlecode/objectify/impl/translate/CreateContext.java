@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
@@ -25,7 +25,7 @@ public class CreateContext
 	int embedDepth;
 	
 	/** List of path points at which we start an embedded collection (including array) */
-	List<Path> embedCollectionPoints;
+	Set<Path> embedCollectionPoints;
 	
 	/** */
 	public CreateContext(ObjectifyFactory fact) {
@@ -36,7 +36,7 @@ public class CreateContext
 	public void enterEmbed(Path path) {
 		if (isInCollection()) {
 			if (embedCollectionPoints == null)
-				embedCollectionPoints = new ArrayList<Path>();
+				embedCollectionPoints = new HashSet<Path>();
 			
 			embedCollectionPoints.add(path);
 		}
@@ -74,7 +74,7 @@ public class CreateContext
 	}
 
 	/** */
-	public List<Path> getEmbedCollectionPoints() {
-		return (embedCollectionPoints == null) ? Collections.<Path>emptyList() : embedCollectionPoints;
+	public Set<Path> getEmbedCollectionPoints() {
+		return (embedCollectionPoints == null) ? Collections.<Path>emptySet() : embedCollectionPoints;
 	}
 }

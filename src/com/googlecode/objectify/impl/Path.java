@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.util.LangUtils;
+
 /**
  * Path represents the individual steps from the root object to the current property.
  * 
@@ -24,11 +26,31 @@ public class Path
 		segment = name;
 		previous = path;
 	}
+	
+	/** Convert an x.y.z path string back into a Path */
+	public static Path of(String pathString) {
+		if (pathString.length() == 0)
+			return ROOT;
+		else
+			return ofImpl(ROOT, pathString, 0);
+	}
+	
+	/** Recursive implementation of of() */
+	private static Path ofImpl(Path here, String pathString, int begin) {
+		int end = pathString.indexOf('.', begin);
+		if (end < 0) {
+			String part = pathString.substring(begin);
+			return here.extend(part);
+		} else {
+			String part = pathString.substring(begin, end);
+			return ofImpl(here.extend(part), pathString, end+1);
+		}
+	}
 
 	/** Create the full x.y.z string */
 	public String toPathString() {
 		if (this == ROOT) {
-			return "top level";
+			return "";
 		} else {
 			StringBuilder builder = new StringBuilder();
 			toPathString(builder);
@@ -55,11 +77,41 @@ public class Path
 	public String getSegment() {
 		return segment;
 	}
+	
+	/** Get the previous path; for root this will be null */
+	public Path getPrevious() {
+		return previous;
+	}
 
 	/** */
 	@Override
 	public String toString() {
 		return toPathString();
+	}
+	
+	/** Compares on complete path */
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || obj.getClass() != this.getClass())
+			return false;
+
+		Path other = (Path)obj;
+		
+		if (!this.segment.equals(other.segment))
+			return false;
+		else
+			return LangUtils.objectsEqual(this.previous, other.previous);
+	}
+	
+	/** Generates hash code for complete path */
+	@Override
+	public int hashCode() {
+		int hash = segment.hashCode();
+		
+		if (previous == null)
+			return hash;
+		else
+			return hash ^ previous.hashCode();
 	}
 
 	/** Convenient way to include path location in the exception message.  Never returns. */
