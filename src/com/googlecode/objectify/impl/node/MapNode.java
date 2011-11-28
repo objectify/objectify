@@ -87,14 +87,6 @@ public class MapNode extends EntityNode
 			return map.isEmpty();
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.node.EntityNode#add(com.googlecode.objectify.impl.node.EntityNode)
-	 */
-	@Override
-	public void add(EntityNode node) {
-		map().put(node.getPath().getSegment(), node);
-	}
-	
 	/** */
 	private Map<String, EntityNode> map() {
 		if (map == null)

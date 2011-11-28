@@ -179,18 +179,14 @@ public class Transmog<T>
 				@SuppressWarnings("unchecked")
 				Collection<Object> coll = (Collection<Object>)value;
 				
-				ListNode list = new ListNode(forward.getPath());
+				ListNode list = node.pathList(forward.getPath().getSegment());
 				for (Object obj: coll) {
 					MapNode map = list.add();
 					map.setPropertyValue(obj);
 				}
-				
-				node.add(list);
 			} else {
-				MapNode map = new MapNode(forward.getPath());
+				MapNode map = node.pathMap(forward.getPath().getSegment());
 				map.setPropertyValue(value);
-				
-				node.add(map);
 			}
 		} else if (embedCollectionPoints.contains(forward.getPath()) && value instanceof Collection) {
 			// We're at 'things' in this example: {id='222', things=[{foo='asdf', bar='123'}]}
