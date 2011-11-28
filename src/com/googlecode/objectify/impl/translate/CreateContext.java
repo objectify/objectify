@@ -44,6 +44,17 @@ public class CreateContext
 		embedDepth++;
 	}
 	
+	/**
+	 * There are multiple paths that might lead to a place when dealing with embedded collections; this makes
+	 * sure they all get into the embedCollectionPoints (if appropriate - they are only added if we are in
+	 * an embedded collection. 
+	 * @param alternate is another path to add as a potential embed collection point.  no effect if we are not in an embed collection.
+	 */
+	public void addAlternateEmbedPath(Path alternate) {
+		if (isInCollection() && isInEmbed())
+			embedCollectionPoints.add(alternate);
+	}
+	
 	/** */
 	public void exitEmbed() {
 		assert isInEmbed();

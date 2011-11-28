@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -156,6 +157,12 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		ctx.enterEmbed(path);
 		try {
+			// A little quirk is that we might have @AlsoLoad values on the embed, which means we might need to stuff some more
+			// paths into the embedCollectionPoints.
+			AlsoLoad alsoLoad = TypeUtils.getAnnotation(AlsoLoad.class, fieldAnnotations);
+			if (alsoLoad != null)
+				for (String name: alsoLoad.value())
+					ctx.addAlternateEmbedPath(path.getPrevious().extend(name));
 			
 			final List<EachProperty> props = new ArrayList<EachProperty>();
 			
