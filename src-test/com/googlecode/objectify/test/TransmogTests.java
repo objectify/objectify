@@ -4,7 +4,9 @@
 package com.googlecode.objectify.test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.testng.annotations.Test;
@@ -269,5 +271,59 @@ public class TransmogTests extends TransmogTestBase
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff == null; 
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasMap {
+		@Id long id;
+		Map<String, Long> stuff = new HashMap<String, Long>();
+	}
+	
+	/** */
+	@Test
+	public void testMap() throws Exception
+	{
+		fact.register(HasMap.class);
+		Transmog<HasMap> transmog = getTransmog(HasMap.class);
+		Objectify ofy = fact.begin();
+		
+		HasMap pojo = new HasMap();
+		pojo.id = 123L;
+		pojo.stuff.put("foo", 5L);
+		
+		// Check the tree structure
+		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+
+		// id and foo
+		{
+			assert rootNode.entrySet().size() == 2;
+			MapNode stuffNode = rootNode.getMap("stuff");
+			assert stuffNode.entrySet().size() == 1;
+			assertChildValue(stuffNode, "foo", 5L);
+		}
+		
+		// Check the entity structure
+		Entity entity = transmog.createEntity(rootNode);
+		
+		assert entity.getProperties().size() == 1;
+		assert entity.getProperty("stuff.foo").equals(5L);
+		
+		// Go back to the tree structure and run the same tests as before
+		rootNode = transmog.createNode(entity);
+		
+		// id and foo
+		{
+			assert rootNode.entrySet().size() == 2;
+			MapNode stuffNode = rootNode.getMap("stuff");
+			assert stuffNode.entrySet().size() == 1;
+			assertChildValue(stuffNode, "foo", 5L);
+		}
+		
+		// Go back to a solid object
+		HasMap pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		
+		assert pojo2.id == pojo.id;
+		assert pojo2.stuff.equals(pojo.stuff); 
 	}
 }

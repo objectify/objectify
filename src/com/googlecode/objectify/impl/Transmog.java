@@ -204,9 +204,8 @@ public class Transmog<T>
 			}
 		} else {
 			// Just a normal step down the map node tree
-			ForwardPath next = forward.getNext();
-			MapNode child = node.pathMap(next.getPath().getSegment());
-			addToNode(child, next, value);
+			MapNode child = node.pathMap(forward.getPath().getSegment());
+			addToNode(child, forward.getNext(), value);
 		}
 	}
 	
