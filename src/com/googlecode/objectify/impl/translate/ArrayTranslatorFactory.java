@@ -37,7 +37,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
 			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType, ctx);
 	
-			return new ListNodeTranslator<Object>(path) {
+			return new ListNodeTranslator<Object>() {
 				@Override
 				public Object loadList(ListNode node, LoadContext ctx) {
 					List<Object> list = new ArrayList<Object>(node.size());
@@ -61,7 +61,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 				}
 				
 				@Override
-				protected ListNode saveList(Object pojo, boolean index, SaveContext ctx) {
+				protected ListNode saveList(Object pojo, Path path, boolean index, SaveContext ctx) {
 					// If the array is null, just skip it.  This is important because of the way filtering works;
 					// if we stored a null then the field would match when filtering for null (same as a null in the list).
 					if (pojo == null)
@@ -78,7 +78,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 					for (int i=0; i<len; i++) {
 						try {
 							Object value = Array.get(pojo, i);
-							EntityNode addNode = componentTranslator.save(value, index, ctx);
+							EntityNode addNode = componentTranslator.save(value, path, index, ctx);
 							node.add(addNode);
 						}
 						catch (SkipException ex) {

@@ -14,7 +14,9 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 /**
  * <p>Translator which manages an expando-style Map.  The key must be String, which becomes a normal path
  * element in the entity.  The value can be anything that goes into a Collection; a basic type, an embedded
- * type, a reference, etc.  Pretty much the same attribute rules apply as apply to Collections.</p>
+ * type, a reference, a null, etc.  Pretty much the same attribute rules apply as apply to Collections.</p>
+ * 
+ * <p>Map keys cannot contain '.' and cannot be null.</p> 
  * 
  * <p>However, Maps are not list structures, so you don't have the same restriction on embedding; you
  * can put maps inside of maps and lists inside of maps.</p>
@@ -24,10 +26,6 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class MapTranslatorFactory implements TranslatorFactory<Map<String, Object>>
 {
 	abstract public static class MapMapNodeTranslator<T> extends MapNodeTranslator<Map<String, T>> {
-		public MapMapNodeTranslator(Path path) {
-			super(path);
-		}
-		
 		/** Same as having a null existing collection */
 		@Override
 		final protected Map<String, T> loadMap(MapNode node, LoadContext ctx) {
@@ -61,7 +59,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		
 		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 		
-		return new MapMapNodeTranslator<Object>(path) {
+		return new MapMapNodeTranslator<Object>() {
 			@Override
 			@SuppressWarnings("unchecked")
 			public Map<String, Object> loadMapIntoExistingMap(MapNode node, LoadContext ctx, Map<String, Object> map) {
@@ -79,14 +77,19 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 			}
 
 			@Override
-			protected MapNode saveMap(Map<String, Object> pojo, boolean index, SaveContext ctx) {
+			protected MapNode saveMap(Map<String, Object> pojo, Path path, boolean index, SaveContext ctx) {
 				// Note that maps are not like embedded collections; they don't form a list structure so you can embed
 				// as many of these as you want.
 				MapNode node = new MapNode(path);
 				
 				for (Map.Entry<String, ?> entry: pojo.entrySet()) {
+					if (entry.getKey() == null)
+						throw new IllegalArgumentException("Map keys cannot be null");
 					
-					EntityNode child = componentTranslator.save(entry.getValue(), index, ctx);
+					if (entry.getKey().contains("."))
+						throw new IllegalArgumentException("Map keys cannot contain '.' characters");
+						
+					EntityNode child = componentTranslator.save(entry.getValue(), path.extend(entry.getKey()), index, ctx);
 					node.put(entry.getKey(), child);
 				}
 				

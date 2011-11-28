@@ -274,7 +274,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			return null;
 
 		Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
-		EntityNode node = translator.save(value, false, new SaveContext(this));
+		EntityNode node = translator.save(value, Path.root(), false, new SaveContext(this));
 		if (node instanceof ListNode) {
 			// ugh, we need to destructure the contents
 			ListNode listNode = (ListNode)node;

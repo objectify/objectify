@@ -119,7 +119,7 @@ public class Transmog<T>
 	/** Public just for testing */
 	public MapNode save(T fromPojo, SaveContext ctx) {
 		// Default index state is false!
-		return (MapNode)rootTranslator.save(fromPojo, false, ctx);
+		return (MapNode)rootTranslator.save(fromPojo, Path.root(), false, ctx);
 	}
 
 	/**

@@ -13,11 +13,14 @@ import com.googlecode.objectify.impl.node.MapNode;
 abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 {
 	/** */
+	protected Path path;
+	
+	/** */
 	Class<D> datastoreClass;
 	
 	/** */
 	public ValueTranslator(Path path, Class<D> datastoreClass) {
-		super(path);
+		this.path = path;
 		this.datastoreClass = datastoreClass;
 	}
 
@@ -40,10 +43,10 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.MapNodeTranslator#saveMap(java.lang.Object, boolean, com.googlecode.objectify.impl.SaveContext)
+	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#saveMap(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final protected MapNode saveMap(P pojo, boolean index, SaveContext ctx) {
+	final protected MapNode saveMap(P pojo, Path path, boolean index, SaveContext ctx) {
 		MapNode node = new MapNode(path);
 		
 		D translated = (pojo == null)

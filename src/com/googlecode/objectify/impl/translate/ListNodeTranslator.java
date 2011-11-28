@@ -9,30 +9,25 @@ import com.googlecode.objectify.impl.node.ListNode;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
+abstract public class ListNodeTranslator<T> implements Translator<T>
 {
-	/** */
-	public ListNodeTranslator(Path path) {
-		super(path);
-	}
-
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.load.Loader#load(com.googlecode.objectify.impl.node.EntityNode, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
 	final public T load(EntityNode node, LoadContext ctx) {
 		if (!(node instanceof ListNode))
-			path.throwIllegalState("Expected a list structure but found " + node);
+			node.getPath().throwIllegalState("Expected a list structure but found " + node);
 		
 		return this.loadList((ListNode)node, ctx);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Translator#save(java.lang.Object, boolean, com.googlecode.objectify.impl.SaveContext)
+	 * @see com.googlecode.objectify.impl.translate.Translator#save(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final public EntityNode save(T pojo, boolean index, SaveContext ctx) {
-		return this.saveList(pojo, index, ctx);
+	final public EntityNode save(T pojo, Path path, boolean index, SaveContext ctx) {
+		return this.saveList(pojo, path, index, ctx);
 	};
 	
 	/**
@@ -43,5 +38,5 @@ abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
 	/**
 	 * Implement this to return a proper ListNode
 	 */
-	abstract protected ListNode saveList(T pojo, boolean index, SaveContext ctx);
+	abstract protected ListNode saveList(T pojo, Path path, boolean index, SaveContext ctx);
 }

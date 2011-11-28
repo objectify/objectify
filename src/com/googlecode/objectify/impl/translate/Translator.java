@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.node.EntityNode;
 
 /**
@@ -28,10 +29,11 @@ public interface Translator<T>
 	 * are associated with a node.
 	 * 
 	 * @param pojo is an object from the pojo entity graph; possibly the whole graph
+	 * @param path is the path that the entitynode will be created with - the path to the pojo
 	 * @param index is whether the instruction so far is to index or not index property values
 	 * @return an EntityNode relevant to the pojo
 	 * 
 	 * @throws SkipException if this subtree should not be saved.
 	 */
-	EntityNode save(T pojo, boolean index, SaveContext ctx) throws SkipException;
+	EntityNode save(T pojo, Path path, boolean index, SaveContext ctx) throws SkipException;
 }

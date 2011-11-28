@@ -23,9 +23,6 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>>
 {
 	abstract public static class CollectionListNodeTranslator<T> extends ListNodeTranslator<Collection<T>> {
-		public CollectionListNodeTranslator(Path path) {
-			super(path);
-		}
 		
 		/** Same as having a null existing collection */
 		@Override
@@ -60,7 +57,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			
 			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 			
-			return new CollectionListNodeTranslator<Object>(path) {
+			return new CollectionListNodeTranslator<Object>() {
 				@Override
 				@SuppressWarnings("unchecked")
 				public Collection<Object> loadListIntoExistingCollection(ListNode node, LoadContext ctx, Collection<Object> collection) {
@@ -83,7 +80,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 				}
 	
 				@Override
-				protected ListNode saveList(Collection<Object> pojo, boolean index, SaveContext ctx) {
+				protected ListNode saveList(Collection<Object> pojo, Path path, boolean index, SaveContext ctx) {
 					
 					// If the collection is null, just skip it.  This is important because of the way filtering works;
 					// if we stored a null then the field would match when filtering for null (same as a null in the list).
@@ -101,7 +98,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					if (pojo != null) {
 						for (Object obj: pojo) {
 							try {
-								EntityNode child = componentTranslator.save(obj, index, ctx);
+								EntityNode child = componentTranslator.save(obj, path, index, ctx);
 								node.add(child);
 							}
 							catch (SkipException ex) {

@@ -90,7 +90,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				
 				Object value = property.get(onPojo);
 				try {
-					EntityNode child = translator.save(value, index, ctx);
+					Path path = node.getPath().extend(property.getName());
+					EntityNode child = translator.save(value, path, index, ctx);
 					node.put(property.getName(), child);
 				}
 				catch (SkipException ex) {
@@ -168,7 +169,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 					propPath.throwIllegalState("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
 			}
 			
-			return new MapNodeTranslator<T>(path) {
+			return new MapNodeTranslator<T>() {
 				@Override
 				protected T loadMap(MapNode node, LoadContext ctx) {
 					T pojo = fact.construct(clazz);
@@ -180,7 +181,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				}
 	
 				@Override
-				protected MapNode saveMap(T pojo, boolean index, SaveContext ctx) {
+				protected MapNode saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
 					MapNode node = new MapNode(path);
 					
 					for (EachProperty prop: props)
