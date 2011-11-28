@@ -1,5 +1,4 @@
 /*
- * $Id$
  */
 
 package com.googlecode.objectify.util;
@@ -12,6 +11,8 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.impl.TypeUtils;
 
 /**
+ * <p>WARNING:  This does not produce absolutely monotonic values work with the HRD.</p>
+ * 
  * <p>Provides a method for generating contiguous, monotonically increasing values.</p>
  * 
  * <p>The datastore will automatically generate unique ids for your entities if you

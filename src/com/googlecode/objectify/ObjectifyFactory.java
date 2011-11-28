@@ -353,7 +353,12 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * @return the repository of Translator objects
+	 * Gets the master list of all registered TranslatorFactory objects.  By adding Translators, Objectify
+	 * can process additional field types which are not part of the standard GAE SDK.  Note that you must
+	 * add translators *before* registering entity pojo classes, or re-register pojo classes after you add
+	 * translators.
+	 *  
+	 * @return the repository of TranslatorFactory objects, to which you can optionally add translators
 	 */
 	public TranslatorRegistry getTranslators() {
 		return this.translators;
