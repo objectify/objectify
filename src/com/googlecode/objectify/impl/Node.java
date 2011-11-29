@@ -7,43 +7,46 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-
 /**
- * <p>A tree repesentation of a datastore Entity object.  Note that actual propertyValue property values
- * are stored in an EntityNode under a special name; this is because there can be real properties
- * at higher levels of the tree.  For example:</p>
+ * <p>A tree repesentation of a datastore Entity object.<p>
  * 
+ * <p>A node can have a map, a list, or a property value.  However, these are not exclusive; because of the entity
+ * storage structure a node can have a map and a property value at the same place.  Lists, however, stand alone.</p>
+ * 
+ * <p>Here is an example of a set of entity properties:</p>
  * <ul>
  * <li>field1.field2 = "foo"</li>
  * <li>field1.field2.field3 = "bar"</li>
  * </ul>
  * 
- * <p>This produces a tree that looks like:</li>
+ * <p>This produces a tree that looks like:</p>
+ * <pre>
+root {
+	field1: {
+		field2: "foo" + {
+			field3: "bar"
+		}
+	}
+}
+</pre>
+ *
+ * <p>Note that collection values are stored in their own property value nodes.  For example:</p>
+ * <ul>
+ * <li>field1 = [ "foo", "bar" ]</li>
+ * </ul>
  * 
- * <ul>
- * <li>
- * 	EntityNode (root)
- * 		<ul>
- * 			<li>
- * 				"field1": EntityNode
- * 				<ul>
- * 					<li>
- * 						"field2": EntityNode
- * 						<ul>
- * 							<li>propertyValue: "foo"</li>
- * 							<li>
- * 								"field3": EntityNode
- * 								<ul>
- * 									<li>propertyValue: "bar"</li>
- * 								</ul>
- * 							</li>
- * 						</ul>
- * 					</li>
- * 				</ul>
- * 			</li>
- * 		</ul>
- * </li>
- * <ul>
+ * <p>Becomes this (note that each value in the collection is a node):</p>
+ * <pre>
+root {
+	field1: [
+		{ "foo" },
+		{ "bar" }
+	}
+}
+</pre>
+ * 
+ * <p>This is roughly similar to Jackson's JsonNode.  One major difference is that there is not a class hierarchy
+ * of node types; this is because nodes can actually switch types during tree reprocessing.</p>
  */
 public class Node implements Iterable<Node>
 {

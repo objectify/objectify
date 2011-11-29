@@ -97,25 +97,25 @@ public class Transmog<T>
 	}
 
 	/**
-	 * <p>Turn the Entity into the hierarchical set of EntityNodes that the translation system understands.
+	 * <p>Turn the Entity into the hierarchical set of Nodes that the translation system understands.
 	 * This is done in two steps.  The first converts to a literal structure of the Entity - this is normally
 	 * the same as the POJO structure, but @Embed collections are "collectionized" such that the leaf property
 	 * values are the collections.  The second step de-collectionizes the entity nodes, repositioning the
 	 * collections from the leaf levels up to the place in the hierarchy where the embedded classes are.</p>
 	 * 
-	 * <p>Also adds id/parent fields to the root EntityNode.</p>
+	 * <p>Also adds id/parent fields to the root Node.</p>
 	 * 
 	 * <p>Public only for testing purposes.</p>
 	 * 
 	 * <p>P.S. an exercise for the reader:  Try to do this in one pass!  Watch out for the ^null collection.</p>
 	 * 
-	 * @return a root EntityNode corresponding to the Entity, in a format suitable for translators.
+	 * @return a root Node corresponding to the Entity, in a format suitable for translators.
 	 */
 	public Node load(Entity fromEntity) {
 		Node root = this.loadLiterally(fromEntity);
 		root = loadIntoTranslateFormat(root);
 
-		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
+		// Last step, add the key fields to the root Node so they get populated just like every other field would.
 		String idName = keyMeta.getIdFieldName();
 		
 		if (root.containsKey(idName))
@@ -138,14 +138,14 @@ public class Transmog<T>
 	}
 	
 	/**
-	 * <p>Break down the Entity into a series of nested EntityNodes which literally reflect
+	 * <p>Break down the Entity into a series of nested Nodes which literally reflect
 	 * the exact x.y.z paths of the properties in the Entity.</p>
 	 * 
 	 * <p>The resulting map will have @Embed collections as they are stored natively; another
 	 * processing step will be required to create the normal hierarchical structure that translators
 	 * can work with.</p>
 	 * 
-	 * @return a root EntityNode corresponding to a literal read of the Entity
+	 * @return a root Node corresponding to a literal read of the Entity
 	 */
 	private Node loadLiterally(Entity fromEntity) {
 		Node root = new Node(Path.root());
@@ -180,7 +180,7 @@ public class Transmog<T>
 	}
 	
 	/** 
-	 * Recursive method that builds out a nested linear chain of EntityNodes along the specified path.
+	 * Recursive method that builds out a nested linear chain of Nodes along the specified path.
 	 * For example, if path is 'one.two.three', the nodes will be root:{one:{two:three{}}}.
 	 * @return the bottom-most node in the list
 	 */
@@ -219,7 +219,7 @@ public class Transmog<T>
 	}
 	
 	/**
-	 * <p>Turn a hierarchical series of EntityNodes into the standard Entity storage format.  Unlike the
+	 * <p>Turn a hierarchical series of Nodes into the standard Entity storage format.  Unlike the
 	 * load process, this happens in one step, going straight to the "collectionized" format that @Embed
 	 * collections are stored in.</p>
 	 * 
@@ -291,7 +291,7 @@ public class Transmog<T>
 				setEntityProperty(entity, node.getPath().toPathString(), things, index);
 			}
 			
-		} else {	// EntityNode
+		} else {	// Not list
 			if (node.hasPropertyValue()) {
 				String propertyName = node.getPath().toPathString();
 				if (collectionize) {
@@ -308,7 +308,7 @@ public class Transmog<T>
 				}
 			}
 					
-			if (!node.isEmpty()) {
+			if (node.hasMap()) {
 				for (Node child: node) {
 					populateFields(entity, child, collectionize);
 				}
