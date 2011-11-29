@@ -1,6 +1,8 @@
 package com.googlecode.objectify.test;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.testng.annotations.Test;
@@ -30,6 +32,7 @@ public class CollectionEmbedTests extends TestBase
 		
 		@Override public int hashCode() { return value.hashCode(); }
 		@Override public boolean equals(Object obj) { return value.equals(((HashableThing)obj).value); }
+		@Override public String toString() { return this.getClass().getSimpleName() + "(" + value + ")"; }
 	}
 
 	@Test
@@ -63,4 +66,39 @@ public class CollectionEmbedTests extends TestBase
 		assert fetched.someSet.size() == 1;
 		assert fetched.someSet.contains(null);
 	}
+
+	/** Has an embed class in an embed collection */
+	@Entity
+	public static class HasDeepThings {
+		@Id Long id;
+		@Embed List<DeepThing> deeps = new ArrayList<DeepThing>();
+		@Override public String toString() { return this.getClass().getSimpleName() + "(" + deeps + ")"; }
+	}
+	
+	/** */
+	public static class DeepThing {
+		@Embed HashableThing thing;
+		
+		public DeepThing() {}
+		public DeepThing(int val) { this.thing = new HashableThing(val); }
+		@Override public String toString() { return this.getClass().getSimpleName() + "(" + thing + ")"; }
+	}
+
+	/** */
+	@Test
+	public void testHasDeepThings() throws Exception
+	{
+		this.fact.register(HasDeepThings.class);
+		
+		HasDeepThings has = new HasDeepThings();
+		has.deeps.add(new DeepThing(4));
+		has.deeps.add(new DeepThing(5));
+		
+		HasDeepThings fetched = this.putAndGet(has);
+		
+		assert fetched.deeps.size() == 2;
+		assert fetched.deeps.get(0).thing.equals(has.deeps.get(0).thing);
+		assert fetched.deeps.get(1).thing.equals(has.deeps.get(1).thing);
+	}
+
 }

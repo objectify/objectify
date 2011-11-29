@@ -297,7 +297,7 @@ public class Transmog<T>
 			to.addToMap(choice);
 		} else {
 			for (Node fromChild: from) {
-				copyNode(collectionIndex, fromChild, to.path(fromChild.getPath().getSegment()));
+				copyNode(collectionIndex, fromChild, to.path(from.getPath().getSegment()));
 			}
 		}
 	}
@@ -371,7 +371,7 @@ public class Transmog<T>
 				}
 				
 				if (!nullIndexes.isEmpty())
-					setEntityProperty(entity, node.getPath().toPathString() + "^null", nullIndexes, false);
+					setEntityProperty(entity, node.getPath().extend(Path.NULL_INDEXES).toPathString(), nullIndexes, false);
 				
 			} else {
 				// A normal collection of leaf property values
