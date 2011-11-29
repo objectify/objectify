@@ -15,7 +15,7 @@ public class Path
 	 * So we are fixing this now - we read thing^null as thing.^null, and always save as thing.^null.
 	 * Some day in the far future we can remove this hack. 
 	 */
-	public static final String NULL_INDEX = "^null";
+	public static final String NULL_INDEXES = "^null";
 	
 	/** */
 	private static final Path ROOT = new Path("", null);
@@ -50,8 +50,8 @@ public class Path
 			String part = pathString.substring(begin);
 			
 			// HACK HERE, see javadoc for NULL_INDEX
-			if (part.endsWith(NULL_INDEX))
-				return here.extend(part.substring(0, NULL_INDEX.length())).extend(NULL_INDEX);
+			if (part.endsWith(NULL_INDEXES))
+				return here.extend(part.substring(0, NULL_INDEXES.length())).extend(NULL_INDEXES);
 			else
 				return here.extend(part);
 		} else {

@@ -81,13 +81,6 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 				@Override
 				protected Node saveList(Collection<Object> pojo, Path path, boolean index, SaveContext ctx) {
 					
-					// If the collection is null, just skip it.  This is important because of the way filtering works;
-					// if we stored a null then the field would match when filtering for null (same as a null in the list).
-					// Also, storing a null would forcibly assign null to the collection field on load, screwing things up
-					// if the developer decided to later initialize the collection in the default constructor.
-					if (pojo == null)
-						throw new SkipException();
-					
 					// If it's empty, might as well skip it - the datastore doesn't store empty lists
 					if (pojo.isEmpty())
 						throw new SkipException();

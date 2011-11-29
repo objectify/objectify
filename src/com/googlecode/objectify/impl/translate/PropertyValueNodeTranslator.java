@@ -4,7 +4,8 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
- * <p>Helper which expects a property value in the data structure and throws an exception if one is not found.</p>
+ * <p>Helper which expects a property value in the data structure and throws an exception if one is not found.
+ * Also handles null checking.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -18,6 +19,9 @@ abstract public class PropertyValueNodeTranslator<T> implements Translator<T>
 		if (!node.hasPropertyValue())
 			node.getPath().throwIllegalState("Expected property value but found: " + node);
 		
+		if (node.getPropertyValue() == null)
+			return null;
+		
 		return this.loadPropertyValue(node, ctx);
 	}
 	
@@ -26,16 +30,24 @@ abstract public class PropertyValueNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
-		return this.savePropertyValue(pojo, path, index, ctx);
+		if (pojo == null) {
+			Node node = new Node(path);
+			node.setPropertyValue(null, index);
+			return node;
+		} else {
+			return this.savePropertyValue(pojo, path, index, ctx);
+		}
 	}
 	
 	/**
-	 * Implement this knowing that we have a proper property value node
+	 * Implement this knowing that we have a proper property value node with a non-null value
+	 * @param node will have a property value and will never be null
 	 */
 	abstract protected T loadPropertyValue(Node node, LoadContext ctx);
 	
 	/**
-	 * Implement this, returning a property value node
+	 * Implement this, returning a property value node.
+	 * @param pojo will never be null
 	 */
 	abstract protected Node savePropertyValue(T pojo, Path path, boolean index, SaveContext ctx);
 }

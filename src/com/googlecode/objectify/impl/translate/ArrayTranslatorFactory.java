@@ -61,11 +61,6 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 				
 				@Override
 				protected Node saveList(Object pojo, Path path, boolean index, SaveContext ctx) {
-					// If the array is null, just skip it.  This is important because of the way filtering works;
-					// if we stored a null then the field would match when filtering for null (same as a null in the list).
-					if (pojo == null)
-						throw new SkipException();
-					
 					int len = Array.getLength(pojo);
 
 					// If it's empty, might as well skip it - the datastore doesn't store empty lists

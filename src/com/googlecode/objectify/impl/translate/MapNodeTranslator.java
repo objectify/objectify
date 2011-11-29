@@ -4,7 +4,8 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
- * <p>Helper which expects a map node in the data structure and throws an exception if a map is not found.</p>
+ * <p>Helper which expects a map node in the data structure and throws an exception if a map is not found.  Accepts
+ * null values, just passing them on as a simple property.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -15,6 +16,9 @@ abstract public class MapNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public T load(Node node, LoadContext ctx) {
+		if (node.hasPropertyValue() && node.getPropertyValue() == null)
+			return null;
+		
 		if (!node.hasMap())
 			node.getPath().throwIllegalState("Expected map structure but found: " + node);
 		
@@ -26,7 +30,13 @@ abstract public class MapNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
-		return this.saveMap(pojo, path, index, ctx);
+		if (pojo == null) {
+			Node node = new Node(path);
+			node.setPropertyValue(null, index);
+			return node;
+		} else {
+			return this.saveMap(pojo, path, index, ctx);
+		}
 	}
 	
 	/**

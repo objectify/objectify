@@ -4,7 +4,8 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
- * <p>Helper which expects a list node in the data structure and throws an exception one is not found.</p>
+ * <p>Helper which expects a list node in the data structure and throws an exception one is not found.
+ * Also handles skipping when a null list is found.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -15,6 +16,10 @@ abstract public class ListNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public T load(Node node, LoadContext ctx) {
+		// Just ignore nulls for all collection types
+		if (node.hasPropertyValue() && node.getPropertyValue() == null)
+			throw new SkipException();
+		
 		if (!node.hasList())
 			node.getPath().throwIllegalState("Expected list structure but found " + node);
 		
@@ -26,6 +31,13 @@ abstract public class ListNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
+		// If the collection is null, just skip it.  This is important because of the way filtering works;
+		// if we stored a null then the field would match when filtering for null (same as a null in the list).
+		// Also, storing a null would forcibly assign null to the collection field on load, screwing things up
+		// if the developer decided to later initialize the collection in the default constructor.
+		if (pojo == null)
+			throw new SkipException();
+		
 		return this.saveList(pojo, path, index, ctx);
 	};
 	

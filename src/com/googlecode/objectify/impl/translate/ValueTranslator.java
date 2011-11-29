@@ -6,7 +6,8 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
- * <p>Helper which helps take a mapnode's property value and converts it from datastore representation to pojo representation.</p>
+ * <p>Helper which helps take a mapnode's property value and converts it from datastore representation to pojo representation.
+ * Note that null checking has already been done.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -25,13 +26,11 @@ abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.MapNodeTranslator#loadMap(com.googlecode.objectify.impl.node.MapNode, com.googlecode.objectify.impl.LoadContext)
+	 * @see com.googlecode.objectify.impl.translate.PropertyValueNodeTranslator#loadPropertyValue(com.googlecode.objectify.impl.Node, com.googlecode.objectify.impl.translate.LoadContext)
 	 */
 	@Override
 	final protected P loadPropertyValue(Node node, LoadContext ctx) {
 		Object value = node.getPropertyValue();
-		if (value == null)
-			return null;
 		
 		if (!datastoreClass.isAssignableFrom(value.getClass()))
 			path.throwIllegalState("Expected " + datastoreClass + ", got " + value.getClass() + ": " + value);
@@ -43,15 +42,13 @@ abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#saveMap(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
+	 * @see com.googlecode.objectify.impl.translate.PropertyValueNodeTranslator#savePropertyValue(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
 	final protected Node savePropertyValue(P pojo, Path path, boolean index, SaveContext ctx) {
 		Node node = new Node(path);
 		
-		D translated = (pojo == null)
-				? null
-				: saveValue(pojo, ctx);
+		D translated = saveValue(pojo, ctx);
 		
 		// A quick sanity check - some things we cannot index!
 		if (index && (translated instanceof Blob || translated instanceof Text))

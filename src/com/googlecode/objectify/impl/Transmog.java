@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -232,20 +233,35 @@ public class Transmog<T>
 	private void modifyIntoTranslateFormat(Node thingsBefore) {
 		if (embedCollectionPoints.contains(thingsBefore.getPath())) {
 			
+			Node nullsNode = thingsBefore.get(Path.NULL_INDEXES);
+			Set<Integer> nulls = getNullIndexes(nullsNode);
+					
 			// We must de-collecitonize the subgraph
 			List<Node> thingsAfter = new ArrayList<Node>();
 			
-			for (int index=0; true; index++) {
-				try {
-					Node atIndexAfter = new Node(thingsBefore.getPath());
-					
-					for (Node fooBefore: thingsBefore)
-						copyNode(index, fooBefore, atIndexAfter);
-
-					thingsAfter.add(atIndexAfter);
+			int index = 0;
+			while (true) {
+				if (nulls != null && nulls.contains(index)) {
+					// Add a null to the collection
+					Node node = new Node(thingsBefore.getPath());
+					node.setPropertyValue(null);
+					thingsAfter.add(node);
 				}
-				catch (StopException ex) {
-					break;
+				else {
+					// Add a real value to the collection
+					try {
+						Node atIndexAfter = new Node(thingsBefore.getPath());
+						
+						for (Node fooBefore: thingsBefore)
+							copyNode(index, fooBefore, atIndexAfter);
+	
+						thingsAfter.add(atIndexAfter);
+						
+						index++;
+					}
+					catch (StopException ex) {
+						break;
+					}
 				}
 			}
 			
@@ -277,6 +293,21 @@ public class Transmog<T>
 				copyNode(collectionIndex, fromChild, to.path(fromChild.getPath().getSegment()));
 			}
 		}
+	}
+	
+	/**
+	 * Construct a Set<Integer> from the '^null' collection of an embedded collection.
+	 * @return null if the input value is null
+	 */
+	private Set<Integer> getNullIndexes(Node nullsNode) {
+		if (nullsNode == null)
+			return null;
+		
+		Set<Integer> nulls = new HashSet<Integer>(nullsNode.size() * 2);
+		for (Node child: nullsNode)
+			nulls.add(((Number)child.getPropertyValue()).intValue());
+		
+		return nulls;
 	}
 	
 	/**
