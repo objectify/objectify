@@ -97,7 +97,7 @@ public class CollectionTests extends TestBase
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
 		ofy.clear();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		assertContains123(hc.integerList, ArrayList.class);
 		assertContains123(hc.integerArrayList, ArrayList.class);
@@ -123,7 +123,7 @@ public class CollectionTests extends TestBase
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		assertContains123(hc.integerSet, HashSet.class);
 		assertContains123(hc.integerSortedSet, TreeSet.class);
@@ -146,7 +146,7 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(3);
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		assertContains123(hc.customSet, CustomSet.class);
 	}
@@ -169,7 +169,7 @@ public class CollectionTests extends TestBase
 		hc.typedKeySet.add(key9);
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		assert hc.typedKeySet instanceof HashSet<?>;
 		assert hc.typedKeySet.size() == 3;
@@ -189,7 +189,7 @@ public class CollectionTests extends TestBase
 		hc.integerList = Arrays.asList((Integer) null);
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		assert hc.integerList != null;
 		assert hc.integerList.size() == 1;
@@ -216,10 +216,10 @@ public class CollectionTests extends TestBase
 		hc.integerList = null;
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		ofy.put().entity(hc).now();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 		assert hc.integerList == null;	// not loaded
 
 		Entity e = ds().get(fact.getRawKey(key));
@@ -241,7 +241,7 @@ public class CollectionTests extends TestBase
 
 		Key<HasCollections> key = ofy.put().entity(hc).now();
 		ofy.clear();
-		hc = ofy.load().entity(key).get();
+		hc = ofy.load().key(key).get();
 
 		System.out.println(ds().get(fact.getRawKey(hc)));
 

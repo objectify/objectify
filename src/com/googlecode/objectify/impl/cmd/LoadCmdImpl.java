@@ -101,7 +101,7 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#entity(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public <K> Ref<K> entity(Key<K> key) {
+	public <K> Ref<K> key(Key<K> key) {
 		Ref<K> ref = Ref.create(key);
 		ref(ref);
 		return ref;
@@ -111,31 +111,31 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#entity(com.google.appengine.api.datastore.Key)
 	 */
 	@Override
-	public <K> Ref<K> entity(com.google.appengine.api.datastore.Key rawKey) {
-		return entity(Key.<K>create(rawKey));
+	public <K> Ref<K> key(com.google.appengine.api.datastore.Key rawKey) {
+		return key(Key.<K>create(rawKey));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Find#entity(java.lang.Object)
 	 */
 	@Override
-	public <E, K extends E> Ref<K> entity(E entity) {
-		return entity(ofy.getFactory().<K>getKey(entity));
+	public <E, K extends E> Ref<K> key(E entity) {
+		return key(ofy.getFactory().<K>getKey(entity));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Object[])
 	 */
 	@Override
-	public <E, K extends E> Map<Key<K>, E> entities(Object... values) {
-		return entities(Arrays.asList(values));
+	public <E, K extends E> Map<Key<K>, E> keys(Object... values) {
+		return keys(Arrays.asList(values));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <E, K extends E> Map<Key<K>, E> entities(Iterable<?> values) {
+	public <E, K extends E> Map<Key<K>, E> keys(Iterable<?> values) {
 		List<com.google.appengine.api.datastore.Key> raw = ofy.getFactory().getRawKeys(values);
 		return ofy.createGetEngine(fetchGroups).get(raw);
 	}

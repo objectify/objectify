@@ -25,6 +25,6 @@ public class TestObjectify extends ObjectifyWrapper<TestObjectify>
 	}
 	
 	public <K, E extends K> E get(Key<K> key) {
-		return this.load().entity(key).get();
+		return this.load().key(key).get();
 	}
 }

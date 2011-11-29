@@ -32,11 +32,11 @@ public class BulkGetTests extends TestBase
         Key<Trivial> k2 = ofy.put().entity(t2).now();
 
         // get k1, then k2
-        Map<Key<Trivial>,Trivial> map = ofy.load().entities(Arrays.asList(k1, k2));
+        Map<Key<Trivial>,Trivial> map = ofy.load().keys(Arrays.asList(k1, k2));
         assert sameList(Arrays.asList(k1, k2), map.keySet());
 
         // get k2, then k1
-        map = ofy.load().entities(Arrays.asList(k2, k1));
+        map = ofy.load().keys(Arrays.asList(k2, k1));
         assert sameList(Arrays.asList(k2, k1), map.keySet());
 
     }

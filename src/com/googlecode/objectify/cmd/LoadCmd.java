@@ -80,7 +80,7 @@ public interface LoadCmd extends Query<Object>
 	 * @param key defines the entity to fetch
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K> Ref<K> entity(Key<K> key);
+	<K> Ref<K> key(Key<K> key);
 
 	/**
 	 * <p>Fetch a single entity by native datastore key.  This starts an asynchronous fetch.</p>
@@ -93,7 +93,7 @@ public interface LoadCmd extends Query<Object>
 	 * @param key defines the entity to fetch
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K> Ref<K> entity(com.google.appengine.api.datastore.Key rawKey);
+	<K> Ref<K> key(com.google.appengine.api.datastore.Key rawKey);
 	
 	/**
 	 * <p>Fetch a single entity which has the same id/parent as the specified entity.  This starts an asynchronous fetch.</p>
@@ -109,7 +109,7 @@ public interface LoadCmd extends Query<Object>
 	 * @param entity defines the entity to fetch; it must be of a registered entity type and have valid id/parent fields.
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<E, K extends E> Ref<K> entity(E entity);
+	<E, K extends E> Ref<K> key(E entity);
 	
 	/**
 	 * <p>Fetch multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -133,10 +133,10 @@ public interface LoadCmd extends Query<Object>
 	 * entity instances with valid id/parent fields.
 	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
 	 */
-	<E, K extends E> Map<Key<K>, E> entities(Iterable<?> keysOrEntities);
+	<E, K extends E> Map<Key<K>, E> keys(Iterable<?> keysOrEntities);
 	
 	/**
 	 * <p>A convenient substitute for entities(Iterable)</p>
 	 */
-	<E, K extends E> Map<Key<K>, E> entities(Object... keysOrEntities);
+	<E, K extends E> Map<Key<K>, E> keys(Object... keysOrEntities);
 }

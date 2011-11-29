@@ -103,7 +103,7 @@ public class ValueTranslationTests extends TestBase
 		ds.put(null, ent);
 		
 		Key<HasString> key = Key.create(ent.getKey());
-		HasString fetched = ofy.load().entity(key).get();
+		HasString fetched = ofy.load().key(key).get();
 		
 		assert fetched.string.equals("2");	// should be a string
 	}
@@ -124,7 +124,7 @@ public class ValueTranslationTests extends TestBase
 		ds.put(null, ent);
 		
 		Key<HasNumber> key = Key.create(ent.getKey());
-		HasNumber fetched = ofy.load().entity(key).get();
+		HasNumber fetched = ofy.load().key(key).get();
 		
 		assert fetched.number == 2;	// should be a number
 	}

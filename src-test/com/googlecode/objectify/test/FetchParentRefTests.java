@@ -163,7 +163,7 @@ public class FetchParentRefTests extends TestBase
 		assert fetched.father.get() == null;
 
 		// This should get a filled in ref
-		Child fetched2 = ofy.load().group("group").entity(fact.<Child>getKey(ch)).get();
+		Child fetched2 = ofy.load().group("group").key(fact.<Child>getKey(ch)).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}

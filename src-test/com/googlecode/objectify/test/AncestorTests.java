@@ -41,7 +41,7 @@ public class AncestorTests extends TestBase
 		
 		assert childKey.getParent().equals(parentKey);
 		
-		Child fetched = ofy.load().entity(childKey).get();
+		Child fetched = ofy.load().key(childKey).get();
 		
 		assert fetched.getParent().equals(child.getParent());
 		assert fetched.getChildString().equals(child.getChildString());

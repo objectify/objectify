@@ -198,14 +198,14 @@ public class FetchFieldRefTests extends TestBase
 		
 		TestObjectify ofy = fact.begin();
 		
-		fetched = ofy.load().group("single").entity(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group("single").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(0).get() == fetched.single.get();	// good question about this
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString() == null;
 
-		fetched = ofy.load().group("multi").entity(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
@@ -213,7 +213,7 @@ public class FetchFieldRefTests extends TestBase
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString() == null;	// or should this be the same item as multi[0]?
 		
-		fetched = ofy.load().group("single").group("multi").entity(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group("single").group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());

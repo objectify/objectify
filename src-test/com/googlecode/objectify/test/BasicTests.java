@@ -47,7 +47,7 @@ public class BasicTests extends TestBase
 		Key<Trivial> created = Key.create(Trivial.class, k.getId());
 		assert k.equals(created);
 
-		Trivial fetched = ofy.load().entity(k).get();
+		Trivial fetched = ofy.load().key(k).get();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -69,7 +69,7 @@ public class BasicTests extends TestBase
 
 		assert k2.equals(k);
 
-		Trivial fetched = ofy.load().entity(k).get();
+		Trivial fetched = ofy.load().key(k).get();
 
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
@@ -91,7 +91,7 @@ public class BasicTests extends TestBase
 		Key<NamedTrivial> createdKey = Key.create(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
-		NamedTrivial fetched = ofy.load().entity(k).get();
+		NamedTrivial fetched = ofy.load().key(k).get();
 
 		assert fetched.getName().equals(k.getName());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -123,7 +123,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy.load().entities(keys);
+		Map<Key<Trivial>, Trivial> fetched = ofy.load().keys(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)

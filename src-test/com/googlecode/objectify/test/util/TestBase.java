@@ -76,7 +76,7 @@ public class TestBase
 		
 		ofy.clear();
 
-		return ofy.load().entity(key).get();
+		return ofy.load().key(key).get();
 	}
 	
 	/** Get a DatastoreService */

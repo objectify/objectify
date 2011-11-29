@@ -84,7 +84,7 @@ public class CachingTests extends TestBase
 		
 		Map<Key<Object>, Object> keys = ofy.put().entities(entities).now();
 		ofy.clear();
-		Map<Key<Object>, Object> fetched = ofy.load().entities(keys.keySet());
+		Map<Key<Object>, Object> fetched = ofy.load().keys(keys.keySet());
 		
 		assert fetched.size() == 4;
 		assert fetched.containsKey(this.fact.getKey(un1));

@@ -148,7 +148,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasAlsoLoads> key = Key.create(ent.getKey());
-		HasAlsoLoads fetched = ofy.load().entity(key).get();
+		HasAlsoLoads fetched = ofy.load().key(key).get();
 		
 		assert fetched.getStuff().equals("oldStuff");
 		assert fetched.getOtherStuff() == null;
@@ -168,7 +168,7 @@ public class AlsoLoadTests extends TestBase
 		try
 		{
 			Key<HasAlsoLoads> key = Key.create(ent.getKey());
-			ofy.load().entity(key).get();
+			ofy.load().key(key).get();
 			assert false: "Shouldn't be able to read data duplicated with @AlsoLoad";
 		}
 		catch (Exception ex) {}
@@ -185,7 +185,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasAlsoLoads> key = Key.create(ent.getKey());
-		HasAlsoLoads fetched = ofy.load().entity(key).get();
+		HasAlsoLoads fetched = ofy.load().key(key).get();
 		
 		assert fetched.getWeird() == 5;
 	}
@@ -202,7 +202,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasEmbedded> key = Key.create(ent.getKey());
-		HasEmbedded fetched = ofy.load().entity(key).get();
+		HasEmbedded fetched = ofy.load().key(key).get();
 		
 		assert TEST_VALUE.equals(fetched.fieldUser.foo);
 		assert TEST_VALUE.equals(fetched.methodUser.foo);
@@ -220,7 +220,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasEmbedded> key = Key.create(ent.getKey());
-		HasEmbedded fetched = ofy.load().entity(key).get();
+		HasEmbedded fetched = ofy.load().key(key).get();
 		
 		assert TEST_VALUE.equals(fetched.fieldUser.foo);
 		assert TEST_VALUE.equals(fetched.methodUser.foo);
@@ -242,7 +242,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasEmbeddedArray> key = Key.create(ent.getKey());
-		HasEmbeddedArray fetched = ofy.load().entity(key).get();
+		HasEmbeddedArray fetched = ofy.load().key(key).get();
 		
 		HasAlsoLoadField[] expectedFieldUsers = new HasAlsoLoadField[] { new HasAlsoLoadField(TEST_VALUE), new HasAlsoLoadField(TEST_VALUE) };
 		HasAlsoLoadMethod[] expectedMethodUsers = new HasAlsoLoadMethod[] { new HasAlsoLoadMethod(TEST_VALUE), new HasAlsoLoadMethod(TEST_VALUE) };
@@ -267,7 +267,7 @@ public class AlsoLoadTests extends TestBase
 		ds().put(ent);
 		
 		Key<HasEmbeddedArray> key = Key.create(ent.getKey());
-		HasEmbeddedArray fetched = ofy.load().entity(key).get();
+		HasEmbeddedArray fetched = ofy.load().key(key).get();
 		
 		HasAlsoLoadField[] expectedFieldUsers = new HasAlsoLoadField[] { new HasAlsoLoadField(TEST_VALUE), new HasAlsoLoadField(TEST_VALUE) };
 		HasAlsoLoadMethod[] expectedMethodUsers = new HasAlsoLoadMethod[] { new HasAlsoLoadMethod(TEST_VALUE), new HasAlsoLoadMethod(TEST_VALUE) };
