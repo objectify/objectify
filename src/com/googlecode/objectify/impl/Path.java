@@ -50,10 +50,12 @@ public class Path
 			String part = pathString.substring(begin);
 			
 			// HACK HERE, see javadoc for NULL_INDEX
-			if (part.endsWith(NULL_INDEXES))
-				return here.extend(part.substring(0, NULL_INDEXES.length())).extend(NULL_INDEXES);
-			else
+			if (part.length() > NULL_INDEXES.length() && part.endsWith(NULL_INDEXES)) {
+				String base = part.substring(0, part.length()-NULL_INDEXES.length());
+				return here.extend(base).extend(NULL_INDEXES);
+			} else {
 				return here.extend(part);
+			}
 		} else {
 			String part = pathString.substring(begin, end);
 			return ofImpl(here.extend(part), pathString, end+1);

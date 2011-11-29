@@ -34,7 +34,7 @@ public class ExampleDocoTests extends TestBase
 		town = new Town();
 		town.name = "Springfield";
 		town.mayor = new Person(new Name("Joe", "Quimby"), 53);
-		town.folk = new Person[]{
+		town.folk = new Person[] {
 				new Person(new Name("Homer", "Simpson"), 39),
 				new Person(new Name("Apu", "Nahasapeemapetilon"), 48)
 		};
@@ -83,6 +83,8 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testNullEmbedded2() throws Exception
 	{
+		fact.register(Town.class);
+		
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 
@@ -118,6 +120,8 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testNullEmbedded1() throws Exception
 	{
+		fact.register(Town.class);
+		
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 
@@ -157,8 +161,7 @@ public class ExampleDocoTests extends TestBase
 		return Arrays.asList(vals).equals(found);
 	}
 
-	private com.google.appengine.api.datastore.Entity townToEntity(Town town)
-			throws EntityNotFoundException
+	private com.google.appengine.api.datastore.Entity townToEntity(Town town) throws EntityNotFoundException
 	{
 		TestObjectify ofy = fact.begin();
 		Key<Town> k = ofy.put(town);

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -233,35 +234,41 @@ public class Transmog<T>
 	private void modifyIntoTranslateFormat(Node thingsBefore) {
 		if (embedCollectionPoints.contains(thingsBefore.getPath())) {
 			
-			Node nullsNode = thingsBefore.get(Path.NULL_INDEXES);
+			Node nullsNode = thingsBefore.remove(Path.NULL_INDEXES);	// take this out of the data model
 			Set<Integer> nulls = getNullIndexes(nullsNode);
 					
 			// We must de-collecitonize the subgraph
 			List<Node> thingsAfter = new ArrayList<Node>();
 			
-			int index = 0;
+			int beforeIndex = 0;
+			int afterIndex = 0;
 			while (true) {
-				if (nulls != null && nulls.contains(index)) {
+				if (!nulls.isEmpty() && nulls.remove(afterIndex)) {
 					// Add a null to the collection
 					Node node = new Node(thingsBefore.getPath());
 					node.setPropertyValue(null);
 					thingsAfter.add(node);
-				}
-				else {
+					afterIndex++;
+					
+				} else if (!thingsBefore.isEmpty()) {
 					// Add a real value to the collection
 					try {
 						Node atIndexAfter = new Node(thingsBefore.getPath());
 						
 						for (Node fooBefore: thingsBefore)
-							copyNode(index, fooBefore, atIndexAfter);
+							copyNode(beforeIndex, fooBefore, atIndexAfter);
 	
 						thingsAfter.add(atIndexAfter);
 						
-						index++;
+						beforeIndex++;
+						afterIndex++;
 					}
 					catch (StopException ex) {
 						break;
 					}
+					
+				} else {
+					break;
 				}
 			}
 			
@@ -297,11 +304,11 @@ public class Transmog<T>
 	
 	/**
 	 * Construct a Set<Integer> from the '^null' collection of an embedded collection.
-	 * @return null if the input value is null
+	 * @return an empty set if nullsNode is null
 	 */
 	private Set<Integer> getNullIndexes(Node nullsNode) {
 		if (nullsNode == null)
-			return null;
+			return Collections.emptySet();
 		
 		Set<Integer> nulls = new HashSet<Integer>(nullsNode.size() * 2);
 		for (Node child: nullsNode)
