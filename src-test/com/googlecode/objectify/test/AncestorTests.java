@@ -29,6 +29,8 @@ public class AncestorTests extends TestBase
 	public void testSimpleParentChild() throws Exception
 	{
 		fact.register(Trivial.class);
+		fact.register(Child.class);
+		
 		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial("foo", 5);

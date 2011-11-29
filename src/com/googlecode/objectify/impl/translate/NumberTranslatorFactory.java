@@ -8,7 +8,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
- * <p>Numbers are funky in the datastore.  You can save numbers of any size, but when they always retrieve as Long.
+ * <p>Numbers are funky in the datastore.  You can save numbers of any size, but they always retrieve as Long.
  * For the hell of it, we also handle String in the datastore by trying to parse it.</p>
  * 
  * <p>Not a ValueTranslatorFactory because Numbers are not assignable to primitives.  Java lame.</p>

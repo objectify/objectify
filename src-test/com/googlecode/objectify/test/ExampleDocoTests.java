@@ -24,6 +24,8 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testFirstExample() throws Exception
 	{
+		fact.register(Town.class);
+		
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 

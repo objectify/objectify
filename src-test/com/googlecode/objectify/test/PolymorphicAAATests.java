@@ -7,11 +7,11 @@ package com.googlecode.objectify.test;
 
 import java.util.logging.Logger;
 
-import com.googlecode.objectify.annotation.Entity;
-
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -30,6 +30,7 @@ public class PolymorphicAAATests extends TestBase
 
 	/** */
 	@Entity
+	@Index
 	public static class Animal
 	{
 		@Id Long id;
@@ -38,6 +39,7 @@ public class PolymorphicAAATests extends TestBase
 	
 	/** */
 	@Subclass(index=true)
+	@Index
 	public static class Mammal extends Animal
 	{
 		boolean longHair;
@@ -45,6 +47,7 @@ public class PolymorphicAAATests extends TestBase
 	
 	/** */
 	@Subclass(index=true)
+	@Index
 	public static class Cat extends Mammal
 	{
 		boolean hypoallergenic;
@@ -52,6 +55,7 @@ public class PolymorphicAAATests extends TestBase
 	
 	/** */
 	@Subclass(index=false)
+	@Index
 	public static class Dog extends Mammal
 	{
 		int loudness;

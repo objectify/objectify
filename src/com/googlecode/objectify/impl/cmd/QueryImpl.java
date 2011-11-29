@@ -138,8 +138,13 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 				if (keyOp != null && keyOp != op)
 					throw new IllegalStateException("Filter operation on id must exactly match the filter operation on parent");
 				
-				if (!(value instanceof Long || value instanceof String))
+				if (value instanceof Number) {
+					value = ((Number)value).longValue();
+				} else if (value instanceof String) {
+					// This is fine by itself
+				} else {
 					throw new IllegalStateException("Id filter values must be Long or String");
+				}
 				
 				keyOp = op;
 				idValue = value;

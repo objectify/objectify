@@ -8,6 +8,7 @@ package com.googlecode.objectify.test.entity;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 
 /**
@@ -16,6 +17,7 @@ import com.googlecode.objectify.annotation.Unindex;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Entity
+@Index
 @Cache
 public class Trivial
 {

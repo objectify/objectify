@@ -155,6 +155,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			throw new IllegalStateException("Unable to construct an instance of " + clazz.getName() + "; perhaps it has no suitable constructor?", ex);
 		}
 		
+		// Note that since we use this Translator to handle the root, the CreateContext is smart enough to ignore the
+		// first call to enterEmbed().
 		ctx.enterEmbed(path);
 		try {
 			// A little quirk is that we might have @AlsoLoad values on the embed, which means we might need to stuff some more

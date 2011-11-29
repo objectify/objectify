@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
@@ -28,7 +27,6 @@ import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
-import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -43,7 +41,25 @@ public class ValueTranslationTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(ValueTranslationTests.class.getName());
 	
-	/** Used for some of the tests here */
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasString
+	{
+		public @Id Long id;
+		public String string;
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasNumber
+	{
+		public @Id Long id;
+		public int number;
+	}
+
+	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasStringArray
@@ -72,37 +88,45 @@ public class ValueTranslationTests extends TestBase
 	}
 	
 	/**
-	 * Register our local test identity
-	 */
-	@BeforeMethod
-	public void setUp()
-	{
-		super.setUp();
-		this.fact.register(HasStringArray.class);
-		this.fact.register(HasNames.class);
-	}
-
-	/**
 	 * Anything can be converted to a String
 	 */
 	@Test
-	public void testStringConversion() throws Exception
+	public void numberToString() throws Exception
 	{
-		fact.register(Trivial.class);
+		fact.register(HasString.class);
 		
 		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
 		
-		Entity ent = new Entity(Key.getKind(Trivial.class));
-		ent.setProperty("someNumber", 1);
-		ent.setProperty("someString", 2);	// setting a number
+		Entity ent = new Entity(Key.getKind(HasString.class));
+		ent.setProperty("string", 2);	// setting a number
 		ds.put(null, ent);
 		
-		Key<Trivial> key = Key.create(ent.getKey());
-		Trivial fetched = ofy.load().entity(key).get();
+		Key<HasString> key = Key.create(ent.getKey());
+		HasString fetched = ofy.load().entity(key).get();
 		
-		assert fetched.getSomeNumber() == 1;
-		assert fetched.getSomeString().equals("2");	// should be a string
+		assert fetched.string.equals("2");	// should be a string
+	}
+	
+	/**
+	 * Strings can be converted to numbers
+	 */
+	@Test
+	public void stringToNumber() throws Exception
+	{
+		fact.register(HasNumber.class);
+		
+		TestObjectify ofy = this.fact.begin();
+		DatastoreService ds = ds();
+		
+		Entity ent = new Entity(Key.getKind(HasNumber.class));
+		ent.setProperty("number", "2");	// setting a string
+		ds.put(null, ent);
+		
+		Key<HasNumber> key = Key.create(ent.getKey());
+		HasNumber fetched = ofy.load().entity(key).get();
+		
+		assert fetched.number == 2;	// should be a number
 	}
 	
 	/**
@@ -112,12 +136,13 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStrings() throws Exception
 	{
-		this.fact.register(Trivial.class);
+		this.fact.register(HasString.class);
 		
-		Trivial triv = new Trivial(BIG_STRING, 0);
-		Trivial fetched = this.putAndGet(triv);
+		HasString has = new HasString();
+		has.string = BIG_STRING;
+		HasString fetched = this.putAndGet(has);
 		
-		assert fetched.getSomeString().equals(BIG_STRING);
+		assert fetched.string.equals(BIG_STRING);
 	}
 
 	/**
@@ -127,6 +152,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStringsInCollections() throws Exception
 	{
+		this.fact.register(HasStringArray.class);
+
 		HasStringArray has = new HasStringArray();
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
 		
@@ -145,17 +172,17 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStringsInEmbeddedCollections() throws Exception
 	{
+		fact.register(HasNames.class);
+		
 		HasNames has = new HasNames();
 		has.names = new Name[] { new Name("Bob", BIG_STRING) };
 		
 		TestObjectify ofy = this.fact.begin();
-		try
-		{
+		try {
 			ofy.put().entity(has).now();
 			assert false : "You should not be able to put() embedded collections with big strings"; 
 		}
-		catch (IllegalStateException ex)
-		{
+		catch (SaveException ex) {
 			// Correct
 		}
 	}

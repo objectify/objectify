@@ -95,10 +95,9 @@ public class TransactionTests extends TestBase
 				txnOfy.getTxn().rollback();
 		}
 		
+		nonTxnOfy.clear();
 		HasSimpleCollection simple3 = nonTxnOfy.load().type(HasSimpleCollection.class).id(simple.id).get();
 		
-		// This will fail when session caching is turned on because the nonTxnOfy doesn't
-		// see the change made in the transactional session, and the fetch only hits the cache.
 		assert simple2.stuff.equals(simple3.stuff);
 	}
 

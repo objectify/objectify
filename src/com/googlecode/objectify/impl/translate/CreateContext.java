@@ -21,8 +21,13 @@ public class CreateContext
 	/** Track the # of times we enter a collection - this should never be more than 1 */
 	int collectionDepth;
 	
-	/** Track the # of times we enter an embed - this can be more than 1 */
-	int embedDepth;
+	/**
+	 * Track the # of times we enter an embed - this can be more than 1.  This is also a little
+	 * special because the Root class is handled by an instance of EmbedTranslatorFactory, so
+	 * the first thing it does is enterEmbed() even though it really isn't an embedded.  This
+	 * is a little bit of a hack, but the solution is to initialize the depth to -1. 
+	 */
+	int embedDepth = -1;
 	
 	/** List of path points at which we start an embedded collection (including array) */
 	Set<Path> embedCollectionPoints;
@@ -57,8 +62,6 @@ public class CreateContext
 	
 	/** */
 	public void exitEmbed() {
-		assert isInEmbed();
-		
 		embedDepth--;
 	}
 
