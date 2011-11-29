@@ -9,6 +9,14 @@ import com.googlecode.objectify.util.LangUtils;
  */
 public class Path
 {
+	/**
+	 * Unfortunately, we made a mistake in the original definition of the ^null property for embedded
+	 * collections.  Instead of thing.^null we defined it as thing^null, which requires special casing.
+	 * So we are fixing this now - we read thing^null as thing.^null, and always save as thing.^null.
+	 * Some day in the far future we can remove this hack. 
+	 */
+	public static final String NULL_INDEX = "^null";
+	
 	/** */
 	private static final Path ROOT = new Path("", null);
 	public static Path root() {
@@ -40,7 +48,12 @@ public class Path
 		int end = pathString.indexOf('.', begin);
 		if (end < 0) {
 			String part = pathString.substring(begin);
-			return here.extend(part);
+			
+			// HACK HERE, see javadoc for NULL_INDEX
+			if (part.endsWith(NULL_INDEX))
+				return here.extend(part.substring(0, NULL_INDEX.length())).extend(NULL_INDEX);
+			else
+				return here.extend(part);
 		} else {
 			String part = pathString.substring(begin, end);
 			return ofImpl(here.extend(part), pathString, end+1);

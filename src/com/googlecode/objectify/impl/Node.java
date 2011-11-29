@@ -126,6 +126,15 @@ public class Node implements Iterable<Node>
 		return size() == 0;
 	}
 	
+	/** Changes any kind of node into a list node with the new contents */
+	public void setList(List<Node> newNodes) {
+		this.lazyList = newNodes;
+		this.lazyMap = null;
+		this.hasProp = false;
+		this.propertyValue = null;
+		this.propertyIndexed = false;
+	}
+	
 	/** Iterate over the values in either the map or list, whichever is appropriate */
 	public Iterator<Node> iterator() {
 		if (this.lazyMap != null)

@@ -113,7 +113,10 @@ public class Transmog<T>
 	 */
 	public Node load(Entity fromEntity) {
 		Node root = this.loadLiterally(fromEntity);
-		root = loadIntoTranslateFormat(root);
+
+		// No embed collections?  No changes necessary, we can optimize out the graph walk
+		if (!this.embedCollectionPoints.isEmpty())
+			this.modifyIntoTranslateFormat(root);
 
 		// Last step, add the key fields to the root Node so they get populated just like every other field would.
 		String idName = keyMeta.getIdFieldName();
@@ -162,6 +165,7 @@ public class Transmog<T>
 	 * Recursive method that places the value at the path, building node structures along the way.
 	 */
 	private void populateNode(Node root, Path path, Object value) {
+		// Build basic nodes up to last level
 		Node bottom = createNesting(root, path.getPrevious());
 		
 		if (value instanceof Collection) {
@@ -181,7 +185,7 @@ public class Transmog<T>
 	
 	/** 
 	 * Recursive method that builds out a nested linear chain of Nodes along the specified path.
-	 * For example, if path is 'one.two.three', the nodes will be root:{one:{two:three{}}}.
+	 * For example, if path is 'one.two.three', the nodes will be root:{one:{two:three:{}}}.
 	 * @return the bottom-most node in the list
 	 */
 	private Node createNesting(Node root, Path path) {
@@ -192,18 +196,29 @@ public class Transmog<T>
 			return parent.path(path.getSegment());
 		}
 	}
+	
+	/**
+	 * This is used in the implementation of modifyIntoTranslateFormat().  The exception is instantiated once
+	 * as has no stacktrace so it should be about as efficient as a normal return sequence. 
+	 */
+	@SuppressWarnings("serial")
+	private static class StopException extends Exception {
+		public static final StopException INSTANCE = new StopException();
+		private StopException() {}
+		@Override public synchronized Throwable fillInStackTrace() { return this; }
+	}
 
 	/**
-	 * <p>Converts a node tree from a direct interpretation of the Entity properties to the full hierarchical
-	 * form suitable for Translators.  Modifies the graph as necessary; possibly even not at all.</p>
+	 * <p>Recursively converts a node tree from a direct interpretation of the Entity properties to the full hierarchical
+	 * form suitable for Translators.  Modifies the graph as necessary; possibly even not at all (ie, no embed collections).</p>
 	 * 
-	 * <p>Simple example:</p>
+	 * <p>Simple example of an embed collection at 'things':</p>
 	 * <ul>
 	 * <li>Example before: { things: { foo: [ "asdf" ], bar: [ 123 ] } }</li>
 	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 } ] }</li>
 	 * </ul>
 	 * 
-	 * <p>More complicated example:</p>
+	 * <p>If there were multiple values it would look like this:</p>
 	 * <ul>
 	 * <li>Example before: { things: { foo: [ "asdf", "qwert" ], bar: [ 123, 456 ] } }</li>
 	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 }, { foo:"qwert", bar:456 } ] }</li>
@@ -211,11 +226,57 @@ public class Transmog<T>
 	 * 
 	 * <p>Keep in mind that there may be a hierarchy of embedded classes within the embedded collection.</p>
 	 * 
-	 * @param root is the root node of a literal interpretation of the Entity properties
-	 * @return the same value passed in, but subgraphs may be changed to move @Embed collections to the proper place
+	 * @param thingsBefore is a subnode of a literal interpretation of the Entity properties; it will be changed
+	 *  into a format that Translators understand.
 	 */
-	private Node loadIntoTranslateFormat(Node root) {
-		return root;
+	private void modifyIntoTranslateFormat(Node thingsBefore) {
+		if (embedCollectionPoints.contains(thingsBefore.getPath())) {
+			
+			// We must de-collecitonize the subgraph
+			List<Node> thingsAfter = new ArrayList<Node>();
+			
+			for (int index=0; true; index++) {
+				try {
+					Node atIndexAfter = new Node(thingsBefore.getPath());
+					
+					for (Node fooBefore: thingsBefore)
+						copyNode(index, fooBefore, atIndexAfter);
+
+					thingsAfter.add(atIndexAfter);
+				}
+				catch (StopException ex) {
+					break;
+				}
+			}
+			
+			thingsBefore.setList(thingsAfter);
+		}
+		else if (thingsBefore.hasMap()) {	// Recurse until we find a place we need to change... but only need to recurse on map nodes
+			for (Node child: thingsBefore)
+				modifyIntoTranslateFormat(child);
+		}
+	}
+	
+	/**
+	 * Decollectionizes one value.
+	 * 
+	 * @param collectionIndex is the index in the final collection to extract
+	 * @param from is the node subtree to copy into "to"; it's "foo" in the javadoc example of modifyIntoTranslateFormat()
+	 * @param to is the container of the new node subtree representing from
+	 * @throws StopException if the index goes past the end
+	 */
+	private void copyNode(int collectionIndex, Node from, Node to) throws StopException {
+		if (from.hasList()) {
+			if (collectionIndex >= from.size())
+				throw StopException.INSTANCE;
+			
+			Node choice = from.get(collectionIndex);
+			to.addToMap(choice);
+		} else {
+			for (Node fromChild: from) {
+				copyNode(collectionIndex, fromChild, to.path(fromChild.getPath().getSegment()));
+			}
+		}
 	}
 	
 	/**
