@@ -18,6 +18,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
@@ -247,13 +248,16 @@ public class QueryTests extends TestBase
 		TestObjectify ofy = this.fact.begin();
 		
 		Query<Trivial> q = ofy.load().type(Trivial.class).filter("id", 999999);	// no such entity
-		assert q.first().get() == null;
+		Ref<Trivial> ref = q.first();
+		Trivial value = ref.get();
+		assert value == null;
 	}
 
 	/** */
 	@Test
 	public void testFilteringByKeyField() throws Exception
 	{
+		fact.register(Employee.class);
 		TestObjectify ofy = this.fact.begin();
 		
 		Key<Employee> bobKey = Key.create(Employee.class, "bob");
@@ -273,6 +277,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testFilteringByAncestor() throws Exception
 	{
+		fact.register(Child.class);
 		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial(null, 3);
@@ -321,6 +326,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testINfilteringOnStringName() throws Exception
 	{
+		fact.register(NamedTrivial.class);
 		TestObjectify ofy = this.fact.begin();
 		
 		NamedTrivial triv1 = new NamedTrivial("foo", null, 3);
@@ -360,6 +366,7 @@ public class QueryTests extends TestBase
 	@Test
 	public void testINfilteringWithKeyField() throws Exception
 	{
+		fact.register(Employee.class);
 		TestObjectify ofy = this.fact.begin();
 		
 		Key<Employee> bobKey = Key.create(Employee.class, "bob");

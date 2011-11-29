@@ -138,6 +138,9 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 				if (keyOp != null && keyOp != op)
 					throw new IllegalStateException("Filter operation on id must exactly match the filter operation on parent");
 				
+				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
+					throw new IllegalStateException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
+				
 				if (value instanceof Number) {
 					value = ((Number)value).longValue();
 				} else if (value instanceof String) {
@@ -200,7 +203,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		{
 			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
 			if (condition.equals(meta.getParentFieldName()) || condition.equals(meta.getIdFieldName())) {
-				if (keyOrder != dir)
+				if (keyOrder != null && keyOrder != dir)
 					throw new IllegalStateException("You cannot order @Parent one direction and @Id the other. Both must be ascending or descending.");
 				
 				condition = "__key__";
@@ -343,7 +346,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		int oldLimit = this.limit;
 		try {
 			this.limit = 1;
-			Iterator<T> it = ofy.createEngine().<T>query(actual, fetchOptions()).iterator();
+			Iterator<T> it = ofy.createEngine().<T>query(this.getActualForQuery(), fetchOptions()).iterator();
 			
 			Result<T> result = new ResultTranslator<Iterator<T>, T>(it) {
 				@Override

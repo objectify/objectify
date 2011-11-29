@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.cmd;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
@@ -25,7 +26,6 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.engine.GetEngine;
 import com.googlecode.objectify.impl.node.EntityNode;
-import com.googlecode.objectify.impl.node.ListNode;
 import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -273,22 +273,40 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		if (value == null)
 			return null;
 
-		Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
-		EntityNode node = translator.save(value, Path.root(), false, new SaveContext(this));
-		if (node instanceof ListNode) {
-			// ugh, we need to destructure the contents
-			ListNode listNode = (ListNode)node;
-			List<Object> fresh = new ArrayList<Object>(listNode.size());
+		// This is really quite a dilemma.  We need to convert that value into something we can filter by, but we don't
+		// really have a lot of information about it.  We could use type information from the matched field, but there's
+		// no guarantee that there is a field to check - it could be a typeless query or a query on an old property value.
+		// The only real solution is to create a (non root!) translator on the fly.  Even that is not straightforward,
+		// because erasure wipes out any component type information in a collection.
+		//
+		// The answer:  Check for collections explicitly.  Create a separate translator for every item in the collection;
+		// after all, it could be a heterogeneous list.  This is not especially efficient but GAE only allows a handful of
+		// items in a IN operation and at any rate processing will still be negligible compared to the cost of a query.
+
+		// If this is an array, make life easier by turning it into a list first.  Because of primitive
+		// mismatching we can't trust Arrays.asList().
+		if (value.getClass().isArray()) {
+			int len = Array.getLength(value);
+			List<Object> asList = new ArrayList<Object>(len);
+			for (int i=0; i<len; i++)
+				asList.add(Array.get(value, i));
 			
-			for (EntityNode childNode: listNode)
-				fresh.add(getFilterableValue((MapNode)childNode, value));
+			value = asList;
+		}
+		
+		if (value instanceof Iterable) {
+			List<Object> result = new ArrayList<Object>(50);	// hard limit is 30, but wth
+			for (Object obj: (Iterable<?>)value)
+				result.add(makeFilterable(obj));
 			
-			return fresh;
+			return result;
 		} else {
+			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
+			EntityNode node = translator.save(value, Path.root(), false, new SaveContext(this));
 			return getFilterableValue((MapNode)node, value);
 		}
 	}
-
+	
 	/** Extracts a filterable value from the node, or throws an illegalstate exception */
 	private Object getFilterableValue(MapNode node, Object originalValue) {
 		if (!node.hasPropertyValue())
