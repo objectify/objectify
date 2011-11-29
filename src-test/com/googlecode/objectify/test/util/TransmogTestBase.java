@@ -6,7 +6,7 @@ package com.googlecode.objectify.test.util;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.impl.ConcreteEntityMetadata;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
 
 /**
@@ -22,20 +22,20 @@ public class TransmogTestBase extends TestBase
 	
 
 	/** Assert child is a propertynode with exactly the content specified, no other children */
-	protected void assertChildValue(EntityNode parent, String childName, Object childValue) {
-		EntityNode child = parent.get(childName);
+	protected void assertChildValue(Node parent, String childName, Object childValue) {
+		Node child = parent.get(childName);
 		assertNodeValue(child, childValue);
 	}
 
 	/** Assert child is a propertynode with exactly the content specified, no other children */
-	protected void assertChildValue(EntityNode parent, int index, Object childValue) {
-		EntityNode child = parent.get(index);
+	protected void assertChildValue(Node parent, int index, Object childValue) {
+		Node child = parent.get(index);
 		assertNodeValue(child, childValue);
 	}
 
 	/** Assert node is a propertynode with exactly the content specified, no other children */
-	protected void assertNodeValue(EntityNode node, Object value) {
-		EntityNode mapNode = (EntityNode)node;
+	protected void assertNodeValue(Node node, Object value) {
+		Node mapNode = (Node)node;
 		assert mapNode.isEmpty();
 		assert mapNode.hasPropertyValue();
 		if (mapNode.getPropertyValue() == null)

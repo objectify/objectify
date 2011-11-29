@@ -22,7 +22,7 @@ import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.engine.GetEngine;
@@ -301,13 +301,13 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			return result;
 		} else {
 			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
-			EntityNode node = translator.save(value, Path.root(), false, new SaveContext(this));
+			Node node = translator.save(value, Path.root(), false, new SaveContext(this));
 			return getFilterableValue(node, value);
 		}
 	}
 	
 	/** Extracts a filterable value from the node, or throws an illegalstate exception */
-	private Object getFilterableValue(EntityNode node, Object originalValue) {
+	private Object getFilterableValue(Node node, Object originalValue) {
 		if (!node.hasPropertyValue())
 			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
 		

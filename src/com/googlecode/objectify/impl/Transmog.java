@@ -57,7 +57,7 @@ public class Transmog<T>
 	public T load(Entity fromEntity, Objectify ofy) throws LoadException
 	{
 		try {
-			EntityNode root = load(fromEntity);
+			Node root = load(fromEntity);
 			T pojo = load(root, new LoadContext(fromEntity, ofy));
 			return pojo;
 		}
@@ -68,7 +68,7 @@ public class Transmog<T>
 	}
 	
 	/** Public just for testing */
-	public T load(EntityNode root, LoadContext ctx) throws LoadException {
+	public T load(Node root, LoadContext ctx) throws LoadException {
 		return rootTranslator.load(root, ctx);
 	}
 	
@@ -80,7 +80,7 @@ public class Transmog<T>
 	public Entity save(T fromPojo, Objectify ofy)
 	{
 		try {
-			EntityNode root = save(fromPojo, new SaveContext(ofy));
+			Node root = save(fromPojo, new SaveContext(ofy));
 			Entity entity = save(root);
 			return entity;
 		}
@@ -91,9 +91,9 @@ public class Transmog<T>
 	}
 	
 	/** Public just for testing */
-	public EntityNode save(T fromPojo, SaveContext ctx) {
+	public Node save(T fromPojo, SaveContext ctx) {
 		// Default index state is false!
-		return (EntityNode)rootTranslator.save(fromPojo, Path.root(), false, ctx);
+		return (Node)rootTranslator.save(fromPojo, Path.root(), false, ctx);
 	}
 
 	/**
@@ -111,8 +111,8 @@ public class Transmog<T>
 	 * 
 	 * @return a root EntityNode corresponding to the Entity, in a format suitable for translators.
 	 */
-	public EntityNode load(Entity fromEntity) {
-		EntityNode root = this.loadLiterally(fromEntity);
+	public Node load(Entity fromEntity) {
+		Node root = this.loadLiterally(fromEntity);
 		root = loadIntoTranslateFormat(root);
 
 		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
@@ -147,8 +147,8 @@ public class Transmog<T>
 	 * 
 	 * @return a root EntityNode corresponding to a literal read of the Entity
 	 */
-	private EntityNode loadLiterally(Entity fromEntity) {
-		EntityNode root = new EntityNode(Path.root());
+	private Node loadLiterally(Entity fromEntity) {
+		Node root = new Node(Path.root());
 		
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
 			Path path = Path.of(prop.getKey());
@@ -161,20 +161,20 @@ public class Transmog<T>
 	/** 
 	 * Recursive method that places the value at the path, building node structures along the way.
 	 */
-	private void populateNode(EntityNode root, Path path, Object value) {
-		EntityNode bottom = createNesting(root, path.getPrevious());
+	private void populateNode(Node root, Path path, Object value) {
+		Node bottom = createNesting(root, path.getPrevious());
 		
 		if (value instanceof Collection) {
 			@SuppressWarnings("unchecked")
 			Collection<Object> coll = (Collection<Object>)value;
 			
-			EntityNode list = bottom.path(path.getSegment());
+			Node list = bottom.path(path.getSegment());
 			for (Object obj: coll) {
-				EntityNode map = list.addToList();
+				Node map = list.addToList();
 				map.setPropertyValue(obj);
 			}
 		} else {
-			EntityNode map = bottom.path(path.getSegment());
+			Node map = bottom.path(path.getSegment());
 			map.setPropertyValue(value);
 		}
 	}
@@ -184,11 +184,11 @@ public class Transmog<T>
 	 * For example, if path is 'one.two.three', the nodes will be root:{one:{two:three{}}}.
 	 * @return the bottom-most node in the list
 	 */
-	private EntityNode createNesting(EntityNode root, Path path) {
+	private Node createNesting(Node root, Path path) {
 		if (path == Path.root()) {
 			return root;
 		} else {
-			EntityNode parent = createNesting(root, path.getPrevious());
+			Node parent = createNesting(root, path.getPrevious());
 			return parent.path(path.getSegment());
 		}
 	}
@@ -214,7 +214,7 @@ public class Transmog<T>
 	 * @param root is the root node of a literal interpretation of the Entity properties
 	 * @return the same value passed in, but subgraphs may be changed to move @Embed collections to the proper place
 	 */
-	private EntityNode loadIntoTranslateFormat(EntityNode root) {
+	private Node loadIntoTranslateFormat(Node root) {
 		return root;
 	}
 	
@@ -227,16 +227,16 @@ public class Transmog<T>
 	 * 
 	 * @return an Entity with the propery key set
 	 */
-	public Entity save(EntityNode root) {
+	public Entity save(Node root) {
 		
 		// Step one is extract the id/parent from root and create the Entity
 		com.google.appengine.api.datastore.Key parent = null;
 		if (keyMeta.hasParentField()) {
-			EntityNode parentNode = (EntityNode)root.remove(keyMeta.getParentFieldName());
+			Node parentNode = (Node)root.remove(keyMeta.getParentFieldName());
 			parent = (com.google.appengine.api.datastore.Key)parentNode.getPropertyValue();
 		}
 		
-		EntityNode idNode = (EntityNode)root.remove(keyMeta.getIdFieldName());
+		Node idNode = (Node)root.remove(keyMeta.getIdFieldName());
 		Object id = idNode == null ? null : idNode.getPropertyValue();
 		
 		Entity ent = (id == null)
@@ -255,15 +255,15 @@ public class Transmog<T>
 	 * @param collectionize if true means that the value should be put in a collection property value at the end of the chain.
 	 *  This goes to true whenever we hit an embedded collection.
 	 */
-	private void populateFields(Entity entity, EntityNode node, boolean collectionize) {
+	private void populateFields(Entity entity, Node node, boolean collectionize) {
 		if (node.hasList()) {
 			if (embedCollectionPoints.contains(node.getPath())) {
 				// Watch for nulls to create the ^null collection
 				List<Integer> nullIndexes = new ArrayList<Integer>();
 				
 				int index = 0;
-				for (EntityNode child: node) {
-					if (child instanceof EntityNode && ((EntityNode)child).hasPropertyValue() && ((EntityNode)child).getPropertyValue() == null)
+				for (Node child: node) {
+					if (child instanceof Node && ((Node)child).hasPropertyValue() && ((Node)child).getPropertyValue() == null)
 						nullIndexes.add(index);
 					else
 						populateFields(entity, child, true);	// just switch to collectionizing
@@ -279,8 +279,8 @@ public class Transmog<T>
 				List<Object> things = new ArrayList<Object>(node.size());
 				boolean index = false;	// everything in the list will have the same index state
 				
-				for (EntityNode child: node) {
-					EntityNode map = (EntityNode)child;
+				for (Node child: node) {
+					Node map = (Node)child;
 					if (!map.hasPropertyValue())
 						map.getPath().throwIllegalState("Expected property value, got " + map);
 					
@@ -309,7 +309,7 @@ public class Transmog<T>
 			}
 					
 			if (!node.isEmpty()) {
-				for (EntityNode child: node) {
+				for (Node child: node) {
 					populateFields(entity, child, collectionize);
 				}
 			}

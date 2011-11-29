@@ -2,7 +2,7 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -28,7 +28,7 @@ abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<
 	 * @see com.googlecode.objectify.impl.load.MapNodeTranslator#loadMap(com.googlecode.objectify.impl.node.MapNode, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
-	final protected P loadPropertyValue(EntityNode node, LoadContext ctx) {
+	final protected P loadPropertyValue(Node node, LoadContext ctx) {
 		Object value = node.getPropertyValue();
 		if (value == null)
 			return null;
@@ -46,8 +46,8 @@ abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<
 	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#saveMap(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final protected EntityNode savePropertyValue(P pojo, Path path, boolean index, SaveContext ctx) {
-		EntityNode node = new EntityNode(path);
+	final protected Node savePropertyValue(P pojo, Path path, boolean index, SaveContext ctx) {
+		Node node = new Node(path);
 		
 		D translated = (pojo == null)
 				? null

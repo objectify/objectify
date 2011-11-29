@@ -15,7 +15,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -58,7 +58,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("asdf"));
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" } ] }
 		{
@@ -66,10 +66,10 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 123L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 		}
 		
@@ -92,10 +92,10 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 123L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 		}
 		
@@ -120,7 +120,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("qwer"));
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" }, { foo: "qwer" } ] }
 		{
@@ -128,13 +128,13 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 123L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 
-			EntityNode thing1 = thingsNode.get(1);
+			Node thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "qwer");
 	}
 		
@@ -157,13 +157,13 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 123L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 
-			EntityNode thing1 = thingsNode.get(1);
+			Node thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "qwer");
 		}
 		
@@ -211,7 +211,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("asdf", 123L));
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like: {id='222', things=[{foo='asdf', bar='123'}]}
 		{
@@ -219,10 +219,10 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 222L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 		}
@@ -250,10 +250,10 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 222L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 		}
@@ -280,21 +280,21 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("zxcv", 456L));
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 222L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 			
-			EntityNode thing1 = thingsNode.get(1);
+			Node thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "zxcv");
 			assertChildValue(thing1, "bar", 456L);
 		}
@@ -321,14 +321,14 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 			assertChildValue(rootNode, "id", 222L);
 			assert rootNode.size() == 2;
 			
-			EntityNode thingsNode = rootNode.get("things");
+			Node thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			EntityNode thing0 = thingsNode.get(0);
+			Node thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 			
-			EntityNode thing1 = thingsNode.get(1);
+			Node thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "zxcv");
 			assertChildValue(thing1, "bar", 456L);
 		}

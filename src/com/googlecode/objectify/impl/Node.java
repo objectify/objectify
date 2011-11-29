@@ -45,16 +45,16 @@ import java.util.Map;
  * </li>
  * <ul>
  */
-public class EntityNode implements Iterable<EntityNode>
+public class Node implements Iterable<Node>
 {
 	/** Current path to this node */
 	Path path;
 	
 	/** If this is a map node, this will have a value */
-	Map<String, EntityNode> lazyMap;
+	Map<String, Node> lazyMap;
 	
 	/** If this is a list node, this will have a value */
-	List<EntityNode> lazyList;
+	List<Node> lazyList;
 	
 	/** Because null is a legitimate value, we need to know if there is really a property value here */
 	boolean hasProp;
@@ -87,7 +87,7 @@ public class EntityNode implements Iterable<EntityNode>
 	public void setPropertyIndexed(boolean value) { propertyIndexed = value; }
 	
 	/** */
-	public EntityNode(Path path) {
+	public Node(Path path) {
 		this.path = path;
 	}
 	
@@ -124,29 +124,29 @@ public class EntityNode implements Iterable<EntityNode>
 	}
 	
 	/** Iterate over the values in either the map or list, whichever is appropriate */
-	public Iterator<EntityNode> iterator() {
+	public Iterator<Node> iterator() {
 		if (this.lazyMap != null)
 			return this.lazyMap.values().iterator();
 		else if (this.lazyList != null)
 			return this.lazyList.iterator();
 		else
-			return Collections.<EntityNode>emptyList().iterator();
+			return Collections.<Node>emptyList().iterator();
 	}
 	
 	/** Creates a new node at same path, adds it to the list, and returns it */
-	public EntityNode addToList() {
-		EntityNode node = new EntityNode(path);
+	public Node addToList() {
+		Node node = new Node(path);
 		list().add(node);
 		return node;
 	}
 	
 	/** Adds a node to the list */
-	public void addToList(EntityNode node) {
+	public void addToList(Node node) {
 		list().add(node);
 	}
 	
 	/** Adds a node to the map, keyed by its path segment */
-	public void addToMap(EntityNode node) {
+	public void addToMap(Node node) {
 		map().put(node.getPath().getSegment(), node);
 	}
 	
@@ -154,7 +154,7 @@ public class EntityNode implements Iterable<EntityNode>
 	 * Gets the node at the index of the list, making sure that a node exists there.  Assumes that the
 	 * indexes are always fed in order.
 	 */
-	public EntityNode path(int index) {
+	public Node path(int index) {
 		if (index == list().size())
 			return addToList();
 		else
@@ -164,10 +164,10 @@ public class EntityNode implements Iterable<EntityNode>
 	/**
 	 * Gets the node with the specified key in the map, making sure that a node exists there. 
 	 */
-	public EntityNode path(String key) {
-		EntityNode node = map().get(key);
+	public Node path(String key) {
+		Node node = map().get(key);
 		if (node == null) {
-			node = new EntityNode(path.extend(key));
+			node = new Node(path.extend(key));
 			map().put(key, node);
 		}
 		
@@ -178,17 +178,17 @@ public class EntityNode implements Iterable<EntityNode>
 	 * Gets the node at the index of the list, assuming this is a list node
 	 * @return null if nothing at that index
 	 */
-	public EntityNode get(int index) {
+	public Node get(int index) {
 		return list().get(index);
 	}
 	
 	/** Gets key on a map node */
-	public EntityNode get(String key) {
+	public Node get(String key) {
 		return map().get(key);
 	}
 	
 	/** Puts a value on a map node */
-	public void put(String key, EntityNode value) {
+	public void put(String key, Node value) {
 		map().put(key, value);
 	}
 	
@@ -198,25 +198,25 @@ public class EntityNode implements Iterable<EntityNode>
 	}
 	
 	/** Removes from map node */
-	public EntityNode remove(String key) {
+	public Node remove(String key) {
 		return map().remove(key);
 	}
 	
 	/** */
-	private List<EntityNode> list() {
+	private List<Node> list() {
 		if (this.lazyList == null) {
 			assert lazyMap == null;
-			this.lazyList = new ArrayList<EntityNode>();
+			this.lazyList = new ArrayList<Node>();
 		}
 		
 		return this.lazyList;
 	}
 
 	/** */
-	private Map<String, EntityNode> map() {
+	private Map<String, Node> map() {
 		if (lazyMap == null) {
 			assert lazyList == null;
-			lazyMap = new HashMap<String, EntityNode>();
+			lazyMap = new HashMap<String, Node>();
 		}
 		
 		return lazyMap;

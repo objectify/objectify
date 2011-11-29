@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -38,10 +38,10 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 	
 			return new ListNodeTranslator<Object>() {
 				@Override
-				public Object loadList(EntityNode node, LoadContext ctx) {
+				public Object loadList(Node node, LoadContext ctx) {
 					List<Object> list = new ArrayList<Object>(node.size());
 					
-					for (EntityNode componentNode: node) {
+					for (Node componentNode: node) {
 						try {
 							Object value = componentTranslator.load(componentNode, ctx);
 							list.add(value);
@@ -60,7 +60,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 				}
 				
 				@Override
-				protected EntityNode saveList(Object pojo, Path path, boolean index, SaveContext ctx) {
+				protected Node saveList(Object pojo, Path path, boolean index, SaveContext ctx) {
 					// If the array is null, just skip it.  This is important because of the way filtering works;
 					// if we stored a null then the field would match when filtering for null (same as a null in the list).
 					if (pojo == null)
@@ -72,12 +72,12 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 					if (len == 0)
 						throw new SkipException();
 					
-					EntityNode node = new EntityNode(path);
+					Node node = new Node(path);
 					
 					for (int i=0; i<len; i++) {
 						try {
 							Object value = Array.get(pojo, i);
-							EntityNode addNode = componentTranslator.save(value, path, index, ctx);
+							Node addNode = componentTranslator.save(value, path, index, ctx);
 							node.addToList(addNode);
 						}
 						catch (SkipException ex) {

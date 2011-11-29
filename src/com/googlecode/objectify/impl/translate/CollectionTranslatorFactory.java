@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -25,7 +25,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		
 		/** Same as having a null existing collection */
 		@Override
-		final protected Collection<T> loadList(EntityNode node, LoadContext ctx) {
+		final protected Collection<T> loadList(Node node, LoadContext ctx) {
 			return loadListIntoExistingCollection(node, ctx, null);
 		}
 		
@@ -35,7 +35,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		 * 
 		 * @param coll can be null to trigger creating a new collection 
 		 */
-		abstract public Collection<T> loadListIntoExistingCollection(EntityNode node, LoadContext ctx, Collection<T> coll);
+		abstract public Collection<T> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<T> coll);
 	}
 	
 	@Override
@@ -59,13 +59,13 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			return new CollectionListNodeTranslator<Object>() {
 				@Override
 				@SuppressWarnings("unchecked")
-				public Collection<Object> loadListIntoExistingCollection(EntityNode node, LoadContext ctx, Collection<Object> collection) {
+				public Collection<Object> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<Object> collection) {
 					if (collection == null)
 						collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
 					else
 						collection.clear();
 					
-					for (EntityNode child: node) {
+					for (Node child: node) {
 						try {
 							Object value = componentTranslator.load(child, ctx);
 							collection.add(value);
@@ -79,7 +79,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 				}
 	
 				@Override
-				protected EntityNode saveList(Collection<Object> pojo, Path path, boolean index, SaveContext ctx) {
+				protected Node saveList(Collection<Object> pojo, Path path, boolean index, SaveContext ctx) {
 					
 					// If the collection is null, just skip it.  This is important because of the way filtering works;
 					// if we stored a null then the field would match when filtering for null (same as a null in the list).
@@ -92,12 +92,12 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					if (pojo.isEmpty())
 						throw new SkipException();
 					
-					EntityNode node = new EntityNode(path);
+					Node node = new Node(path);
 
 					if (pojo != null) {
 						for (Object obj: pojo) {
 							try {
-								EntityNode child = componentTranslator.save(obj, path, index, ctx);
+								Node child = componentTranslator.save(obj, path, index, ctx);
 								node.addToList(child);
 							}
 							catch (SkipException ex) {

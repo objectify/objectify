@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -22,7 +22,7 @@ public interface Translator<T>
 	 * @param ctx holds state information during an entity load.  
 	 * @return an assembled pojo corresponding to the node subtree; if null is returned, that is the real value!
 	 */
-	T load(EntityNode node, LoadContext ctx);
+	T load(Node node, LoadContext ctx);
 	
 	/**
 	 * Translates the pojo into an EntityNode format.  Note that all stored values (even terminal properties)
@@ -35,5 +35,5 @@ public interface Translator<T>
 	 * 
 	 * @throws SkipException if this subtree should not be saved.
 	 */
-	EntityNode save(T pojo, Path path, boolean index, SaveContext ctx) throws SkipException;
+	Node save(T pojo, Path path, boolean index, SaveContext ctx) throws SkipException;
 }

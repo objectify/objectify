@@ -14,7 +14,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -44,7 +44,7 @@ public class TransmogTests extends TransmogTestBase
 		Trivial triv = new Trivial(123L, "foo", 456L);
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(triv, new SaveContext(ofy));
+		Node rootNode = transmog.save(triv, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", triv.getId());
@@ -102,8 +102,8 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.add("bar");
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
-		EntityNode stuffNode;
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node stuffNode;
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -154,7 +154,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -196,7 +196,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff = null;	// explicitly null it out
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -244,7 +244,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -292,12 +292,12 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.put("foo", 5L);
 		
 		// Check the tree structure
-		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
 
 		// id and foo
 		{
 			assert rootNode.size() == 2;
-			EntityNode stuffNode = rootNode.get("stuff");
+			Node stuffNode = rootNode.get("stuff");
 			assert stuffNode.size() == 1;
 			assertChildValue(stuffNode, "foo", 5L);
 		}
@@ -314,7 +314,7 @@ public class TransmogTests extends TransmogTestBase
 		// id and foo
 		{
 			assert rootNode.size() == 2;
-			EntityNode stuffNode = rootNode.get("stuff");
+			Node stuffNode = rootNode.get("stuff");
 			assert stuffNode.size() == 1;
 			assertChildValue(stuffNode, "foo", 5L);
 		}

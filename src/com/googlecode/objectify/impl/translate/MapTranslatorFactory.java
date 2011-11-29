@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.EntityNode;
+import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -27,7 +27,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 	abstract public static class MapMapNodeTranslator<T> extends MapNodeTranslator<Map<String, T>> {
 		/** Same as having a null existing collection */
 		@Override
-		final protected Map<String, T> loadMap(EntityNode node, LoadContext ctx) {
+		final protected Map<String, T> loadMap(Node node, LoadContext ctx) {
 			return loadMapIntoExistingMap(node, ctx, null);
 		}
 		
@@ -37,7 +37,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		 * 
 		 * @param coll can be null to trigger creating a new map 
 		 */
-		abstract public Map<String, T> loadMapIntoExistingMap(EntityNode node, LoadContext ctx, Map<String, T> coll);
+		abstract public Map<String, T> loadMapIntoExistingMap(Node node, LoadContext ctx, Map<String, T> coll);
 	}
 	
 	@Override
@@ -61,13 +61,13 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		return new MapMapNodeTranslator<Object>() {
 			@Override
 			@SuppressWarnings("unchecked")
-			public Map<String, Object> loadMapIntoExistingMap(EntityNode node, LoadContext ctx, Map<String, Object> map) {
+			public Map<String, Object> loadMapIntoExistingMap(Node node, LoadContext ctx, Map<String, Object> map) {
 				if (map == null)
 					map = (Map<String, Object>)fact.constructMap(mapType);
 				else
 					map.clear();
 				
-				for (EntityNode child: node) {
+				for (Node child: node) {
 					Object value = componentTranslator.load(child, ctx);
 					map.put(child.getPath().getSegment(), value);
 				}
@@ -76,10 +76,10 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 			}
 
 			@Override
-			protected EntityNode saveMap(Map<String, Object> pojo, Path path, boolean index, SaveContext ctx) {
+			protected Node saveMap(Map<String, Object> pojo, Path path, boolean index, SaveContext ctx) {
 				// Note that maps are not like embedded collections; they don't form a list structure so you can embed
 				// as many of these as you want.
-				EntityNode node = new EntityNode(path);
+				Node node = new Node(path);
 				
 				for (Map.Entry<String, ?> entry: pojo.entrySet()) {
 					if (entry.getKey() == null)
@@ -88,7 +88,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 					if (entry.getKey().contains("."))
 						throw new IllegalArgumentException("Map keys cannot contain '.' characters");
 						
-					EntityNode child = componentTranslator.save(entry.getValue(), path.extend(entry.getKey()), index, ctx);
+					Node child = componentTranslator.save(entry.getValue(), path.extend(entry.getKey()), index, ctx);
 					node.addToMap(child);
 				}
 				
