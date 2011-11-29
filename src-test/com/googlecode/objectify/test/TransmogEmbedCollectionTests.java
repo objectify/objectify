@@ -15,9 +15,8 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.node.ListNode;
-import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
@@ -59,23 +58,23 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("asdf"));
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" } ] }
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 123L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 		}
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		// Should have one property:  "things.foo" = [ "asdf" ]
 	
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
@@ -85,18 +84,18 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		assert entity.getProperty("things.foo").equals(Collections.singletonList("asdf"));
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" } ] }
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 123L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 		}
 		
@@ -121,26 +120,26 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("qwer"));
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" }, { foo: "qwer" } ] }
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 123L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 
-			MapNode thing1 = (MapNode)thingsNode.get(1);
+			EntityNode thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "qwer");
 	}
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		// Should have one property:  "things.foo" = [ "asdf", "qwer" ]
 	
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
@@ -150,21 +149,21 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		assert entity.getProperty("things.foo").equals(Arrays.asList(new String[] { "asdf", "qwer" }));
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" }, { foo: "qwer" } ] }
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 123L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 
-			MapNode thing1 = (MapNode)thingsNode.get(1);
+			EntityNode thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "qwer");
 		}
 		
@@ -212,24 +211,24 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("asdf", 123L));
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		// Should look like: {id='222', things=[{foo='asdf', bar='123'}]}
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 222L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 		}
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -243,18 +242,18 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		assert entity.getProperty("things.bar").equals(thingsBar);
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		// Should look like: {id='222', things=[{foo='asdf', bar='123'}]}
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 222L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 1;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 		}
@@ -281,27 +280,27 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("zxcv", 456L));
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 222L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 			
-			MapNode thing1 = (MapNode)thingsNode.get(1);
+			EntityNode thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "zxcv");
 			assertChildValue(thing1, "bar", 456L);
 		}
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -315,21 +314,21 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		assert entity.getProperty("things.bar").equals(thingsBar);
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		{
 			assert !rootNode.hasPropertyValue();
 			assertChildValue(rootNode, "id", 222L);
-			assert rootNode.entrySet().size() == 2;
+			assert rootNode.size() == 2;
 			
-			ListNode thingsNode = rootNode.getList("things");
+			EntityNode thingsNode = rootNode.get("things");
 			assert thingsNode.size() == 2;
 			
-			MapNode thing0 = (MapNode)thingsNode.get(0);
+			EntityNode thing0 = thingsNode.get(0);
 			assertChildValue(thing0, "foo", "asdf");
 			assertChildValue(thing0, "bar", 123L);
 			
-			MapNode thing1 = (MapNode)thingsNode.get(1);
+			EntityNode thing1 = thingsNode.get(1);
 			assertChildValue(thing1, "foo", "zxcv");
 			assertChildValue(thing1, "bar", 456L);
 		}

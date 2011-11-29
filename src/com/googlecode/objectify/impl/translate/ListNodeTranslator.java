@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.node.EntityNode;
-import com.googlecode.objectify.impl.node.ListNode;
 
 /**
- * <p>Helper which expects a ListNode in the data structure and throws an exception if a MapNode is found.</p>
+ * <p>Helper which expects a list node in the data structure and throws an exception one is not found.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -16,10 +15,10 @@ abstract public class ListNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public T load(EntityNode node, LoadContext ctx) {
-		if (!(node instanceof ListNode))
-			node.getPath().throwIllegalState("Expected a list structure but found " + node);
+		if (!node.hasList())
+			node.getPath().throwIllegalState("Expected list structure but found " + node);
 		
-		return this.loadList((ListNode)node, ctx);
+		return this.loadList(node, ctx);
 	}
 
 	/* (non-Javadoc)
@@ -31,12 +30,12 @@ abstract public class ListNodeTranslator<T> implements Translator<T>
 	};
 	
 	/**
-	 * Implement this knowing that we have a proper ListNode
+	 * Implement this knowing that we have a proper list node
 	 */
-	abstract protected T loadList(ListNode node, LoadContext ctx);
+	abstract protected T loadList(EntityNode node, LoadContext ctx);
 	
 	/**
-	 * Implement this to return a proper ListNode
+	 * Implement this to return a proper list node
 	 */
-	abstract protected ListNode saveList(T pojo, Path path, boolean index, SaveContext ctx);
+	abstract protected EntityNode saveList(T pojo, Path path, boolean index, SaveContext ctx);
 }

@@ -2,15 +2,15 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.node.MapNode;
 
 /**
  * <p>Helper which helps take a mapnode's property value and converts it from datastore representation to pojo representation.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
+abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<P>
 {
 	/** */
 	protected Path path;
@@ -28,7 +28,7 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	 * @see com.googlecode.objectify.impl.load.MapNodeTranslator#loadMap(com.googlecode.objectify.impl.node.MapNode, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
-	final protected P loadMap(MapNode node, LoadContext ctx) {
+	final protected P loadPropertyValue(EntityNode node, LoadContext ctx) {
 		Object value = node.getPropertyValue();
 		if (value == null)
 			return null;
@@ -46,8 +46,8 @@ abstract public class ValueTranslator<P, D> extends MapNodeTranslator<P>
 	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#saveMap(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final protected MapNode saveMap(P pojo, Path path, boolean index, SaveContext ctx) {
-		MapNode node = new MapNode(path);
+	final protected EntityNode savePropertyValue(P pojo, Path path, boolean index, SaveContext ctx) {
+		EntityNode node = new EntityNode(path);
 		
 		D translated = (pojo == null)
 				? null

@@ -10,12 +10,10 @@ import java.util.Map;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.node.EntityNode;
-import com.googlecode.objectify.impl.node.ListNode;
-import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -46,23 +44,23 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		
 		/** Executes loading this value from the node and setting it on the field */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public void executeLoad(MapNode node, Object onPojo, LoadContext ctx) {
+		public void executeLoad(EntityNode node, Object onPojo, LoadContext ctx) {
 			EntityNode actual = getChild(node, property);
 			
 			// We only execute if there is a real node.  Note that even a null value in the data will have a real
-			// MapNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
+			// EntityNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
 			if (actual != null) {
 				try {
 					// We have a couple special cases - for collection/map fields we would like to preserve the original
 					// instance, if one exists.  It might have been initialized with custom comparators, etc.
 					Object value;
-					if (translator instanceof CollectionListNodeTranslator && actual instanceof ListNode) {
+					if (translator instanceof CollectionListNodeTranslator && actual.hasList()) {
 						Collection coll = (Collection)this.property.get(onPojo);
-						value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((ListNode)actual, ctx, coll);
+						value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((EntityNode)actual, ctx, coll);
 					}
-					else if (translator instanceof MapMapNodeTranslator && actual instanceof MapNode) {
+					else if (translator instanceof MapMapNodeTranslator && actual.hasMap()) {
 						Map map = (Map)this.property.get(onPojo);
-						value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((MapNode)actual, ctx, map);
+						value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((EntityNode)actual, ctx, map);
 					}
 					else {
 						value = translator.load(actual, ctx);
@@ -82,7 +80,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		 * @param node is the node that corresponds to the parent pojo; we create a new node and put it in here
 		 * @param index is the default state of indexing up to this point 
 		 */
-		public void executeSave(Object onPojo, MapNode node, boolean index, SaveContext ctx) {
+		public void executeSave(Object onPojo, EntityNode node, boolean index, SaveContext ctx) {
 			if (property.isSaved(onPojo)) {
 				// Look for an override on indexing
 				Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
@@ -107,7 +105,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		 * @return one child which has a name in the parent
 		 * @throws IllegalStateException if there are multiple name matches
 		 */
-		private EntityNode getChild(MapNode parent, Property prop) {
+		private EntityNode getChild(EntityNode parent, Property prop) {
 			EntityNode child = null;
 			
 			for (String name: prop.getLoadNames()) {
@@ -180,7 +178,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			
 			return new MapNodeTranslator<T>() {
 				@Override
-				protected T loadMap(MapNode node, LoadContext ctx) {
+				protected T loadMap(EntityNode node, LoadContext ctx) {
 					T pojo = fact.construct(clazz);
 					
 					for (EachProperty prop: props)
@@ -190,8 +188,8 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				}
 	
 				@Override
-				protected MapNode saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
-					MapNode node = new MapNode(path);
+				protected EntityNode saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
+					EntityNode node = new EntityNode(path);
 					
 					for (EachProperty prop: props)
 						prop.executeSave(pojo, node, index, ctx);

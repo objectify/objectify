@@ -14,9 +14,8 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.node.ListNode;
-import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -45,16 +44,16 @@ public class TransmogTests extends TransmogTestBase
 		Trivial triv = new Trivial(123L, "foo", 456L);
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(triv, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(triv, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", triv.getId());
 		assertChildValue(rootNode, "someString", triv.getSomeString());
 		assertChildValue(rootNode, "someNumber", triv.getSomeNumber());
-		assert rootNode.entrySet().size() == 3;
+		assert rootNode.size() == 3;
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(triv.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -65,13 +64,13 @@ public class TransmogTests extends TransmogTestBase
 		assert entity.getProperties().size() == 2;
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", triv.getId());
 		assertChildValue(rootNode, "someString", triv.getSomeString());
 		assertChildValue(rootNode, "someNumber", triv.getSomeNumber());
-		assert rootNode.entrySet().size() == 3;
+		assert rootNode.size() == 3;
 		
 		// Go back to a solid object
 		Trivial triv2 = transmog.load(rootNode, new LoadContext(entity, ofy));
@@ -103,19 +102,19 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.add("bar");
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
-		ListNode stuffNode;
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode stuffNode;
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		stuffNode = (ListNode)rootNode.get("stuff");
+		stuffNode = rootNode.get("stuff");
 		assertChildValue(stuffNode, 0, pojo.stuff.get(0));
 		assertChildValue(stuffNode, 1, pojo.stuff.get(1));
-		assert rootNode.entrySet().size() == 2;
+		assert rootNode.size() == 2;
 		assert stuffNode.size() == 2;
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -125,14 +124,14 @@ public class TransmogTests extends TransmogTestBase
 		assert entity.getProperties().size() == 1;
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		stuffNode = (ListNode)rootNode.get("stuff");
+		stuffNode = rootNode.get("stuff");
 		assertChildValue(stuffNode, 0, pojo.stuff.get(0));
 		assertChildValue(stuffNode, 1, pojo.stuff.get(1));
-		assert rootNode.entrySet().size() == 2;
+		assert rootNode.size() == 2;
 		assert stuffNode.size() == 2;
 		
 		// Go back to a solid object
@@ -155,14 +154,14 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -170,11 +169,11 @@ public class TransmogTests extends TransmogTestBase
 		assert entity.getProperties().size() == 0;
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
 		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
@@ -197,14 +196,14 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff = null;	// explicitly null it out
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -212,11 +211,11 @@ public class TransmogTests extends TransmogTestBase
 		assert entity.getProperties().size() == 0;
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
 		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
@@ -245,14 +244,14 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getKey().getKind().equals(pojo.getClass().getSimpleName());
 		assert entity.getKey().getParent() == null;
@@ -260,11 +259,11 @@ public class TransmogTests extends TransmogTestBase
 		assert entity.getProperties().size() == 0;
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
-		assert rootNode.entrySet().size() == 1;
+		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
 		HasSimpleListUninitialized pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
@@ -293,30 +292,30 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.put("foo", 5L);
 		
 		// Check the tree structure
-		MapNode rootNode = transmog.save(pojo, new SaveContext(ofy));
+		EntityNode rootNode = transmog.save(pojo, new SaveContext(ofy));
 
 		// id and foo
 		{
-			assert rootNode.entrySet().size() == 2;
-			MapNode stuffNode = rootNode.getMap("stuff");
-			assert stuffNode.entrySet().size() == 1;
+			assert rootNode.size() == 2;
+			EntityNode stuffNode = rootNode.get("stuff");
+			assert stuffNode.size() == 1;
 			assertChildValue(stuffNode, "foo", 5L);
 		}
 		
 		// Check the entity structure
-		Entity entity = transmog.createEntity(rootNode);
+		Entity entity = transmog.save(rootNode);
 		
 		assert entity.getProperties().size() == 1;
 		assert entity.getProperty("stuff.foo").equals(5L);
 		
 		// Go back to the tree structure and run the same tests as before
-		rootNode = transmog.createNode(entity);
+		rootNode = transmog.load(entity);
 		
 		// id and foo
 		{
-			assert rootNode.entrySet().size() == 2;
-			MapNode stuffNode = rootNode.getMap("stuff");
-			assert stuffNode.entrySet().size() == 1;
+			assert rootNode.size() == 2;
+			EntityNode stuffNode = rootNode.get("stuff");
+			assert stuffNode.size() == 1;
 			assertChildValue(stuffNode, "foo", 5L);
 		}
 		

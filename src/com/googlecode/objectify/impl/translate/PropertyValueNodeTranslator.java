@@ -4,21 +4,21 @@ import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Path;
 
 /**
- * <p>Helper which expects a map node in the data structure and throws an exception if a map is not found.</p>
+ * <p>Helper which expects a property value in the data structure and throws an exception if one is not found.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class MapNodeTranslator<T> implements Translator<T>
+abstract public class PropertyValueNodeTranslator<T> implements Translator<T>
 {
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.load.Translator#load(com.googlecode.objectify.impl.node.EntityNode, com.googlecode.objectify.impl.LoadContext)
 	 */
 	@Override
 	final public T load(EntityNode node, LoadContext ctx) {
-		if (!node.hasMap())
-			node.getPath().throwIllegalState("Expected map structure but found: " + node);
+		if (!node.hasPropertyValue())
+			node.getPath().throwIllegalState("Expected property value but found: " + node);
 		
-		return this.loadMap(node, ctx);
+		return this.loadPropertyValue(node, ctx);
 	}
 	
 	/* (non-Javadoc)
@@ -26,16 +26,16 @@ abstract public class MapNodeTranslator<T> implements Translator<T>
 	 */
 	@Override
 	final public EntityNode save(T pojo, Path path, boolean index, SaveContext ctx) {
-		return this.saveMap(pojo, path, index, ctx);
+		return this.savePropertyValue(pojo, path, index, ctx);
 	}
 	
 	/**
-	 * Implement this knowing that we have a proper map node
+	 * Implement this knowing that we have a proper property value node
 	 */
-	abstract protected T loadMap(EntityNode node, LoadContext ctx);
+	abstract protected T loadPropertyValue(EntityNode node, LoadContext ctx);
 	
 	/**
-	 * Implement this, returning a map node
+	 * Implement this, returning a property value node
 	 */
-	abstract protected EntityNode saveMap(T pojo, Path path, boolean index, SaveContext ctx);
+	abstract protected EntityNode savePropertyValue(T pojo, Path path, boolean index, SaveContext ctx);
 }

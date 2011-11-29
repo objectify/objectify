@@ -22,11 +22,10 @@ import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.impl.EntityNode;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.engine.GetEngine;
-import com.googlecode.objectify.impl.node.EntityNode;
-import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -303,12 +302,12 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		} else {
 			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
 			EntityNode node = translator.save(value, Path.root(), false, new SaveContext(this));
-			return getFilterableValue((MapNode)node, value);
+			return getFilterableValue(node, value);
 		}
 	}
 	
 	/** Extracts a filterable value from the node, or throws an illegalstate exception */
-	private Object getFilterableValue(MapNode node, Object originalValue) {
+	private Object getFilterableValue(EntityNode node, Object originalValue) {
 		if (!node.hasPropertyValue())
 			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
 		

@@ -11,9 +11,6 @@ import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.SaveException;
-import com.googlecode.objectify.impl.node.EntityNode;
-import com.googlecode.objectify.impl.node.ListNode;
-import com.googlecode.objectify.impl.node.MapNode;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -21,40 +18,9 @@ import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
- * <p>Class which knows how to load data from Entity to POJO and save data from POJO to Entity.</p>
+ * <p>Transmogrifies POJO entities into datastore Entity objects and vice-versa.</p>
  * 
- * <p>Note that this class completely ignores @Id and @Parent fields.</p>
- * 
- * <p>To understand this code, you must first understand that a "leaf" value is anything that
- * can be put into the datastore in a single property.  Simple types like String, and Enum,
- * and Key are leaf nodes, but so are Collections and arrays of these basic types.  @Embed
- * values are nonleaf - they branch the persistance graph, producing multiple properties in a
- * datastore Entity.</p>
- * 
- * <p>Also realize that there are two separate dimensions to understand.  Misunderstanding
- * the two related graphs will make this code very confusing:</p>
- * <ul>
- * <li>There is a class graph, which branches at @Embed classes (either simple fields
- * or array/collection fields).  The static analysis code that builds Setters and Savers
- * must traverse this graph.</li>
- * <li>There is an object graph, which branches at @Embed arrays.  The runtime execution
- * code must traverse this graph when setting and saving entities.</li>
- * </ul>
- * 
- * <p>The core structures that operate at runtime are Setters (for loading datastore Entities into
- * typed pojos) and Savers (for saving the fields of typed pojos into datastore Entities).  They are
- * NOT parallel hierarchies, and they work very differently:</p>
- * <ul>
- * <li>When loading, Transmog <em>iterates</em> through the properties of an Entity and for each one calls a Setter
- * that knows how to set this property somewhere deep in the object graph of a typed pojo.  In the case
- * of @Embed arrays and collections, this single collection datastore value will set multipel
- * values in the pojo.  The core data structure is {@code rootSetters}, a map of entity property
- * name to a Setter which knows what to do with that data.</li>
- * <li>When saving, Transmog <em>recurses</em> through the class structure of a pojo (and any embedded objects), calling
- * all relevant Savers to populate the datastore Entity.  The core data structure is {@code rootSaver}, which
- * understands the whole pojo object graph and knows how to translate it into a number of properties
- * on the Entity.</li>
- * </ul>
+ * <p>TODO:  long explanation of how this works.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -91,7 +57,7 @@ public class Transmog<T>
 	public T load(Entity fromEntity, Objectify ofy) throws LoadException
 	{
 		try {
-			EntityNode root = createNode(fromEntity);
+			EntityNode root = load(fromEntity);
 			T pojo = load(root, new LoadContext(fromEntity, ofy));
 			return pojo;
 		}
@@ -114,8 +80,8 @@ public class Transmog<T>
 	public Entity save(T fromPojo, Objectify ofy)
 	{
 		try {
-			MapNode root = save(fromPojo, new SaveContext(ofy));
-			Entity entity = createEntity(root);
+			EntityNode root = save(fromPojo, new SaveContext(ofy));
+			Entity entity = save(root);
 			return entity;
 		}
 		catch (SaveException ex) { throw ex; }
@@ -125,26 +91,30 @@ public class Transmog<T>
 	}
 	
 	/** Public just for testing */
-	public MapNode save(T fromPojo, SaveContext ctx) {
+	public EntityNode save(T fromPojo, SaveContext ctx) {
 		// Default index state is false!
-		return (MapNode)rootTranslator.save(fromPojo, Path.root(), false, ctx);
+		return (EntityNode)rootTranslator.save(fromPojo, Path.root(), false, ctx);
 	}
 
 	/**
-	 * Break down the Entity into a series of nested EntityNodes
-	 * which reflect the x.y.z paths.  The root EntityNode will also contain the key
-	 * fields and values.  Public only so we can test.
+	 * <p>Turn the Entity into the hierarchical set of EntityNodes that the translation system understands.
+	 * This is done in two steps.  The first converts to a literal structure of the Entity - this is normally
+	 * the same as the POJO structure, but @Embed collections are "collectionized" such that the leaf property
+	 * values are the collections.  The second step de-collectionizes the entity nodes, repositioning the
+	 * collections from the leaf levels up to the place in the hierarchy where the embedded classes are.</p>
 	 * 
-	 * @return a root EntityNode corresponding to the Entity
+	 * <p>Also adds id/parent fields to the root EntityNode.</p>
+	 * 
+	 * <p>Public only for testing purposes.</p>
+	 * 
+	 * <p>P.S. an exercise for the reader:  Try to do this in one pass!  Watch out for the ^null collection.</p>
+	 * 
+	 * @return a root EntityNode corresponding to the Entity, in a format suitable for translators.
 	 */
-	public MapNode createNode(Entity fromEntity) {
-		MapNode root = new MapNode(Path.root());
-		
-		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
-			Path path = Path.of(prop.getKey());
-			addToNode(root, ForwardPath.of(path), prop.getValue());
-		}
-		
+	public EntityNode load(Entity fromEntity) {
+		EntityNode root = this.loadLiterally(fromEntity);
+		root = loadIntoTranslateFormat(root);
+
 		// Last step, add the key fields to the root EntityNode so they get populated just like every other field would.
 		String idName = keyMeta.getIdFieldName();
 		
@@ -153,7 +123,7 @@ public class Transmog<T>
 		
 		if (fromEntity.getKey().isComplete()) {
 			Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
-			root.pathMap(idName).setPropertyValue(idValue);
+			root.path(idName).setPropertyValue(idValue);
 		}
 		
 		String parentName = keyMeta.getParentFieldName();
@@ -161,70 +131,112 @@ public class Transmog<T>
 			if (root.containsKey(parentName))
 				throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Parent field: " + fromEntity);
 			
-			root.pathMap(parentName).setPropertyValue(fromEntity.getKey().getParent());
+			root.path(parentName).setPropertyValue(fromEntity.getKey().getParent());
+		}
+		
+		return root;
+	}
+	
+	/**
+	 * <p>Break down the Entity into a series of nested EntityNodes which literally reflect
+	 * the exact x.y.z paths of the properties in the Entity.</p>
+	 * 
+	 * <p>The resulting map will have @Embed collections as they are stored natively; another
+	 * processing step will be required to create the normal hierarchical structure that translators
+	 * can work with.</p>
+	 * 
+	 * @return a root EntityNode corresponding to a literal read of the Entity
+	 */
+	private EntityNode loadLiterally(Entity fromEntity) {
+		EntityNode root = new EntityNode(Path.root());
+		
+		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
+			Path path = Path.of(prop.getKey());
+			populateNode(root, path, prop.getValue());
 		}
 		
 		return root;
 	}
 	
 	/** 
-	 * Recursive method that places the value at the path, possibly building node structures.
-	 * 
-	 * @param forward is the path to this point, going down
-	 * @param value might be a value or might be a collection of values
+	 * Recursive method that places the value at the path, building node structures along the way.
 	 */
-	private void addToNode(MapNode node, ForwardPath forward, Object value) {
-		if (forward.getNext() == null) {
-			if (value instanceof Collection) {
-				@SuppressWarnings("unchecked")
-				Collection<Object> coll = (Collection<Object>)value;
-				
-				ListNode list = node.pathList(forward.getPath().getSegment());
-				for (Object obj: coll) {
-					MapNode map = list.add();
-					map.setPropertyValue(obj);
-				}
-			} else {
-				MapNode map = node.pathMap(forward.getPath().getSegment());
-				map.setPropertyValue(value);
-			}
-		} else if (embedCollectionPoints.contains(forward.getPath()) && value instanceof Collection) {
-			// We're at 'things' in this example: {id='222', things=[{foo='asdf', bar='123'}]}
-			// Convert to a ListNode and de-collectionize the value, which should be a collection
-			ListNode listNode = node.pathList(forward.getPath().getSegment());
-			
+	private void populateNode(EntityNode root, Path path, Object value) {
+		EntityNode bottom = createNesting(root, path.getPrevious());
+		
+		if (value instanceof Collection) {
 			@SuppressWarnings("unchecked")
 			Collection<Object> coll = (Collection<Object>)value;
 			
-			int index = 0;
+			EntityNode list = bottom.path(path.getSegment());
 			for (Object obj: coll) {
-				MapNode child = listNode.pathMap(index);
-				addToNode(child, forward.getNext(), obj);
-				index++;
+				EntityNode map = list.addToList();
+				map.setPropertyValue(obj);
 			}
 		} else {
-			// Just a normal step down the map node tree
-			MapNode child = node.pathMap(forward.getPath().getSegment());
-			addToNode(child, forward.getNext(), value);
+			EntityNode map = bottom.path(path.getSegment());
+			map.setPropertyValue(value);
 		}
 	}
 	
+	/** 
+	 * Recursive method that builds out a nested linear chain of EntityNodes along the specified path.
+	 * For example, if path is 'one.two.three', the nodes will be root:{one:{two:three{}}}.
+	 * @return the bottom-most node in the list
+	 */
+	private EntityNode createNesting(EntityNode root, Path path) {
+		if (path == Path.root()) {
+			return root;
+		} else {
+			EntityNode parent = createNesting(root, path.getPrevious());
+			return parent.path(path.getSegment());
+		}
+	}
+
 	/**
-	 * Reconstitute an Entity from a broken down series of nested EntityNodes.
-	 * Public only so we can test.
+	 * <p>Converts a node tree from a direct interpretation of the Entity properties to the full hierarchical
+	 * form suitable for Translators.  Modifies the graph as necessary; possibly even not at all.</p>
+	 * 
+	 * <p>Simple example:</p>
+	 * <ul>
+	 * <li>Example before: { things: { foo: [ "asdf" ], bar: [ 123 ] } }</li>
+	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 } ] }</li>
+	 * </ul>
+	 * 
+	 * <p>More complicated example:</p>
+	 * <ul>
+	 * <li>Example before: { things: { foo: [ "asdf", "qwert" ], bar: [ 123, 456 ] } }</li>
+	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 }, { foo:"qwert", bar:456 } ] }</li>
+	 * </ul>
+	 * 
+	 * <p>Keep in mind that there may be a hierarchy of embedded classes within the embedded collection.</p>
+	 * 
+	 * @param root is the root node of a literal interpretation of the Entity properties
+	 * @return the same value passed in, but subgraphs may be changed to move @Embed collections to the proper place
+	 */
+	private EntityNode loadIntoTranslateFormat(EntityNode root) {
+		return root;
+	}
+	
+	/**
+	 * <p>Turn a hierarchical series of EntityNodes into the standard Entity storage format.  Unlike the
+	 * load process, this happens in one step, going straight to the "collectionized" format that @Embed
+	 * collections are stored in.</p>
+	 * 
+	 * <p>Public only so we can test.</p>
 	 * 
 	 * @return an Entity with the propery key set
 	 */
-	public Entity createEntity(MapNode root) {
+	public Entity save(EntityNode root) {
 		
 		// Step one is extract the id/parent from root and create the Entity
 		com.google.appengine.api.datastore.Key parent = null;
 		if (keyMeta.hasParentField()) {
-			MapNode parentNode = (MapNode)root.remove(keyMeta.getParentFieldName());
+			EntityNode parentNode = (EntityNode)root.remove(keyMeta.getParentFieldName());
 			parent = (com.google.appengine.api.datastore.Key)parentNode.getPropertyValue();
 		}
 		
-		MapNode idNode = (MapNode)root.remove(keyMeta.getIdFieldName());
+		EntityNode idNode = (EntityNode)root.remove(keyMeta.getIdFieldName());
 		Object id = idNode == null ? null : idNode.getPropertyValue();
 		
 		Entity ent = (id == null)
@@ -244,16 +256,14 @@ public class Transmog<T>
 	 *  This goes to true whenever we hit an embedded collection.
 	 */
 	private void populateFields(Entity entity, EntityNode node, boolean collectionize) {
-		if (node instanceof ListNode) {
-			ListNode listNode = (ListNode)node;
-			
+		if (node.hasList()) {
 			if (embedCollectionPoints.contains(node.getPath())) {
 				// Watch for nulls to create the ^null collection
 				List<Integer> nullIndexes = new ArrayList<Integer>();
 				
 				int index = 0;
-				for (EntityNode child: listNode) {
-					if (child instanceof MapNode && ((MapNode)child).hasPropertyValue() && ((MapNode)child).getPropertyValue() == null)
+				for (EntityNode child: node) {
+					if (child instanceof EntityNode && ((EntityNode)child).hasPropertyValue() && ((EntityNode)child).getPropertyValue() == null)
 						nullIndexes.add(index);
 					else
 						populateFields(entity, child, true);	// just switch to collectionizing
@@ -262,15 +272,15 @@ public class Transmog<T>
 				}
 				
 				if (!nullIndexes.isEmpty())
-					setEntityProperty(entity, listNode.getPath().toPathString() + "^null", nullIndexes, false);
+					setEntityProperty(entity, node.getPath().toPathString() + "^null", nullIndexes, false);
 				
 			} else {
 				// A normal collection of leaf property values
-				List<Object> things = new ArrayList<Object>(listNode.size());
+				List<Object> things = new ArrayList<Object>(node.size());
 				boolean index = false;	// everything in the list will have the same index state
 				
-				for (EntityNode child: listNode) {
-					MapNode map = (MapNode)child;
+				for (EntityNode child: node) {
+					EntityNode map = (EntityNode)child;
 					if (!map.hasPropertyValue())
 						map.getPath().throwIllegalState("Expected property value, got " + map);
 					
@@ -278,30 +288,28 @@ public class Transmog<T>
 					index = map.isPropertyIndexed();
 				}
 				
-				setEntityProperty(entity, listNode.getPath().toPathString(), things, index);
+				setEntityProperty(entity, node.getPath().toPathString(), things, index);
 			}
 			
-		} else {	// MapNode
-			MapNode mapNode = (MapNode)node;
-			
-			if (mapNode.hasPropertyValue()) {
-				String propertyName = mapNode.getPath().toPathString();
+		} else {	// EntityNode
+			if (node.hasPropertyValue()) {
+				String propertyName = node.getPath().toPathString();
 				if (collectionize) {
 					@SuppressWarnings("unchecked")
 					List<Object> list = (List<Object>)entity.getProperty(propertyName);
 					if (list == null) {
 						list = new ArrayList<Object>();
-						setEntityProperty(entity, propertyName, list, mapNode.isPropertyIndexed());
+						setEntityProperty(entity, propertyName, list, node.isPropertyIndexed());
 					}
 					
-					list.add(mapNode.getPropertyValue());
+					list.add(node.getPropertyValue());
 				} else {
-					setEntityProperty(entity, propertyName, mapNode.getPropertyValue(), mapNode.isPropertyIndexed());
+					setEntityProperty(entity, propertyName, node.getPropertyValue(), node.isPropertyIndexed());
 				}
 			}
 					
-			if (!mapNode.isEmpty()) {
-				for (EntityNode child: mapNode.values()) {
+			if (!node.isEmpty()) {
+				for (EntityNode child: node) {
 					populateFields(entity, child, collectionize);
 				}
 			}
