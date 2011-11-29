@@ -4,25 +4,26 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * <p>Numbers are funky in the datastore.  You can save numbers of any size, but when they always retrieve as Long.
  * For the hell of it, we also handle String in the datastore by trying to parse it.</p>
  * 
+ * <p>Not a ValueTranslatorFactory because Numbers are not assignable to primitives.  Java lame.</p>
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class NumberTranslatorFactory extends ValueTranslatorFactory<Number, Object>
+public class NumberTranslatorFactory implements TranslatorFactory<Number>
 {
-	/** */
-	public NumberTranslatorFactory() {
-		super(Number.class);
-	}
-	
 	@Override
-	protected ValueTranslator<Number, Object> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	public ValueTranslator<Number, Object> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
+		
+		if (!TypeUtils.isAssignableFrom(Number.class, clazz))
+			return null;
 		
 		return new ValueTranslator<Number, Object>(path, Object.class) {
 			@Override

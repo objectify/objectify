@@ -24,6 +24,11 @@ public class MapEmbedTests extends TestBase
 		public boolean equals(Object other) {
 			return name.equals(((Thing)other).name) && weight.equals(((Thing)other).weight);
 		}
+		
+		@Override
+		public String toString() {
+			return "Thing(name=" + name + ", weight=" + weight + ")";
+		}
 	}
 	
 	@com.googlecode.objectify.annotation.Entity
