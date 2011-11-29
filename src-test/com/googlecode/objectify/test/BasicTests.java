@@ -34,6 +34,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testGenerateId() throws Exception
 	{
+		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
 		// Note that 5 is not the id, it's part of the payload
@@ -57,6 +58,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testOverwriteId() throws Exception
 	{
+		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
@@ -78,6 +80,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testNames() throws Exception
 	{
+		fact.register(NamedTrivial.class);
 		TestObjectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
@@ -99,6 +102,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testBatchOperations() throws Exception
 	{
+		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
 		Trivial triv1 = new Trivial("foo", 5);
@@ -134,6 +138,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testManyToOne() throws Exception
 	{
+		fact.register(Employee.class);
 		TestObjectify ofy = this.fact.begin();
 
 		Employee fred = new Employee("fred");
@@ -165,6 +170,7 @@ public class BasicTests extends TestBase
 	@Test
 	public void testConsistencySetting() throws Exception
 	{
+		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin().consistency(Consistency.EVENTUAL);
 
 		Trivial triv = new Trivial("foo", 5);

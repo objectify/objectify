@@ -336,14 +336,22 @@ public class QueryTests extends TestBase
 
 		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
 
-		List<NamedTrivial> result = ofy.load().type(NamedTrivial.class).filter("name in", conditions).list();
-		assert result.size() == 2;
-		
-		String id1 = result.get(0).getName();
-		String id2 = result.get(1).getName();
-		
-		assert id1.equals("foo") || id1.equals("bar"); 
-		assert id2.equals("foo") || id2.equals("bar"); 
+		try {
+			List<NamedTrivial> result = ofy.load().type(NamedTrivial.class).filter("name in", conditions).list();
+			assert false;	// see catch below
+			
+			assert result.size() == 2;
+			
+			String id1 = result.get(0).getName();
+			String id2 = result.get(1).getName();
+			
+			assert id1.equals("foo") || id1.equals("bar"); 
+			assert id2.equals("foo") || id2.equals("bar");
+		}
+		catch (IllegalArgumentException ex) {
+			// This code used to work but we no longer allow IN or <> for parent/id filtering.  It can be
+			// made to work for id filtering only if parent filter is = (or there is no parent)... but this is TODO.
+		}
 	}
 
 	/** */

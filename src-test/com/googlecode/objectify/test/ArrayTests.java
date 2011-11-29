@@ -6,6 +6,7 @@ package com.googlecode.objectify.test;
 import java.util.Arrays;
 import java.util.logging.Logger;
 
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
@@ -23,6 +24,13 @@ public class ArrayTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(ArrayTests.class.getName());
+	
+	/** */
+	@BeforeMethod
+	public void setUpArrayTests()
+	{
+		fact.register(HasArrays.class);
+	}
 	
 	/** */
 	@Test

@@ -22,6 +22,7 @@ public class BulkGetTests extends TestBase
     @SuppressWarnings("unchecked")
     public void testOrderOfBulkGet()
     {
+		fact.register(Trivial.class);
         TestObjectify ofy = this.fact.begin();
 
         Trivial t1 = new Trivial("foo", 5);

@@ -124,7 +124,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 			
 			if (prop.equals(meta.getParentFieldName())) {
 				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
-					throw new IllegalStateException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
+					throw new IllegalArgumentException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
 				
 				keyOp = op;
 				parentValue = ofy.getFactory().getRawKey(value);
@@ -136,17 +136,17 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 							" filter on the parent field '" + meta.getParentFieldName() + "' before you can filter by the id field '" + prop + "'");
 				
 				if (keyOp != null && keyOp != op)
-					throw new IllegalStateException("Filter operation on id must exactly match the filter operation on parent");
+					throw new IllegalArgumentException("Filter operation on id must exactly match the filter operation on parent");
 				
 				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
-					throw new IllegalStateException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
+					throw new IllegalArgumentException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
 				
 				if (value instanceof Number) {
 					value = ((Number)value).longValue();
 				} else if (value instanceof String) {
 					// This is fine by itself
 				} else {
-					throw new IllegalStateException("Id filter values must be Long or String");
+					throw new IllegalArgumentException("Id filter values must be Long or String");
 				}
 				
 				keyOp = op;
