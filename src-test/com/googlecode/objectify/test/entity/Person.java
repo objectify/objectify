@@ -10,8 +10,7 @@ import com.googlecode.objectify.annotation.Entity;
 @Cache
 public class Person
 {
-	@Embed
-	public Name name;
+	@Embed public Name name;
 	public int age;
 
 	public Person()

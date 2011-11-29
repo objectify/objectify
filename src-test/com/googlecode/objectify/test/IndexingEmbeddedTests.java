@@ -102,7 +102,7 @@ public class IndexingEmbeddedTests extends TestBase
 		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("indexed.unindexed=", true).iterator().hasNext();
 		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("def.indexed =", true).iterator().hasNext();
 		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("def.unindexed =", true).iterator().hasNext();
-		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("def.def =", true).iterator().hasNext();
+		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("def.def =", true).iterator().hasNext();
 		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).iterator().hasNext();
 		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).iterator().hasNext();
 		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).iterator().hasNext();

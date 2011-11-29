@@ -248,9 +248,21 @@ public class Transmog<T>
 			ListNode listNode = (ListNode)node;
 			
 			if (embedCollectionPoints.contains(node.getPath())) {
-				// We need to switch to collectionizing here, otherwise we don't need to do anything special
-				for (EntityNode child: listNode)
-					populateFields(entity, child, true);
+				// Watch for nulls to create the ^null collection
+				List<Integer> nullIndexes = new ArrayList<Integer>();
+				
+				int index = 0;
+				for (EntityNode child: listNode) {
+					if (child instanceof MapNode && ((MapNode)child).hasPropertyValue() && ((MapNode)child).getPropertyValue() == null)
+						nullIndexes.add(index);
+					else
+						populateFields(entity, child, true);	// just switch to collectionizing
+					
+					index++;
+				}
+				
+				if (!nullIndexes.isEmpty())
+					setEntityProperty(entity, listNode.getPath().toPathString() + "^null", nullIndexes, false);
 				
 			} else {
 				// A normal collection of leaf property values

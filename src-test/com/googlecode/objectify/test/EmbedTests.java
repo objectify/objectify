@@ -12,6 +12,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
@@ -25,23 +26,17 @@ import com.googlecode.objectify.test.util.TestObjectify;
  */
 public class EmbedTests extends TestBase
 {
-	public static class PartiallyUnindexedStruct
+	public static class PartiallyIndexedStruct
 	{
-		@Embed
-		Person indexedPerson;
-		@Embed
-		@Unindex
-		Person unindexedPerson;
+		@Embed @Index Person indexedPerson;
+		@Embed @Unindex Person unindexedPerson;
 
-		String indexedString;
-		@Unindex
-		String unidexedString;
+		@Index String indexedString;
+		@Unindex String unidexedString;
 
-		public PartiallyUnindexedStruct()
-		{
-		}
+		public PartiallyIndexedStruct() { }
 
-		PartiallyUnindexedStruct(Person indexedPerson, Person unindexedPerson, String indexedString, String unidexedString)
+		PartiallyIndexedStruct(Person indexedPerson, Person unindexedPerson, String indexedString, String unidexedString)
 		{
 			this.indexedPerson = indexedPerson;
 			this.unindexedPerson = unindexedPerson;
@@ -52,23 +47,16 @@ public class EmbedTests extends TestBase
 
 	@Entity
 	@Cache
-	public static class PartiallyUnindexedEntity
+	public static class PartiallyIndexedEntity
 	{
-		@Id
-		Long id;
+		@Id Long id;
 
-		@Embed
-		PartiallyUnindexedStruct indexed;
+		@Embed @Index PartiallyIndexedStruct indexed;
+		@Embed @Unindex PartiallyIndexedStruct unindexed;
 
-		@Embed
-		@Unindex
-		PartiallyUnindexedStruct unindexed;
+		public PartiallyIndexedEntity() { }
 
-		public PartiallyUnindexedEntity()
-		{
-		}
-
-		PartiallyUnindexedEntity(PartiallyUnindexedStruct indexed, PartiallyUnindexedStruct unindexed)
+		PartiallyIndexedEntity(PartiallyIndexedStruct indexed, PartiallyIndexedStruct unindexed)
 		{
 			this.indexed = indexed;
 			this.unindexed = unindexed;
@@ -138,20 +126,20 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testUnindexed() throws Exception
 	{
-		fact.register(PartiallyUnindexedEntity.class);
+		fact.register(PartiallyIndexedEntity.class);
 
 		TestObjectify ofy = this.fact.begin();
 
-		PartiallyUnindexedEntity obj = new PartiallyUnindexedEntity(
-				new PartiallyUnindexedStruct(
+		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
+				new PartiallyIndexedStruct(
 						new Person(new Name("A", "B"), 30),
 						new Person(new Name("C", "D"), 31), "1", "2"),
-				new PartiallyUnindexedStruct(
+				new PartiallyIndexedStruct(
 						new Person(new Name("a", "b"), 32),
 						new Person(new Name("c", "d"), 33), "3", "4")
 		);
 
-		Key<PartiallyUnindexedEntity> key = ofy.put(obj);
+		Key<PartiallyIndexedEntity> key = ofy.put(obj);
 
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.firstName", "A");
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.lastName", "B");
@@ -164,28 +152,28 @@ public class EmbedTests extends TestBase
 		subtestFoundByQuery(true, key, "indexed.indexedString", "1");
 		subtestFoundByQuery(false, key, "indexed.unindexedString", "2");
 
-		subtestFoundByQuery(false, key, "unindexed.indexedPerson.name.firstName", "a");
-		subtestFoundByQuery(false, key, "unindexed.indexedPerson.name.lastName", "b");
-		subtestFoundByQuery(false, key, "unindexed.indexedPerson.age", 32);
+		subtestFoundByQuery(true, key, "unindexed.indexedPerson.name.firstName", "a");
+		subtestFoundByQuery(true, key, "unindexed.indexedPerson.name.lastName", "b");
+		subtestFoundByQuery(true, key, "unindexed.indexedPerson.age", 32);
 
 		subtestFoundByQuery(false, key, "unindexed.unindexedPerson.name.firstName", "c");
 		subtestFoundByQuery(false, key, "unindexed.unindexedPerson.name.lastName", "d");
 		subtestFoundByQuery(false, key, "unindexed.unindexedPerson.age", 33);
 
-		subtestFoundByQuery(false, key, "unindexed.indexedString", "3");
+		subtestFoundByQuery(true, key, "unindexed.indexedString", "3");
 		subtestFoundByQuery(false, key, "unindexed.unindexedString", "4");
 	}
 
 	private void subtestFoundByQuery(boolean expected, Key<?> key, String filter, Object value)
 	{
-		Query<PartiallyUnindexedEntity> q = fact.begin().load().type(PartiallyUnindexedEntity.class);
+		Query<PartiallyIndexedEntity> q = fact.begin().load().type(PartiallyIndexedEntity.class);
 		q = q.filter(filter + " =", value);
-		Iterator<PartiallyUnindexedEntity> results = q.iterator();
+		Iterator<PartiallyIndexedEntity> results = q.iterator();
 
 		if (expected)
 		{
 			assert results.hasNext();
-			PartiallyUnindexedEntity result = results.next();
+			PartiallyIndexedEntity result = results.next();
 			assert result.id.equals(key.getId());
 			assert !results.hasNext();
 		}
