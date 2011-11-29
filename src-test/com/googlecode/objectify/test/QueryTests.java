@@ -48,6 +48,8 @@ public class QueryTests extends TestBase
 	{
 		super.setUp();
 		
+		fact.register(Trivial.class);
+		
 		this.triv1 = new Trivial("foo1", 1);
 		this.triv2 = new Trivial("foo2", 2);
 		
