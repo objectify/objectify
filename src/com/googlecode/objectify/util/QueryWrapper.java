@@ -5,9 +5,9 @@ import java.util.List;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.cmd.QueryKeys;
 
 /**
  * Simple wrapper/decorator for a Query.  Use it like this:
@@ -101,15 +101,9 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, 
 	}
 
 	@Override
-	public QueryResultIterable<T> entities()
+	public QueryResultIterable<T> iterable()
 	{
-		return base.entities();
-	}
-
-	@Override
-	public QueryResultIterable<Key<T>> keys()
-	{
-		return base.keys();
+		return base.iterable();
 	}
 
 	@Override
@@ -119,24 +113,10 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, 
 	}
 
 	@Override
-	public List<Key<T>> listKeys()
-	{
-		return base.listKeys();
-	}
-	
-	@Override
 	public H chunk(int value)
 	{
 		H next = this.clone();
 		next.base = base.chunk(value);
-		return next;
-	}
-
-	@Override
-	public H keysOnly()
-	{
-		H next = this.clone();
-		next.base = base.keysOnly();
 		return next;
 	}
 
@@ -146,6 +126,12 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, 
 		return base.iterator();
 	}
 	
+	@Override
+	public QueryKeys<T> keys()
+	{
+		return base.keys();
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */

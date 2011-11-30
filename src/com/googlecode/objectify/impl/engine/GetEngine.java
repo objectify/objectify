@@ -46,6 +46,7 @@ public class GetEngine extends Engine
 	/**
 	 * The fundamental get() operation.
 	 */
+	@SuppressWarnings("unchecked")
 	public <E, K extends E> Map<Key<K>, E> get(final Iterable<com.google.appengine.api.datastore.Key> keys) {
 		
 		if (log.isLoggable(Level.FINEST))
@@ -55,7 +56,6 @@ public class GetEngine extends Engine
 		Map<Key<K>, E> foundInCache = new LinkedHashMap<Key<K>, E>();
 		
 		for (com.google.appengine.api.datastore.Key key: keys) {
-			@SuppressWarnings("unchecked")
 			E obj = (E)this.session.get(key);
 			if (obj == null)
 				needFetching.add(key);
@@ -81,7 +81,6 @@ public class GetEngine extends Engine
 					for (com.google.appengine.api.datastore.Key key: keys) {
 						
 						// Instead of using the foundInCache collection (which has the wrong key), we'll use the session again
-						@SuppressWarnings("unchecked")
 						E pojo = (E)session.get(key);
 						
 						if (pojo != null) {

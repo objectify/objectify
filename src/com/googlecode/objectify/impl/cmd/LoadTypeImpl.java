@@ -92,6 +92,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(java.lang.Iterable)
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <S> Map<S, T> ids(Iterable<?> ids) {
 		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.createKeys(parent.getRaw(), Key.getKind(type), ids);
 		
@@ -103,13 +104,8 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 				Map<S, T> primitive = new LinkedHashMap<S, T>();
 				
 				for (Map.Entry<Key<T>, T> entry: from.entrySet()) {
-					
-					@SuppressWarnings("unchecked")
-					S key = (entry.getKey().getString() != null)
-							? (S)entry.getKey().getString()
-							: (S)(Long)entry.getKey().getId();
-							
-					primitive.put(key, entry.getValue());
+					S id = DatastoreUtils.getId(entry.getKey());
+					primitive.put(id, entry.getValue());
 				}
 				
 				return primitive;

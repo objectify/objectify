@@ -5,7 +5,6 @@ import java.util.Set;
 
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 
@@ -38,17 +37,10 @@ abstract class Queryable<T> extends QueryDefinition<T>
 	}
 
 	@Override
-	public QueryResultIterable<T> entities()
+	public QueryResultIterable<T> iterable()
 	{
 		QueryImpl<T> q = createQuery();
-		return q.entities();
-	}
-
-	@Override
-	public QueryResultIterable<Key<T>> keys()
-	{
-		QueryImpl<T> q = createQuery();
-		return q.keys();
+		return q.iterable();
 	}
 
 	@Override
@@ -63,12 +55,5 @@ abstract class Queryable<T> extends QueryDefinition<T>
 	{
 		QueryImpl<T> q = createQuery();
 		return q.list();
-	}
-
-	@Override
-	public List<Key<T>> listKeys()
-	{
-		QueryImpl<T> q = createQuery();
-		return q.listKeys();
 	}
 }

@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.cmd.QueryKeys;
 
 
 /**
@@ -38,7 +39,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public Query<T> filter(String condition, Object value)
+	public QueryImpl<T> filter(String condition, Object value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.addFilter(condition, value);
@@ -49,7 +50,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
 	 */
 	@Override
-	public Query<T> order(String condition)
+	public QueryImpl<T> order(String condition)
 	{
 		QueryImpl<T> q = createQuery();
 		q.addOrder(condition);
@@ -60,7 +61,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#ancestor(java.lang.Object)
 	 */
 	@Override
-	public Query<T> ancestor(Object keyOrEntity)
+	public QueryImpl<T> ancestor(Object keyOrEntity)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setAncestor(keyOrEntity);
@@ -71,7 +72,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#limit(int)
 	 */
 	@Override
-	public Query<T> limit(int value)
+	public QueryImpl<T> limit(int value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setLimit(value);
@@ -82,7 +83,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#offset(int)
 	 */
 	@Override
-	public Query<T> offset(int value)
+	public QueryImpl<T> offset(int value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setOffset(value);
@@ -93,7 +94,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#startCursor(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
-	public Query<T> startAt(Cursor value)
+	public QueryImpl<T> startAt(Cursor value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setStartCursor(value);
@@ -104,7 +105,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#endCursor(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
-	public Query<T> endAt(Cursor value)
+	public QueryImpl<T> endAt(Cursor value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setEndCursor(value);
@@ -115,18 +116,21 @@ abstract class QueryDefinition<T> implements Query<T>
 	 * @see com.googlecode.objectify.cmd.Query#chunk(int)
 	 */
 	@Override
-	public Query<T> chunk(int value)
+	public QueryImpl<T> chunk(int value)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setChunk(value);
 		return q;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Query#keys()
+	 */
 	@Override
-	public Query<T> keysOnly()
+	public QueryKeys<T> keys()
 	{
 		QueryImpl<T> q = createQuery();
 		q.setKeysOnly();
-		return q;
+		return new QueryKeysImpl<T>(q);
 	}
 }

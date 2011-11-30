@@ -1,10 +1,6 @@
 package com.googlecode.objectify.cmd;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.QueryResultIterable;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 
@@ -13,7 +9,7 @@ import com.googlecode.objectify.Ref;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Query<T> extends QueryResultIterable<T>
+public interface Query<T> extends QueryExecute<T>
 {
 	/**
 	 * <p>Create a filter based on the specified condition and value, using
@@ -109,10 +105,29 @@ public interface Query<T> extends QueryResultIterable<T>
 	public Query<T> chunk(int value);
 	
 	/**
-	 * Causes this query to return only key information (id and parent).  This is cheaper and
-	 * more efficient than returning all entity data.
+	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
+	 * which are significantly cheaper (~7X) than fetching whole entities.
 	 */
-	public Query<T> keysOnly();
+	public QueryKeys<T> keys();
+	
+	/**
+	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.
+	 * This is somewhat faster than fetching, but the time still grows with the number of results.
+	 * The datastore actually walks through the result set and counts for you.</p>
+	 * 
+	 * <p>Immediately executes the query; there is no async version of this method.</p>
+	 * 
+	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Counting large numbers
+	 * of entities can quickly create massive bills.</p>
+	 */
+	public int count();
+
+	/**
+	 * Gets the first entity in the result set.  Obeys the offset value.
+	 * 
+	 * @return an asynchronous Ref containing the first result.  The Ref will hold null if the result set is empty.
+	 */
+	public Ref<T> first();
 	
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
@@ -122,51 +137,4 @@ public interface Query<T> extends QueryResultIterable<T>
 	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p> 
 	 */
 	public String toString();
-
-	/**
-	 * Gets the first entity in the result set.  Obeys the offset value.
-	 * 
-	 * @return the only instance in the result, or null if the result set is empty.
-	 */
-	public Ref<T> first();
-	
-	/**
-	 * <p>Starts an asynchronous query which will return entities.  If keysOnly() is set, the entities
-	 * will only have their id/parent fields set.</p>
-	 * 
-	 * <p>Note that since the Query<T> itself is QueryResultIterable<T>, you can iterate on the query
-	 * object itself.  However, if you want to start an async query and iterate on it later, you can
-	 * use this method.</p>
-	 */
-	public QueryResultIterable<T> entities();
-	
-	/**
-	 * Starts an asynchronous query which will return key objects.  Implies keysOnly(). 
-	 */
-	public QueryResultIterable<Key<T>> keys();
-	
-	/**
-	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.</p>
-	 * <p>This is somewhat faster than fetching, but the time still grows with the number of results.
-	 * The datastore actually walks through the result set and counts for you.</p>
-	 */
-	public int count();
-
-	/**
-	 * <p>Execute the query and get the results as a List.  The list will be equivalent to a simple ArrayList;
-	 * you can iterate through it multiple times without incurring additional datastore cost.</p>
-	 * 
-	 * <p>Note that you must be careful about limit()ing the size of the list returned; you can
-	 * easily exceed the practical memory limits of Appengine by querying for a very large dataset.</p> 
-	 */
-	public List<T> list();
-	
-	/**
-	 * <p>Execute a keys-only query and get the results as a List.  This is more efficient than
-	 * fetching the actual results.</p>
-	 * 
-	 * <p>The size and scope considerations of list() apply; don't fetch more data than you
-	 * can fit in a simple ArrayList.</p>
-	 */
-	public List<Key<T>> listKeys();
 }

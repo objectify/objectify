@@ -158,7 +158,7 @@ public class BasicTests extends TestBase
 		assert employees.size() == 1100;
 
 		int count = 0;
-		for (Employee emp: ofy.load().type(Employee.class).filter("manager", fred).entities())
+		for (Employee emp: ofy.load().type(Employee.class).filter("manager", fred))
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;

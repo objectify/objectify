@@ -6,6 +6,7 @@ import java.util.List;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 /**
@@ -67,6 +68,26 @@ public class DatastoreUtils
 			keys.add(createKey(parent, kind, id));
 		
 		return keys;
+	}
+	
+	/**
+	 * Gets the String or Long id from the key, or null if incomplete
+	 */
+	@SuppressWarnings("unchecked")
+	public static <S> S getId(com.google.appengine.api.datastore.Key key) {
+		if (!key.isComplete())
+			return null;
+		else if (key.getName() != null)
+			return (S)key.getName();
+		else
+			return (S)(Long)key.getId();
+	}
+
+	/**
+	 * Gets the String or Long id from the key, or null if incomplete
+	 */
+	public static <S> S getId(Key<?> key) {
+			return getId(key.getRaw());
 	}
 }
 

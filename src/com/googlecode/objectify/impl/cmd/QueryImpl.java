@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl.cmd;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -90,7 +89,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	}
 
 	/** @return the underlying datastore query object */
-	private com.google.appengine.api.datastore.Query getActualForQuery() {
+	private com.google.appengine.api.datastore.Query getActualQuery() {
 		if (this.keyOp != null) {
 			if (parentValue != null && this.idValue == null)
 				throw new IllegalStateException("If you filter by the @Parent field, you must also filter by the @Id field");
@@ -346,7 +345,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		int oldLimit = this.limit;
 		try {
 			this.limit = 1;
-			Iterator<T> it = ofy.createEngine().<T>query(this.getActualForQuery(), fetchOptions()).iterator();
+			Iterator<T> it = ofy.createEngine().<T>query(this.getActualQuery(), fetchOptions()).iterator();
 			
 			Result<T> result = new ResultTranslator<Iterator<T>, T>(it) {
 				@Override
@@ -368,15 +367,15 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public int count() {
-		return ofy.createEngine().queryCount(this.getActualForQuery(), this.fetchOptions());
+		return ofy.createEngine().queryCount(this.getActualQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#fetch()
+	 * @see com.googlecode.objectify.cmd.QueryExecute#iterable()
 	 */
 	@Override
-	public QueryResultIterable<T> entities() {
-		return ofy.createEngine().query(this.getActualForQuery(), this.fetchOptions());
+	public QueryResultIterable<T> iterable() {
+		return ofy.createEngine().query(this.getActualQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -384,20 +383,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterator<T> iterator() {
-		return entities().iterator();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#keys()
-	 */
-	@Override
-	public QueryResultIterable<Key<T>> keys()
-	{
-		// Can't modify the query, we might need to use it again
-		com.google.appengine.api.datastore.Query cloned = DatastoreUtils.cloneQuery(this.getActualForQuery());
-		cloned.setKeysOnly();
-		
-		return ofy.createEngine().queryKeys(cloned, this.fetchOptions());
+		return iterable().iterator();
 	}
 
 	/* (non-Javadoc)
@@ -406,37 +392,20 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	@Override
 	public List<T> list()
 	{
-		Iterable<T> it = this.entities();
-		return makeAsyncList(it);
+		Iterable<T> it = this.chunk(Integer.MAX_VALUE).iterable();
+		return ResultProxy.makeAsyncList(it);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#listKeys()
+	/**
+	 * Get an iterator over the keys.  Not part of the public api, but used by QueryKeysImpl.  Assumes
+	 * that setKeysOnly() has already been set.
 	 */
-	@Override
-	public List<Key<T>> listKeys()
+	public QueryResultIterable<Key<T>> keysIterable()
 	{
-		Iterable<Key<T>> it = this.keys();
-		return makeAsyncList(it);
+		assert actual.isKeysOnly();
+		return ofy.createEngine().queryKeys(this.getActualQuery(), this.fetchOptions());
 	}
 	
-	/** Converts an Iterable into a list asynchronously */
-	private <S> List<S> makeAsyncList(Iterable<S> it)
-	{
-		Result<List<S>> result = new ResultTranslator<Iterable<S>, List<S>>(it) {
-			@Override
-			protected List<S> translate(Iterable<S> from) {
-				List<S> list = new ArrayList<S>();
-				for (S s: from)
-					list.add(s);
-				
-				return list;
-			}
-		};
-		
-		return ResultProxy.create(List.class, result);
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */

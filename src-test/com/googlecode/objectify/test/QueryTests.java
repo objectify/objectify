@@ -87,11 +87,11 @@ public class QueryTests extends TestBase
 		for (Key<Trivial> k: q.keys())
 			assert keys.contains(k);
 		
-		Key<Trivial> first = q.keysOnly().first().key();
+		Key<Trivial> first = q.keys().first().key();
 		assert first.equals(this.keys.get(0));
 		
 		q = q.offset(1);
-		Key<Trivial> second = q.keysOnly().first().key();
+		Key<Trivial> second = q.keys().first().key();
 		assert second.equals(this.keys.get(1));
 	}
 
