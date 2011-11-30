@@ -15,7 +15,7 @@ import com.googlecode.objectify.util.ResultProxy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class QueryKeysImpl<T> implements QueryKeys<T>, Cloneable
+class QueryKeysImpl<T> implements QueryKeys<T>
 {
 	QueryImpl<T> impl;
 	
@@ -48,7 +48,8 @@ class QueryKeysImpl<T> implements QueryKeys<T>, Cloneable
 
 	@Override
 	public QueryExecute<T> asEntities() {
-		throw new UnsupportedOperationException("TODO");
+		// Since we are already keys-only, the original query should spit out partials
+		return impl;
 	}
 	
 }
