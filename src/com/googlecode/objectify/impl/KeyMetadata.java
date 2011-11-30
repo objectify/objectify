@@ -4,12 +4,15 @@ import java.lang.reflect.Field;
 import java.util.Set;
 
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.util.DatastoreUtils;
+import com.googlecode.objectify.util.FieldValueTranslator;
 
 
 /**
@@ -30,9 +33,11 @@ public class KeyMetadata<T>
 	
 	/** The @Id field on the pojo - it will be Long, long, or String */
 	protected Field idField;
+	protected FieldValueTranslator<Object, Object> idTranslator;
 
 	/** The @Parent field on the pojo, or null if there is no parent */
 	protected Field parentField;
+	protected FieldValueTranslator<Object, com.google.appengine.api.datastore.Key> parentTranslator;
 	
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
@@ -47,12 +52,17 @@ public class KeyMetadata<T>
 		this.entityClass = clazz;
 		this.kind = Key.getKind(clazz);
 		
-		// Recursively walk up the inheritance chain looking for @Id and @Parent fields
-		this.processKeyFields(clazz);
-
+		// Recursively walk up the inheritance chain looking for @Id and @Parent fields.  This sets idField and parentField.
+		this.discoverKeyFields(clazz);
+		
 		// There must be some field marked with @Id
 		if (this.idField == null)
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + clazz.getName());
+		
+		// Get the translators for id and parent fields
+		this.idTranslator = new FieldValueTranslator<Object, Object>(fact, idField);
+		if (this.parentField != null)
+			this.parentTranslator = new FieldValueTranslator<Object, com.google.appengine.api.datastore.Key>(fact, parentField);
 	}
 
 	/** @return the datastore kind associated with this metadata */
@@ -66,13 +76,13 @@ public class KeyMetadata<T>
 	 * for key-related fields (@Id and @Parent).  Ignores all other fields;
 	 * those are the responsibility of the Transmog.
 	 */
-	private void processKeyFields(Class<?> clazz)
+	private void discoverKeyFields(Class<?> clazz)
 	{
 		if ((clazz == null) || (clazz == Object.class))
 			return;
 
 		// Start at the top of the chain
-		this.processKeyFields(clazz.getSuperclass());
+		this.discoverKeyFields(clazz.getSuperclass());
 
 		// Check all the fields
 		for (Field field: clazz.getDeclaredFields())
@@ -97,12 +107,21 @@ public class KeyMetadata<T>
 				if (this.parentField != null)
 					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + this.entityClass.getName());
 
-				if (field.getType() != com.google.appengine.api.datastore.Key.class && field.getType() != Key.class)
-					throw new IllegalStateException("Only fields of type Key<?> or Key are allowed as @Parent. Illegal parent '" + field + "' in " + clazz.getName());
+				if (!isAllowedParentFieldType(field.getType()))
+					throw new IllegalStateException("@Parent fields must be Key<?>, datastore Key, Ref<?>, or a pojo entity type. Illegal parent: " + field);
 
 				this.parentField = field;
 			}
 		}
+	}
+	
+	/** @return true if the type is an allowed parent type */
+	private boolean isAllowedParentFieldType(Class<?> type) {
+		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(type)
+				|| Key.class.isAssignableFrom(type)
+				|| Ref.class.isAssignableFrom(type)
+				|| type.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class)
+				|| type.isAnnotationPresent(Subclass.class);
 	}
 
 	/**
@@ -144,10 +163,7 @@ public class KeyMetadata<T>
 		if (id == null)
 			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
 		
-		if (id instanceof String)
-			return KeyFactory.createKey(parent, this.kind, (String)id);
-		else
-			return KeyFactory.createKey(parent, this.kind, (Long)id);
+		return DatastoreUtils.createKey(parent, kind, id);
 	}
 		
 	/**
@@ -164,7 +180,10 @@ public class KeyMetadata<T>
 	 */
 	public com.google.appengine.api.datastore.Key getParentRaw(T pojo) {
 		Object parent = getParent(pojo);
-		return parent == null ? null : fact.getRawKey(parent);
+		if (parent == null)
+			return  null;
+		else
+			return parentTranslator.save(parent);
 	}
 
 	/**
@@ -223,26 +242,21 @@ public class KeyMetadata<T>
 	
 	/**
 	 * Sets the key onto the POJO id/parent fields
-	 * TODO:  this will have to change when we allow entity reference for parents
 	 */
 	public void setKey(T pojo, com.google.appengine.api.datastore.Key key) {
 		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
 
-		if (key.getName() != null)
-			TypeUtils.field_set(this.idField, pojo, key.getName());
-		else
-			TypeUtils.field_set(this.idField, pojo, key.getId());
-
+		Object id = idTranslator.load(DatastoreUtils.getId(key));
+		TypeUtils.field_set(this.idField, pojo, id);
+		
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
 			if (this.parentField == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
-
-			if (this.parentField.getType() == com.google.appengine.api.datastore.Key.class)
-				TypeUtils.field_set(this.parentField, pojo, parentKey);
-			else
-				TypeUtils.field_set(this.parentField, pojo, Key.create(parentKey));
+			
+			Object parent = parentTranslator.load(parentKey);
+			TypeUtils.field_set(this.parentField, pojo, parent);
 		}
 	}
 }

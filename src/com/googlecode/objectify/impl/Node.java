@@ -253,5 +253,13 @@ public class Node implements Iterable<Node>
 		
 		return bld.toString();
 	}
-	
+
+	/**
+	 * Create a simple unindexed property value node with a null (meaningless) path
+	 */
+	public static Node of(Object value) {
+		Node node = new Node(null);
+		node.setPropertyValue(value);
+		return node;
+	}
 }

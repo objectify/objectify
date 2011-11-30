@@ -60,7 +60,7 @@ public class Transmog<T>
 	{
 		try {
 			Node root = load(fromEntity);
-			T pojo = load(root, new LoadContext(fromEntity, ofy));
+			T pojo = load(root, new LoadContext(ofy));
 			return pojo;
 		}
 		catch (LoadException ex) { throw ex; }

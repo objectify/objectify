@@ -100,7 +100,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -168,7 +168,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -259,7 +259,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -334,7 +334,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(entity, ofy));
+		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
