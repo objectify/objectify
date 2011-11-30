@@ -17,22 +17,21 @@ import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
-import com.googlecode.objectify.impl.QueryRef;
+import com.googlecode.objectify.impl.ref.FirstRef;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultProxy;
-import com.googlecode.objectify.util.ResultTranslator;
+import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
  * Implementation of Query.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
+class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 {
 	/** We need to track this because it enables the ability to filter/sort by id */
 	Class<T> classRestriction;
@@ -71,8 +70,7 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 		
 		// If this is a polymorphic subclass, add an extra filter
 		Subclass sub = clazz.getAnnotation(Subclass.class);
-		if (sub != null)
-		{
+		if (sub != null) {
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
 			this.actual.addFilter(PolymorphicEntityMetadata.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
 		}
@@ -86,6 +84,28 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	@Override
 	QueryImpl<T> createQuery() {
 		return this.clone();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public QueryImpl<T> filter(String condition, Object value)
+	{
+		QueryImpl<T> q = createQuery();
+		q.addFilter(condition, value);
+		return q;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
+	 */
+	@Override
+	public QueryImpl<T> order(String condition)
+	{
+		QueryImpl<T> q = createQuery();
+		q.addOrder(condition);
+		return q;
 	}
 
 	/** @return the underlying datastore query object */
@@ -339,27 +359,9 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public Ref<T> first() {
-		// The underlying datastore is basically doing this for PreparedQuery.asSingleEntity(),
-		// so we can do it by faking the limit
-		
-		int oldLimit = this.limit;
-		try {
-			this.limit = 1;
-			Iterator<T> it = ofy.createEngine().<T>query(this.getActualQuery(), fetchOptions()).iterator();
-			
-			Result<T> result = new ResultTranslator<Iterator<T>, T>(it) {
-				@Override
-				protected T translate(Iterator<T> from) {
-					return from.hasNext() ? from.next() : null;
-				}
-			};
-			
-			return new QueryRef<T>(result, ofy);
-					
-		} finally {
-			this.limit = oldLimit;
-		}
-		
+		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
+		Iterator<Ref<T>> it = this.limit(1).refIterable().iterator();
+		return new FirstRef<T>(it);
 	}
 
 	/* (non-Javadoc)
@@ -375,7 +377,12 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> iterable() {
-		return ofy.createEngine().query(this.getActualQuery(), this.fetchOptions());
+		return new TranslatingQueryResultIterable<Ref<T>, T>(refIterable()) {
+			@Override
+			protected T translate(Ref<T> from) {
+				return from.get();
+			}
+		};
 	}
 
 	/* (non-Javadoc)
@@ -403,7 +410,18 @@ class QueryImpl<T> extends QueryDefinition<T> implements Query<T>, Cloneable
 	public QueryResultIterable<Key<T>> keysIterable()
 	{
 		assert actual.isKeysOnly();
-		return ofy.createEngine().queryKeys(this.getActualQuery(), this.fetchOptions());
+		return new TranslatingQueryResultIterable<Ref<T>, Key<T>>(refIterable()) {
+			@Override
+			protected Key<T> translate(Ref<T> from) {
+				return from.key();
+			}
+		};
+	}
+	
+	/** Produces the basic iterable on refs based on the current query.  Used to generate all other iterables. */
+	private QueryResultIterable<Ref<T>> refIterable()
+	{
+		return ofy.createEngine().query(this.getActualQuery(), this.fetchOptions());
 	}
 	
 	/* (non-Javadoc)

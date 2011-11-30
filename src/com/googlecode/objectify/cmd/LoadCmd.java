@@ -10,14 +10,16 @@ import com.googlecode.objectify.Ref;
  * <p>The top element in the command chain for retrieving entities from the datastore.</p>
  * 
  * <p>At this point you can enable load groups with {@code group()}, start all-kinds
- * queries by calling query-related methods (see Query), load entities by key or ref,
+ * queries by calling query-related methods (see KindlessQuery), load entities by key or ref,
  * or narrow your interest to a specific kind by calling {@code type()}.</p>
  * 
  * <p>All command objects are immutable.</p>
  * 
+ * @see KindlessQuery
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface LoadCmd extends Query<Object>
+public interface LoadCmd extends SimpleQuery<Object>
 {
 	/**
 	 * <p>Enables one or more fetch groups.  This will cause any entity fields (or Ref fields) which

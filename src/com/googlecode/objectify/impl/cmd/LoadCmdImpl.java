@@ -93,7 +93,7 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 					return fetched.get(ref.getKey());
 				}
 			};
-			ref.setResult((Result)result);
+			ref.set((Result)result);
 		}
 	}
 

@@ -10,6 +10,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
+import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultTranslator;
@@ -42,13 +43,33 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.FindTypeBase#createQuery()
+	 * @see com.googlecode.objectify.impl.cmd.QueryCommonImpl#createQuery()
 	 */
 	@Override
 	QueryImpl<T> createQuery() {
 		return new QueryImpl<T>(ofy, fetchGroups, type);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
+	 */
+	@Override
+	public Query<T> filter(String condition, Object value) {
+		QueryImpl<T> q = createQuery();
+		q.addFilter(condition, value);
+		return q;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
+	 */
+	@Override
+	public Query<T> order(String condition) {
+		QueryImpl<T> q = createQuery();
+		q.addOrder(condition);
+		return q;
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadIds#id(long)
 	 */

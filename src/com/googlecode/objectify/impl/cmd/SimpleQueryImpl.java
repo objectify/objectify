@@ -3,7 +3,8 @@ package com.googlecode.objectify.impl.cmd;
 import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
-import com.googlecode.objectify.cmd.Query;
+import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.cmd.SimpleQuery;
 import com.googlecode.objectify.cmd.QueryKeys;
 
 
@@ -13,7 +14,7 @@ import com.googlecode.objectify.cmd.QueryKeys;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract class QueryDefinition<T> implements Query<T>
+abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
 	ObjectifyImpl ofy;
@@ -24,7 +25,7 @@ abstract class QueryDefinition<T> implements Query<T>
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	QueryDefinition(ObjectifyImpl ofy, Set<String> fetchGroups) {
+	SimpleQueryImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
 		this.ofy = ofy;
 		this.fetchGroups = fetchGroups;
 	}
@@ -36,27 +37,16 @@ abstract class QueryDefinition<T> implements Query<T>
 	abstract QueryImpl<T> createQuery();
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#filterKey(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public QueryImpl<T> filter(String condition, Object value)
+	public QueryImpl<T> filterKey(String condition, Object value)
 	{
 		QueryImpl<T> q = createQuery();
-		q.addFilter(condition, value);
+		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition, value);
 		return q;
 	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
-	 */
-	@Override
-	public QueryImpl<T> order(String condition)
-	{
-		QueryImpl<T> q = createQuery();
-		q.addOrder(condition);
-		return q;
-	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Query#ancestor(java.lang.Object)
 	 */

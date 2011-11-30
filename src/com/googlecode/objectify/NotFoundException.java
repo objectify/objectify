@@ -2,25 +2,31 @@ package com.googlecode.objectify;
 
 
 /**
- * Exception thrown from Objectify.get() when there is no entity with the
- * specified key.  This is exactly like the datastore EntityNotFoundException,
- * however it is a RuntimeException and it contains the generic Key<?>.
+ * Exception thrown when a fetch for something could not be found.  This is associated with the
+ * getSafe() and keySafe() methods on Ref; if the item being sought in the Ref couldn't be found,
+ * this will be thrown.
  */
 public class NotFoundException extends RuntimeException
 {
 	private static final long serialVersionUID = 1L;
 	
+	/** */
 	private final Key<?> key;
 
-	public NotFoundException(Key<?> key)
-	{
+	/** Thrown when there is no key context (eg, query.first() on an empty result set) */
+	public NotFoundException() {
+		super("No entity was found");
+		key = null;
+	}
+	
+	/** Thrown when we at least know what we are looking for! */
+	public NotFoundException(Key<?> key) {
 		super("No entity was found matching the key: " + key);
-		
 		this.key = key;
 	}
 	
-	public Key<?> getKey()
-	{
+	/** @return the key we are looking for, if known */
+	public Key<?> getKey() {
 		return this.key;
 	}
 }

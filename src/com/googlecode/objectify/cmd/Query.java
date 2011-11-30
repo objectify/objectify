@@ -1,15 +1,15 @@
 package com.googlecode.objectify.cmd;
 
 import com.google.appengine.api.datastore.Cursor;
-import com.googlecode.objectify.Ref;
 
 
 /**
- * The basic options for a Query.  Note that this does not include type().
+ * The basic options for a typed Query.  In addition to adding a few methods that are only available for typed
+ * queries, this interface overrides the QueryCommon methods to return the full Query<T>.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Query<T> extends QueryExecute<T>
+public interface Query<T> extends SimpleQuery<T>
 {
 	/**
 	 * <p>Create a filter based on the specified condition and value, using
@@ -56,85 +56,45 @@ public interface Query<T> extends QueryExecute<T>
 	 */
 	public Query<T> order(String condition);
 	
-	/**
-	 * Restricts result set only to objects which have the given ancestor
-	 * somewhere in the chain.  Doesn't need to be the immediate parent.
-	 * 
-	 * @param keyOrEntity can be a Key, a Key<T>, or an Objectify entity object.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#filterKey(java.lang.String, java.lang.Object)
 	 */
+	@Override
+	public Query<T> filterKey(String condition, Object value);
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#ancestor(java.lang.Object)
+	 */
+	@Override
 	public Query<T> ancestor(Object keyOrEntity);
 	
-	/**
-	 * Limit the fetched result set to a certain number of values.
-	 * 
-	 * @param value must be >= 0.  A value of 0 indicates no limit.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#limit(int)
 	 */
+	@Override
 	public Query<T> limit(int value);
 	
-	/**
-	 * Starts the query results at a particular zero-based offset.
-	 * 
-	 * @param value must be >= 0
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#offset(int)
 	 */
+	@Override
 	public Query<T> offset(int value);
 	
-	/**
-	 * Starts query results at the specified Cursor.  You can obtain a Cursor from
-	 * a QueryResultIterator by calling the getCursor() method.
-	 * 
-	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
-	 * on the results of the query after a cursor is established.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#startAt(com.google.appengine.api.datastore.Cursor)
 	 */
+	@Override
 	public Query<T> startAt(Cursor value);
 	
-	/**
-	 * Ends query results at the specified Cursor.  You can obtain a Cursor from
-	 * a QueryResultIterator by calling the getCursor() method.
-	 * 
-	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
-	 * on the results of the query after a cursor is established.
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#endAt(com.google.appengine.api.datastore.Cursor)
 	 */
+	@Override
 	public Query<T> endAt(Cursor value);
 	
-	/**
-	 * Sets the internal chunking and prefetching strategy within the low-level API.  Affects
-	 * performance only; the result set will be the same.
-	 *  
-	 * @param value must be >= 0
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.QueryCommon#chunk(int)
 	 */
+	@Override
 	public Query<T> chunk(int value);
-	
-	/**
-	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
-	 * which are significantly cheaper (~7X) than fetching whole entities.
-	 */
-	public QueryKeys<T> keys();
-	
-	/**
-	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.
-	 * This is somewhat faster than fetching, but the time still grows with the number of results.
-	 * The datastore actually walks through the result set and counts for you.</p>
-	 * 
-	 * <p>Immediately executes the query; there is no async version of this method.</p>
-	 * 
-	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Counting large numbers
-	 * of entities can quickly create massive bills.</p>
-	 */
-	public int count();
-
-	/**
-	 * Gets the first entity in the result set.  Obeys the offset value.
-	 * 
-	 * @return an asynchronous Ref containing the first result.  The Ref will hold null if the result set is empty.
-	 */
-	public Ref<T> first();
-	
-	/**
-	 * <p>Generates a string that consistently and uniquely specifies this query.  There
-	 * is no way to convert this string back into a query and there is no guarantee that
-	 * the string will be consistent across versions of Objectify.</p>
-	 * 
-	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p> 
-	 */
-	public String toString();
 }

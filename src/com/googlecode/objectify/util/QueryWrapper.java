@@ -41,6 +41,14 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> implements Query<T>, 
 		next.base = base.order(condition);
 		return next;
 	}
+
+	@Override
+	public Query<T> filterKey(String condition, Object value)
+	{
+		H next = this.clone();
+		next.base = base.filterKey(condition, value);
+		return next;
+	}
 	
 	@Override
 	public H ancestor(Object keyOrEntity)

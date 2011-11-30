@@ -13,14 +13,15 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
-import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.ref.StdRef;
 import com.googlecode.objectify.util.ResultWrapper;
-import com.googlecode.objectify.util.TranslatingQueryResultIterator;
+import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
  * This is the master logic for loading, saving, and deleting entities from the datastore.  It provides the
@@ -107,23 +108,11 @@ public class Engine
 	}
 	
 	/**
-	 * The fundamental query() operation that returns full populated object instances.  Might be a keys
-	 * only query though.
+	 * The fundamental query() operation, which provides Refs.  Might be a keys only query.
 	 */
-	public <T> QueryResultIterable<T> query(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
+	public <T> QueryResultIterable<Ref<T>> query(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
 		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
-		return new ToObjectIterable<T>(pq.asQueryResultIterable(fetchOpts));
-	}
-
-	/**
-	 * The fundamental query() operation that returns Key<?> instances.
-	 * @param query must be keysOnly
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> QueryResultIterable<T> queryKeys(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		assert query.isKeysOnly();
-		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
-		return (QueryResultIterable<T>)new ToKeyIterable(pq.asQueryResultIterable(fetchOpts));
+		return new ToRefIterable<T>(pq.asQueryResultIterable(fetchOpts));
 	}
 
 	/**
@@ -135,61 +124,15 @@ public class Engine
 	}
 
 	/**
-	 * Iterable that translates from datastore Entity to Keys
+	 * Iterable that translates from datastore Entity to Ref
 	 */
-	protected class ToKeyIterable implements QueryResultIterable<Key<?>> {
-		QueryResultIterable<Entity> source;
-
-		public ToKeyIterable(QueryResultIterable<Entity> source) {
-			this.source = source;
-		}
-
-		@Override
-		public QueryResultIterator<Key<?>> iterator() {
-			return new ToKeyIterator(this.source.iterator());
-		}
-	}
-
-	/**
-	 * Iterator that translates from datastore Entity to Keys
-	 */
-	protected class ToKeyIterator extends TranslatingQueryResultIterator<Entity, Key<?>> {
-		public ToKeyIterator(QueryResultIterator<Entity> source) {
+	protected class ToRefIterable<T> extends TranslatingQueryResultIterable<Entity, Ref<T>> {
+		public ToRefIterable(QueryResultIterable<Entity> source) {
 			super(source);
 		}
-
+		
 		@Override
-		protected Key<?> translate(Entity from) {
-			return Key.create(from.getKey());
-		}
-	}
-
-	/**
-	 * Iterable that translates from datastore Entity to POJO
-	 */
-	protected class ToObjectIterable<T> implements QueryResultIterable<T> {
-		QueryResultIterable<Entity> source;
-
-		public ToObjectIterable(QueryResultIterable<Entity> source) {
-			this.source = source;
-		}
-
-		@Override
-		public QueryResultIterator<T> iterator() {
-			return new ToObjectIterator<T>(this.source.iterator());
-		}
-	}
-
-	/**
-	 * Iterator that translates from datastore Entity to typed Objects
-	 */
-	protected class ToObjectIterator<T> extends TranslatingQueryResultIterator<Entity, T> {
-		public ToObjectIterator(QueryResultIterator<Entity> source) {
-			super(source);
-		}
-
-		@Override
-		protected T translate(Entity from) {
+		protected Ref<T> translate(Entity from) {
 			@SuppressWarnings("unchecked")
 			T cached = (T)session.get(from.getKey());
 			
@@ -199,7 +142,7 @@ public class Engine
 				session.put(from.getKey(), cached);
 			}
 			
-			return cached;
+			return new StdRef<T>(Key.<T>create(from.getKey()), cached);
 		}
 	}
 }

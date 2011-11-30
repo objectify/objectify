@@ -2,7 +2,7 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
-import com.googlecode.objectify.impl.StdRef;
+import com.googlecode.objectify.impl.ref.StdRef;
 
 
 /**
@@ -19,36 +19,48 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		return new StdRef<T>(key);
 	}
 
-	/** If this Ref is loaded with a */
-	protected Result<T> result;
-	
 	/**
 	 * @return the key associated with this Ref
+	 * @throws IllegalStateException if the value has not been initialized
 	 */
 	abstract public Key<T> key();
+	
+	/**
+	 * Obtain the entity value associated with the key.
+	 * 
+	 * @return the entity referenced, or null if the entity was not found
+	 * @throws IllegalStateException if the value has not been initialized
+	 */
+	abstract public T get();
+	
+	/**
+	 * Explicitly sets (or resets) the value of this Ref.
+	 */
+	abstract public void set(Result<T> value);
 	
 	/**
 	 * Same as key() but conforms to JavaBeans conventions in case this is being processed by a JSON
 	 * converter or expression language.
 	 */
-	public Key<T> getKey() {
+	final public Key<T> getKey() {
 		return key();
 	}
 	
 	/**
-	 * Obtain the entity value if it has been initialized.
+	 * Obtain the key if it has been found, throwing an exception if no value was found.
 	 * 
-	 * @return the entity referenced, or null if the entity was not found
+	 * @return the key referenced
+	 * @throws NotFoundException if the specified entity was not found
 	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
-	@SuppressWarnings("unchecked")
-	public <E extends T> E get() {
-		if (this.result == null)
-			throw new IllegalStateException("Ref<?> value has not been initialized");
+	final public Key<T> keySafe() {
+		Key<T> k = this.key();
+		if (k == null)
+			throw new NotFoundException();
 		else
-			return (E)this.result.now();
+			return k;
 	}
-	
+
 	/**
 	 * Obtain the entity value if it has been initialized, throwing an exception if the entity was not found.
 	 * 
@@ -56,8 +68,8 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * @throws NotFoundException if the specified entity was not found
 	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
-	public <E extends T> E getSafe() {
-		E t = this.get();
+	final public T getSafe() {
+		T t = this.get();
 		if (t == null)
 			throw new NotFoundException(key());
 		else
@@ -68,15 +80,8 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * Same as get() but conforms to JavaBeans conventions in case this is being processed by a JSON
 	 * converter or expression language.
 	 */
-	public <E extends T> E getValue() {
+	final public T getValue() {
 		return get();
-	}
-	
-	/**
-	 * Assigns a new result object, replacing (or initializing) the present one.
-	 */
-	public void setResult(Result<T> result) {
-		this.result = result;
 	}
 	
 	/** Comparison is based on key */

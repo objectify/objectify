@@ -10,10 +10,11 @@ import com.googlecode.objectify.Ref;
 
 /**
  * Common behavior for command implementations that delegate query execution to a real query implementation.
+ * Used by LoadCmdImpl and LoadTypeImpl.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract class Queryable<T> extends QueryDefinition<T>
+abstract class Queryable<T> extends SimpleQueryImpl<T>
 {
 	/**
 	 * Takes ownership of the fetch groups set.
@@ -56,4 +57,5 @@ abstract class Queryable<T> extends QueryDefinition<T>
 		QueryImpl<T> q = createQuery();
 		return q.list();
 	}
+
 }

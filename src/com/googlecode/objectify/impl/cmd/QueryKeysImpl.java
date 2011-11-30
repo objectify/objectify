@@ -21,12 +21,14 @@ class QueryKeysImpl<T> implements QueryKeys<T>, Cloneable
 	
 	/** */
 	QueryKeysImpl(QueryImpl<T> query) {
+		assert query.actual.isKeysOnly();
 		this.impl = query;
 	}
 
 	@Override
 	public Ref<T> first() {
-		return null;
+		// We are already keysonly
+		return impl.first();
 	}
 
 	@Override
@@ -46,7 +48,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>, Cloneable
 
 	@Override
 	public QueryExecute<T> asEntities() {
-		return null;
+		throw new UnsupportedOperationException("TODO");
 	}
 	
 }
