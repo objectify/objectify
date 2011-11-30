@@ -26,11 +26,11 @@ import com.googlecode.objectify.test.util.TestObjectify;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class AlsoLoadMoreTests extends TestBase
+public class AlsoLoadTests2 extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(AlsoLoadMoreTests.class.getName());
+	private static Logger log = Logger.getLogger(AlsoLoadTests2.class.getName());
 	
 	/** */
 	public static final String TEST_VALUE = "blah";
