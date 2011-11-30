@@ -82,7 +82,7 @@ public class CachingTests extends TestBase
 		
 		TestObjectify ofy = this.fact.begin();
 		
-		Map<Key<Object>, Object> keys = ofy.put().entities(entities).now();
+		Map<Key<Object>, Object> keys = ofy.save().entities(entities).now();
 		ofy.clear();
 		Map<Key<Object>, Object> fetched = ofy.load().keys(keys.keySet());
 		

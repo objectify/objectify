@@ -59,7 +59,7 @@ public class QueryTests extends TestBase
 		trivs.add(this.triv2);
 		
 		TestObjectify ofy = this.fact.begin();
-		Map<Key<Trivial>, Trivial> result = ofy.put().entities(trivs).now();
+		Map<Key<Trivial>, Trivial> result = ofy.save().entities(trivs).now();
 
 		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
 	}	

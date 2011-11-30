@@ -32,7 +32,7 @@ public class EmbeddedNullTests extends TestBase
 		Criminal avoid = new Criminal();
 		avoid.aliases = new Name[] { new Name("Bob", "Dobbs") };
 		avoid.moreAliases = Collections.singletonList(new Name("Bob", "Dobbs"));
-		this.fact.begin().put().entity(avoid).now();
+		this.fact.begin().save().entity(avoid).now();
 	}
 
 	/**

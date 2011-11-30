@@ -65,7 +65,7 @@ public class TestBase
 	{
 		Objectify ofy = this.fact.begin();
 		
-		Key<T> key = ofy.put().entity(saveMe).now();
+		Key<T> key = ofy.save().entity(saveMe).now();
 
 		try
 		{

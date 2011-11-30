@@ -17,11 +17,11 @@ public class TestObjectify extends ObjectifyWrapper<TestObjectify>
 	}
 	
 	public <K, E extends K> Key<K> put(E entitity)  {
-		return this.put().<K, E>entity(entitity).now();
+		return this.save().<K, E>entity(entitity).now();
 	}
 
 	public <K, E extends K> Map<Key<K>, E> put(E... entities)  {
-		return this.put().<K, E>entities(entities).now();
+		return this.save().<K, E>entities(entities).now();
 	}
 	
 	public <K> K get(Key<K> key) {

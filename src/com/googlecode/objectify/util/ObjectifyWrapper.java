@@ -10,7 +10,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.cmd.SaveCmd;
 
 
 /**
@@ -44,8 +44,8 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#put()
 	 */
 	@Override
-	public Put put() {
-		return base.put();
+	public SaveCmd save() {
+		return base.save();
 	}
 
 	/* (non-Javadoc)

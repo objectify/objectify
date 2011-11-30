@@ -34,10 +34,10 @@ public class AncestorTests extends TestBase
 		TestObjectify ofy = this.fact.begin();
 		
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> parentKey = ofy.put().entity(triv).now();
+		Key<Trivial> parentKey = ofy.save().entity(triv).now();
 
 		Child child = new Child(parentKey, "cry");
-		Key<Child> childKey = ofy.put().entity(child).now();
+		Key<Child> childKey = ofy.save().entity(child).now();
 		
 		assert childKey.getParent().equals(parentKey);
 		

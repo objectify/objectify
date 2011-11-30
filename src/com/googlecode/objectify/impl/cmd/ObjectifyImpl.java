@@ -21,7 +21,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.cmd.SaveCmd;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.engine.Engine;
@@ -104,7 +104,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#put()
 	 */
 	@Override
-	public Put put() {
+	public SaveCmd save() {
 		return new PutImpl(this);
 	}
 

@@ -4,7 +4,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.cmd.SaveCmd;
 
 /**
  * <p>This is the main "business end" of Objectify.  It lets you find, put, and delete your typed POJO entities.</p>
@@ -34,17 +34,17 @@ public interface Objectify
 	LoadCmd load();
 	
 	/**
-	 * <p>Start a put command chain.  Allows you to save (or re-save) entity objects.  Note that all command
+	 * <p>Start a save command chain.  Allows you to save (or re-save) entity objects.  Note that all command
 	 * chain objects are immutable.</p>
 	 * 
-	 * <p>Puts do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
+	 * <p>Saves do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
 	 * 
 	 * <p>A quick example:
-	 * {@code ofy.put().entities(e1, e2, e3).now();}</p>
+	 * {@code ofy.save().entities(e1, e2, e3).now();}</p>
 	 * 
 	 * @return the next step in the immutable command chain.
 	 */
-	Put put();
+	SaveCmd save();
 	
 	/**
 	 * <p>Start a delete command chain.  Lets you delete entities or keys.  Note that all command chain

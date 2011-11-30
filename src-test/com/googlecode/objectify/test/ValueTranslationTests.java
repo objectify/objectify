@@ -179,7 +179,7 @@ public class ValueTranslationTests extends TestBase
 		
 		TestObjectify ofy = this.fact.begin();
 		try {
-			ofy.put().entity(has).now();
+			ofy.save().entity(has).now();
 			assert false : "You should not be able to put() embedded collections with big strings"; 
 		}
 		catch (SaveException ex) {

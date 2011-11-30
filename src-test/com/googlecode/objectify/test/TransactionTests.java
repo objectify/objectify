@@ -122,8 +122,8 @@ public class TransactionTests extends TestBase
 		triv1.setSomeString("bar");
 		triv2.setSomeString("shouldn't work");
 		
-		tOfy1.put().entity(triv1).now();
-		tOfy2.put().entity(triv2).now();
+		tOfy1.save().entity(triv1).now();
+		tOfy2.save().entity(triv2).now();
 		
 		tOfy1.getTxn().commit();
 		

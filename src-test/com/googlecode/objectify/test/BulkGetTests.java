@@ -28,8 +28,8 @@ public class BulkGetTests extends TestBase
         Trivial t1 = new Trivial("foo", 5);
         Trivial t2 = new Trivial("bar", 6);
 
-        Key<Trivial> k1 = ofy.put().entity(t1).now();
-        Key<Trivial> k2 = ofy.put().entity(t2).now();
+        Key<Trivial> k1 = ofy.save().entity(t1).now();
+        Key<Trivial> k2 = ofy.save().entity(t2).now();
 
         // get k1, then k2
         Map<Key<Trivial>,Trivial> map = ofy.load().keys(Arrays.asList(k1, k2));

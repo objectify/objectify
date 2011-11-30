@@ -11,7 +11,7 @@ import com.googlecode.objectify.Result;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Put
+public interface SaveCmd
 {
 	/**
 	 * <p>Asynchronously save a single entity in the datastore.<p>

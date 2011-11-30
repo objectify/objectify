@@ -95,7 +95,7 @@ public class CollectionTests extends TestBase
 		hc.integerArrayList = new ArrayList<Integer>(hc.integerList);
 		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		ofy.clear();
 		hc = ofy.load().key(key).get();
 
@@ -122,7 +122,7 @@ public class CollectionTests extends TestBase
 		hc.integerTreeSet = new TreeSet<Integer>(hc.integerSet);
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 
 		assertContains123(hc.integerSet, HashSet.class);
@@ -145,7 +145,7 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(2);
 		hc.customSet.add(3);
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 
 		assertContains123(hc.customSet, CustomSet.class);
@@ -168,7 +168,7 @@ public class CollectionTests extends TestBase
 		hc.typedKeySet.add(key8);
 		hc.typedKeySet.add(key9);
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 
 		assert hc.typedKeySet instanceof HashSet<?>;
@@ -188,7 +188,7 @@ public class CollectionTests extends TestBase
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList((Integer) null);
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 
 		assert hc.integerList != null;
@@ -215,10 +215,10 @@ public class CollectionTests extends TestBase
 		HasCollections hc = new HasCollections();
 		hc.integerList = null;
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 
-		ofy.put().entity(hc).now();
+		ofy.save().entity(hc).now();
 		hc = ofy.load().key(key).get();
 		assert hc.integerList == null;	// not loaded
 
@@ -239,7 +239,7 @@ public class CollectionTests extends TestBase
 		HasCollections hc = new HasCollections();
 		hc.integerList = new ArrayList<Integer>();
 
-		Key<HasCollections> key = ofy.put().entity(hc).now();
+		Key<HasCollections> key = ofy.save().entity(hc).now();
 		ofy.clear();
 		hc = ofy.load().key(key).get();
 

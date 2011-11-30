@@ -47,7 +47,7 @@ public class MapTests extends TestBase
 		hml.primitives.put("illegal.name", 123L);
 
 		try {
-			ofy.put().entity(hml).now();
+			ofy.save().entity(hml).now();
 			assert false;
 		}
 		catch (TranslateException e) {
@@ -65,7 +65,7 @@ public class MapTests extends TestBase
 		hml.primitives.put(null, 123L);
 
 		try {
-			ofy.put().entity(hml).now();
+			ofy.save().entity(hml).now();
 			assert false;
 		}
 		catch (TranslateException e) {

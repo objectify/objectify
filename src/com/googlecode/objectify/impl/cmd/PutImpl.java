@@ -6,7 +6,7 @@ import java.util.Map;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cmd.Put;
+import com.googlecode.objectify.cmd.SaveCmd;
 import com.googlecode.objectify.util.ResultWrapper;
 
 
@@ -15,7 +15,7 @@ import com.googlecode.objectify.util.ResultWrapper;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class PutImpl implements Put
+class PutImpl implements SaveCmd
 {
 	/** */
 	ObjectifyImpl ofy;

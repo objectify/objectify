@@ -41,7 +41,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.strings = new String[] { "red", "green" };
 		
-		Key<HasArrays> k = ofy.put().entity(hasa).now();
+		Key<HasArrays> k = ofy.save().entity(hasa).now();
 
 		HasArrays fetched = ofy.load().key(k).get();
 
@@ -57,7 +57,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.ints = new int[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put().entity(hasa).now();
+		Key<HasArrays> k = ofy.save().entity(hasa).now();
 
 		HasArrays fetched = ofy.load().key(k).get();
 
@@ -73,7 +73,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.integers = new Integer[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put().entity(hasa).now();
+		Key<HasArrays> k = ofy.save().entity(hasa).now();
 
 		HasArrays fetched = ofy.load().key(k).get();
 
@@ -89,7 +89,7 @@ public class ArrayTests extends TestBase
 		HasArrays hasa = new HasArrays();
 		hasa.longs = new long[] { 5, 6 };
 		
-		Key<HasArrays> k = ofy.put().entity(hasa).now();
+		Key<HasArrays> k = ofy.save().entity(hasa).now();
 
 		HasArrays fetched = ofy.load().key(k).get();
 

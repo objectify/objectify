@@ -39,7 +39,7 @@ public class BasicTests extends TestBase
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.put().entity(triv).now();
+		Key<Trivial> k = ofy.save().entity(triv).now();
 
 		assert k.getKind().equals(triv.getClass().getSimpleName());
 		assert k.getId() == triv.getId();
@@ -62,10 +62,10 @@ public class BasicTests extends TestBase
 		TestObjectify ofy = this.fact.begin();
 
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.put().entity(triv).now();
+		Key<Trivial> k = ofy.save().entity(triv).now();
 
 		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		Key<Trivial> k2 = ofy.put().entity(triv2).now();
+		Key<Trivial> k2 = ofy.save().entity(triv2).now();
 
 		assert k2.equals(k);
 
@@ -84,7 +84,7 @@ public class BasicTests extends TestBase
 		TestObjectify ofy = this.fact.begin();
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		Key<NamedTrivial> k = ofy.put().entity(triv).now();
+		Key<NamedTrivial> k = ofy.save().entity(triv).now();
 
 		assert k.getName().equals("first");
 
@@ -112,7 +112,7 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		Map<Key<Trivial>, Trivial> map = ofy.put().entities(objs).now();
+		Map<Key<Trivial>, Trivial> map = ofy.save().entities(objs).now();
 		List<Key<Trivial>> keys = new ArrayList<Key<Trivial>>(map.keySet());
 
 		// Verify the put keys
@@ -142,7 +142,7 @@ public class BasicTests extends TestBase
 		TestObjectify ofy = this.fact.begin();
 
 		Employee fred = new Employee("fred");
-		ofy.put().entity(fred).now();
+		ofy.save().entity(fred).now();
 
 		Key<Employee> fredKey = this.fact.getKey(fred);
 
@@ -153,7 +153,7 @@ public class BasicTests extends TestBase
 			employees.add(emp);
 		}
 
-		ofy.put().entities(employees).now();
+		ofy.save().entities(employees).now();
 
 		assert employees.size() == 1100;
 
@@ -174,7 +174,7 @@ public class BasicTests extends TestBase
 		TestObjectify ofy = this.fact.begin().consistency(Consistency.EVENTUAL);
 
 		Trivial triv = new Trivial("foo", 5);
-		ofy.put().entity(triv).now();
+		ofy.save().entity(triv).now();
 	}
 
 	/** */
@@ -197,6 +197,6 @@ public class BasicTests extends TestBase
 	{
 		TestObjectify ofy = this.fact.begin();
 		
-		ofy.put().entities(Collections.emptyList()).now();
+		ofy.save().entities(Collections.emptyList()).now();
 	}
 }
