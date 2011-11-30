@@ -60,6 +60,7 @@ public class TranslatorRegistry
 		this.translators.add(fact.construct(StringTranslatorFactory.class));
 		this.translators.add(fact.construct(NumberTranslatorFactory.class));
 		this.translators.add(fact.construct(KeyTranslatorFactory.class));
+		this.translators.add(fact.construct(RefTranslatorFactory.class));
 		this.translators.add(fact.construct(EnumTranslatorFactory.class));
 		this.translators.add(fact.construct(SqlDateTranslatorFactory.class));
 		this.translators.add(fact.construct(TimeZoneTranslatorFactory.class));
