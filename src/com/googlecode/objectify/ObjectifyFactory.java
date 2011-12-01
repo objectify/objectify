@@ -182,26 +182,10 @@ public class ObjectifyFactory
 	//
 	
 	/**
-	 * @return the metadata for a kind of entity based on its key
-	 * @throws IllegalArgumentException if the kind has not been registered
-	 */
-	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) {
-		return this.getMetadata(key.getKind());
-	}
-	
-	/**
-	 * @return the metadata for a kind of entity based on its key
-	 * @throws IllegalArgumentException if the kind has not been registered
-	 */
-	public <T> EntityMetadata<T> getMetadata(Key<T> key) {
-		return this.getMetadata(key.getKind());
-	}
-	
-	/**
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) {
+	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) throws IllegalArgumentException {
 		EntityMetadata<T> metadata = this.registrar.getMetadata(clazz);
 		if (metadata == null)
 			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
@@ -210,14 +194,25 @@ public class ObjectifyFactory
 	}
 	
 	/**
-	 * Gets metadata for the specified kind, or throws an exception if the kind is unknown
+	 * @return the metadata for a kind of entity based on its key, or null if the kind was not registered
+	 */
+	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) {
+		return this.getMetadata(key.getKind());
+	}
+	
+	/**
+	 * @return the metadata for a kind of entity based on its key, or null if the kind was not registered
+	 */
+	public <T> EntityMetadata<T> getMetadata(Key<T> key) {
+		return this.getMetadata(key.getKind());
+	}
+	
+	/**
+	 * Gets metadata for the specified kind, returning null if nothing registered
+	 * @return null if the kind is not registered.
 	 */
 	public <T> EntityMetadata<T> getMetadata(String kind) {
-		EntityMetadata<T> metadata = this.registrar.getMetadata(kind);
-		if (metadata == null)
-			throw new IllegalArgumentException("No class with kind '" + kind + "' was registered");
-		else
-			return metadata;
+		return this.registrar.getMetadata(kind);
 	}
 
 	/**
@@ -245,6 +240,8 @@ public class ObjectifyFactory
 			return (Key<T>)keyOrEntity;
 		else if (keyOrEntity instanceof com.google.appengine.api.datastore.Key)
 			return Key.create((com.google.appengine.api.datastore.Key)keyOrEntity);
+		else if (keyOrEntity instanceof Ref)
+			return ((Ref<T>)keyOrEntity).key();
 		else
 			return Key.create(this.getMetadataForEntity(keyOrEntity).getKeyMetadata().getRawKey(keyOrEntity));
 	}
@@ -262,25 +259,12 @@ public class ObjectifyFactory
 			return (com.google.appengine.api.datastore.Key)keyOrEntity;
 		else if (keyOrEntity instanceof Key<?>)
 			return ((Key<?>)keyOrEntity).getRaw();
+		else if (keyOrEntity instanceof Ref)
+			return ((Ref<?>)keyOrEntity).key().getRaw();
 		else
 			return this.getMetadataForEntity(keyOrEntity).getKeyMetadata().getRawKey(keyOrEntity);
 	}
 	
-	/**
-	 * Gets the raw datastore Keys given a collection of things that might be Key, Key<?>, or entities
-	 * @param keysOrEntities must contain Key, Key<?>, or registered entities
-	 * @return a List of the raw datastore Key objects
-	 */
-	public List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<?> keysOrEntities) {
-		
-		List<com.google.appengine.api.datastore.Key> result = new ArrayList<com.google.appengine.api.datastore.Key>();
-		
-		for (Object obj: keysOrEntities)
-			result.add(getRawKey(obj));
-		
-		return result;
-	}
-
 	/**
 	 * Allocates a single id from the allocator for the specified kind.  Safe to use in concert
 	 * with the automatic generator.  This is just a convenience method for allocateIds().

@@ -45,6 +45,19 @@ public class DatastoreUtils
 	}
 
 	/**
+	 * Construct a Key<?> from a Long or String id
+	 * @param id must be either Long or String
+	 */
+	public static <T> Key<T> createKey(Key<?> parent, Class<T> kind, Object id) {
+		if (id instanceof String)
+			return Key.create(parent, kind, (String)id);
+		else if (id instanceof Long)
+			return Key.create(parent, kind, (Long)id);
+		else
+			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
+	}
+
+	/**
 	 * Construct a Key from a Long or String id
 	 * @param id must be either Long or String
 	 */
@@ -54,7 +67,7 @@ public class DatastoreUtils
 		else if (id instanceof Long)
 			return KeyFactory.createKey(parent, kind, (Long)id);
 		else
-			throw new IllegalArgumentException("Id '" + id + "' must be String or Long");
+			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
 	}
 
 	/**

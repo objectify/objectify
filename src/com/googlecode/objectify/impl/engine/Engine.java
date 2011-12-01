@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl.engine;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,8 +17,11 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.impl.Session;
+import com.googlecode.objectify.impl.SessionEntity;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.ref.StdRef;
+import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
@@ -32,9 +34,6 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterable;
  */
 public class Engine
 {
-	/** Value which gets put in the cache for negative results */
-	protected static final Object NEGATIVE_RESULT = new Object();
-
 	/** */
 	protected ObjectifyImpl ofy;
 	
@@ -42,12 +41,12 @@ public class Engine
 	protected AsyncDatastoreService ads;
 	
 	/** */
-	protected Map<com.google.appengine.api.datastore.Key, Object> session = new HashMap<com.google.appengine.api.datastore.Key, Object>();
+	protected Session session;
 	
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public Engine(ObjectifyImpl ofy, AsyncDatastoreService ads, Map<com.google.appengine.api.datastore.Key, Object> session) {
+	public Engine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
@@ -60,8 +59,12 @@ public class Engine
 		
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
-			EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-			entityList.add(metadata.save(obj, ofy));
+			if (obj instanceof Entity) {
+				entityList.add((Entity)obj);
+			} else {
+				EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
+				entityList.add(metadata.save(obj, ofy));
+			}
 		}
 
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxnRaw(), entityList);
@@ -71,18 +74,24 @@ public class Engine
 			@Override
 			protected Map<Key<K>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
 				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
+
+				// We need to take a pass to do two things:
+				// 1) Patch up any generated keys in the original objects
+				// 2) Add values to session
 				
-				// Patch up any generated keys in the original objects while building new key list
 				// Order should be exactly the same
 				Iterator<com.google.appengine.api.datastore.Key> keysIt = base.iterator();
 				for (E obj: entities)
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
-					EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-					metadata.getKeyMetadata().setKey(obj, k);
+					if (!(obj instanceof Entity)) {
+						EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
+						metadata.getKeyMetadata().setKey(obj, k);
+					}
 					
-					result.put(Key.<K>create(k), obj);
-					session.put(k, obj);
+					Key<K> key = Key.create(k);
+					result.put(key, obj);
+					session.put(key, new SessionEntity(new ResultNow<E>(obj)));
 				}
 				
 				return result;
@@ -100,7 +109,7 @@ public class Engine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.put(key, NEGATIVE_RESULT);
+					session.put(Key.create(key), new SessionEntity(new ResultNow<Object>(null)));
 				
 				return orig;
 			}
@@ -133,16 +142,15 @@ public class Engine
 		
 		@Override
 		protected Ref<T> translate(Entity from) {
-			@SuppressWarnings("unchecked")
-			T cached = (T)session.get(from.getKey());
+			SessionEntity cached = session.get(from.getKey());
 			
-			if (cached == null || cached == NEGATIVE_RESULT) {
-				EntityMetadata<T> meta = ofy.getFactory().getMetadata(from.getKey());
-				cached = meta.load(from, ofy);
-				session.put(from.getKey(), cached);
+			if (cached == null || cached.getResult().now() == null) {
+				T obj = ofy.load(from);
+				cached = new SessionEntity(new ResultNow<T>(obj));
+				session.put(Key.create(from.getKey()), cached);
 			}
 			
-			return new StdRef<T>(Key.<T>create(from.getKey()), cached);
+			return new StdRef<T>(Key.<T>create(from.getKey()), cached.<T>getResult().now());
 		}
 	}
 }

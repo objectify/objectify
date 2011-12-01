@@ -10,7 +10,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
@@ -23,7 +22,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class FetchFieldRefTests extends TestBase
+public class LoadFieldTests extends TestBase
 {
 	Trivial t1;
 	Trivial t2;
@@ -57,8 +56,8 @@ public class FetchFieldRefTests extends TestBase
 	@Entity
 	public static class HasEntities {
 		public @Id Long id;
-		public @Load Ref<Trivial> single;
-		public @Load List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load Trivial single;
+		public @Load List<Trivial> multi = new ArrayList<Trivial>();
 	}
 	
 	/** */
@@ -68,18 +67,18 @@ public class FetchFieldRefTests extends TestBase
 		fact.register(HasEntities.class);
 		
 		HasEntities he = new HasEntities();
-		he.single = Ref.create(k1);
-		he.multi.add(Ref.create(k1));
-		he.multi.add(Ref.create(k2));
+		he.single = t1;
+		he.multi.add(t1);
+		he.multi.add(t2);
 		HasEntities fetched = this.putAndGet(he);
 		
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
+		assert fetched.single.getId().equals(t1.getId());
+		assert fetched.single.getSomeString().equals(t1.getSomeString());
 		
-		assert fetched.multi.get(0).get() == fetched.single.get();
+		assert fetched.multi.get(0) == fetched.single;
 		
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString().equals(t2.getSomeString());
 	}
 
 	/** */
@@ -89,25 +88,25 @@ public class FetchFieldRefTests extends TestBase
 		fact.register(HasEntities.class);
 		
 		HasEntities he = new HasEntities();
-		he.single = Ref.create(kNone1);
-		he.multi.add(Ref.create(kNone1));
-		he.multi.add(Ref.create(kNone2));
+		he.single = tNone1;
+		he.multi.add(tNone1);
+		he.multi.add(tNone2);
 		HasEntities fetched = this.putAndGet(he);
 		
-		assert fetched.single.get().getId().equals(tNone1.getId());
-		assert fetched.single.get().getSomeString() == null;
+		assert fetched.single.getId().equals(tNone1.getId());
+		assert fetched.single.getSomeString() == null;
 		
-		assert fetched.multi.get(0).get() == fetched.single.get();
+		assert fetched.multi.get(0) == fetched.single;
 		
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString() == null;
 	}
 
 	/** */
 	@Entity
 	public static class ListNode {
 		public @Id Long id;
-		public @Load Ref<ListNode> next;
+		public @Load ListNode next;
 		public String foo;
 	}
 	
@@ -125,22 +124,22 @@ public class FetchFieldRefTests extends TestBase
 
 		ListNode node2 = new ListNode();
 		node2.foo = "foo2";
-		node2.next = Ref.create(fact.<ListNode>getKey(node3));
+		node2.next = node3;
 		ofy.put(node2);
 
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
-		node1.next = Ref.create(fact.<ListNode>getKey(node2));
+		node1.next = node2;
 		ofy.put(node1);
 		
 		ListNode fetched = ofy.get(fact.<ListNode>getKey(node1));
 		
 		assert fetched.foo.equals(node1.foo);
-		assert fetched.next.get().id.equals(node2.id);
-		assert fetched.next.get().foo.equals(node2.foo);
-		assert fetched.next.get().next.get().id.equals(node3.id);
-		assert fetched.next.get().next.get().foo.equals(node3.foo);
-		assert fetched.next.get().next.get().next == null;
+		assert fetched.next.id.equals(node2.id);
+		assert fetched.next.foo.equals(node2.foo);
+		assert fetched.next.next.id.equals(node3.id);
+		assert fetched.next.next.foo.equals(node3.foo);
+		assert fetched.next.next.next == null;
 	}
 
 	/** */
@@ -157,23 +156,23 @@ public class FetchFieldRefTests extends TestBase
 
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
-		node1.next = Ref.create(fact.<ListNode>getKey(node2));
+		node1.next = node2;
 		ofy.put(node1);
 		
 		ListNode fetched = ofy.get(fact.<ListNode>getKey(node1));
 		
 		assert fetched.foo.equals(node1.foo);
-		assert fetched.next.get().id.equals(node2.id);
-		assert fetched.next.get().foo == null;
-		assert fetched.next.get().next == null;
+		assert fetched.next.id.equals(node2.id);
+		assert fetched.next.foo == null;
+		assert fetched.next.next == null;
 	}
 	
 	/** */
 	@Entity
 	public static class HasEntitiesWithGroups {
 		public @Id Long id;
-		public @Load("single") Ref<Trivial> single;
-		public @Load("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load("single") Trivial single;
+		public @Load("multi") List<Trivial> multi = new ArrayList<Trivial>();
 	}
 	
 	
@@ -184,40 +183,40 @@ public class FetchFieldRefTests extends TestBase
 		fact.register(HasEntitiesWithGroups.class);
 		
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
-		he.single = Ref.create(k1);
-		he.multi.add(Ref.create(k1));
-		he.multi.add(Ref.create(k2));
+		he.single = t1;
+		he.multi.add(t1);
+		he.multi.add(t2);
 		HasEntitiesWithGroups fetched = this.putAndGet(he);
 		
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString() == null;
+		assert fetched.single.getId().equals(t1.getId());
+		assert fetched.single.getSomeString() == null;
 		assert fetched.multi.get(0) == fetched.single;
 		
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString() == null;
 		
 		TestObjectify ofy = fact.begin();
 		
 		fetched = ofy.load().group("single").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(0).get() == fetched.single.get();	// good question about this
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.single.getId().equals(t1.getId());
+		assert fetched.single.getSomeString().equals(t1.getSomeString());
+		assert fetched.multi.get(0) == fetched.single;	// good question about this
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString() == null;
 
 		fetched = ofy.load().group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString() == null;	// or should this be the same item as multi[0]?
+		assert fetched.multi.get(0).getId().equals(t1.getId());
+		assert fetched.multi.get(0).getSomeString().equals(t1.getSomeString());
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString().equals(t2.getSomeString());
+		assert fetched.single.getId().equals(t1.getId());
+		assert fetched.single.getSomeString() == null;	// or should this be the same item as multi[0]?
 		
 		fetched = ofy.load().group("single").group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assert fetched.multi.get(0).getId().equals(t1.getId());
+		assert fetched.multi.get(0).getSomeString().equals(t1.getSomeString());
+		assert fetched.multi.get(1).getId().equals(t2.getId());
+		assert fetched.multi.get(1).getSomeString().equals(t2.getSomeString());
+		assert fetched.single == fetched.multi.get(0);
 	}
 }

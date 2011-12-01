@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.cmd;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -12,7 +12,8 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.LoadType;
-import com.googlecode.objectify.util.DatastoreUtils;
+import com.googlecode.objectify.impl.engine.Batch;
+import com.googlecode.objectify.util.ResultProxy;
 
 
 /**
@@ -65,7 +66,7 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 */
 	@Override
 	public void ref(Ref<?> ref) {
-		refs(Collections.<Ref<?>>singleton(ref));
+		refs(ref);
 	}
 
 	/* (non-Javadoc)
@@ -80,21 +81,12 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Find#refs(java.lang.Iterable)
 	 */
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void refs(Iterable<? extends Ref<?>> refs) {
-		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.getRawKeys(refs);
+		Batch batch = ofy.createBatch(fetchGroups);
+		for (Ref<?> ref: refs)
+			batch.loadRef(ref);
 		
-		final Map<Key<Object>, Object> fetched = ofy.createGetEngine(fetchGroups).get(keys);
-		
-		for (final Ref<?> ref: refs) {
-			Result<?> result = new Result<Object>() {
-				@Override
-				public Object now() {
-					return fetched.get(ref.getKey());
-				}
-			};
-			ref.set((Result)result);
-		}
+		batch.execute();
 	}
 
 	/* (non-Javadoc)
@@ -136,7 +128,30 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 */
 	@Override
 	public <E, K extends E> Map<Key<K>, E> keys(Iterable<?> values) {
-		List<com.google.appengine.api.datastore.Key> raw = ofy.getFactory().getRawKeys(values);
-		return ofy.createGetEngine(fetchGroups).get(raw);
+		final Map<Key<?>, Ref<?>> refs = new LinkedHashMap<Key<?>, Ref<?>>();
+		
+		for (Object keyish: values) {
+			Key<?> key = ofy.getFactory().getKey(keyish);
+			refs.put(key, Ref.create(key));
+		}
+		
+		// Get real results
+		this.refs(refs.values());
+		
+		// Now asynchronously translate into a normal-looking map
+		@SuppressWarnings("unchecked")
+		Map<Key<K>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<K>, E>>() {
+			@Override
+			public Map<Key<K>, E> now() {
+				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>();
+				for (Ref<?> ref: refs.values())
+					if (ref.get() != null)
+						result.put((Key<K>)ref.key(), (E)ref.get());
+
+				return result;
+			}
+		});
+		
+		return map;
 	}
 }

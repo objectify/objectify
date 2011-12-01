@@ -37,7 +37,7 @@ public interface LoadIds<T>
 	 * @param ids - the ids of the entity to fetch.  Note that numeric ids and String ids are not equivalent; 123 and "123" are different ids.  
 	 * @return a Map of the asynchronous result.  The first method call on the Map will synchronously finish the call.
 	 */
-	Map<Long, T> ids(long... ids);
+	Map<Long, T> ids(Long... ids);
 
 	/**
 	 * <p>Specify the String ids of multiple entities and start asynchronous fetch.</p>
@@ -53,5 +53,5 @@ public interface LoadIds<T>
 	 * @param ids - the ids of the entities to fetch.  The Iterator must provide Long or String.  Note that numeric ids and String ids are not equivalent; 123 and "123" are different ids.  
 	 * @return a Map of the asynchronous result.  The first method call on the Map will synchronously finish the call.
 	 */
-	<S> Map<S, T> ids(Iterable<?> ids);
+	<S> Map<S, T> ids(Iterable<S> ids);
 }

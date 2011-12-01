@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -38,24 +39,28 @@ class DeleteImpl implements Delete
 	 * @see com.googlecode.objectify.cmd.Delete#value(java.lang.Object)
 	 */
 	@Override
-	public Result<Void> entity(Object keyOrEntity) {
-		return entities(Collections.singleton(keyOrEntity));
+	public Result<Void> key(Object keyOrEntity) {
+		return keys(Collections.singleton(keyOrEntity));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Object[])
 	 */
 	@Override
-	public Result<Void> entities(Object... keysOrEntities) {
-		return entities(Arrays.asList(keysOrEntities));
+	public Result<Void> keys(Object... keysOrEntities) {
+		return keys(Arrays.asList(keysOrEntities));
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Iterable)
 	 */
 	@Override
-	public Result<Void> entities(Iterable<?> keysOrEntities) {
-		List<com.google.appengine.api.datastore.Key> keys = ofy.getFactory().getRawKeys(keysOrEntities);
+	public Result<Void> keys(Iterable<?> keysOrEntities) {
+		
+		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		for (Object obj: keysOrEntities)
+			keys.add(ofy.getFactory().getRawKey(obj));
+
 		return ofy.createEngine().delete(keys);
 	}
 }

@@ -4,15 +4,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
@@ -22,10 +21,12 @@ import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Delete;
 import com.googlecode.objectify.cmd.LoadCmd;
 import com.googlecode.objectify.cmd.SaveCmd;
+import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Session;
+import com.googlecode.objectify.impl.engine.Batch;
 import com.googlecode.objectify.impl.engine.Engine;
-import com.googlecode.objectify.impl.engine.GetEngine;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -49,8 +50,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected Consistency consistency = Consistency.STRONG;
 	protected Double deadline;
 	
-	/** The session is a simple hashmap */
-	protected Map<com.google.appengine.api.datastore.Key, Object> session = new HashMap<com.google.appengine.api.datastore.Key, Object>();
+	/** */
+	protected Session session = new Session();
 
 	/**
 	 * @param txn can be null to not use transactions. 
@@ -245,8 +246,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @param groups is the set of load groups that are active
 	 * @return a fresh engine that handles fundamental datastore operations for the commands
 	 */
-	public GetEngine createGetEngine(Set<String> groups) {
-		return new GetEngine(this, createAsyncDatastoreService(), session, groups);
+	public Batch createBatch(Set<String> groups) {
+		return new Batch(this, createAsyncDatastoreService(), session, groups);
 	}
 
 	/**
@@ -312,5 +313,32 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
 		
 		return node.getPropertyValue();
+	}
+	
+	/**
+	 * Converts a datastore entity into a typed pojo object
+	 * @return an assembled pojo, or the Entity itself if the kind is not registered
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T load(Entity ent) {
+		EntityMetadata<T> meta = getFactory().getMetadata(ent.getKind());
+		if (meta == null)
+			return (T)ent;
+		else
+			return meta.load(ent, this);
+	}
+
+	/**
+	 * Converts a typed pojo object into a datastore entity
+	 * @param pojo can be an Entity, which will be returned as-is
+	 */
+	public Entity save(Object pojo) {
+		if (pojo instanceof Entity) {
+			return (Entity)pojo;
+		} else {
+			@SuppressWarnings("unchecked")
+			EntityMetadata<Object> meta = (EntityMetadata<Object>)getFactory().getMetadata(pojo.getClass());
+			return meta.save(pojo, this);
+		}
 	}
 }

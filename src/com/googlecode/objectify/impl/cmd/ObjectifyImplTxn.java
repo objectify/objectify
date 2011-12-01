@@ -3,14 +3,13 @@ package com.googlecode.objectify.impl.cmd;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ResultAdapter;
+import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
@@ -26,7 +25,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	protected Result<Transaction> txn;
 	
 	/** The session is a simple hashmap */
-	protected Map<com.google.appengine.api.datastore.Key, Object> parentSession;
+	protected Session parentSession;
 
 	/**
 	 * @param txn can be null to not use transactions. 
@@ -41,7 +40,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		
 		// Transactions get a new session, but are still linked to the old one
 		parentSession = session;
-		session = new HashMap<com.google.appengine.api.datastore.Key, Object>();
+		session = new Session();
 	}
 	
 	/* (non-Javadoc)

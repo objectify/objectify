@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl.cmd;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -11,6 +10,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.impl.engine.Batch;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultTranslator;
@@ -94,10 +94,10 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.LoadIds#ids(long[])
+	 * @see com.googlecode.objectify.cmd.LoadIds#ids(Long[])
 	 */
 	@Override
-	public Map<Long, T> ids(long... ids) {
+	public Map<Long, T> ids(Long... ids) {
 		return ids(Arrays.asList(ids));
 	}
 
@@ -114,22 +114,28 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <S> Map<S, T> ids(Iterable<?> ids) {
-		List<com.google.appengine.api.datastore.Key> keys = DatastoreUtils.createKeys(parent.getRaw(), Key.getKind(type), ids);
+	public <S> Map<S, T> ids(Iterable<S> ids) {
+		Map<S, Ref<T>> refs = new LinkedHashMap<S, Ref<T>>();
 		
-		Map<Key<T>, T> fetched = ofy.createGetEngine(fetchGroups).get(keys);
+		Batch batch = ofy.createBatch(fetchGroups);
 		
-		return ResultProxy.create(Map.class, new ResultTranslator<Map<Key<T>, T>, Map<S, T>>(fetched) {
+		for (S id: ids) {
+			Key<T> key = DatastoreUtils.createKey(parent, type, id);
+			refs.put(id, batch.getRef(key));
+		}
+		
+		batch.execute();
+		
+		return ResultProxy.create(Map.class, new ResultTranslator<Map<S, Ref<T>>, Map<S, T>>(refs) {
 			@Override
-			protected Map<S, T> translate(Map<Key<T>, T> from) {
-				Map<S, T> primitive = new LinkedHashMap<S, T>();
+			protected Map<S, T> translate(Map<S, Ref<T>> from) {
+				Map<S, T> proper = new LinkedHashMap<S, T>(from.size() * 2);
 				
-				for (Map.Entry<Key<T>, T> entry: from.entrySet()) {
-					S id = DatastoreUtils.getId(entry.getKey());
-					primitive.put(id, entry.getValue());
-				}
+				for (Map.Entry<S, Ref<T>> entry: from.entrySet())
+					if (entry.getValue().get() != null)
+						proper.put(entry.getKey(), entry.getValue().get());
 				
-				return primitive;
+				return proper;
 			}
 		});
 	}

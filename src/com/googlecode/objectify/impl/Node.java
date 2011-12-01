@@ -47,6 +47,8 @@ root {
  * 
  * <p>This is roughly similar to Jackson's JsonNode.  One major difference is that there is not a class hierarchy
  * of node types; this is because nodes can actually switch types during tree reprocessing.</p>
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class Node implements Iterable<Node>
 {

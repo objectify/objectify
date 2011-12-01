@@ -32,7 +32,7 @@ public interface Delete
 	 * @param keyOrEntity can be any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
-	Result<Void> entity(Object keyOrEntity);
+	Result<Void> key(Object keyOrEntity);
 
 	/**
 	 * <p>Begin asynchronous deletion of specific entities.</p>
@@ -41,10 +41,10 @@ public interface Delete
 	 * @param keyOrEntities can be any key-like structures; Key<?>s, native datastore Keys, or entity objects with valid id/parent fields. 
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
-	Result<Void> entities(Iterable<?> keysOrEntities);
+	Result<Void> keys(Iterable<?> keysOrEntities);
 	
 	/**
 	 * Convenient substitute for entities(Iterable)
 	 */
-	Result<Void> entities(Object... keysOrEntities);
+	Result<Void> keys(Object... keysOrEntities);
 }
