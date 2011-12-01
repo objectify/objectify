@@ -19,7 +19,7 @@ import com.googlecode.objectify.Ref;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface LoadCmd extends SimpleQuery<Object>
+public interface Loader extends SimpleQuery<Object>
 {
 	/**
 	 * <p>Enables one or more fetch groups.  This will cause any entity fields (or Ref fields) which
@@ -30,7 +30,7 @@ public interface LoadCmd extends SimpleQuery<Object>
 	 * @param groupNames are one or more fetch groups to enable
 	 * @return a continuation of the immutable command pattern, enabled for fetching this group.
 	 */
-	LoadCmd group(String... groupNames);
+	Loader group(String... groupNames);
 	
 	/**
 	 * <p>Restricts the find operation to entities of a particular type.  The type may be the

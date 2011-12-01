@@ -15,7 +15,7 @@ import com.googlecode.objectify.Result;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Delete
+public interface Deleter
 {
 	/**
 	 * Begin construction of a key or keys to delete by specifying a kind.

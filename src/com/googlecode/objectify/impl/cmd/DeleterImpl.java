@@ -7,7 +7,7 @@ import java.util.List;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cmd.Delete;
+import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.DeleteType;
 
 
@@ -16,13 +16,13 @@ import com.googlecode.objectify.cmd.DeleteType;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class DeleteImpl implements Delete
+class DeleterImpl implements Deleter
 {
 	/** */
 	ObjectifyImpl ofy;
 	
 	/** */
-	DeleteImpl(ObjectifyImpl ofy) {
+	DeleterImpl(ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 

@@ -18,9 +18,9 @@ import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnWork;
-import com.googlecode.objectify.cmd.Delete;
-import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.SaveCmd;
+import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
@@ -97,24 +97,24 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#find()
 	 */
 	@Override
-	public LoadCmd load() {
-		return new LoadCmdImpl(this);
+	public Loader load() {
+		return new LoaderImpl(this);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#put()
 	 */
 	@Override
-	public SaveCmd save() {
-		return new PutImpl(this);
+	public Saver save() {
+		return new SaverImpl(this);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#delete()
 	 */
 	@Override
-	public Delete delete() {
-		return new DeleteImpl(this);
+	public Deleter delete() {
+		return new DeleterImpl(this);
 	}
 
 	/* (non-Javadoc)

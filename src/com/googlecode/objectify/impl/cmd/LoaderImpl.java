@@ -10,7 +10,7 @@ import java.util.Set;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cmd.LoadCmd;
+import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.impl.engine.Batch;
 import com.googlecode.objectify.util.ResultProxy;
@@ -21,17 +21,17 @@ import com.googlecode.objectify.util.ResultProxy;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class LoadCmdImpl extends Queryable<Object> implements LoadCmd
+class LoaderImpl extends Queryable<Object> implements Loader
 {
 	/** */
-	LoadCmdImpl(ObjectifyImpl ofy) {
+	LoaderImpl(ObjectifyImpl ofy) {
 		super(ofy, Collections.<String>emptySet());
 	}
 
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	LoadCmdImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
+	LoaderImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
 		super(ofy, fetchGroups);
 	}
 
@@ -47,10 +47,10 @@ class LoadCmdImpl extends Queryable<Object> implements LoadCmd
 	 * @see com.googlecode.objectify.cmd.Loading#group(java.lang.String[])
 	 */
 	@Override
-	public LoadCmd group(String... groupName) {
+	public Loader group(String... groupName) {
 		Set<String> next = new HashSet<String>(Arrays.asList(groupName));
 		next.addAll(this.fetchGroups);
-		return new LoadCmdImpl(ofy, next);
+		return new LoaderImpl(ofy, next);
 	}
 
 	/* (non-Javadoc)

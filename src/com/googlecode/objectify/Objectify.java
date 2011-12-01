@@ -2,9 +2,9 @@ package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
-import com.googlecode.objectify.cmd.Delete;
-import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.SaveCmd;
+import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.cmd.Saver;
 
 /**
  * <p>This is the main "business end" of Objectify.  It lets you find, put, and delete your typed POJO entities.</p>
@@ -31,7 +31,7 @@ public interface Objectify
 	 * 
 	 * @return the next step in the immutable command chain.
 	 */
-	LoadCmd load();
+	Loader load();
 	
 	/**
 	 * <p>Start a save command chain.  Allows you to save (or re-save) entity objects.  Note that all command
@@ -44,7 +44,7 @@ public interface Objectify
 	 * 
 	 * @return the next step in the immutable command chain.
 	 */
-	SaveCmd save();
+	Saver save();
 	
 	/**
 	 * <p>Start a delete command chain.  Lets you delete entities or keys.  Note that all command chain
@@ -57,7 +57,7 @@ public interface Objectify
 	 * 
 	 * @return the next step in the immutable command chain.
 	 */
-	Delete delete();
+	Deleter delete();
 	
 	/**
 	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically

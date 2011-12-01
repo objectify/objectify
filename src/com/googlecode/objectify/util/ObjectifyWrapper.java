@@ -8,9 +8,9 @@ import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnWork;
-import com.googlecode.objectify.cmd.Delete;
-import com.googlecode.objectify.cmd.LoadCmd;
-import com.googlecode.objectify.cmd.SaveCmd;
+import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.cmd.Saver;
 
 
 /**
@@ -36,7 +36,7 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#load()
 	 */
 	@Override
-	public LoadCmd load() {
+	public Loader load() {
 		return base.load();
 	}
 
@@ -44,7 +44,7 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#put()
 	 */
 	@Override
-	public SaveCmd save() {
+	public Saver save() {
 		return base.save();
 	}
 
@@ -52,7 +52,7 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#delete()
 	 */
 	@Override
-	public Delete delete() {
+	public Deleter delete() {
 		return base.delete();
 	}
 
