@@ -21,8 +21,10 @@ public interface Translator<T>
 	 * @param node is the part of the entity tree we are transforming.
 	 * @param ctx holds state information during an entity load.  
 	 * @return an assembled pojo corresponding to the node subtree; if null is returned, that is the real value!
+	 * 
+	 * @throws SkipException if the subtree should not be loaded into a containing entity
 	 */
-	T load(Node node, LoadContext ctx);
+	T load(Node node, LoadContext ctx) throws SkipException;
 	
 	/**
 	 * Translates the pojo into an EntityNode format.  Note that all stored values (even terminal properties)
