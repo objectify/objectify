@@ -56,11 +56,11 @@ public class Transmog<T>
 	 * @param fromEntity is a raw datastore entity
 	 * @return the entity converted into the relevant pojo
 	 */
-	public T load(Entity fromEntity, Objectify ofy) throws LoadException
+	public T load(Entity fromEntity, LoadContext ctx) throws LoadException
 	{
 		try {
 			Node root = load(fromEntity);
-			T pojo = load(root, new LoadContext(ofy));
+			T pojo = load(root, ctx);
 			return pojo;
 		}
 		catch (LoadException ex) { throw ex; }
@@ -216,14 +216,14 @@ public class Transmog<T>
 	 * 
 	 * <p>Simple example of an embed collection at 'things':</p>
 	 * <ul>
-	 * <li>Example before: { things: { foo: [ "asdf" ], bar: [ 123 ] } }</li>
-	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 } ] }</li>
+	 * <li>Before: { things: { foo: [ "asdf" ], bar: [ 123 ] } }</li>
+	 * <li>After:  { things: [ { foo:"asdf", bar:123 } ] }</li>
 	 * </ul>
 	 * 
 	 * <p>If there were multiple values it would look like this:</p>
 	 * <ul>
-	 * <li>Example before: { things: { foo: [ "asdf", "qwert" ], bar: [ 123, 456 ] } }</li>
-	 * <li>Exapmple after: { things: [ { foo:"asdf", bar:123 }, { foo:"qwert", bar:456 } ] }</li>
+	 * <li>Before: { things: { foo: [ "asdf", "qwert" ], bar: [ 123, 456 ] } }</li>
+	 * <li>After:  { things: [ { foo:"asdf", bar:123 }, { foo:"qwert", bar:456 } ] }</li>
 	 * </ul>
 	 * 
 	 * <p>Keep in mind that there may be a hierarchy of embedded classes within the embedded collection.</p>

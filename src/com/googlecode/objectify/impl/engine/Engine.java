@@ -21,6 +21,7 @@ import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionEntity;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.ref.StdRef;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.TranslatingQueryResultIterable;
@@ -55,7 +56,7 @@ public class Engine
 	/**
 	 * The fundamental put() operation.
 	 */
-	public <K, E extends K> Result<Map<Key<K>, E>> put(final Iterable<? extends E> entities) {
+	public <K, E extends K> Result<Map<Key<K>, E>> save(final Iterable<? extends E> entities) {
 		
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
@@ -145,7 +146,7 @@ public class Engine
 			SessionEntity cached = session.get(from.getKey());
 			
 			if (cached == null || cached.getResult().now() == null) {
-				T obj = ofy.load(from);
+				T obj = ofy.load(from, new LoadContext(ofy));
 				cached = new SessionEntity(new ResultNow<T>(obj));
 				session.put(Key.create(from.getKey()), cached);
 			}

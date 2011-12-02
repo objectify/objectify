@@ -16,6 +16,7 @@ import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionEntity;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultWrapper;
 
 /**
@@ -50,7 +51,7 @@ public class Batch
 			return new Result<Entity>() {
 				@Override
 				public Entity now() {
-					execute();
+					Batch.this.execute();
 					return adapted.now().get(key);
 				}
 			};
@@ -83,6 +84,7 @@ public class Batch
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
+		this.groups = groups;
 	}
 	
 	/**
@@ -106,29 +108,9 @@ public class Batch
 	/**
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 */
-	public <T> Result<T> getResult(final Key<T> key) {
-		
-		SessionEntity sent = session.get(key);
-		if (sent == null) {
-			Result<T> result = new ResultWrapper<Entity, T>(round.get(key.getRaw())) {
-				@Override
-				@SuppressWarnings("unchecked")
-				protected T wrap(Entity orig) {
-					if (orig == null)
-						return null;
-					
-					EntityMetadata<T> metadata = ofy.getFactory().getMetadata(key);
-					if (metadata == null)
-						return (T)orig;
-					else
-						return metadata.load(orig, ofy);
-				}
-			};
-			sent = new SessionEntity(result);
-			session.put(key, sent);
-		}
-		
-		return sent.getResult();
+	public <T> Result<T> getResult(Key<T> key) {
+		this.ensureSessionContent(key);	// might add the parents too!
+		return session.get(key).getResult();
 	}
 	
 	/**
@@ -136,5 +118,40 @@ public class Batch
 	 */
 	public void execute() {
 		round.execute();
+	}
+	
+	/**
+	 * Makes sure that the session contains the right Result<?>s for the key and possibly
+	 * its parent keys depending on the @Load commands.  This is a recursive method.
+	 */
+	private void ensureSessionContent(Key<?> key) {
+		SessionEntity sent = session.get(key);
+		if (sent == null) {
+			Result<?> result = createResult(key);
+			sent = new SessionEntity(result);
+			session.put(key, sent);
+		}
+		
+		// Now check to see if we need to recurse and add our parent to the round
+		if (key.getParent() != null) {
+			EntityMetadata<?> meta = ofy.getFactory().getMetadata(key);
+			if (meta != null) {
+				if (meta.getKeyMetadata().shouldLoadParent(groups)) {
+					ensureSessionContent(key.getParent());
+				}
+			}
+		}
+	}
+	
+	/**
+	 * Create a result suitable for putting in the session
+	 */
+	private <T> Result<T> createResult(final Key<T> key) {
+		return new ResultWrapper<Entity, T>(round.get(key.getRaw())) {
+			@Override
+			protected T wrap(Entity orig) {
+				return ofy.load(orig, new LoadContext(ofy));
+			}
+		};
 	}
 }

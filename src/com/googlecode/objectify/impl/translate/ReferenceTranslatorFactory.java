@@ -12,7 +12,8 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
 /**
- * Converts full entity references to datastore keys.
+ * Converts full entity references to datastore keys.  Also clever enough to look for @Load annotations
+ * and fetch more stuff.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

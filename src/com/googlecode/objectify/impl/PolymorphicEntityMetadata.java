@@ -8,6 +8,7 @@ import java.util.Map;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.impl.translate.LoadContext;
 
 
 /**
@@ -158,9 +159,9 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#load(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
 	@Override
-	public T load(Entity ent, Objectify ofy)
+	public T load(Entity ent, LoadContext ctx)
 	{
-		return this.getConcrete(ent).load(ent, ofy);
+		return this.getConcrete(ent).load(ent, ctx);
 	}
 
 	/* (non-Javadoc)

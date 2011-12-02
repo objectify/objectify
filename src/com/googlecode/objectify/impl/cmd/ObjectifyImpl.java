@@ -28,6 +28,7 @@ import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.engine.Batch;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
@@ -317,15 +318,18 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	
 	/**
 	 * Converts a datastore entity into a typed pojo object
-	 * @return an assembled pojo, or the Entity itself if the kind is not registered
+	 * @return an assembled pojo, or the Entity itself if the kind is not registered, or null if the input value was null
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T load(Entity ent) {
+	public <T> T load(Entity ent, LoadContext ctx) {
+		if (ent == null)
+			return null;
+		
 		EntityMetadata<T> meta = getFactory().getMetadata(ent.getKind());
 		if (meta == null)
 			return (T)ent;
 		else
-			return meta.load(ent, this);
+			return meta.load(ent, ctx);
 	}
 
 	/**

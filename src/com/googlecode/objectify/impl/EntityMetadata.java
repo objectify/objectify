@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.impl.translate.LoadContext;
 
 
 /**
@@ -26,7 +27,7 @@ public interface EntityMetadata<T>
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
-	public T load(Entity ent, Objectify ofy);
+	public T load(Entity ent, LoadContext ctx);
 
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.

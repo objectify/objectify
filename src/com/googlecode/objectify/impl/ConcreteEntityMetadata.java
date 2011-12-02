@@ -11,6 +11,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
+import com.googlecode.objectify.impl.translate.LoadContext;
 
 
 /**
@@ -118,12 +119,12 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
 	@Override
-	public T load(Entity ent, Objectify ofy)
+	public T load(Entity ent, LoadContext ctx)
 	{
-		T pojo = this.transmog.load(ent, ofy);
+		T pojo = this.transmog.load(ent, ctx);
 		
 		// If there are any @OnLoad methods, call them
-		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ofy);
+		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ctx.getObjectify());
 
 		return pojo;
 	}
