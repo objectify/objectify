@@ -6,36 +6,21 @@ package com.googlecode.objectify.test;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.test.LoadParentRefTests.Child;
+import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup;
+import com.googlecode.objectify.test.LoadParentRefTests.Father;
+import com.googlecode.objectify.test.LoadParentRefTests.TreeNode;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
- * Tests the fetching system for parent values using Ref<?> holders.
+ * Same as LoadParentRefTests but without the session clearing, so each load must reload some additional parts.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadParentRefTests extends TestBase
+public class LoadParentRefTestsUsingSession extends TestBase
 {
 	/** */
-	@Entity
-	public static class Father {
-		public @Id Long id;
-		public String foo;
-	}
-	
-	/** */
-	@Entity
-	public static class Child {
-		public @Id Long id;
-		public @Load @Parent Ref<Father> father;
-		public String bar;
-	}
-	
-	/** Clears the session to get a full load */
 	@Test
 	public void testParentExists() throws Exception
 	{
@@ -53,22 +38,12 @@ public class LoadParentRefTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 		
-		ofy.clear();
-		
 		Ref<Child> fetchedRef = ofy.load().key(fact.<Child>getKey(ch));
 		Child fetched = fetchedRef.get();
 		
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.get().id.equals(f.id);
 		assert fetched.father.get().foo.equals(f.foo);
-	}
-
-	/** */
-	@Entity
-	public static class TreeNode {
-		public @Id Long id;
-		public @Load @Parent Ref<TreeNode> parent;
-		public String foo;
 	}
 	
 	/** */
@@ -93,8 +68,6 @@ public class LoadParentRefTests extends TestBase
 		node3.foo = "foo3";
 		ofy.put(node3);
 
-		ofy.clear();
-		
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
 		assert fetched3.foo.equals(node3.foo);
@@ -127,8 +100,6 @@ public class LoadParentRefTests extends TestBase
 		node3.foo = "foo3";
 		ofy.put(node3);
 
-		ofy.clear();
-		
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
 		assert fetched3.parent.get().id.equals(node2.id);
@@ -138,14 +109,6 @@ public class LoadParentRefTests extends TestBase
 		assert fetched3.parent.get().parent.get().parent == null;
 	}
 
-	/** */
-	@Entity
-	public static class ChildWithGroup {
-		public @Id Long id;
-		public @Load("group") @Parent Ref<Father> father;
-		public String bar;
-	}
-	
 	/** */
 	@Test
 	public void testParentWithGroup() throws Exception
@@ -165,13 +128,11 @@ public class LoadParentRefTests extends TestBase
 		ofy.put(ch);
 		
 		// This should get an empty ref
-		ofy.clear();
 		Child fetched = ofy.get(fact.<Child>getKey(ch));
 		assert fetched.father.key().getId() == f.id;
 		assert fetched.father.get() == null;
 
 		// This should get a filled in ref
-		ofy.clear();
 		Child fetched2 = ofy.load().group("group").key(fact.<Child>getKey(ch)).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);

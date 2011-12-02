@@ -5,10 +5,10 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.test.LoadParentTests.Child;
+import com.googlecode.objectify.test.LoadParentTests.ChildWithGroup;
+import com.googlecode.objectify.test.LoadParentTests.Father;
+import com.googlecode.objectify.test.LoadParentTests.TreeNode;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -17,23 +17,8 @@ import com.googlecode.objectify.test.util.TestObjectify;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadParentTests extends TestBase
+public class LoadParentTestsUsingSession extends TestBase
 {
-	/** */
-	@Entity
-	public static class Father {
-		public @Id Long id;
-		public String foo;
-	}
-	
-	/** */
-	@Entity
-	public static class Child {
-		public @Id Long id;
-		public @Load @Parent Father father;
-		public String bar;
-	}
-	
 	/** */
 	@Test
 	public void testParentExists() throws Exception
@@ -52,7 +37,6 @@ public class LoadParentTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 		
-		ofy.clear();
 		Child fetched = ofy.get(fact.<Child>getKey(ch));
 		
 		assert fetched.bar.equals(ch.bar);
@@ -60,14 +44,6 @@ public class LoadParentTests extends TestBase
 		assert fetched.father.foo.equals(f.foo);
 	}
 
-	/** */
-	@Entity
-	public static class TreeNode {
-		public @Id Long id;
-		public @Load @Parent TreeNode parent;
-		public String foo;
-	}
-	
 	/** */
 	@Test
 	public void testTwoLevelsOfFetch() throws Exception
@@ -90,7 +66,6 @@ public class LoadParentTests extends TestBase
 		node3.foo = "foo3";
 		ofy.put(node3);
 
-		ofy.clear();
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
 		assert fetched3.foo.equals(node3.foo);
@@ -123,7 +98,6 @@ public class LoadParentTests extends TestBase
 		node3.foo = "foo3";
 		ofy.put(node3);
 
-		ofy.clear();
 		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
 		
 		assert fetched3.parent.id.equals(node2.id);
@@ -131,14 +105,6 @@ public class LoadParentTests extends TestBase
 		assert fetched3.parent.parent.id.equals(node1.id);
 		assert fetched3.parent.parent.foo.equals(node1.foo);
 		assert fetched3.parent.parent.parent == null;
-	}
-	
-	/** */
-	@Entity
-	public static class ChildWithGroup {
-		public @Id Long id;
-		public @Load("group") @Parent Father father;
-		public String bar;
 	}
 	
 	/** */
@@ -159,13 +125,11 @@ public class LoadParentTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 		
-		ofy.clear();
 		// This should get a hollow entity
 		ChildWithGroup fetched = ofy.get(fact.<ChildWithGroup>getKey(ch));
 		assert fetched.father.id.equals(f.id);
 		assert fetched.father.foo == null;
 
-		ofy.clear();
 		// This should get the complete parent
 		ChildWithGroup fetched2 = ofy.load().group("group").key(fact.<ChildWithGroup>getKey(ch)).get();
 		assert fetched2.father.id.equals(f.id);
