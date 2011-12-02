@@ -16,6 +16,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionEntity;
@@ -77,7 +78,7 @@ public class Engine
 				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
 
 				// We need to take a pass to do two things:
-				// 1) Patch up any generated keys in the original objects
+				// 1) Patch up any generated ids in the original objects
 				// 2) Add values to session
 				
 				// Order should be exactly the same
@@ -86,8 +87,9 @@ public class Engine
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
-						EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-						metadata.getKeyMetadata().setKey(obj, k);
+						KeyMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj).getKeyMetadata();
+						if (metadata.isIdGeneratable())
+							metadata.setLongId(obj, k.getId());
 					}
 					
 					Key<K> key = Key.create(k);
@@ -146,7 +148,7 @@ public class Engine
 			SessionEntity cached = session.get(from.getKey());
 			
 			if (cached == null || cached.getResult().now() == null) {
-				T obj = ofy.load(from, new LoadContext(ofy));
+				T obj = ofy.load(from, new LoadContext(ofy, null));	// todo
 				cached = new SessionEntity(new ResultNow<T>(obj));
 				session.put(Key.create(from.getKey()), cached);
 			}

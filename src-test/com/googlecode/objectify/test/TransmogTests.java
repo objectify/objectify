@@ -16,9 +16,9 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.FakeLoadContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
 
 /**
@@ -73,7 +73,7 @@ public class TransmogTests extends TransmogTestBase
 		assert rootNode.size() == 3;
 		
 		// Go back to a solid object
-		Trivial triv2 = transmog.load(rootNode, new LoadContext(ofy));
+		Trivial triv2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert triv.getId().equals(triv2.getId());
 		assert triv.getSomeNumber() == triv2.getSomeNumber();
@@ -135,7 +135,7 @@ public class TransmogTests extends TransmogTestBase
 		assert stuffNode.size() == 2;
 		
 		// Go back to a solid object
-		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasSimpleList pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo.id == pojo2.id;
 		assert pojo.stuff.equals(pojo2.stuff);
@@ -176,7 +176,7 @@ public class TransmogTests extends TransmogTestBase
 		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
-		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasSimpleList pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff.isEmpty(); 
@@ -218,7 +218,7 @@ public class TransmogTests extends TransmogTestBase
 		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
-		HasSimpleList pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasSimpleList pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff.isEmpty(); 
@@ -266,7 +266,7 @@ public class TransmogTests extends TransmogTestBase
 		assert rootNode.size() == 1;
 		
 		// Go back to a solid object
-		HasSimpleListUninitialized pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasSimpleListUninitialized pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff == null; 
@@ -320,7 +320,7 @@ public class TransmogTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasMap pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasMap pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.stuff.equals(pojo.stuff); 

@@ -11,10 +11,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.annotation.Load;
 
 /**
  */
@@ -198,5 +200,24 @@ public class TypeUtils
 			return onClass.getAnnotation(annotationType);
 		else
 			return anno;
+	}
+	
+	/**
+	 * Given the @Load annotation and the specified load groups, should we trigger loading?
+	 * @param load can be null (which always produces false)
+	 * @param groups can be empty, which will only load if there is no explicit load group required in the @Load annotation
+	 */
+	public static boolean shouldLoad(Load load, Set<String> enabledGroups) {
+		if (load == null)
+			return false;
+		
+		if (load.value().length == 0)
+			return true;
+		
+		for (String group: load.value())
+			if (enabledGroups.contains(group))
+				return true;
+		
+		return false;
 	}
 }

@@ -5,7 +5,9 @@ import java.lang.reflect.Type;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.TypeUtils;
 
 
 /**
@@ -23,10 +25,14 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 	@Override
 	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
 	{
+		final Load load = TypeUtils.getAnnotation(Load.class, fieldAnnotations);
+		
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
 			@Override
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx) {
-				return Ref.create(Key.create(value));
+				Ref<?> ref = Ref.create(Key.create(value));
+				ctx.maybeLoadRef(load, ref);
+				return ref;
 			}
 			
 			@Override

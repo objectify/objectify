@@ -17,8 +17,8 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
-import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.test.util.FakeLoadContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
 
 /**
@@ -100,7 +100,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasOneFieldColl pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -168,7 +168,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasOneFieldColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasOneFieldColl pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -259,7 +259,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);
@@ -334,7 +334,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		}
 		
 		// Go back to a solid object
-		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new LoadContext(ofy));
+		HasTwoFieldsColl pojo2 = transmog.load(rootNode, new FakeLoadContext());
 		
 		assert pojo2.id == pojo.id;
 		assert pojo2.things.equals(pojo.things);

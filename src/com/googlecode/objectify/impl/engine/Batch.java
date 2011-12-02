@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.engine;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -11,10 +12,12 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionEntity;
+import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultWrapper;
@@ -37,31 +40,52 @@ public class Batch
 	class Round {
 		/** During each round we track the keys we will need to satisfy the request */
 		Set<com.google.appengine.api.datastore.Key> pending = new HashSet<com.google.appengine.api.datastore.Key>();
-		
+
 		/** After execution, we'll have one of these */
-		Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted;
+		Result<Map<Key<?>, Object>> translated;
 
 		/** 
-		 * Adds a key to our pending queue and returns a result which will provide the Entity value.  The
+		 * Adds a key to our pending queue and returns a result which will provide the translated value.  The
 		 * first request for the value will trigger execution of the round. 
 		 */
-		public Result<Entity> get(final com.google.appengine.api.datastore.Key key) {
-			this.pending.add(key);
+		public <T> Result<T> get(final Key<T> key) {
+			this.pending.add(key.getRaw());
 			
-			return new Result<Entity>() {
+			return new Result<T>() {
 				@Override
-				public Entity now() {
+				@SuppressWarnings("unchecked")
+				public T now() {
 					Batch.this.execute();
-					return adapted.now().get(key);
+					return (T)translated.now().get(key);
 				}
 			};
 		}
 		
 		/** Turn this into a result set */
 		private void execute() {
-			if (adapted == null && !pending.isEmpty()) {
+			if (translated == null && !pending.isEmpty()) {
 				Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
-				adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
+				Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
+				translated = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<?>, Object>>(adapted) {
+					@Override
+					protected Map<Key<?>, Object> wrap(Map<com.google.appengine.api.datastore.Key, Entity> from) {
+						// This is where the fun happens.  We create a LoadContext and translate the whole result.  That
+						// process may add items to the pending queue.  As long as the queue has contents, we keep executing.
+						
+						Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(from.size() * 2);
+						LoadContext ctx = new LoadContext(ofy, Batch.this);
+						
+						for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: from.entrySet()) {
+							Key<?> key = Key.create(entry.getKey());
+							Object entity = ofy.load(entry.getValue(), ctx);
+							result.put(key, entity);
+						}
+						
+						ctx.done();
+						
+						return result;
+					}
+				};
 				
 				// Start a new round, this one is finished
 				round = new Round();
@@ -87,6 +111,9 @@ public class Batch
 		this.groups = groups;
 	}
 	
+	/** Get the set of groups that are enabled on this batch */
+	public Set<String> getGroups() { return this.groups; }
+	
 	/**
 	 * The fundamental ref() operation.
 	 */
@@ -109,8 +136,8 @@ public class Batch
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 */
 	public <T> Result<T> getResult(Key<T> key) {
-		this.ensureSessionContent(key);	// might add the parents too!
-		return session.get(key).getResult();
+		SessionEntity sent = this.ensureSessionContent(key);	// might add the parents too!
+		return sent.getResult();
 	}
 	
 	/**
@@ -124,10 +151,10 @@ public class Batch
 	 * Makes sure that the session contains the right Result<?>s for the key and possibly
 	 * its parent keys depending on the @Load commands.  This is a recursive method.
 	 */
-	private void ensureSessionContent(Key<?> key) {
+	private SessionEntity ensureSessionContent(Key<?> key) {
 		SessionEntity sent = session.get(key);
 		if (sent == null) {
-			Result<?> result = createResult(key);
+			Result<?> result = round.get(key);
 			sent = new SessionEntity(result);
 			session.put(key, sent);
 		}
@@ -141,17 +168,15 @@ public class Batch
 				}
 			}
 		}
+		
+		return sent;
 	}
 	
 	/**
-	 * Create a result suitable for putting in the session
+	 * @param load can be null, which will always produce false
+	 * @return true if the specified load annotation should be loaded in this batch
 	 */
-	private <T> Result<T> createResult(final Key<T> key) {
-		return new ResultWrapper<Entity, T>(round.get(key.getRaw())) {
-			@Override
-			protected T wrap(Entity orig) {
-				return ofy.load(orig, new LoadContext(ofy));
-			}
-		};
+	public boolean shouldLoad(Load load) {
+		return TypeUtils.shouldLoad(load, groups);
 	}
 }

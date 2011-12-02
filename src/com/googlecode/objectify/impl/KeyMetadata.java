@@ -11,6 +11,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.FieldValueTranslator;
 
@@ -227,27 +228,18 @@ public class KeyMetadata<T>
 			return false;
 		
 		Load load = this.parentField.getAnnotation(Load.class);
-		if (load == null)
-			return false;
 		
-		if (load.value().length == 0)
-			return true;
-		
-		for (String group: load.value())
-			if (enabledGroups.contains(group))
-				return true;
-		
-		return false;
+		return TypeUtils.shouldLoad(load, enabledGroups);
 	}
 	
 	/**
 	 * Sets the key onto the POJO id/parent fields
 	 */
-	public void setKey(T pojo, com.google.appengine.api.datastore.Key key) {
+	public void setKey(T pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx) {
 		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
 
-		Object id = idTranslator.load(DatastoreUtils.getId(key));
+		Object id = idTranslator.load(DatastoreUtils.getId(key), ctx);
 		TypeUtils.field_set(this.idField, pojo, id);
 		
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
@@ -255,8 +247,25 @@ public class KeyMetadata<T>
 			if (this.parentField == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
 			
-			Object parent = parentTranslator.load(parentKey);
+			Object parent = parentTranslator.load(parentKey, ctx);
 			TypeUtils.field_set(this.parentField, pojo, parent);
 		}
+	}
+	
+	/**
+	 * @return true if the id field is uppercase-Long, which can be genearted.
+	 */
+	public boolean isIdGeneratable() {
+		return this.idField.getType() == Long.class;
+	}
+
+	/**
+	 * Sets the numeric id field
+	 */
+	public void setLongId(T pojo, Long id) {
+		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
+			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
+
+		TypeUtils.field_set(this.idField, pojo, id);
 	}
 }

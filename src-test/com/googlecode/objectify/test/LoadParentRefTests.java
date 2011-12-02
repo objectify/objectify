@@ -35,6 +35,34 @@ public class LoadParentRefTests extends TestBase
 		public String bar;
 	}
 	
+	/** Clears the session to get a full load */
+	@Test
+	public void testParentExistsFromScratch() throws Exception
+	{
+		fact.register(Father.class);
+		fact.register(Child.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		Father f = new Father();
+		f.foo = "foo";
+		ofy.put(f);
+		
+		Child ch = new Child();
+		ch.father = Ref.create(fact.<Father>getKey(f));
+		ch.bar = "bar";
+		ofy.put(ch);
+		
+		ofy.clear();
+		
+		Ref<Child> fetchedRef = ofy.load().key(fact.<Child>getKey(ch));
+		Child fetched = fetchedRef.get();
+		
+		assert fetched.bar.equals(ch.bar);
+		assert fetched.father.get().id.equals(f.id);
+		assert fetched.father.get().foo.equals(f.foo);
+	}
+
 	/** */
 	@Test
 	public void testParentExists() throws Exception
@@ -53,7 +81,8 @@ public class LoadParentRefTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 		
-		Child fetched = ofy.get(fact.<Child>getKey(ch));
+		Ref<Child> fetchedRef = ofy.load().key(fact.<Child>getKey(ch));
+		Child fetched = fetchedRef.get();
 		
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.get().id.equals(f.id);

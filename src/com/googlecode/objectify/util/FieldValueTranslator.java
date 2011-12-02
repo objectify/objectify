@@ -15,7 +15,6 @@ import com.googlecode.objectify.impl.translate.Translator;
  */
 public class FieldValueTranslator<P, D>
 {
-	private static final LoadContext NULL_LOAD_CONTEXT = new LoadContext(null);
 	private static final SaveContext NULL_SAVE_CONTEXT = new SaveContext(null);
 	
 	/** */
@@ -30,8 +29,8 @@ public class FieldValueTranslator<P, D>
 	/**
 	 * Translates a datastore representation to a pojo representation
 	 */
-	public P load(D value) {
-		return wrapped.load(Node.of(value), NULL_LOAD_CONTEXT);
+	public P load(D value, LoadContext ctx) {
+		return wrapped.load(Node.of(value), ctx);
 	}
 	
 	/**

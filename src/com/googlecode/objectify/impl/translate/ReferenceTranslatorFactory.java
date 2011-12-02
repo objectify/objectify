@@ -35,7 +35,7 @@ public class ReferenceTranslatorFactory implements TranslatorFactory<Object>
 				Object instance = fact.construct(clazz);
 				@SuppressWarnings("unchecked")
 				EntityMetadata<Object> meta = (EntityMetadata<Object>)fact.getMetadata(clazz);
-				meta.getKeyMetadata().setKey(instance, value);
+				meta.getKeyMetadata().setKey(instance, value, ctx);
 				return instance;
 			}
 			
