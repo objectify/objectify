@@ -3,8 +3,8 @@
 
 package com.googlecode.objectify.test.util;
 
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.impl.translate.LoadContext;
 
 /**
@@ -15,11 +15,11 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 public class FakeLoadContext extends LoadContext
 {
 	public FakeLoadContext() {
-		super(null, null);
-	}
-	
-	@Override
-	public void maybeLoadRef(Load load, Ref<?> ref) {
-		// do nothing
+		super(null, new LoadBatch(null, null, null, null) {
+			@Override
+			public boolean shouldLoad(Load load) {
+				return false;
+			}
+		});
 	}
 }

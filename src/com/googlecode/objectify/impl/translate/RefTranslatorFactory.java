@@ -30,9 +30,7 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
 			@Override
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx) {
-				Ref<?> ref = Ref.create(Key.create(value));
-				ctx.maybeLoadRef(load, ref);
-				return ref;
+				return ctx.makeRef(load, Key.create(value));
 			}
 			
 			@Override

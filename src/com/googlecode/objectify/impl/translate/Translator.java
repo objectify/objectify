@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 
 /**
  * <p>A translator knows how convert between POJO objects and the EntityNode tree structure
@@ -16,13 +17,19 @@ import com.googlecode.objectify.impl.Path;
 public interface Translator<T>
 {
 	/**
-	 * Loads the content of the specified node, returning the pojo equivalent.
+	 * <p>Loads the content of the specified node, returning the pojo equivalent.</p>
+	 * 
+	 * <p>There is one neat trick: If a Result<?> is returned, the content of the Result will be used instead,
+	 * but delayed until ctx.done() is called.  This happens at the end of a "round" of load operations and is
+	 * the magic trick that makes populating entity references work efficiently.</p> 
 	 * 
 	 * @param node is the part of the entity tree we are transforming.
 	 * @param ctx holds state information during an entity load.  
 	 * @return an assembled pojo corresponding to the node subtree; if null is returned, that is the real value!
 	 * 
 	 * @throws SkipException if the subtree should not be loaded into a containing entity
+	 * 
+	 * @see LoadBatch
 	 */
 	T load(Node node, LoadContext ctx) throws SkipException;
 	

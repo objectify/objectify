@@ -12,7 +12,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.LoadType;
-import com.googlecode.objectify.impl.engine.Batch;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.util.ResultProxy;
 
 
@@ -82,7 +82,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public void refs(Iterable<? extends Ref<?>> refs) {
-		Batch batch = ofy.createBatch(fetchGroups);
+		LoadBatch batch = ofy.createBatch(fetchGroups);
 		for (Ref<?> ref: refs)
 			batch.loadRef(ref);
 		

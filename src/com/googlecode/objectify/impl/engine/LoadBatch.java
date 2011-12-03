@@ -27,10 +27,10 @@ import com.googlecode.objectify.util.ResultWrapper;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Batch
+public class LoadBatch
 {
 	/** */
-	private static final Logger log = Logger.getLogger(Batch.class.getName());
+	private static final Logger log = Logger.getLogger(LoadBatch.class.getName());
 	
 	/** 
 	 * Each round in the series of fetches required to complete a batch.  A round executes when
@@ -81,7 +81,7 @@ public class Batch
 					// process may add items to the pending queue.  As long as the queue has contents, we keep executing.
 					
 					Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(from.size() * 2);
-					LoadContext ctx = new LoadContext(ofy, Batch.this);
+					LoadContext ctx = new LoadContext(ofy, LoadBatch.this);
 					
 					for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: from.entrySet()) {
 						Key<?> key = Key.create(entry.getKey());
@@ -108,7 +108,7 @@ public class Batch
 	
 	/**
 	 */
-	public Batch(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Set<String> groups) {
+	public LoadBatch(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Set<String> groups) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;

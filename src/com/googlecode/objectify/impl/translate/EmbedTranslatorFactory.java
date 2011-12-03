@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.Node;
@@ -72,11 +73,29 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 						value = translator.load(actual, ctx);
 					}
 					
-					property.set(onPojo, value);
+					setOnPojo(onPojo, value, ctx);
 				}
 				catch (SkipException ex) {
 					// No prob, skip this one
 				}
+			}
+		}
+		
+		/**
+		 * Sets the property on the pojo to the value.  However, sensitive to the value possibly being a Result<?>
+		 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
+		 */
+		private void setOnPojo(final Object pojo, final Object value, LoadContext ctx) {
+			if (value instanceof Result) {
+				ctx.delay(new Runnable() {
+					@Override
+					public void run() {
+						Object actualValue = ((Result<?>)value).now();
+						property.set(pojo, actualValue);
+					}
+				});
+			} else {
+				property.set(pojo, value);
 			}
 		}
 		

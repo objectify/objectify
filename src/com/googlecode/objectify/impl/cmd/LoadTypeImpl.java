@@ -10,7 +10,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.impl.engine.Batch;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.ResultTranslator;
@@ -117,7 +117,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	public <S> Map<S, T> ids(Iterable<S> ids) {
 		Map<S, Ref<T>> refs = new LinkedHashMap<S, Ref<T>>();
 		
-		Batch batch = ofy.createBatch(fetchGroups);
+		LoadBatch batch = ofy.createBatch(fetchGroups);
 		
 		for (S id: ids) {
 			Key<T> key = DatastoreUtils.createKey(parent, type, id);

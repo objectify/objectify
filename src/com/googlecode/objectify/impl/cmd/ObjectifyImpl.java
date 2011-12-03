@@ -25,7 +25,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.engine.Batch;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.impl.engine.Engine;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -247,8 +247,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @param groups is the set of load groups that are active
 	 * @return a fresh engine that handles fundamental datastore operations for the commands
 	 */
-	public Batch createBatch(Set<String> groups) {
-		return new Batch(this, createAsyncDatastoreService(), session, groups);
+	public LoadBatch createBatch(Set<String> groups) {
+		return new LoadBatch(this, createAsyncDatastoreService(), session, groups);
 	}
 
 	/**
