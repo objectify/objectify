@@ -257,10 +257,10 @@ public class Node implements Iterable<Node>
 	}
 
 	/**
-	 * Create a simple unindexed property value node with a null (meaningless) path
+	 * Create a simple unindexed property value node with a root (basically meaningless) path
 	 */
 	public static Node of(Object value) {
-		Node node = new Node(null);
+		Node node = new Node(Path.root());
 		node.setPropertyValue(value);
 		return node;
 	}

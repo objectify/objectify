@@ -15,7 +15,6 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.DatastoreUtils;
-import com.googlecode.objectify.util.FieldValueTranslator;
 
 
 /**
@@ -38,12 +37,12 @@ public class KeyMetadata<T>
 	protected String kind;
 	
 	/** The @Id field on the pojo - it will be Long, long, or String */
-	protected Field idField;
-	protected FieldValueTranslator<Object, Object> idTranslator;
+	protected Property idField;
+	protected TranslateKeyProperty<Object, Object> idTranslator;
 
 	/** The @Parent field on the pojo, or null if there is no parent */
-	protected Field parentField;
-	protected FieldValueTranslator<Object, com.google.appengine.api.datastore.Key> parentTranslator;
+	protected Property parentField;
+	protected TranslateKeyProperty<Object, com.google.appengine.api.datastore.Key> parentTranslator;
 	
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
@@ -66,9 +65,9 @@ public class KeyMetadata<T>
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + clazz.getName());
 		
 		// Get the translators for id and parent fields
-		this.idTranslator = new FieldValueTranslator<Object, Object>(fact, idField);
+		this.idTranslator = new TranslateKeyProperty<Object, Object>(fact, idField);
 		if (this.parentField != null)
-			this.parentTranslator = new FieldValueTranslator<Object, com.google.appengine.api.datastore.Key>(fact, parentField);
+			this.parentTranslator = new TranslateKeyProperty<Object, com.google.appengine.api.datastore.Key>(fact, parentField);
 	}
 
 	/** @return the datastore kind associated with this metadata */
@@ -106,7 +105,7 @@ public class KeyMetadata<T>
 				if ((field.getType() != Long.class) && (field.getType() != long.class) && (field.getType() != String.class))
 					throw new IllegalStateException("@Id field '" + field.getName() + "' in " + clazz.getName() + " must be of type Long, long, or String");
 				
-				this.idField = field;
+				this.idField = new FieldProperty(fact, entityClass, field);
 			}
 			else if (field.isAnnotationPresent(Parent.class))
 			{
@@ -116,7 +115,7 @@ public class KeyMetadata<T>
 				if (!isAllowedParentFieldType(field.getType()))
 					throw new IllegalStateException("@Parent fields must be Key<?>, datastore Key, Ref<?>, or a pojo entity type. Illegal parent: " + field);
 
-				this.parentField = field;
+				this.parentField = new FieldProperty(fact, entityClass, field);
 			}
 		}
 	}
@@ -183,7 +182,7 @@ public class KeyMetadata<T>
 	 * @return null if there was no @Parent field, or the field is null.
 	 */
 	public Object getParent(T pojo) {
-		return parentField == null ? null : TypeUtils.field_get(parentField, pojo);
+		return parentField == null ? null : parentField.get(pojo);
 	}
 	
 	/**
@@ -203,7 +202,7 @@ public class KeyMetadata<T>
 	 * @return Long or String or null
 	 */
 	public Object getId(T pojo) {
-		return TypeUtils.field_get(idField, pojo);
+		return idField.get(pojo);
 	}
 	
 	/** @return the name of the parent field, or null if there wasn't one */
@@ -238,7 +237,7 @@ public class KeyMetadata<T>
 		if (this.parentField == null)
 			return false;
 		
-		Load load = this.parentField.getAnnotation(Load.class);
+		Load load = TypeUtils.getAnnotation(Load.class, parentField.getAnnotations());
 		
 		return TypeUtils.shouldLoad(load, enabledGroups);
 	}
@@ -250,16 +249,14 @@ public class KeyMetadata<T>
 		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
 
-		Object id = idTranslator.load(DatastoreUtils.getId(key), ctx);
-		TypeUtils.field_set(this.idField, pojo, id);
+		idTranslator.executeLoad(DatastoreUtils.getId(key), pojo, ctx);
 		
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
 			if (this.parentField == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + this.entityClass.getName() + " has no @Parent");
 			
-			Object parent = parentTranslator.load(parentKey, ctx);
-			TypeUtils.field_set(this.parentField, pojo, parent);
+			parentTranslator.executeLoad(parentKey, pojo, ctx);
 		}
 	}
 	
@@ -277,6 +274,6 @@ public class KeyMetadata<T>
 		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to set key of " + pojo.getClass().getName());
 
-		TypeUtils.field_set(this.idField, pojo, id);
+		this.idField.set(pojo, id);
 	}
 }

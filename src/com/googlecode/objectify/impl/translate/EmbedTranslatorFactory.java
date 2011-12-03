@@ -3,22 +3,18 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.TranslateProperty;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
-import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.LogUtils;
 
@@ -37,137 +33,6 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 	/** Exists only so that we can get an array with the @Embed annotation */
 	@Embed
 	private static class HasEmbed {}
-	
-	/** Associates a Property with a Translator */
-	private static class EachProperty {
-		Property property;
-		Translator<Object> translator;
-		
-		@SuppressWarnings("unchecked")
-		public EachProperty(Property prop, Translator<?> trans) {
-			this.property = prop;
-			this.translator = (Translator<Object>)trans;
-		}
-		
-		/** This is easier to debug if we have a string value */
-		@Override
-		public String toString() {
-			return this.getClass().getSimpleName() + "(" + property.getName() + ")";
-		}
-		
-		/** Executes loading this value from the node and setting it on the field */
-		@SuppressWarnings({ "rawtypes", "unchecked" })
-		public void executeLoad(Node node, Object onPojo, LoadContext ctx) {
-			Node actual = getChild(node, property);
-			
-			// We only execute if there is a real node.  Note that even a null value in the data will have a real
-			// EntityNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
-			if (actual != null) {
-				try {
-					// We have a couple special cases - for collection/map fields we would like to preserve the original
-					// instance, if one exists.  It might have been initialized with custom comparators, etc.
-					Object value;
-					if (translator instanceof CollectionListNodeTranslator && actual.hasList()) {
-						Collection coll = (Collection)this.property.get(onPojo);
-						value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((Node)actual, ctx, coll);
-					}
-					else if (translator instanceof MapMapNodeTranslator && actual.hasMap()) {
-						Map map = (Map)this.property.get(onPojo);
-						value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((Node)actual, ctx, map);
-					}
-					else {
-						value = translator.load(actual, ctx);
-					}
-					
-					setOnPojo(onPojo, value, ctx, node.getPath());
-				}
-				catch (SkipException ex) {
-					// No prob, skip this one
-				}
-			}
-		}
-		
-		/**
-		 * Sets the property on the pojo to the value.  However, sensitive to the value possibly being a Result<?>
-		 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
-		 */
-		private void setOnPojo(final Object pojo, final Object value, LoadContext ctx, final Path path) {
-			if (value instanceof Result) {
-				if (log.isLoggable(Level.FINEST))
-					log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
-					
-				ctx.delay(new Runnable() {
-					@Override
-					public void run() {
-						Object actualValue = ((Result<?>)value).now();
-						
-						if (log.isLoggable(Level.FINEST))
-							log.finest(LogUtils.msg(path, "Setting delayed property " + property.getName() + " to " + actualValue));
-						
-						property.set(pojo, actualValue);
-					}
-					
-					@Override
-					public String toString() {
-						return "(delayed Runnable to set " + property.getName() + ")";
-					}
-				});
-			} else {
-				if (log.isLoggable(Level.FINEST))
-					log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
-				
-				property.set(pojo, value);
-			}
-		}
-		
-		/** 
-		 * Executes saving the field value from the pojo into the mapnode
-		 * @param onPojo is the parent pojo which holds the property we represent
-		 * @param node is the node that corresponds to the parent pojo; we create a new node and put it in here
-		 * @param index is the default state of indexing up to this point 
-		 */
-		public void executeSave(Object onPojo, Node node, boolean index, SaveContext ctx) {
-			if (property.isSaved(onPojo)) {
-				// Look for an override on indexing
-				Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
-				if (propertyIndexInstruction != null)
-					index = propertyIndexInstruction;
-				
-				Object value = property.get(onPojo);
-				try {
-					Path path = node.getPath().extend(property.getName());
-					Node child = translator.save(value, path, index, ctx);
-					node.put(property.getName(), child);
-				}
-				catch (SkipException ex) {
-					// No problem, do nothing
-				}
-			}
-		}
-		
-		/**
-		 * @param parent is the collection in which to look
-		 * @param names is a list of names to look for in the parent 
-		 * @return one child which has a name in the parent
-		 * @throws IllegalStateException if there are multiple name matches
-		 */
-		private Node getChild(Node parent, Property prop) {
-			Node child = null;
-			
-			for (String name: prop.getLoadNames()) {
-				Node child2 = parent.get(name);
-				
-				if (child != null && child2 != null)
-					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
-							+ prop.getName() + "' at '" + child.getPath() + "' and '" + child2.getPath() + "'");
-				
-				if (child2 != null)
-					child = child2;
-			}
-			
-			return child;
-		}
-	}
 	
 	/**
 	 * Create a class loader for a root entity by making it work just like an embedded class.  Fakes
@@ -210,12 +75,12 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				for (String name: alsoLoad.value())
 					ctx.addAlternateEmbedPath(path.getPrevious().extend(name));
 			
-			final List<EachProperty> props = new ArrayList<EachProperty>();
+			final List<TranslateProperty<Object>> props = new ArrayList<TranslateProperty<Object>>();
 			
 			for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 				Path propPath = path.extend(prop.getName());
-				Translator<?> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType(), ctx);
-				props.add(new EachProperty(prop, loader));
+				Translator<Object> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType(), ctx);
+				props.add(new TranslateProperty<Object>(prop, loader));
 				
 				// Sanity check here
 				if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
@@ -230,7 +95,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 						
 					T pojo = fact.construct(clazz);
 					
-					for (EachProperty prop: props)
+					for (TranslateProperty<Object> prop: props)
 						prop.executeLoad(node, pojo, ctx);
 					
 					return pojo;
@@ -240,7 +105,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				protected Node saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
 					Node node = new Node(path);
 					
-					for (EachProperty prop: props)
+					for (TranslateProperty<Object> prop: props)
 						prop.executeSave(pojo, node, index, ctx);
 					
 					return node;
