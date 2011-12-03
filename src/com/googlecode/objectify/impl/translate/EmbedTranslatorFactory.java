@@ -20,6 +20,7 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import com.googlecode.objectify.util.LogUtils;
 
 
 /**
@@ -78,7 +79,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 						value = translator.load(actual, ctx);
 					}
 					
-					setOnPojo(onPojo, value, ctx);
+					setOnPojo(onPojo, value, ctx, node.getPath());
 				}
 				catch (SkipException ex) {
 					// No prob, skip this one
@@ -90,10 +91,10 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		 * Sets the property on the pojo to the value.  However, sensitive to the value possibly being a Result<?>
 		 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
 		 */
-		private void setOnPojo(final Object pojo, final Object value, LoadContext ctx) {
+		private void setOnPojo(final Object pojo, final Object value, LoadContext ctx, final Path path) {
 			if (value instanceof Result) {
 				if (log.isLoggable(Level.FINEST))
-					log.finest("Delaying set property " + property.getName());
+					log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
 					
 				ctx.delay(new Runnable() {
 					@Override
@@ -101,14 +102,19 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 						Object actualValue = ((Result<?>)value).now();
 						
 						if (log.isLoggable(Level.FINEST))
-							log.finest("Setting delayed property " + property.getName() + " to " + actualValue);
+							log.finest(LogUtils.msg(path, "Setting delayed property " + property.getName() + " to " + actualValue));
 						
 						property.set(pojo, actualValue);
+					}
+					
+					@Override
+					public String toString() {
+						return "(delayed Runnable to set " + property.getName() + ")";
 					}
 				});
 			} else {
 				if (log.isLoggable(Level.FINEST))
-					log.finest("Setting property " + property.getName() + " to " + value);
+					log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
 				
 				property.set(pojo, value);
 			}
@@ -220,7 +226,7 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 				@Override
 				protected T loadMap(Node node, LoadContext ctx) {
 					if (log.isLoggable(Level.FINEST))
-						log.finest("Instantiating a " + clazz.getName());
+						log.finest(LogUtils.msg(node.getPath(), "Instantiating a " + clazz.getName()));
 						
 					T pojo = fact.construct(clazz);
 					

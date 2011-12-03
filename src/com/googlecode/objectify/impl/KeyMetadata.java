@@ -2,6 +2,8 @@ package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Field;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
@@ -23,6 +25,9 @@ import com.googlecode.objectify.util.FieldValueTranslator;
  */
 public class KeyMetadata<T>
 {
+	/** */
+	private static final Logger log = Logger.getLogger(KeyMetadata.class.getName());
+	
 	/** */
 	protected ObjectifyFactory fact;
 	
@@ -139,9 +144,12 @@ public class KeyMetadata<T>
 	{
 		Object id = getId(pojo);
 		if (id == null)
-			if (isIdNumeric())
+			if (isIdNumeric()) {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Getting parent key from " + pojo);
+				
 				return new Entity(this.kind, getParentRaw(pojo));
-			else
+			} else
 				throw new IllegalStateException("Cannot save an entity with a null String @Id: " + pojo);
 		else
 			return new Entity(getRawKey(pojo));
@@ -154,6 +162,9 @@ public class KeyMetadata<T>
 	 * @throws IllegalArgumentException if obj has a null id
 	 */
 	public com.google.appengine.api.datastore.Key getRawKey(T pojo) {
+
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Getting key from " + pojo);
 		
 		if (!this.entityClass.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + this.entityClass.getName() + " to get key of " + pojo.getClass().getName());

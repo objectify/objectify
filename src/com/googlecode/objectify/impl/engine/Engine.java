@@ -6,6 +6,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
@@ -37,6 +39,9 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 public class Engine
 {
 	/** */
+	private static final Logger log = Logger.getLogger(Engine.class.getName());
+	
+	/** */
 	protected ObjectifyImpl ofy;
 	
 	/** */
@@ -58,6 +63,9 @@ public class Engine
 	 * The fundamental put() operation.
 	 */
 	public <K, E extends K> Result<Map<Key<K>, E>> save(final Iterable<? extends E> entities) {
+		
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Saving " + entities);
 		
 		List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
@@ -99,6 +107,9 @@ public class Engine
 					SessionEntity<E> sent = new SessionEntity<E>((Key<E>)key, new ResultNow<E>(obj)); 
 					session.add(sent);
 				}
+				
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Saved " + base);
 				
 				return result;
 			}

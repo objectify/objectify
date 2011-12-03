@@ -59,6 +59,11 @@ public class LoadBatch
 				public T now() {
 					return (T)translated.now().get(key);
 				}
+
+				@Override
+				public String toString() {
+					return "(Round Result of " + key + ")";
+				}
 			};
 		}
 		
@@ -92,6 +97,12 @@ public class LoadBatch
 					ctx.done();
 					
 					return result;
+				}
+				
+				/** Helpful when debugging */
+				@Override
+				public String toString() {
+					return "(Round translated ResultWrapper for " + pending + ")"; 
 				}
 			};
 		}

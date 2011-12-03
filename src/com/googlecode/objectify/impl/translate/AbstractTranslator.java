@@ -5,6 +5,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.util.LogUtils;
 
 /**
  * <p>Very simple helper for all kinds of translators.</p>
@@ -24,7 +25,7 @@ abstract public class AbstractTranslator<T> implements Translator<T>
 		T obj = this.loadAbstract(node, ctx);
 		
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Load: Translated " + node + " to " + obj);
+			log.logp(Level.FINEST, this.getClass().getName(), "load", LogUtils.msg(node.getPath(), "Loaded " + node + " to " + obj));
 		
 		return obj;
 	}
@@ -37,7 +38,7 @@ abstract public class AbstractTranslator<T> implements Translator<T>
 		Node n = this.saveAbstract(pojo, path, index, ctx);
 		
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Save: Translated " + pojo + " to " + n);
+			log.logp(Level.FINEST, this.getClass().getName(), "save", LogUtils.msg(path, "Saved " + pojo + " to " + n));
 		
 		return n;
 	};

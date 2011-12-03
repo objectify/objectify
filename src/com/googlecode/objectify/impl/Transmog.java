@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.LoadException;
@@ -28,6 +30,9 @@ import com.googlecode.objectify.util.DatastoreUtils;
  */
 public class Transmog<T>
 {
+	/** */
+	private static final Logger log = Logger.getLogger(Transmog.class.getName());
+	
 	/** The root translator that knows how to deal with an object of type T */
 	Translator<T> rootTranslator;
 	
@@ -81,6 +86,9 @@ public class Transmog<T>
 	 */
 	public Entity save(T fromPojo, Objectify ofy)
 	{
+		if (log.isLoggable(Level.FINEST))
+			log.finest("\tTranslating " + fromPojo);
+		
 		try {
 			Node root = save(fromPojo, new SaveContext(ofy));
 			Entity entity = save(root);
@@ -114,6 +122,10 @@ public class Transmog<T>
 	 * @return a root Node corresponding to the Entity, in a format suitable for translators.
 	 */
 	public Node load(Entity fromEntity) {
+		
+		if (log.isLoggable(Level.FINEST))
+			log.finest("\tTranslating " + fromEntity);
+		
 		Node root = this.loadLiterally(fromEntity);
 
 		// No embed collections?  No changes necessary, we can optimize out the graph walk
