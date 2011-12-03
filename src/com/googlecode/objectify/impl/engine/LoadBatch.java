@@ -21,7 +21,6 @@ import com.googlecode.objectify.impl.SessionEntity;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.util.ResultWrapper;
 
 /**
  * 
@@ -42,8 +41,14 @@ public class LoadBatch
 		Set<com.google.appengine.api.datastore.Key> pending = new HashSet<com.google.appengine.api.datastore.Key>();
 
 		/** After execution, we'll have one of these */
-		Result<Map<Key<?>, Object>> translated;
-
+		Result<Map<com.google.appengine.api.datastore.Key, Entity>> entities;
+		
+		/**
+		 * We keep track of the ones we have already translated in this round so that we can have circular references.
+		 * This gets initialized  
+		 */
+		Map<Key<?>, Object> translated;
+		
 		/** 
 		 * Adds a key to our pending queue and returns a result which will provide the translated value.
 		 */
@@ -57,7 +62,21 @@ public class LoadBatch
 				@Override
 				@SuppressWarnings("unchecked")
 				public T now() {
-					return (T)translated.now().get(key);
+					if (translated == null) {
+						translated = new HashMap<Key<?>, Object>(entities.now().size() * 2);
+						
+						LoadContext ctx = new LoadContext(ofy, LoadBatch.this);
+						
+						for (Entity ent: entities.now().values()) {
+							Key<?> key = Key.create(ent.getKey());
+							Object entity = ofy.load(ent, ctx);
+							translated.put(key, entity);
+						}
+						
+						ctx.done();
+					}
+					
+					return (T)translated.get(key);
 				}
 
 				@Override
@@ -78,33 +97,7 @@ public class LoadBatch
 				log.finest("Executing round: " + pending);
 			
 			Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
-			Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
-			translated = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<?>, Object>>(adapted) {
-				@Override
-				protected Map<Key<?>, Object> wrap(Map<com.google.appengine.api.datastore.Key, Entity> from) {
-					// This is where the fun happens.  We create a LoadContext and translate the whole result.  That
-					// process may add items to the pending queue.  As long as the queue has contents, we keep executing.
-					
-					Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(from.size() * 2);
-					LoadContext ctx = new LoadContext(ofy, LoadBatch.this);
-					
-					for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: from.entrySet()) {
-						Key<?> key = Key.create(entry.getKey());
-						Object entity = ofy.load(entry.getValue(), ctx);
-						result.put(key, entity);
-					}
-					
-					ctx.done();
-					
-					return result;
-				}
-				
-				/** Helpful when debugging */
-				@Override
-				public String toString() {
-					return "(Round translated ResultWrapper for " + pending + ")"; 
-				}
-			};
+			entities = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
 		}
 		
 		/** */
