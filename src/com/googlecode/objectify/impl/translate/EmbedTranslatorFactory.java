@@ -42,6 +42,12 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			this.translator = (Translator<Object>)trans;
 		}
 		
+		/** This is easier to debug if we have a string value */
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(" + property.getName() + ")";
+		}
+		
 		/** Executes loading this value from the node and setting it on the field */
 		@SuppressWarnings({ "rawtypes", "unchecked" })
 		public void executeLoad(Node node, Object onPojo, LoadContext ctx) {

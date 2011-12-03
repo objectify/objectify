@@ -140,7 +140,7 @@ public class Batch
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 */
 	public <T> Result<T> getResult(Key<T> key) {
-		SessionEntity sent = this.ensureSessionContent(key);	// might add the parents too!
+		SessionEntity<T> sent = this.ensureSessionContent(key);	// might add the parents too!
 		return sent.getResult();
 	}
 	
@@ -159,12 +159,12 @@ public class Batch
 	 * Makes sure that the session contains the right Result<?>s for the key and possibly
 	 * its parent keys depending on the @Load commands.  This is a recursive method.
 	 */
-	private SessionEntity ensureSessionContent(Key<?> key) {
-		SessionEntity sent = session.get(key);
+	private <T> SessionEntity<T> ensureSessionContent(Key<T> key) {
+		SessionEntity<T> sent = session.get(key);
 		if (sent == null) {
-			Result<?> result = round.get(key);
-			sent = new SessionEntity(result);
-			session.put(key, sent);
+			Result<T> result = round.get(key);
+			sent = new SessionEntity<T>(key, result);
+			session.add(sent);
 		}
 		
 		// Now check to see if we need to recurse and add our parent to the round

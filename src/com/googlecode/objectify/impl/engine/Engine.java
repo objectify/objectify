@@ -94,7 +94,10 @@ public class Engine
 					
 					Key<K> key = Key.create(k);
 					result.put(key, obj);
-					session.put(key, new SessionEntity(new ResultNow<E>(obj)));
+					
+					@SuppressWarnings("unchecked")
+					SessionEntity<E> sent = new SessionEntity<E>((Key<E>)key, new ResultNow<E>(obj)); 
+					session.add(sent);
 				}
 				
 				return result;
@@ -112,7 +115,7 @@ public class Engine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.put(Key.create(key), new SessionEntity(new ResultNow<Object>(null)));
+					session.add(new SessionEntity<Object>(Key.create(key), new ResultNow<Object>(null)));
 				
 				return orig;
 			}
@@ -145,15 +148,16 @@ public class Engine
 		
 		@Override
 		protected Ref<T> translate(Entity from) {
-			SessionEntity cached = session.get(from.getKey());
+			Key<T> key = Key.create(from.getKey());
+			SessionEntity<T> cached = session.get(key);
 			
 			if (cached == null || cached.getResult().now() == null) {
 				T obj = ofy.load(from, new LoadContext(ofy, null));	// todo
-				cached = new SessionEntity(new ResultNow<T>(obj));
-				session.put(Key.create(from.getKey()), cached);
+				cached = new SessionEntity<T>(key, new ResultNow<T>(obj));
+				session.add(cached);
 			}
 			
-			return new StdRef<T>(Key.<T>create(from.getKey()), cached.<T>getResult().now());
+			return new StdRef<T>(key, cached.getResult().now());
 		}
 	}
 }

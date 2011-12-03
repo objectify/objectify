@@ -52,13 +52,13 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 				if (method.getName().equals("commit")) {
 					txn.now().commit();
-					parentSession.putAll(session);
+					parentSession.addAll(session);
 					return null;	// void
 				} else if (method.getName().equals("commitAsync")) {
 					return new SimpleFutureWrapper<Void, Void>(txn.now().commitAsync()) {
 						@Override
 						protected Void wrap(Void paramK) throws Exception {
-							parentSession.putAll(session);
+							parentSession.addAll(session);
 							return paramK;
 						}
 					};
