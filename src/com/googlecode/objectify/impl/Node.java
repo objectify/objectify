@@ -241,8 +241,10 @@ public class Node implements Iterable<Node>
 	public String toString() {
 		StringBuilder bld = new StringBuilder();
 		
+		bld.append(path.toPathString()).append(':');
+		
 		if (hasPropertyValue())
-			bld.append('\'').append(getPropertyValue()).append('\'');
+			bld.append('{').append(getPropertyValue()).append('}');
 		
 		if (hasPropertyValue() && !isEmpty())
 			bld.append('+');

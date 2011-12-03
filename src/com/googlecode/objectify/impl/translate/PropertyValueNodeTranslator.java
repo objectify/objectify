@@ -9,13 +9,13 @@ import com.googlecode.objectify.impl.Path;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class PropertyValueNodeTranslator<T> implements Translator<T>
+abstract public class PropertyValueNodeTranslator<T> extends AbstractTranslator<T>
 {
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Translator#load(com.googlecode.objectify.impl.node.EntityNode, com.googlecode.objectify.impl.LoadContext)
+	 * @see com.googlecode.objectify.impl.translate.AbstractTranslator#loadAbstract(com.googlecode.objectify.impl.Node, com.googlecode.objectify.impl.translate.LoadContext)
 	 */
 	@Override
-	final public T load(Node node, LoadContext ctx) {
+	final public T loadAbstract(Node node, LoadContext ctx) {
 		if (!node.hasPropertyValue())
 			node.getPath().throwIllegalState("Expected property value but found: " + node);
 		
@@ -26,10 +26,10 @@ abstract public class PropertyValueNodeTranslator<T> implements Translator<T>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.translate.Translator#save(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
+	 * @see com.googlecode.objectify.impl.translate.AbstractTranslator#saveAbstract(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
+	final public Node saveAbstract(T pojo, Path path, boolean index, SaveContext ctx) {
 		if (pojo == null) {
 			Node node = new Node(path);
 			node.setPropertyValue(null, index);

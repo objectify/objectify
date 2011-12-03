@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
@@ -28,6 +30,9 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  */
 public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 {
+	/** */
+	private static final Logger log = Logger.getLogger(EmbedTranslatorFactory.class.getName());
+	
 	/** Exists only so that we can get an array with the @Embed annotation */
 	@Embed
 	private static class HasEmbed {}
@@ -87,14 +92,24 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 		 */
 		private void setOnPojo(final Object pojo, final Object value, LoadContext ctx) {
 			if (value instanceof Result) {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Delaying set property " + property.getName());
+					
 				ctx.delay(new Runnable() {
 					@Override
 					public void run() {
 						Object actualValue = ((Result<?>)value).now();
+						
+						if (log.isLoggable(Level.FINEST))
+							log.finest("Setting delayed property " + property.getName() + " to " + actualValue);
+						
 						property.set(pojo, actualValue);
 					}
 				});
 			} else {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Setting property " + property.getName() + " to " + value);
+				
 				property.set(pojo, value);
 			}
 		}
@@ -204,6 +219,9 @@ public class EmbedTranslatorFactory<T> implements TranslatorFactory<T>
 			return new MapNodeTranslator<T>() {
 				@Override
 				protected T loadMap(Node node, LoadContext ctx) {
+					if (log.isLoggable(Level.FINEST))
+						log.finest("Instantiating a " + clazz.getName());
+						
 					T pojo = fact.construct(clazz);
 					
 					for (EachProperty prop: props)

@@ -9,13 +9,13 @@ import com.googlecode.objectify.impl.Path;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ListNodeTranslator<T> implements Translator<T>
+abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
 {
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.load.Loader#load(com.googlecode.objectify.impl.node.EntityNode, com.googlecode.objectify.impl.LoadContext)
+	 * @see com.googlecode.objectify.impl.translate.AbstractTranslator#loadAbstract(com.googlecode.objectify.impl.Node, com.googlecode.objectify.impl.translate.LoadContext)
 	 */
 	@Override
-	final public T load(Node node, LoadContext ctx) {
+	final public T loadAbstract(Node node, LoadContext ctx) {
 		// Just ignore nulls for all collection types
 		if (node.hasPropertyValue() && node.getPropertyValue() == null)
 			throw new SkipException();
@@ -27,10 +27,10 @@ abstract public class ListNodeTranslator<T> implements Translator<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.translate.Translator#save(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
+	 * @see com.googlecode.objectify.impl.translate.AbstractTranslator#saveAbstract(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
+	final public Node saveAbstract(T pojo, Path path, boolean index, SaveContext ctx) {
 		// If the collection is null, just skip it.  This is important because of the way filtering works;
 		// if we stored a null then the field would match when filtering for null (same as a null in the list).
 		// Also, storing a null would forcibly assign null to the collection field on load, screwing things up

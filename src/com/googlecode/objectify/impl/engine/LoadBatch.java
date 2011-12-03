@@ -95,6 +95,12 @@ public class LoadBatch
 				}
 			};
 		}
+		
+		/** */
+		@Override
+		public String toString() {
+			return (translated == null ? "pending:" : "executed:") + pending.toString();
+		}
 	}
 	
 	/** */

@@ -24,6 +24,11 @@ public class LoadParentTests extends TestBase
 	public static class Father {
 		public @Id Long id;
 		public String foo;
+		
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(" + id + ", " + foo + ")";
+		}
 	}
 	
 	/** */
@@ -32,6 +37,11 @@ public class LoadParentTests extends TestBase
 		public @Id Long id;
 		public @Load @Parent Father father;
 		public String bar;
+		
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(" + id + ", " + father + ", " + bar + ")";
+		}
 	}
 	
 	/** */
