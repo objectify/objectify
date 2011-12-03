@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
@@ -29,7 +30,6 @@ import com.googlecode.objectify.util.ResultWrapper;
 public class Batch
 {
 	/** */
-	@SuppressWarnings("unused")
 	private static final Logger log = Logger.getLogger(Batch.class.getName());
 	
 	/** 
@@ -45,51 +45,55 @@ public class Batch
 		Result<Map<Key<?>, Object>> translated;
 
 		/** 
-		 * Adds a key to our pending queue and returns a result which will provide the translated value.  The
-		 * first request for the value will trigger execution of the round. 
+		 * Adds a key to our pending queue and returns a result which will provide the translated value.
 		 */
 		public <T> Result<T> get(final Key<T> key) {
+			if (log.isLoggable(Level.FINEST))
+				log.finest("Adding to round: " + key);
+			
 			this.pending.add(key.getRaw());
 			
 			return new Result<T>() {
 				@Override
 				@SuppressWarnings("unchecked")
 				public T now() {
-					Batch.this.execute();
 					return (T)translated.now().get(key);
 				}
 			};
 		}
 		
+		/** */
+		public boolean hasPending() {
+			return !pending.isEmpty();
+		}
+		
 		/** Turn this into a result set */
-		private void execute() {
-			if (translated == null && !pending.isEmpty()) {
-				Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
-				Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
-				translated = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<?>, Object>>(adapted) {
-					@Override
-					protected Map<Key<?>, Object> wrap(Map<com.google.appengine.api.datastore.Key, Entity> from) {
-						// This is where the fun happens.  We create a LoadContext and translate the whole result.  That
-						// process may add items to the pending queue.  As long as the queue has contents, we keep executing.
-						
-						Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(from.size() * 2);
-						LoadContext ctx = new LoadContext(ofy, Batch.this);
-						
-						for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: from.entrySet()) {
-							Key<?> key = Key.create(entry.getKey());
-							Object entity = ofy.load(entry.getValue(), ctx);
-							result.put(key, entity);
-						}
-						
-						ctx.done();
-						
-						return result;
+		public void execute() {
+			if (log.isLoggable(Level.FINEST))
+				log.finest("Executing round: " + pending);
+			
+			Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
+			Result<Map<com.google.appengine.api.datastore.Key, Entity>> adapted = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
+			translated = new ResultWrapper<Map<com.google.appengine.api.datastore.Key, Entity>, Map<Key<?>, Object>>(adapted) {
+				@Override
+				protected Map<Key<?>, Object> wrap(Map<com.google.appengine.api.datastore.Key, Entity> from) {
+					// This is where the fun happens.  We create a LoadContext and translate the whole result.  That
+					// process may add items to the pending queue.  As long as the queue has contents, we keep executing.
+					
+					Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(from.size() * 2);
+					LoadContext ctx = new LoadContext(ofy, Batch.this);
+					
+					for (Map.Entry<com.google.appengine.api.datastore.Key, Entity> entry: from.entrySet()) {
+						Key<?> key = Key.create(entry.getKey());
+						Object entity = ofy.load(entry.getValue(), ctx);
+						result.put(key, entity);
 					}
-				};
-				
-				// Start a new round, this one is finished
-				round = new Round();
-			}
+					
+					ctx.done();
+					
+					return result;
+				}
+			};
 		}
 	}
 	
@@ -144,7 +148,11 @@ public class Batch
 	 * Starts asychronous fetching of the batch.
 	 */
 	public void execute() {
-		round.execute();
+		while (round.hasPending()) {
+			Round old = round;
+			round = new Round();
+			old.execute();
+		}
 	}
 	
 	/**

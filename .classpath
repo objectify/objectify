@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/build-only/testng-5.11-jdk15.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/joda-money-0.6.jar"/>
+	<classpathentry kind="lib" path="lib/build-only/testng-6.3.1.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>

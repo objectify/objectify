@@ -5,6 +5,7 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.LoadParentRefTests.Child;
 import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup;
@@ -88,25 +89,26 @@ public class LoadParentRefTestsUsingSession extends TestBase
 		
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
-		ofy.put(node1);
+		Key<TreeNode> key1 = ofy.put(node1);
 
 		// Node2 should not exist but should have a concrete id for node3
 		TreeNode node2 = new TreeNode();
 		node2.id = 999L;
-		node2.parent = Ref.create(fact.<TreeNode>getKey(node1));
+		node2.parent = Ref.create(key1);
+		Key<TreeNode> key2 = fact.getKey(node2);
 		
 		TreeNode node3 = new TreeNode();
-		node3.parent = Ref.create(fact.<TreeNode>getKey(node2));
+		node3.parent = Ref.create(key2);
 		node3.foo = "foo3";
-		ofy.put(node3);
+		Key<TreeNode> key3 = ofy.put(node3);
 
-		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
+		// Doing this step by step to make it easier for debugging
+		Ref<TreeNode> fetched3Ref = ofy.load().key(key3);
+		TreeNode fetched3 = fetched3Ref.get();
 		
-		assert fetched3.parent.get().id.equals(node2.id);
-		assert fetched3.parent.get().foo == null;
-		assert fetched3.parent.get().parent.get().id.equals(node1.id);
-		assert fetched3.parent.get().parent.get().foo.equals(node1.foo);
-		assert fetched3.parent.get().parent.get().parent == null;
+		assert fetched3.parent.get() == null;
+		assert fetched3.parent.key().equals(key2);
+		assert fetched3.parent.key().getParent().equals(key1);
 	}
 
 	/** */
