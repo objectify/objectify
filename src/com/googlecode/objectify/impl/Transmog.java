@@ -16,9 +16,9 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.EntityClassTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
@@ -34,10 +34,7 @@ public class Transmog<T>
 	private static final Logger log = Logger.getLogger(Transmog.class.getName());
 	
 	/** The root translator that knows how to deal with an object of type T */
-	Translator<T> rootTranslator;
-	
-	/** */
-	KeyMetadata<T> keyMeta;
+	EntityClassTranslator<T> rootTranslator;
 	
 	/** */
 	Set<Path> embedCollectionPoints;
@@ -46,13 +43,16 @@ public class Transmog<T>
 	 * Creats a transmog for the specified class, introspecting it and discovering
 	 * how to load/save its properties.
 	 */
-	public Transmog(ObjectifyFactory fact, EntityMetadata<T> meta)
+	public Transmog(ObjectifyFactory fact, Class<T> clazz)
 	{
-		this.keyMeta = meta.getKeyMetadata();
-		
 		CreateContext ctx = new CreateContext(fact);
-		this.rootTranslator = fact.getTranslators().createRoot(meta.getEntityClass(), ctx);
+		this.rootTranslator = new EntityClassTranslator<T>(clazz, ctx);
 		this.embedCollectionPoints = ctx.getEmbedCollectionPoints();
+	}
+	
+	/** */
+	public KeyMetadata<T> getKeyMetadata() {
+		return this.rootTranslator;
 	}
 	
 	/**
@@ -133,7 +133,7 @@ public class Transmog<T>
 			this.modifyIntoTranslateFormat(root);
 
 		// Last step, add the key fields to the root Node so they get populated just like every other field would.
-		String idName = keyMeta.getIdFieldName();
+		String idName = getKeyMetadata().getIdFieldName();
 		
 		if (root.containsKey(idName))
 			throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Id field: " + fromEntity);
@@ -143,7 +143,7 @@ public class Transmog<T>
 			root.path(idName).setPropertyValue(idValue);
 		}
 		
-		String parentName = keyMeta.getParentFieldName();
+		String parentName = getKeyMetadata().getParentFieldName();
 		if (parentName != null) {
 			if (root.containsKey(parentName))
 				throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Parent field: " + fromEntity);
@@ -342,17 +342,17 @@ public class Transmog<T>
 		
 		// Step one is extract the id/parent from root and create the Entity
 		com.google.appengine.api.datastore.Key parent = null;
-		if (keyMeta.hasParentField()) {
-			Node parentNode = (Node)root.remove(keyMeta.getParentFieldName());
+		if (getKeyMetadata().hasParentField()) {
+			Node parentNode = (Node)root.remove(getKeyMetadata().getParentFieldName());
 			parent = (com.google.appengine.api.datastore.Key)parentNode.getPropertyValue();
 		}
 		
-		Node idNode = (Node)root.remove(keyMeta.getIdFieldName());
+		Node idNode = (Node)root.remove(getKeyMetadata().getIdFieldName());
 		Object id = idNode == null ? null : idNode.getPropertyValue();
 		
 		Entity ent = (id == null)
-				? new Entity(keyMeta.getKind(), parent)
-				: new Entity(DatastoreUtils.createKey(parent, keyMeta.getKind(), id));
+				? new Entity(getKeyMetadata().getKind(), parent)
+				: new Entity(DatastoreUtils.createKey(parent, getKeyMetadata().getKind(), id));
 		
 		// Step two is populate the entity fields recursively
 		populateFields(ent, root, false);

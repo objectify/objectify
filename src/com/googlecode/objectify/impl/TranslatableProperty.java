@@ -15,21 +15,24 @@ import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.LogUtils;
 
 /** 
- * Associates a Property with a Translator and provides a much more convenient interface.
+ * Associates a Property with a Translator and provides a more convenient interface.
  */
-public class TranslateProperty<T> {
+public class TranslatableProperty<T> {
 	/** */
-	private static final Logger log = Logger.getLogger(TranslateProperty.class.getName());
+	private static final Logger log = Logger.getLogger(TranslatableProperty.class.getName());
 	
 	/** */
 	protected Property property;
 	protected Translator<T> translator;
 	
 	/** */
-	public TranslateProperty(Property prop, Translator<T> trans) {
+	public TranslatableProperty(Property prop, Translator<T> trans) {
 		this.property = prop;
 		this.translator = trans;
 	}
+	
+	/** */
+	public Property getProperty() { return this.property; }
 	
 	/** This is easier to debug if we have a string value */
 	@Override
@@ -37,7 +40,11 @@ public class TranslateProperty<T> {
 		return this.getClass().getSimpleName() + "(" + property.getName() + ")";
 	}
 	
-	/** Executes loading this value from the node and setting it on the field */
+	/** 
+	 * Gets the appropriate value from the node and sets it on the appropriate field of the pojo.
+	 * @param node is the container node for the property
+	 * @param onPojo is the container object for the property
+	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public void executeLoad(Node node, Object onPojo, LoadContext ctx) {
 		Node actual = getChild(node, property);
@@ -102,8 +109,16 @@ public class TranslateProperty<T> {
 		}
 	}
 	
-	/** 
-	 * Executes saving the field value from the pojo into the mapnode
+	/** Comes out in datastore format */
+	public Object getFromPojo(Object pojo) {
+		@SuppressWarnings("unchecked")
+		T value = (T)property.get(pojo);
+		return translator.save(value, Path.root(), false, new SaveContext(null)).getPropertyValue();
+	}
+	
+	/**
+	 * Gets the appropriate field value from the pojo and puts it in the node with the appropriate key for this
+	 * property. 
 	 * @param onPojo is the parent pojo which holds the property we represent
 	 * @param node is the node that corresponds to the parent pojo; we create a new node and put it in here
 	 * @param index is the default state of indexing up to this point 
@@ -129,6 +144,8 @@ public class TranslateProperty<T> {
 	}
 	
 	/**
+	 * Gets a child node from a parent, detecting collisions and throwing an exception if one is found.
+	 * 
 	 * @param parent is the collection in which to look
 	 * @param names is a list of names to look for in the parent 
 	 * @return one child which has a name in the parent

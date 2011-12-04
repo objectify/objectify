@@ -28,9 +28,6 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	/** */
 	protected Class<T> entityClass;
 
-	/** */
-	protected KeyMetadata<T> keyMetadata;
-
 	/** Any methods in the hierarchy annotated with @OnSave, could be null */
 	protected List<Method> onSaveMethods;
 
@@ -52,13 +49,12 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.fact = fact;
 		this.entityClass = clazz;
 		this.cached = clazz.getAnnotation(Cache.class);
-		this.keyMetadata = new KeyMetadata<T>(fact, clazz);
 		
 		// Walk up the inheritance chain looking for @OnSave and @OnLoad
 		this.processLifecycleCallbacks(clazz);
 		
 		// Now figure out how to handle normal properties
-		this.transmog = new Transmog<T>(fact, this);
+		this.transmog = new Transmog<T>(fact, clazz);
 	}
 
 	/* (non-Javadoc)
@@ -194,7 +190,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 */
 	@Override
 	public KeyMetadata<T> getKeyMetadata() {
-		return this.keyMetadata;
+		return this.transmog.getKeyMetadata();
 	}
 
 	/** Just for testing purposes; not part of the EntityMetadata interface */

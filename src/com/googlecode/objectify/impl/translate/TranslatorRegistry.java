@@ -32,9 +32,6 @@ public class TranslatorRegistry
 	/** Where we should insert new translators */
 	int insertPoint;
 	
-	/** We hold on to the root factory because it gets used specially for root entities */
-	EmbedTranslatorFactory<?> rootFactory;
-	
 	/**
 	 * Initialize the default set of converters in the proper order.
 	 */
@@ -42,16 +39,13 @@ public class TranslatorRegistry
 	{
 		this.fact = fact;
 		
-		// This is special, lets us create translators for root objects
-		rootFactory = fact.construct(EmbedTranslatorFactory.class);
-		
 		// The order is CRITICAL!
 		this.translators.add(fact.construct(SerializeTranslatorFactory.class));	// Serialize has priority over everything
 		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
 		this.translators.add(fact.construct(ArrayTranslatorFactory.class));		// AFTER byte array otherwise we will occlude it
 		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
 		this.translators.add(fact.construct(MapTranslatorFactory.class));
-		this.translators.add(rootFactory);	// EmbedTranslatorFactory			// AFTER the various collections so we only process the content
+		this.translators.add(fact.construct(EmbedClassTranslatorFactory.class));	// AFTER the various collections so we only process the content
 		this.translators.add(fact.construct(ReferenceTranslatorFactory.class));	// AFTER embed so that you can embed entities if you want
 		
 		// Magic inflection point at which we want to prioritize added translators
@@ -79,16 +73,6 @@ public class TranslatorRegistry
 	public void add(TranslatorFactory<?> trans) {
 		this.translators.add(insertPoint, trans);
 		insertPoint++;
-	}
-	
-	/**
-	 * Create a loader for root entity classes.
-	 * 
-	 * @throws IllegalStateException if no matching loader can be found
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> Translator<T> createRoot(Type type, CreateContext ctx) {
-		return ((EmbedTranslatorFactory<T>)rootFactory).createRoot(type, ctx);
 	}
 	
 	/**

@@ -22,12 +22,9 @@ public class CreateContext
 	int collectionDepth;
 	
 	/**
-	 * Track the # of times we enter an embed - this can be more than 1.  This is also a little
-	 * special because the Root class is handled by an instance of EmbedTranslatorFactory, so
-	 * the first thing it does is enterEmbed() even though it really isn't an embedded.  This
-	 * is a little bit of a hack, but the solution is to initialize the depth to -1. 
+	 * Track the # of times we enter an embed - this can be more than 1. 
 	 */
-	int embedDepth = -1;
+	int embedDepth = 0;
 	
 	/** List of path points at which we start an embedded collection (including array) */
 	Set<Path> embedCollectionPoints;
@@ -39,14 +36,8 @@ public class CreateContext
 	
 	/** */
 	public void enterEmbed(Path path) {
-		if (isInCollection()) {
-			if (embedCollectionPoints == null)
-				embedCollectionPoints = new HashSet<Path>();
-			
-			embedCollectionPoints.add(path);
-		}
-		
 		embedDepth++;
+		addAlternateEmbedPath(path);
 	}
 	
 	/**
@@ -56,8 +47,12 @@ public class CreateContext
 	 * @param alternate is another path to add as a potential embed collection point.  no effect if we are not in an embed collection.
 	 */
 	public void addAlternateEmbedPath(Path alternate) {
-		if (isInCollection() && isInEmbed())
+		if (isInCollection() && isInEmbed()) {
+			if (embedCollectionPoints == null)
+				embedCollectionPoints = new HashSet<Path>();
+			
 			embedCollectionPoints.add(alternate);
+		}
 	}
 	
 	/** */
