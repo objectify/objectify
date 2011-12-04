@@ -6,7 +6,7 @@ import java.lang.reflect.Type;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -25,7 +25,7 @@ public class ReferenceTranslatorFactory implements TranslatorFactory<Object>
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
 		
-		if (clazz.getAnnotation(Entity.class) == null && clazz.getAnnotation(Subclass.class) == null)
+		if (clazz.getAnnotation(Entity.class) == null && clazz.getAnnotation(EntitySubclass.class) == null)
 			return null;
 		
 		final Load load = TypeUtils.getAnnotation(Load.class, fieldAnnotations);

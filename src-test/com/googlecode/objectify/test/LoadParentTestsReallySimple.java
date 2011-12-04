@@ -24,7 +24,7 @@ public class LoadParentTestsReallySimple extends TestBase
 	/** */
 	@Entity
 	public static class Father {
-		public @Id Long id;
+		public @Id long id;
 		
 		@Override
 		public String toString() {
@@ -35,7 +35,7 @@ public class LoadParentTestsReallySimple extends TestBase
 	/** */
 	@Entity
 	public static class Child {
-		public @Id Long id;
+		public @Id long id;
 		public @Load @Parent Father father;
 		
 		@Override
@@ -54,9 +54,11 @@ public class LoadParentTestsReallySimple extends TestBase
 		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
+		f.id = 123L;
 		ofy.put(f);
 		
 		Child ch = new Child();
+		ch.id = 456L;
 		ch.father = f;
 		Key<Child> kch = ofy.put(ch);
 		
@@ -65,6 +67,32 @@ public class LoadParentTestsReallySimple extends TestBase
 		Ref<Child> ref = ofy.load().key(kch);
 		Child fetched = ref.get();
 		
-		assert fetched.father.id.equals(f.id);
+		assert fetched.father.id == f.id;
+	}
+
+	/** */
+	@Test
+	public void testParentMissing() throws Exception
+	{
+		fact.register(Father.class);
+		fact.register(Child.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		Father f = new Father();
+		f.id = 123L;
+		// don't put
+		
+		Child ch = new Child();
+		ch.id = 456L;
+		ch.father = f;
+		Key<Child> kch = ofy.put(ch);
+		
+		ofy.clear();
+		
+		Ref<Child> ref = ofy.load().key(kch);
+		Child fetched = ref.get();
+		
+		assert fetched.father.id == f.id;
 	}
 }

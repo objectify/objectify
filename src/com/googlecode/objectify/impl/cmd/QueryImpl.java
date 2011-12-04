@@ -17,7 +17,7 @@ import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
@@ -69,7 +69,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
 		
 		// If this is a polymorphic subclass, add an extra filter
-		Subclass sub = clazz.getAnnotation(Subclass.class);
+		EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 		if (sub != null) {
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
 			this.actual.addFilter(PolymorphicEntityMetadata.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);

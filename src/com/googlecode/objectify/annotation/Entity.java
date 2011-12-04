@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * <p>This annotation must be placed on your entity POJOs.  If you have a polymorphic hierarchy,
- * the root should have @Entity and the subclasses should have @Subclass.</p>
+ * the root should have @Entity and the subclasses should have @EntitySubclass.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

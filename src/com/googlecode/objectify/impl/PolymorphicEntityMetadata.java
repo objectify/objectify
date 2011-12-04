@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.translate.LoadContext;
 
 
@@ -61,7 +61,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 
 			this.addIndexedDiscriminators(clazz.getSuperclass());
 			
-			Subclass sub = clazz.getAnnotation(Subclass.class);
+			EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 			if (sub != null && sub.index())
 			{
 				String disc = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
@@ -91,13 +91,13 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 	
 	/**
-	 * Registers a @Subclass in a polymorphic hierarchy.
+	 * Registers an @EntitySubclass in a polymorphic hierarchy.
 	 * 
-	 * @param clazz must have the @Subclass annotation
+	 * @param clazz must have the @EntitySubclass annotation
 	 */
 	public <S extends T> void addSubclass(Class<S> clazz, ConcreteEntityMetadata<S> subclassMeta)
 	{
-		Subclass sub = clazz.getAnnotation(Subclass.class);
+		EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 		assert sub != null;
 		
 		String discriminator = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();

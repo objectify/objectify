@@ -71,6 +71,32 @@ public class LoadParentTests extends TestBase
 	}
 
 	/** */
+	@Test
+	public void testParentMissing() throws Exception
+	{
+		fact.register(Father.class);
+		fact.register(Child.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		Father f = new Father();
+		f.foo = "foo";
+		// don't put
+		
+		Child ch = new Child();
+		ch.father = f;
+		ch.bar = "bar";
+		ofy.put(ch);
+		
+		ofy.clear();
+		Child fetched = ofy.get(fact.<Child>getKey(ch));
+		
+		assert fetched.bar.equals(ch.bar);
+		assert fetched.father.id.equals(f.id);
+		assert fetched.father.foo == null;	// partial entity doesn't have this part
+	}
+
+	/** */
 	@Entity
 	public static class TreeNode {
 		public @Id Long id;

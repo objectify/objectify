@@ -55,14 +55,16 @@ public class TranslatableProperty<T> {
 			try {
 				// We have a couple special cases - for collection/map fields we would like to preserve the original
 				// instance, if one exists.  It might have been initialized with custom comparators, etc.
-				Object value;
+				T value;
 				if (translator instanceof CollectionListNodeTranslator && actual.hasList()) {
-					Collection coll = (Collection)this.property.get(onPojo);
-					value = ((CollectionListNodeTranslator)translator).loadListIntoExistingCollection((Node)actual, ctx, coll);
+					Collection<Object> coll = (Collection<Object>)this.property.get(onPojo);
+					CollectionListNodeTranslator collTranslator = (CollectionListNodeTranslator)translator;
+					value = (T)collTranslator.loadListIntoExistingCollection(actual, ctx, coll);
 				}
 				else if (translator instanceof MapMapNodeTranslator && actual.hasMap()) {
 					Map map = (Map)this.property.get(onPojo);
-					value = ((MapMapNodeTranslator)translator).loadMapIntoExistingMap((Node)actual, ctx, map);
+					MapMapNodeTranslator mapTranslator = (MapMapNodeTranslator)translator;
+					value = (T)mapTranslator.loadMapIntoExistingMap(actual, ctx, map);
 				}
 				else {
 					value = translator.load(actual, ctx);
@@ -80,7 +82,7 @@ public class TranslatableProperty<T> {
 	 * Sets the property on the pojo to the value.  However, sensitive to the value possibly being a Result<?>
 	 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
-	private void setOnPojo(final Object pojo, final Object value, LoadContext ctx, final Path path) {
+	private void setOnPojo(final Object pojo, final T value, LoadContext ctx, final Path path) {
 		if (value instanceof Result) {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
@@ -109,8 +111,14 @@ public class TranslatableProperty<T> {
 		}
 	}
 	
+	/** */
+	public void setValue(Object pojo, Object value, LoadContext ctx) {
+		T obj = translator.load(Node.of(value), ctx);
+		setOnPojo(pojo, obj, ctx, Path.root());
+	}
+	
 	/** Comes out in datastore format */
-	public Object getFromPojo(Object pojo) {
+	public Object getValue(Object pojo) {
 		@SuppressWarnings("unchecked")
 		T value = (T)property.get(pojo);
 		return translator.save(value, Path.root(), false, new SaveContext(null)).getPropertyValue();

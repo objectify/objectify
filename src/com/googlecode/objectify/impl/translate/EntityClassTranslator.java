@@ -11,7 +11,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
@@ -48,8 +48,8 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	public EntityClassTranslator(Type type, CreateContext ctx) {
 		super((Class<T>)GenericTypeReflector.erase(type), Path.root(), ctx);
 		
-		if (clazz.getAnnotation(Entity.class) == null)
-			throw new IllegalArgumentException(type + " does not have the @Entity annotation");
+		// We should never have gotten this far in the registration process
+		assert clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(EntitySubclass.class) != null;
 
 		// There must be some field marked with @Id
 		if (this.idMeta == null)
@@ -95,7 +95,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 				|| Key.class.isAssignableFrom(erased)
 				|| Ref.class.isAssignableFrom(erased)
 				|| erased.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class)
-				|| erased.isAnnotationPresent(Subclass.class);
+				|| erased.isAnnotationPresent(EntitySubclass.class);
 	}
 
 	/* (non-Javadoc)
@@ -114,7 +114,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
-		idMeta.executeLoad(Node.of(DatastoreUtils.getId(key)), pojo, ctx);
+		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx);
 		
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
@@ -173,7 +173,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		if (parentMeta == null)
 			return null;
 		
-		return (com.google.appengine.api.datastore.Key)parentMeta.getFromPojo(pojo);
+		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo);
 	}
 
 	/**

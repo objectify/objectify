@@ -21,11 +21,11 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  */
 public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>>
 {
-	abstract public static class CollectionListNodeTranslator<T> extends ListNodeTranslator<Collection<T>> {
+	abstract public static class CollectionListNodeTranslator extends ListNodeTranslator<Collection<Object>> {
 		
 		/** Same as having a null existing collection */
 		@Override
-		final protected Collection<T> loadList(Node node, LoadContext ctx) {
+		final protected Collection<Object> loadList(Node node, LoadContext ctx) {
 			return loadListIntoExistingCollection(node, ctx, null);
 		}
 		
@@ -35,7 +35,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		 * 
 		 * @param coll can be null to trigger creating a new collection 
 		 */
-		abstract public Collection<T> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<T> coll);
+		abstract public Collection<Object> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<Object> coll);
 	}
 	
 	@Override
@@ -56,7 +56,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			
 			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 			
-			return new CollectionListNodeTranslator<Object>() {
+			return new CollectionListNodeTranslator() {
 				@Override
 				@SuppressWarnings("unchecked")
 				public Collection<Object> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<Object> collection) {

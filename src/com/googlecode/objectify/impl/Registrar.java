@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 
 /**
  * <p>Maintains information about registered entity classes<p>
@@ -54,7 +54,7 @@ public class Registrar
 	 * must be registered first.  This method must be called in a single-threaded
 	 * mode sometime around application initialization.</p> 
 	 * 
-	 * @param clazz must be annotated with either @Entity or @Subclass
+	 * @param clazz must be annotated with either @Entity or @EntitySubclass
 	 */
 	public <T> void register(Class<T> clazz)
 	{
@@ -63,11 +63,11 @@ public class Registrar
 		
 		// There are two possible cases
 		// 1) This might be a simple class with @Entity
-		// 2) This might be a class annotated with @Subclass
+		// 2) This might be a class annotated with @EntitySubclass
 		
 		String kind = Key.getKind(clazz);
 		
-		if (clazz.isAnnotationPresent(Subclass.class))
+		if (clazz.isAnnotationPresent(EntitySubclass.class))
 		{
 			this.registerPolymorphicHierarchy(kind, clazz);
 		}
@@ -82,7 +82,7 @@ public class Registrar
 		}
 		else
 		{
-			throw new IllegalArgumentException(clazz + " must have an @Entity or @Subclass annotation");
+			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @EntitySubclass");
 		}
 	}
 	
@@ -98,7 +98,7 @@ public class Registrar
 	protected <T> PolymorphicEntityMetadata<? super T> registerPolymorphicHierarchy(String kind, Class<T> clazz)
 	{
 		if (clazz == Object.class)
-			throw new IllegalArgumentException("A @Subclass hierarchy must have an @Entity superclass (direct or indirect)");
+			throw new IllegalArgumentException("An @EntitySubclass hierarchy must have an @Entity superclass (direct or indirect)");
 		
 		// First thing we do is climb and take care of the actual root @Entity
 		if (clazz.isAnnotationPresent(Entity.class))
@@ -124,8 +124,8 @@ public class Registrar
 			// Climb the superclass tree, then check for subclass registration
 			PolymorphicEntityMetadata<? super T> polymeta = this.registerPolymorphicHierarchy(kind, clazz.getSuperclass());
 
-			// We only register @Subclass entities; other intermediate classes are not registered
-			if (clazz.isAnnotationPresent(Subclass.class) && !this.byClass.containsKey(clazz))
+			// We only register @EntitySubclass entities; other intermediate classes are not registered
+			if (clazz.isAnnotationPresent(EntitySubclass.class) && !this.byClass.containsKey(clazz))
 			{
 				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 				polymeta.addSubclass(clazz, cmeta);

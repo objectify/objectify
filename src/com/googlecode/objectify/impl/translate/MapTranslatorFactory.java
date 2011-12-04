@@ -24,10 +24,10 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  */
 public class MapTranslatorFactory implements TranslatorFactory<Map<String, Object>>
 {
-	abstract public static class MapMapNodeTranslator<T> extends MapNodeTranslator<Map<String, T>> {
+	abstract public static class MapMapNodeTranslator extends MapNodeTranslator<Map<String, Object>> {
 		/** Same as having a null existing collection */
 		@Override
-		final protected Map<String, T> loadMap(Node node, LoadContext ctx) {
+		final protected Map<String, Object> loadMap(Node node, LoadContext ctx) {
 			return loadMapIntoExistingMap(node, ctx, null);
 		}
 		
@@ -37,7 +37,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		 * 
 		 * @param coll can be null to trigger creating a new map 
 		 */
-		abstract public Map<String, T> loadMapIntoExistingMap(Node node, LoadContext ctx, Map<String, T> coll);
+		abstract public Map<String, Object> loadMapIntoExistingMap(Node node, LoadContext ctx, Map<String, Object> coll);
 	}
 	
 	@Override
@@ -58,7 +58,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		
 		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
 		
-		return new MapMapNodeTranslator<Object>() {
+		return new MapMapNodeTranslator() {
 			@Override
 			@SuppressWarnings("unchecked")
 			public Map<String, Object> loadMapIntoExistingMap(Node node, LoadContext ctx, Map<String, Object> map) {

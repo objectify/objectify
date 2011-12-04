@@ -13,7 +13,7 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.test.util.TestBase;
 
 /**
@@ -49,7 +49,7 @@ public class PolymorphicGenericClassTests2 extends TestBase
 	}
 	
 	/** */
-	@Subclass(index=true)
+	@EntitySubclass(index=true)
 	public static class Car extends Vehicle<Car>
 	{
 		int numWheels;
