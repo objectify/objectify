@@ -96,4 +96,95 @@ public class LoadFieldTestsReallySimple extends TestBase
 		
 		assert fetched.child.id == ch.id;
 	}
+
+	/** */
+	@Entity
+	public static class ChildLoadGroup {
+		public @Id long id;
+		public String bar;
+		
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(" + id + ", " + bar + ")";
+		}
+	}
+
+	/** */
+	@Entity
+	public static class FatherLoadGroup {
+		public @Id long id;
+		public @Load("yes") ChildLoadGroup child;
+
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(" + id + ", " + child + ")";
+		}
+	}
+	
+	/** */
+	@Test
+	public void testLoadChildFieldWithGroup() throws Exception
+	{
+		fact.register(FatherLoadGroup.class);
+		fact.register(ChildLoadGroup.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		ChildLoadGroup ch = new ChildLoadGroup();
+		ch.id = 123;
+		ch.bar = "barvalue";
+		ofy.put(ch);
+		
+		FatherLoadGroup f = new FatherLoadGroup();
+		f.id = 456;
+		f.child = ch;
+		Key<FatherLoadGroup> kf = ofy.put(f);
+		
+		Ref<FatherLoadGroup> ref;
+		FatherLoadGroup fetched;
+		
+		ofy.clear();
+		ref = ofy.load().key(kf);
+		fetched = ref.get();
+		assert fetched.child.id == ch.id;
+		assert fetched.child.bar == null;
+
+		ofy.clear();
+		ref = ofy.load().group("yes").key(kf);
+		fetched = ref.get();
+		assert fetched.child.id == ch.id;
+		assert fetched.child.bar.equals(ch.bar);
+	}
+	
+	/** */
+	@Test
+	public void testReloadChildFieldWithGroupFromSession() throws Exception
+	{
+		fact.register(FatherLoadGroup.class);
+		fact.register(ChildLoadGroup.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		ChildLoadGroup ch = new ChildLoadGroup();
+		ch.id = 123;
+		ch.bar = "barvalue";
+		ofy.put(ch);
+		
+		FatherLoadGroup f = new FatherLoadGroup();
+		f.id = 456;
+		f.child = ch;
+		Key<FatherLoadGroup> kf = ofy.put(f);
+		
+		Ref<FatherLoadGroup> ref;
+		FatherLoadGroup fetched;
+		
+		ofy.clear();
+		ref = ofy.load().key(kf);
+
+		// Now load again without clear
+		ref = ofy.load().group("yes").key(kf);
+		fetched = ref.get();
+		assert fetched.child.id == ch.id;
+		assert fetched.child.bar.equals(ch.bar);
+	}
 }

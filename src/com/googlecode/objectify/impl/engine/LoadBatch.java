@@ -125,9 +125,6 @@ public class LoadBatch
 		this.groups = groups;
 	}
 	
-	/** Get the set of groups that are enabled on this batch */
-	public Set<String> getGroups() { return this.groups; }
-	
 	/**
 	 * The fundamental ref() operation.
 	 */

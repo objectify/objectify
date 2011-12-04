@@ -175,7 +175,6 @@ public class LoadFieldTests extends TestBase
 		public @Load("multi") List<Trivial> multi = new ArrayList<Trivial>();
 	}
 	
-	
 	/** */
 	@Test
 	public void testGrouping() throws Exception
@@ -219,4 +218,5 @@ public class LoadFieldTests extends TestBase
 		assert fetched.multi.get(1).getSomeString().equals(t2.getSomeString());
 		assert fetched.single == fetched.multi.get(0);
 	}
+
 }
