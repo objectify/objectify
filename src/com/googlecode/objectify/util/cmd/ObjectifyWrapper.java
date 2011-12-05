@@ -1,7 +1,7 @@
 /*
  */
 
-package com.googlecode.objectify.util;
+package com.googlecode.objectify.util.cmd;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;

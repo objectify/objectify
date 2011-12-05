@@ -1,4 +1,4 @@
-package com.googlecode.objectify.util;
+package com.googlecode.objectify.util.cmd;
 
 import java.util.List;
 
