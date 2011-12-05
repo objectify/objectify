@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
@@ -17,8 +16,6 @@ import com.googlecode.objectify.condition.If;
 public class FieldProperty extends AbstractProperty
 {
 	Field field;
-	String[] names;
-	Annotation[] annotations;
 	
 	/** These are authoritative */
 	If<?, ?>[] indexConditions;

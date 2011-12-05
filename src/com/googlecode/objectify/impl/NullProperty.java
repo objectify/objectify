@@ -12,12 +12,9 @@ public class NullProperty extends AbstractProperty
 	/** Always just use this instance */
 	public static final NullProperty INSTANCE = new NullProperty();
 
-	/** */
-	private static final Annotation[] EMPTY_ANNOTATIONS = new Annotation[0];
-	
 	/** Hide constructor */
 	private NullProperty() {
-		super(NullProperty.class.getSimpleName(), EMPTY_ANNOTATIONS, NullProperty.class.getSimpleName());
+		super(NullProperty.class.getSimpleName(), new Annotation[0], NullProperty.class.getSimpleName());
 	}
 	
 	@Override
