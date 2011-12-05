@@ -6,6 +6,7 @@ import java.util.Set;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.IgnoreLoad;
+import com.googlecode.objectify.annotation.Load;
 
 /** 
  * Some common behavior of properties
@@ -15,6 +16,8 @@ abstract public class AbstractProperty implements Property
 	String name;
 	String[] names;
 	Annotation[] annotations;
+	
+	/** The states are important - null means none, empty means "all" */
 	String[] loadGroups;
 	
 	/** */
@@ -44,6 +47,9 @@ abstract public class AbstractProperty implements Property
 		names = nameSet.toArray(new String[nameSet.size()]);
 		
 		// Get @Load groups
+		Load load = this.getAnnotation(Load.class);
+		if (load != null)
+			loadGroups = load.value();
 	}
 
 	@Override
@@ -63,7 +69,7 @@ abstract public class AbstractProperty implements Property
 
 	@Override
 	public String[] getLoadGroups() {
-		return null;
+		return loadGroups;
 	}
 	
 	@Override
