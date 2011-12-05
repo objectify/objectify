@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl.cmd;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
@@ -23,10 +22,11 @@ import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Node;
+import com.googlecode.objectify.impl.NullProperty;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.impl.engine.Engine;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -302,7 +302,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			
 			return result;
 		} else {
-			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), new Annotation[0], value.getClass(), new CreateContext(getFactory()));
+			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));
 			Node node = translator.save(value, Path.root(), false, new SaveContext(this));
 			return getFilterableValue(node, value);
 		}

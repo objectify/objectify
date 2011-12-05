@@ -46,7 +46,7 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 		
 		for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 			Path propPath = path.extend(prop.getName());
-			Translator<Object> loader = fact.getTranslators().create(propPath, prop.getAnnotations(), prop.getType(), ctx);
+			Translator<Object> loader = fact.getTranslators().create(propPath, prop, prop.getType(), ctx);
 			TranslatableProperty<Object> tprop = new TranslatableProperty<Object>(prop, loader);
 			props.add(tprop);
 			

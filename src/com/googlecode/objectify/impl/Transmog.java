@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -64,6 +65,9 @@ public class Transmog<T>
 	public T load(Entity fromEntity, LoadContext ctx) throws LoadException
 	{
 		try {
+			// The context needs to know the root entity for any given point
+			ctx.setRoot(Key.create(fromEntity.getKey()));
+			
 			Node root = load(fromEntity);
 			T pojo = load(root, ctx);
 			return pojo;

@@ -3,7 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -20,6 +19,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -260,7 +260,7 @@ public class ValueTranslationTests extends TestBase
 		
 		this.fact.getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
-			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Property property, Type type, CreateContext ctx) {
 				return new ValueTranslator<BigDecimal, String>(path, String.class) {
 					@Override
 					protected BigDecimal loadValue(String value, LoadContext ctx) {

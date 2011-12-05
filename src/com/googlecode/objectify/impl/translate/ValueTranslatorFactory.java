@@ -1,9 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
@@ -22,9 +22,9 @@ abstract public class ValueTranslatorFactory<P, D> implements TranslatorFactory<
 	}
 
 	@Override
-	final public Translator<P> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	final public Translator<P> create(Path path, Property property, Type type, CreateContext ctx) {
 		if (this.pojoType.isAssignableFrom(GenericTypeReflector.erase(type))) {
-			return createSafe(path, fieldAnnotations, type, ctx);
+			return createSafe(path, property, type, ctx);
 		} else {
 			return null;
 		}
@@ -34,5 +34,5 @@ abstract public class ValueTranslatorFactory<P, D> implements TranslatorFactory<
 	 * Create a translator, knowing that we have the appropriate type.  You don't need to check for type matching.
 	 * @param type is guaranteed to erase to something assignable to Class<P>
 	 */
-	abstract protected ValueTranslator<P, D> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx);
+	abstract protected ValueTranslator<P, D> createSafe(Path path, Property property, Type type, CreateContext ctx);
 }

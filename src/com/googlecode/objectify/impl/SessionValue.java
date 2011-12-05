@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
@@ -12,8 +12,16 @@ import com.googlecode.objectify.Result;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SessionEntity<T>
+public class SessionValue<T>
 {
+	/**
+	 * We track each property in the entity that is unfetched so that subsequent loads which
+	 * may have different load groups might populate the relevant fields. 
+	 */
+	public static class Unfetched {
+		Property prop;
+	}
+	
 	/**
 	 * Key associated with the result.  Mostly here for debugging purposes.
 	 */
@@ -24,19 +32,14 @@ public class SessionEntity<T>
 	 */
 	Result<T> result;
 	
-	/**
-	 * Groups that have been fetched for this entity.  If null, it means that all groups have been fetched.
+	/** 
+	 * Track all the fields which might be fetched in a different load group 
 	 */
-	Set<String> groups;
-	
-	/**
-	 * Somehow we need to track relationship fields for object graph walks
-	 */
-	LinkedHashSet<Object> relationships;
+	List<Unfetched> unfetched = new LinkedList<Unfetched>();
 	
 	/**
 	 */
-	public SessionEntity(Key<T> key, Result<T> result) {
+	public SessionValue(Key<T> key, Result<T> result) {
 		this.key = key;
 		this.result = result;
 	}

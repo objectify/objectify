@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import org.joda.time.LocalDate;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -24,7 +24,7 @@ public class LocalDateTranslatorFactory extends ValueTranslatorFactory<LocalDate
 	}
 
 	@Override
-	protected ValueTranslator<LocalDate, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	protected ValueTranslator<LocalDate, String> createSafe(Path path, Property property, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<LocalDate, String>(path, String.class) {
 			@Override

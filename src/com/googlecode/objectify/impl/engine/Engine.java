@@ -21,7 +21,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.SessionEntity;
+import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.ref.StdRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -104,7 +104,7 @@ public class Engine
 					result.put(key, obj);
 					
 					@SuppressWarnings("unchecked")
-					SessionEntity<E> sent = new SessionEntity<E>((Key<E>)key, new ResultNow<E>(obj)); 
+					SessionValue<E> sent = new SessionValue<E>((Key<E>)key, new ResultNow<E>(obj)); 
 					session.add(sent);
 				}
 				
@@ -126,7 +126,7 @@ public class Engine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(new SessionEntity<Object>(Key.create(key), new ResultNow<Object>(null)));
+					session.add(new SessionValue<Object>(Key.create(key), new ResultNow<Object>(null)));
 				
 				return orig;
 			}
@@ -160,11 +160,11 @@ public class Engine
 		@Override
 		protected Ref<T> translate(Entity from) {
 			Key<T> key = Key.create(from.getKey());
-			SessionEntity<T> cached = session.get(key);
+			SessionValue<T> cached = session.get(key);
 			
 			if (cached == null || cached.getResult().now() == null) {
 				T obj = ofy.load(from, new LoadContext(ofy, null));	// todo
-				cached = new SessionEntity<T>(key, new ResultNow<T>(obj));
+				cached = new SessionValue<T>(key, new ResultNow<T>(obj));
 				session.add(cached);
 			}
 			

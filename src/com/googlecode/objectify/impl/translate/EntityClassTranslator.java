@@ -8,16 +8,14 @@ import java.util.logging.Logger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TranslatableProperty;
-import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
 
@@ -66,7 +64,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		
 		Property prop = tprop.getProperty();
 		
-		if (TypeUtils.getAnnotation(Id.class, prop.getAnnotations()) != null) {
+		if (prop.getAnnotation(Id.class) != null) {
 			if (this.idMeta != null)
 				throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + clazz.getName());
 
@@ -75,7 +73,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 			
 			this.idMeta = tprop;
 		}
-		else if (TypeUtils.getAnnotation(Parent.class, prop.getAnnotations()) != null) {
+		else if (prop.getAnnotation(Parent.class) != null) {
 			if (this.parentMeta != null)
 				throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + clazz.getName());
 
@@ -223,9 +221,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		if (this.parentMeta == null)
 			return false;
 		
-		Load load = TypeUtils.getAnnotation(Load.class, parentMeta.getProperty().getAnnotations());
-		
-		return TypeUtils.shouldLoad(load, enabledGroups);
+		return parentMeta.getProperty().shouldLoad(enabledGroups);
 	}
 	
 	/* (non-Javadoc)

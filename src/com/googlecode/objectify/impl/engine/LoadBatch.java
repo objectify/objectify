@@ -13,12 +13,11 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.SessionEntity;
-import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
 
@@ -147,7 +146,7 @@ public class LoadBatch
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 */
 	public <T> Result<T> getResult(Key<T> key) {
-		SessionEntity<T> sent = this.ensureSessionContent(key);	// might add the parents too!
+		SessionValue<T> sent = this.ensureSessionContent(key);	// might add the parents too!
 		return sent.getResult();
 	}
 	
@@ -166,12 +165,14 @@ public class LoadBatch
 	 * Makes sure that the session contains the right Result<?>s for the key and possibly
 	 * its parent keys depending on the @Load commands.  This is a recursive method.
 	 */
-	private <T> SessionEntity<T> ensureSessionContent(Key<T> key) {
-		SessionEntity<T> sent = session.get(key);
+	private <T> SessionValue<T> ensureSessionContent(Key<T> key) {
+		SessionValue<T> sent = session.get(key);
 		if (sent == null) {
 			Result<T> result = round.get(key);
-			sent = new SessionEntity<T>(key, result);
+			sent = new SessionValue<T>(key, result);
 			session.add(sent);
+		} else {
+			// Make sure that there aren't any pending loads for the specified groups]
 		}
 		
 		// Now check to see if we need to recurse and add our parent to the round
@@ -188,10 +189,9 @@ public class LoadBatch
 	}
 	
 	/**
-	 * @param load can be null, which will always produce false
-	 * @return true if the specified load annotation should be loaded in this batch
+	 * @return true if the specified property should be loaded in this batch
 	 */
-	public boolean shouldLoad(Load load) {
-		return TypeUtils.shouldLoad(load, groups);
+	public boolean shouldLoad(Property property) {
+		return property.shouldLoad(groups);
 	}
 }

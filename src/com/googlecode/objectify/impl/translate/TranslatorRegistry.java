@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /** 
@@ -60,7 +60,7 @@ public class TranslatorRegistry
 		this.translators.add(fact.construct(TimeZoneTranslatorFactory.class));
 		
 		// LAST!  It catches everything.
-		this.translators.add(fact.construct(UnmodifiedValueTranslatorFactory.class));
+		this.translators.add(fact.construct(AsIsTranslatorFactory.class));
 	}
 	
 	/**
@@ -81,10 +81,10 @@ public class TranslatorRegistry
 	 * @param ctx is the context we pass down from the root
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
-	public <T> Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	public <T> Translator<T> create(Path path, Property property, Type type, CreateContext ctx) {
 		for (TranslatorFactory<?> trans: this.translators) {
 			@SuppressWarnings("unchecked")
-			Translator<T> soFar = (Translator<T>)trans.create(path, fieldAnnotations, type, ctx);
+			Translator<T> soFar = (Translator<T>)trans.create(path, property, type, ctx);
 			if (soFar != null)
 				return soFar;
 		}

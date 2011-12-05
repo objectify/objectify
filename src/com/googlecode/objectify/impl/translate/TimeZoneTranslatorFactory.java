@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.TimeZone;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -19,7 +19,7 @@ public class TimeZoneTranslatorFactory extends ValueTranslatorFactory<TimeZone, 
 	}
 	
 	@Override
-	protected ValueTranslator<TimeZone, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	protected ValueTranslator<TimeZone, String> createSafe(Path path, Property property, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<TimeZone, String>(path, String.class) {
 			@Override

@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -41,7 +41,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 	}
 	
 	@Override
-	public Translator<Map<String, Object>> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	public Translator<Map<String, Object>> create(Path path, Property property, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Map<String, ?>> mapType = (Class<? extends Map<String, ?>>)GenericTypeReflector.erase(type);
 		
@@ -56,7 +56,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[1]);
 		
-		final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
+		final Translator<Object> componentTranslator = fact.getTranslators().create(path, property, componentType, ctx);
 		
 		return new MapMapNodeTranslator() {
 			@Override

@@ -1,9 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -16,10 +16,10 @@ import com.googlecode.objectify.impl.Path;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class UnmodifiedValueTranslatorFactory implements TranslatorFactory<Object>
+public class AsIsTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, final CreateContext ctx) {
+	public Translator<Object> create(Path path, Property property, Type type, final CreateContext ctx) {
 
 		return new ValueTranslator<Object, Object>(path, Object.class) {
 			@Override

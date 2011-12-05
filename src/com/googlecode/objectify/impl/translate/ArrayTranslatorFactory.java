@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -8,6 +7,7 @@ import java.util.List;
 
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -25,7 +25,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	public Translator<Object> create(Path path, Property property, Type type, CreateContext ctx) {
 		final Class<?> arrayType = (Class<?>)GenericTypeReflector.erase(type);
 		
 		if (!arrayType.isArray())
@@ -34,7 +34,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		ctx.enterCollection(path);
 		try {
 			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, fieldAnnotations, componentType, ctx);
+			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, property, componentType, ctx);
 	
 			return new ListNodeTranslator<Object>() {
 				@Override

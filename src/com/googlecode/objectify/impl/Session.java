@@ -13,12 +13,12 @@ import com.googlecode.objectify.Key;
 public class Session
 {
 	/** */
-	private Map<Key<?>, SessionEntity<?>> map = new HashMap<Key<?>, SessionEntity<?>>();
+	private Map<Key<?>, SessionValue<?>> map = new HashMap<Key<?>, SessionValue<?>>();
 	
 	/**
 	 * Add/overwrite a SE.
 	 */
-	public void add(SessionEntity<?> se) {
+	public void add(SessionValue<?> se) {
 		map.put(se.getKey(), se);
 	}
 	
@@ -29,8 +29,8 @@ public class Session
 	
 	/** */
 	@SuppressWarnings("unchecked")
-	public <T> SessionEntity<T> get(Key<T> key) {
-		return (SessionEntity<T>)map.get(key);
+	public <T> SessionValue<T> get(Key<T> key) {
+		return (SessionValue<T>)map.get(key);
 	}
 	
 	/** */

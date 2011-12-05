@@ -1,9 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -18,7 +18,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class NumberTranslatorFactory implements TranslatorFactory<Number>
 {
 	@Override
-	public ValueTranslator<Number, Object> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	public ValueTranslator<Number, Object> create(Path path, Property property, Type type, CreateContext ctx)
 	{
 		final Class<?> clazz = GenericTypeReflector.erase(type);
 		

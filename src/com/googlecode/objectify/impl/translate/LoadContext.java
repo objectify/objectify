@@ -7,8 +7,9 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.Partial;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -26,6 +27,9 @@ public class LoadContext
 	/** Lazily created, but executed at the end of done() */
 	List<Runnable> delayed;
 	
+	/** The key of the current root entity; will change as multiple entities are loaded */
+	Key<?> root;
+	
 	/** */
 	public LoadContext(Objectify ofy, LoadBatch batch)
 	{
@@ -35,6 +39,11 @@ public class LoadContext
 	
 	/** */
 	public Objectify getObjectify() { return this.ofy; }
+	
+	/** Sets the current root entity */
+	public void setRoot(Key<?> rootEntity) {
+		this.root = rootEntity;
+	}
 	
 	/** 
 	 * Call this when a load process completes.  Executes anything in the batch and then executes any delayed operations. 
@@ -51,24 +60,27 @@ public class LoadContext
 	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
 	 * state of load groups.
 	 */
-	public <T> Ref<T> makeRef(Load load, Key<T> key) {
+	public <T> Ref<T> makeRef(Property property, Key<T> key) {
 		Ref<T> ref = Ref.create(key);
 		
-		if (batch.shouldLoad(load))
+		if (batch.shouldLoad(property))
 			batch.loadRef(ref);
 		
 		return ref;
 	}
 	
 	/**
-	 * Create an entity reference object for the key.  If not loaded, the reference will be a simple
-	 * partial entity.  If loaded, the return value will be a Result<?> that produces a loaded instance.
+	 * Create an entity reference object for the key.  If not loaded, the reference will be a Partial<?>
+	 * If loaded, the return value will be a Result<?> that produces a loaded instance.  Note that the
+	 * Result<?> will never be a Result<Partial<?>>; even if the value is notfound on fetch, an unwrapped partial
+	 * is returned so that the higher levels don't try to fetch it again in the future.
 	 * 
-	 * @param clazz is the type of the partial to generate, or base class of the result (in either case it is the fied type)
-	 * @return either a partial entity or Result<?> that will produce a loaded instance.
+	 * @param property is the property which will hold the reference
+	 * @param clazz is the type of the reference to generate, or base class of the result (in either case it is the field type)
+	 * @return a Result<Object> or a Partial<Object>
 	 */
-	public Object makeReference(Load load, final Class<?> clazz, final com.google.appengine.api.datastore.Key key) {
-		if (batch.shouldLoad(load)) {
+	public Object makeReference(Property property, final Class<?> clazz, final com.google.appengine.api.datastore.Key key) {
+		if (batch.shouldLoad(property)) {
 			// Back into the batch, magically enqueueing a pending!
 			Result<Object> base = batch.getResult(Key.create(key));
 			
@@ -83,10 +95,9 @@ public class LoadContext
 					else
 						return orig;
 				}
-				
 			};
 		} else {
-			return makePartial(clazz, key);
+			return new Partial<Object>(makePartial(clazz, key));
 		}
 	}
 	
@@ -111,5 +122,12 @@ public class LoadContext
 			this.delayed = new ArrayList<Runnable>();
 		
 		this.delayed.add(runnable);
+	}
+	
+	/**
+	 * 
+	 */
+	public void registerPartial(Object pojo, Property prop, Object value) {
+		
 	}
 }

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Set;
 
 /** 
  * Basic interface so we can wrap fields and methods so they look more or less the same.
@@ -15,8 +16,8 @@ public interface Property
 	/** Get all the names associated with this property (ie, due to @AlsoLoad). Includes the primary name unless it is @IgnoreLoad. */
 	String[] getLoadNames();
 	
-	/** Get all the annotations associated with this property; ie on the field or the parameter */
-	Annotation[] getAnnotations();
+	/** Get an annotation on this type, or null if there is no annotation of that type */
+	<A extends Annotation> A getAnnotation(Class<A> annoType);
 
 	/** Get the real generic type of the field */
 	Type getType();
@@ -47,4 +48,14 @@ public interface Property
 	 *  won't work (ie in embedded collections) so we need to throw an exception at registration time.
 	 */
 	boolean hasIgnoreSaveConditions();
+	
+	/**
+	 * @return true if the property should be loaded when the given loadgroups are active
+	 */
+	boolean shouldLoad(Set<String> groups);
+	
+	/**
+	 * @return the load groups under which this property will be loaded.  null means none, an empty array means all.
+	 */
+	String[] getLoadGroups();
 }

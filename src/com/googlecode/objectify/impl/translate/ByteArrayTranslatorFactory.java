@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -22,7 +22,7 @@ public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], B
 	}
 	
 	@Override
-	public ValueTranslator<byte[], Blob> createSafe(Path path, Annotation[] fieldAnnotations, Type type, final CreateContext ctx) {
+	public ValueTranslator<byte[], Blob> createSafe(Path path, Property property, Type type, final CreateContext ctx) {
 
 		return new ValueTranslator<byte[], Blob>(path, Blob.class) {
 			@Override

@@ -1,9 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 /**
  * <p>A translator knows how to load an entity Node subgraph into a POJO object.  When an entity class is registered,
@@ -20,11 +20,11 @@ public interface TranslatorFactory<T>
 {
 	/**
 	 * @param path current path to this part of the tree, important for logging and exceptions
-	 * @param fieldAnnotations are the annotations on the field which we are analyzing.
+	 * @param property is the property we are inspecting to create a translator for
 	 * @param type is the generic type of the field (or field component).  For example, examining a field of type
 	 *  List<String> will have a Type of List<String>; the TranslatorFactory which recognizes List may then ask
 	 *  for a translator of its component type String.
 	 * @return null if this factory does not know how to deal with that situation. 
 	 */
-	Translator<T> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx);
+	Translator<T> create(Path path, Property property, Type type, CreateContext ctx);
 }

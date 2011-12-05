@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -20,7 +20,7 @@ public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createSafe(Path path, Property property, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(path, com.google.appengine.api.datastore.Key.class) {
 			@Override

@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -21,7 +21,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 	}
 	
 	@Override
-	protected ValueTranslator<String, Object> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	protected ValueTranslator<String, Object> createSafe(Path path, Property property, Type type, CreateContext ctx)
 	{
 		final boolean disallowConversion = ctx.isInCollection() && ctx.isInEmbed();
 				

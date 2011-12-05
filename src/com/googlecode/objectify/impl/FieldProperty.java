@@ -3,12 +3,8 @@ package com.googlecode.objectify.impl;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
@@ -18,7 +14,7 @@ import com.googlecode.objectify.condition.If;
 /** 
  * Property which encapsulates a simple field. 
  */
-public class FieldProperty implements Property
+public class FieldProperty extends AbstractProperty
 {
 	Field field;
 	String[] names;
@@ -37,30 +33,11 @@ public class FieldProperty implements Property
 	 * be declared on a superclass of this class so it's not the same as field.getDeclaringClass()
 	 */
 	public FieldProperty(ObjectifyFactory fact, Class<?> examinedClass, Field field) {
-		field.setAccessible(true);
+		super(field.getName(), field.getAnnotations(), field);
 		
 		this.field = field;
-		this.annotations = field.getAnnotations();
-		
-		Set<String> nameSet = new LinkedHashSet<String>();
-		
-		// If we have @IgnoreLoad, don't add to the AllNames collection (which is used for loading)
-		if (field.getAnnotation(IgnoreLoad.class) == null)
-			nameSet.add(field.getName());
-		
-		// Now any additional names, either @AlsoLoad or the deprecated @OldName
-		AlsoLoad alsoLoad = field.getAnnotation(AlsoLoad.class);
-		if (alsoLoad != null)
-			if (alsoLoad.value() == null || alsoLoad.value().length == 0)
-				throw new IllegalStateException("If specified, @AlsoLoad must specify at least one value: " + field);
-			else
-				for (String value: alsoLoad.value())
-					if (value == null || value.trim().length() == 0)
-						throw new IllegalStateException("Illegal value '" + value + "' in @AlsoLoad for " + field);
-					else
-						nameSet.add(value);
-		
-		names = nameSet.toArray(new String[nameSet.size()]);
+
+		field.setAccessible(true);
 		
 		IfConditionGenerator ifGenerator = new IfConditionGenerator(fact, examinedClass);
 
@@ -87,20 +64,8 @@ public class FieldProperty implements Property
 	
 	/** */
 	@Override
-	public String getName() { return field.getName(); }
-	
-	/** */
-	@Override
-	public String[] getLoadNames() { return names; }
-	
-	/** */
-	@Override
 	public Type getType() { return this.field.getGenericType(); }
 
-	/** */
-	@Override
-	public Annotation[] getAnnotations() { return annotations; }
-	
 	/** */
 	@Override
 	public void set(Object pojo, Object value) {

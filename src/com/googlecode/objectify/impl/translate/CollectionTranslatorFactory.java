@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -39,7 +39,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 	}
 	
 	@Override
-	public Translator<Collection<Object>> create(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx) {
+	public Translator<Collection<Object>> create(Path path, Property property, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Collection<?>> collectionType = (Class<? extends Collection<?>>)GenericTypeReflector.erase(type);
 		
@@ -54,7 +54,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			if (componentType == null)	// if it was a raw type, just assume Object
 				componentType = Object.class;
 			
-			final Translator<Object> componentTranslator = fact.getTranslators().create(path, fieldAnnotations, componentType, ctx);
+			final Translator<Object> componentTranslator = fact.getTranslators().create(path, property, componentType, ctx);
 			
 			return new CollectionListNodeTranslator() {
 				@Override

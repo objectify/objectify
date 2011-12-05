@@ -19,9 +19,14 @@ public interface Translator<T>
 	/**
 	 * <p>Loads the content of the specified node, returning the pojo equivalent.</p>
 	 * 
-	 * <p>There is one neat trick: If a Result<?> is returned, the content of the Result will be used instead,
+	 * <p>There are some special return values:</p>
+	 * <ul>
+	 * <li>If a Result<?> is returned, the content of the Result will be used instead,
 	 * but delayed until ctx.done() is called.  This happens at the end of a "round" of load operations and is
-	 * the magic trick that makes populating entity references work efficiently.</p> 
+	 * the magic trick that makes populating entity references work efficiently.</li>
+	 * <li>If a Partial<?> is returned, the content will be used instead.  This may cause the ClassTranslator
+	 * to record the field as something that might be refreshed in a subsequent load with different groups.</li>
+	 * </ul> 
 	 * 
 	 * @param node is the part of the entity tree we are transforming.
 	 * @param ctx holds state information during an entity load.  

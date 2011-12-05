@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import org.joda.time.DateTimeZone;
 
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -25,7 +25,7 @@ public class DateTimeZoneTranslatorFactory extends ValueTranslatorFactory<DateTi
 	}
 
 	@Override
-	protected ValueTranslator<DateTimeZone, String> createSafe(Path path, Annotation[] fieldAnnotations, Type type, CreateContext ctx)
+	protected ValueTranslator<DateTimeZone, String> createSafe(Path path, Property property, Type type, CreateContext ctx)
 	{
 		return new ValueTranslator<DateTimeZone, String>(path, String.class) {
 			@Override

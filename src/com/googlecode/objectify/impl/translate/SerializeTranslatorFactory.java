@@ -5,13 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -24,16 +24,16 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
-	public Translator<Object> create(Path path, Annotation[] fieldAnnotations, Type type, final CreateContext ctx) {
+	public Translator<Object> create(Path path, Property property, Type type, final CreateContext ctx) {
 
 		final Class<?> clazz = (Class<?>)GenericTypeReflector.erase(type);
 		
 		// We only work with @Serialize classes
-		if (TypeUtils.getAnnotation(Serialize.class, fieldAnnotations, clazz) == null)
+		if (TypeUtils.getAnnotation(Serialize.class, property, clazz) == null)
 			return null;
 		
 		// Sanity check so we don't have @Serialize and @Embed
-		if (TypeUtils.getAnnotation(Embed.class, fieldAnnotations, clazz) != null)
+		if (TypeUtils.getAnnotation(Embed.class, property, clazz) != null)
 			path.throwIllegalState("You cannot both @Serialize and @Embed; check the field and the target class for annotations");
 		
 		return new ValueTranslator<Object, Blob>(path, Blob.class) {
