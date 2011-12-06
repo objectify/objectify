@@ -176,6 +176,13 @@ public class LoadFieldRefTests extends TestBase
 		public @Load("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
 	
+	/** Useful utility method */
+	private void assertUninitialziedRef(Ref<?> ref) {
+		try {
+			ref.get();
+			assert false;
+		} catch (IllegalStateException ex) {}
+	}
 	
 	/** */
 	@Test
@@ -189,31 +196,34 @@ public class LoadFieldRefTests extends TestBase
 		he.multi.add(Ref.create(k2));
 		HasEntitiesWithGroups fetched = this.putAndGet(he);
 		
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString() == null;
-		assert fetched.multi.get(0) == fetched.single;
+		Key<HasEntitiesWithGroups> hekey = fact.getKey(he);
 		
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.single.key().equals(k1);
+		assertUninitialziedRef(fetched.single);
+
+		assert fetched.multi.get(0).equals(fetched.single);
+		for (Ref<Trivial> ref: fetched.multi)
+			assertUninitialziedRef(ref);
 		
 		TestObjectify ofy = fact.begin();
 		
-		fetched = ofy.load().group("single").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group("single").key(hekey).get();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(0).get() == fetched.single.get();	// good question about this
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.multi.get(0).equals(fetched.single);
+		for (Ref<Trivial> ref: fetched.multi)
+			assertUninitialziedRef(ref);
 
-		fetched = ofy.load().group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString() == null;	// or should this be the same item as multi[0]?
 		
-		fetched = ofy.load().group("single").group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		assert fetched.multi.get(0).equals(fetched.single);
+		assertUninitialziedRef(fetched.single);
+		
+		fetched = ofy.load().group("single").group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());

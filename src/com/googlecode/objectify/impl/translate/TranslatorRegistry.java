@@ -46,7 +46,7 @@ public class TranslatorRegistry
 		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
 		this.translators.add(fact.construct(MapTranslatorFactory.class));
 		this.translators.add(fact.construct(EmbedClassTranslatorFactory.class));	// AFTER the various collections so we only process the content
-		this.translators.add(fact.construct(ReferenceTranslatorFactory.class));	// AFTER embed so that you can embed entities if you want
+		this.translators.add(fact.construct(EntityReferenceTranslatorFactory.class));	// AFTER embed so that you can embed entities if you want
 		
 		// Magic inflection point at which we want to prioritize added translators
 		this.insertPoint = this.translators.size();

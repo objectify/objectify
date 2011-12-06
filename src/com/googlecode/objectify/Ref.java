@@ -89,4 +89,22 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	public int compareTo(Ref<T> o) {
 		return this.key().compareTo(o.key());
 	}
+	
+	/** Equality comparison is based on key and nothing else */
+	@Override
+	public boolean equals(Object obj) {
+		return obj != null && obj instanceof Ref && key().equals(((Ref<?>)obj).key());
+	}
+	
+	/** Hash code is simply that of key */
+	@Override
+	public int hashCode() {
+		return key().hashCode();
+	}
+	
+	/** Renders some info about the key */
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + "(" + key() + ")";
+	}
 }

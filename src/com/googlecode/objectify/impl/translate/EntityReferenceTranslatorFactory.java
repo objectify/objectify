@@ -16,7 +16,7 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ReferenceTranslatorFactory implements TranslatorFactory<Object>
+public class EntityReferenceTranslatorFactory implements TranslatorFactory<Object>
 {
 	@Override
 	public ValueTranslator<Object, com.google.appengine.api.datastore.Key> create(Path path, final Property property, Type type, CreateContext ctx)
