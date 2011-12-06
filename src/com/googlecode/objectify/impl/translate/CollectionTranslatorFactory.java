@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -68,7 +69,21 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					for (Node child: node) {
 						try {
 							Object value = componentTranslator.load(child, ctx);
-							collection.add(value);
+							if (value instanceof Result) {
+								// We need to defer the add
+								
+								final Result<?> result = ((Result<?>)value);
+								final Collection<Object> coll = collection;
+								
+								ctx.defer(new Runnable() {
+									@Override
+									public void run() {
+										coll.add(result.now());
+									}
+								});
+							} else {
+								collection.add(value);
+							}
 						}
 						catch (SkipException ex) {
 							// No prob, just skip that one

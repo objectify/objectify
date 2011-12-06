@@ -25,7 +25,7 @@ public class LoadContext
 	LoadBatch batch;
 	
 	/** Lazily created, but executed at the end of done() */
-	List<Runnable> delayed;
+	List<Runnable> deferred;
 	
 	/** The key of the current root entity; will change as multiple entities are loaded */
 	Key<?> currentRoot;
@@ -61,9 +61,9 @@ public class LoadContext
 	public void done() {
 		batch.execute();
 		
-		while (delayed != null) {
-			List<Runnable> runme = delayed;
-			delayed = null;	// reset this because it might get filled with more
+		while (deferred != null) {
+			List<Runnable> runme = deferred;
+			deferred = null;	// reset this because it might get filled with more
 			
 			for (Runnable run: runme)
 				run.run();
@@ -156,10 +156,10 @@ public class LoadContext
 	/**
 	 * Delays an operation until the context is done().
 	 */
-	public void delay(Runnable runnable) {
-		if (this.delayed == null)
-			this.delayed = new ArrayList<Runnable>();
+	public void defer(Runnable runnable) {
+		if (this.deferred == null)
+			this.deferred = new ArrayList<Runnable>();
 		
-		this.delayed.add(runnable);
+		this.deferred.add(runnable);
 	}
 }

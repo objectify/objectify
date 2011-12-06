@@ -50,4 +50,10 @@ public class Trivial
 		this.someNumber = someNumber;
 		this.someString = someString;
 	}
+	
+	@Override
+	public String toString()
+	{
+		return this.getClass().getSimpleName() + "(id=" + id + ", someString=" + someString + ", someNumber=" + someNumber + ")";
+	}
 }

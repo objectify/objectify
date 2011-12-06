@@ -87,7 +87,7 @@ public class TranslatableProperty<T> {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
 				
-			ctx.delay(new Runnable() {
+			ctx.defer(new Runnable() {
 				@Override
 				public void run() {
 					@SuppressWarnings("unchecked")

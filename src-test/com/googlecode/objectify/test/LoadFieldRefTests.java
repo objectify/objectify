@@ -95,13 +95,10 @@ public class LoadFieldRefTests extends TestBase
 		he.multi.add(Ref.create(kNone2));
 		HasEntities fetched = this.putClearGet(he);
 		
-		assert fetched.single.get().getId().equals(tNone1.getId());
-		assert fetched.single.get().getSomeString() == null;
+		assert fetched.single.get() == null;
 		
-		assert fetched.multi.get(0).get() == fetched.single.get();
-		
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString() == null;
+		assert fetched.multi.get(0).get() == null;
+		assert fetched.multi.get(1).get() == null;
 	}
 
 	/** */

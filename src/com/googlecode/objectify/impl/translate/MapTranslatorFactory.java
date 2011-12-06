@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -67,9 +68,21 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 				else
 					map.clear();
 				
-				for (Node child: node) {
+				for (final Node child: node) {
 					Object value = componentTranslator.load(child, ctx);
-					map.put(child.getPath().getSegment(), value);
+					if (value instanceof Result) {
+						final Result<?> result = (Result<?>)value;
+						final Map<String, Object> finalMap = map;
+						
+						ctx.defer(new Runnable() {
+							@Override
+							public void run() {
+								finalMap.put(child.getPath().getSegment(), result.now());
+							}
+						});
+					} else {
+						map.put(child.getPath().getSegment(), value);
+					}
 				}
 
 				return map;

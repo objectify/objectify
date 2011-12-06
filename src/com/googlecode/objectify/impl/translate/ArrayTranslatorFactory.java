@@ -5,6 +5,7 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -52,9 +53,25 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 					}
 	
 					// We can't use List.toArray() because it doesn't work with primitives
-					Object array = Array.newInstance(GenericTypeReflector.erase(componentType), list.size());
-					for (int i=0; i<list.size(); i++)
-						Array.set(array, i, list.get(i));
+					final Object array = Array.newInstance(GenericTypeReflector.erase(componentType), list.size());
+					for (int i=0; i<list.size(); i++) {
+						Object value = list.get(i);
+						if (value instanceof Result) {
+							// defer the set operation
+							final Result<?> result = (Result<?>)value;
+							final int index = i;
+							
+							ctx.defer(new Runnable() {
+								@Override
+								public void run() {
+									Array.set(array, index, result.now());
+								}
+							});
+						} else {
+							Array.set(array, i, value);
+						}
+						
+					}
 					
 					return array;
 				}
