@@ -2,9 +2,11 @@ package com.googlecode.objectify.impl;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.impl.engine.LoadBatch;
 
 
 /**
@@ -18,25 +20,39 @@ public class SessionValue<T>
 	 * We track each property in the entity that is unfetched so that subsequent loads which
 	 * may have different load groups might populate the relevant fields. 
 	 */
-	public static class PartialProperty {
-		Object pojo;
-		Property property;
-		com.google.appengine.api.datastore.Key key;
+	abstract public static class Upgrade<U> {
+		private Key<U> key;
 		
-		public PartialProperty(Object pojo, Property prop, com.google.appengine.api.datastore.Key key) {
-			this.pojo = pojo;
+		protected Property property;
+		
+		/** After prepare(), we will have one of these; on doUpgrade the result will be populated */
+		protected Result<U> result;
+		
+		/** */
+		public Upgrade(Property prop, Key<U> key) {
 			this.property = prop;
 			this.key = key;
 		}
-		
-		public Object getPojo() { return this.pojo; }
-		public Property getProperty() { return this.property; }
-		public com.google.appengine.api.datastore.Key getKey() { return this.key; }
-		
+
+		/** */
 		@Override
 		public String toString() {
 			return this.getClass().getSimpleName() + "(property=" + property.getName() + ", key=" + key + ")";
 		}
+		
+		/** @return true if the upgrade should happen given the specified load groups */
+		public boolean shouldLoad(Set<String> groups) {
+			return property.shouldLoad(groups);
+		}
+		
+		/**
+		 * Starts the async result fetch; when doUpgrade is called later the result should be set on the relevant field.
+		 */
+		public void prepare(LoadBatch batch) {
+			this.result = batch.getResult(key);
+		}
+		
+		abstract public void doUpgrade();
 	}
 	
 	/**
@@ -52,7 +68,7 @@ public class SessionValue<T>
 	/** 
 	 * Track all the fields which might be fetched in a different load group 
 	 */
-	List<PartialProperty> partials = new LinkedList<PartialProperty>();
+	List<Upgrade<?>> upgrades = new LinkedList<Upgrade<?>>();
 	
 	/**
 	 */
@@ -97,7 +113,7 @@ public class SessionValue<T>
 	 * master entity... and if that master entity is reloaded with new load groups, the partials
 	 * are checked to see if anything should be reloaded.
 	 */
-	public List<PartialProperty> getPartialProperties() {
-		return this.partials;
+	public List<Upgrade<?>> getUpgrades() {
+		return this.upgrades;
 	}
 }

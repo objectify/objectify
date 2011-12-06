@@ -164,17 +164,21 @@ public class LoadParentRefTests extends TestBase
 		ChildWithGroup ch = new ChildWithGroup();
 		ch.father = Ref.create(fact.<Father>getKey(f));
 		ch.bar = "bar";
-		ofy.put(ch);
+		Key<ChildWithGroup> kch = ofy.put(ch);
 		
 		// This should get an empty ref
 		ofy.clear();
-		ChildWithGroup fetched = ofy.get(fact.<ChildWithGroup>getKey(ch));
+		Ref<ChildWithGroup> ref = ofy.load().key(kch);
+		ChildWithGroup fetched = ref.get();
 		assert fetched.father.key().getId() == f.id;
-		assert fetched.father.get() == null;
+		try {
+			fetched.father.get();
+			assert false;
+		} catch (IllegalStateException ex) {}	// ref should not be initialized
 
 		// This should get a filled in ref
 		ofy.clear();
-		ChildWithGroup fetched2 = ofy.load().group("group").key(fact.<ChildWithGroup>getKey(ch)).get();
+		ChildWithGroup fetched2 = ofy.load().group("group").key(kch).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}

@@ -66,7 +66,7 @@ public class Transmog<T>
 	{
 		try {
 			// The context needs to know the root entity for any given point
-			ctx.setRoot(Key.create(fromEntity.getKey()));
+			ctx.setCurrentRoot(Key.create(fromEntity.getKey()));
 			
 			Node root = load(fromEntity);
 			T pojo = load(root, ctx);

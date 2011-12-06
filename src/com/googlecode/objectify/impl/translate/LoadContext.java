@@ -8,10 +8,8 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
-import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SessionValue;
-import com.googlecode.objectify.impl.SessionValue.PartialProperty;
+import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -30,7 +28,11 @@ public class LoadContext
 	List<Runnable> delayed;
 	
 	/** The key of the current root entity; will change as multiple entities are loaded */
-	Key<?> root;
+	Key<?> currentRoot;
+	
+	/** The "current" pojo and property; basically whatever is being worked on now */
+	Object currentPojo;
+	Property currentProperty;
 	
 	/** */
 	public LoadContext(Objectify ofy, LoadBatch batch)
@@ -43,8 +45,14 @@ public class LoadContext
 	public Objectify getObjectify() { return this.ofy; }
 	
 	/** Sets the current root entity */
-	public void setRoot(Key<?> rootEntity) {
-		this.root = rootEntity;
+	public void setCurrentRoot(Key<?> rootEntity) {
+		this.currentRoot = rootEntity;
+	}
+	
+	/** Sets the current object and property context */
+	public void setCurrentProperty(Object pojo, Property prop) {
+		this.currentPojo = pojo;
+		this.currentProperty = prop;
 	}
 	
 	/** 
@@ -69,10 +77,18 @@ public class LoadContext
 	 * state of load groups.
 	 */
 	public <T> Ref<T> makeRef(Property property, Key<T> key) {
-		Ref<T> ref = Ref.create(key);
+		final Ref<T> ref = Ref.create(key);
 		
-		if (batch.shouldLoad(property))
+		if (batch.shouldLoad(property)) {
 			batch.loadRef(ref);
+		} else if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
+			batch.registerUpgrade(currentRoot, new Upgrade<T>(currentProperty, key) {
+				@Override
+				public void doUpgrade() {
+					ref.set(result);
+				}
+			});
+		}
 		
 		return ref;
 	}
@@ -105,7 +121,22 @@ public class LoadContext
 				}
 			};
 		} else {
-			return new Partial<Object>(key, makePartial(clazz, key));
+			if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
+				final Object pojo = currentPojo;
+				batch.registerUpgrade(currentRoot, new Upgrade<Object>(currentProperty, Key.create(key)) {
+					@Override
+					public void doUpgrade() {
+						property.set(pojo, result.now());
+					}
+					
+					@Override
+					public String toString() {
+						return "(upgrade " + property.getName() + " on " + pojo + " to value of " + key + ")";
+					}
+				});
+			}
+			
+			return makePartial(clazz, key);
 		}
 	}
 	
@@ -130,20 +161,5 @@ public class LoadContext
 			this.delayed = new ArrayList<Runnable>();
 		
 		this.delayed.add(runnable);
-	}
-	
-	/**
-	 * As translation is occurring, some fields are set with partial entities.  These fields might
-	 * need to be loaded with real entities during a subsequent fetch with different load groups.
-	 * Every time a partial is filled, it is registered in the session value associated with the
-	 * master entity... and if that master entity is reloaded with new load groups, the partials
-	 * are checked to see if anything should be reloaded.
-	 */
-	public void registerPartial(Object pojo, Property prop, com.google.appengine.api.datastore.Key key) {
-		
-		// This should always exist since we're translating something that was just put in the session
-		SessionValue<?> sv = batch.getSessionValue(root);
-		
-		sv.getPartialProperties().add(new PartialProperty(pojo, prop, key));
 	}
 }

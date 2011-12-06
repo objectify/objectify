@@ -83,6 +83,9 @@ public class TranslatableProperty<T> {
 	 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
 	private void setOnPojo(final Object pojo, final T value, final LoadContext ctx, final Path path) {
+		// Set the load context to this property
+		ctx.setCurrentProperty(pojo, property);
+		
 		if (value instanceof Result) {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
@@ -100,12 +103,6 @@ public class TranslatableProperty<T> {
 					return "(delayed Runnable to set " + property.getName() + ")";
 				}
 			});
-		} else if (value instanceof Partial) {
-			// Register the partial as something that maybe gets filled in later
-			@SuppressWarnings("unchecked")
-			Partial<T> pt = (Partial<T>)value;
-			ctx.registerPartial(pojo, property, pt.getKey());
-			setOnPojo(pojo, pt.getValue(), ctx, path);
 		} else {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));

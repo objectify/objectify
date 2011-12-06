@@ -21,7 +21,7 @@ import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
-import com.googlecode.objectify.impl.SessionValue.PartialProperty;
+import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultWrapper;
@@ -181,47 +181,35 @@ public class LoadBatch
 			// make sure that the old value was processed, otherwise we don't know what those might be.
 			sv.getResult().now();
 			
-			if (!sv.getPartialProperties().isEmpty()) {
-				List<Runnable> activate = null;
+			if (!sv.getUpgrades().isEmpty()) {
+				List<Upgrade<?>> prepared = null;
 				
-				Iterator<PartialProperty> partialsIt = sv.getPartialProperties().iterator();
-				while (partialsIt.hasNext()) {
-					final PartialProperty partial = partialsIt.next();
-					if (partial.getProperty().shouldLoad(groups)) {
+				Iterator<Upgrade<?>> upgradesIt = sv.getUpgrades().iterator();
+				while (upgradesIt.hasNext()) {
+					final Upgrade<?> upgrade = upgradesIt.next();
+					if (upgrade.shouldLoad(groups)) {
 						if (log.isLoggable(Level.FINEST))
-							log.finest("Reload with groups " + groups + " upgrades key " + partial.getKey() + ", property: " + partial.getProperty());
+							log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
 
-						if (activate == null)
-							activate = new ArrayList<Runnable>();
+						if (prepared == null)
+							prepared = new ArrayList<Upgrade<?>>();
 						
-						final Result<?> fetched = getResult(Key.create(partial.getKey()));
-						
-						activate.add(new Runnable() {
-							@Override
-							public void run() {
-								partial.getProperty().set(partial.getPojo(), fetched.now());
-							}
-							
-							@Override
-							public String toString() {
-								return "(Runnable to activate " + partial + ")";
-							}
-						});
+						upgrade.prepare(this);
 						
 						// Remove it from the list of partials that need to be filled
-						partialsIt.remove();
+						upgradesIt.remove();
 					}
 				}
 				
-				if (activate != null) {
+				if (prepared != null) {
 					execute();
 					
-					final List<Runnable> finalActivate = activate;
+					final List<Upgrade<?>> finalActivate = prepared;
 					Result<T> wrapped = new ResultWrapper<T, T>(sv.getResult()) {
 						@Override
 						protected T wrap(T orig) {
-							for (Runnable runnable: finalActivate)
-								runnable.run();
+							for (Upgrade<?> runnable: finalActivate)
+								runnable.doUpgrade();
 							
 							return orig;
 						}
@@ -251,9 +239,15 @@ public class LoadBatch
 	public boolean shouldLoad(Property property) {
 		return property.shouldLoad(groups);
 	}
-	
-	/** @return the session value, or null if there was no session value */
-	public <T> SessionValue<T> getSessionValue(Key<T> key) {
-		return session.get(key);
+
+	/**
+	 * Register an upgrade on the specified root entity.  Assumes the root entity has already been
+	 * added to the session, which should be a safe assumption since the entity gets loaded only
+	 * after it is added to the session.
+	 */
+	public void registerUpgrade(Key<?> root, Upgrade<?> upgrade) {
+		// This should always exist since we're translating something that was just put in the session
+		SessionValue<?> sv = session.get(root);
+		sv.getUpgrades().add(upgrade);
 	}
 }
