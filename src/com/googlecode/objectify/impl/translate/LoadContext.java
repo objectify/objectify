@@ -31,10 +31,6 @@ public class LoadContext
 	/** The key of the current root entity; will change as multiple entities are loaded */
 	Key<?> currentRoot;
 	
-	/** The "current" pojo and property; basically whatever is being worked on now */
-	Object currentPojo;
-	Property currentProperty;
-	
 	/** */
 	public LoadContext(Objectify ofy, LoadBatch batch)
 	{
@@ -48,12 +44,6 @@ public class LoadContext
 	/** Sets the current root entity */
 	public void setCurrentRoot(Key<?> rootEntity) {
 		this.currentRoot = rootEntity;
-	}
-	
-	/** Sets the current object and property context */
-	public void setCurrentProperty(Object pojo, Property prop) {
-		this.currentPojo = pojo;
-		this.currentProperty = prop;
 	}
 	
 	/** 
@@ -83,7 +73,7 @@ public class LoadContext
 		if (batch.shouldLoad(property)) {
 			batch.loadRef(ref);
 		} else if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
-			batch.registerUpgrade(currentRoot, new Upgrade<T>(currentProperty, key) {
+			batch.registerUpgrade(currentRoot, new Upgrade<T>(property, key) {
 				@Override
 				public void doUpgrade() {
 					ref.set(result);

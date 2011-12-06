@@ -102,10 +102,13 @@ public class Engine
 					
 					Key<K> key = Key.create(k);
 					result.put(key, obj);
-					
-					@SuppressWarnings("unchecked")
-					SessionValue<E> sent = new SessionValue<E>((Key<E>)key, new ResultNow<E>(obj)); 
-					session.add(sent);
+
+					// Normally we would update the session value here but it screws up @Load operations
+					// so for now let's just hack it.
+					session.remove(key);
+//					@SuppressWarnings("unchecked")
+//					SessionValue<E> sv = new SessionValue<E>((Key<E>)key, new ResultNow<E>(obj)); 
+//					session.add(sv);
 				}
 				
 				if (log.isLoggable(Level.FINEST))

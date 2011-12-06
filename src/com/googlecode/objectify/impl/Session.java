@@ -38,6 +38,11 @@ public class Session
 		map.clear();
 	}
 	
+	/** Normally this isn't necessary but it is currently used for a hack around save() operations */
+	public SessionValue<?> remove(Key<?> key) {
+		return map.remove(key);
+	}
+	
 	/** Convenient for debugging */
 	@Override
 	public String toString() {

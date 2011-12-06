@@ -173,7 +173,7 @@ public class LoadBatch
 		if (sv == null) {
 			
 			Result<T> result = round.get(key);
-			sv = new SessionValue<T>(key, result);
+			sv = new SessionValue<T>(key, result, groups);
 			session.add(sv);
 			
 		} else if (!sv.isLoaded(groups)) {

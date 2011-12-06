@@ -94,7 +94,9 @@ public class Transmog<T>
 			log.finest("\tTranslating " + fromPojo);
 		
 		try {
-			Node root = save(fromPojo, new SaveContext(ofy));
+			SaveContext ctx = new SaveContext(ofy);
+			
+			Node root = save(fromPojo, ctx);
 			Entity entity = save(root);
 			return entity;
 		}

@@ -90,10 +90,23 @@ public class SessionValue<T>
 	List<Upgrade<?>> upgrades = new LinkedList<Upgrade<?>>();
 	
 	/**
+	 * Create a session value with null loaded groups; this is the constructor used when a session is
+	 * created via a save() operation.
 	 */
 	public SessionValue(Key<T> key, Result<T> result) {
+		this(key, result, null);
+	}
+	
+	/**
+	 * Create a session value with some initial loaded groups; this will be the constructor used when
+	 * a session is created via a load() operation.
+	 * @param loaded is copied; this does not take ownership of the collection
+	 */
+	public SessionValue(Key<T> key, Result<T> result, Set<String> loaded) {
 		this.key = key;
 		this.result = result;
+		if (loaded != null)
+			this.loaded = new HashSet<String>(loaded);
 	}
 	
 	/**

@@ -11,10 +11,13 @@ public class SaveContext
 {
 	/** The objectify instance */
 	Objectify ofy;
-	public Objectify getObjectify() { return this.ofy; }
 	
 	/** */
 	public SaveContext(Objectify ofy) {
 		this.ofy = ofy;
 	}
+
+	/** */
+	public Objectify getObjectify() { return this.ofy; }
+
 }
