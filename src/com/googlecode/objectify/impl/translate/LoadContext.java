@@ -8,6 +8,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.impl.engine.LoadBatch;
@@ -74,7 +75,7 @@ public class LoadContext
 	
 	/**
 	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
-	 * state of load groups.
+	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
 	 */
 	public <T> Ref<T> makeRef(Property property, Key<T> key) {
 		final Ref<T> ref = Ref.create(key);
@@ -121,22 +122,7 @@ public class LoadContext
 				}
 			};
 		} else {
-			if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
-				final Object pojo = currentPojo;
-				batch.registerUpgrade(currentRoot, new Upgrade<Object>(currentProperty, Key.create(key)) {
-					@Override
-					public void doUpgrade() {
-						property.set(pojo, result.now());
-					}
-					
-					@Override
-					public String toString() {
-						return "(upgrade " + property.getName() + " on " + pojo + " to value of " + key + ")";
-					}
-				});
-			}
-			
-			return makePartial(clazz, key);
+			return new Partial<Object>(Key.create(key), makePartial(clazz, key));
 		}
 	}
 	
@@ -161,5 +147,12 @@ public class LoadContext
 			this.deferred = new ArrayList<Runnable>();
 		
 		this.deferred.add(runnable);
+	}
+
+	/**
+	 * Register an upgrade on the specified root entity.
+	 */
+	public void registerUpgrade(Upgrade<?> upgrade) {
+		batch.registerUpgrade(currentRoot, upgrade);
 	}
 }

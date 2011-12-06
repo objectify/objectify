@@ -6,8 +6,10 @@ import java.util.Map;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
+import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -42,7 +44,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 	}
 	
 	@Override
-	public Translator<Map<String, Object>> create(Path path, Property property, Type type, CreateContext ctx) {
+	public Translator<Map<String, Object>> create(Path path, final Property property, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Map<String, ?>> mapType = (Class<? extends Map<String, ?>>)GenericTypeReflector.erase(type);
 		
@@ -68,20 +70,34 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 				else
 					map.clear();
 				
-				for (final Node child: node) {
+				final Map<String, Object> finalMap = map;
+				
+				for (Node child: node) {
+					final String mapKey = child.getPath().getSegment();
+					
 					Object value = componentTranslator.load(child, ctx);
 					if (value instanceof Result) {
 						final Result<?> result = (Result<?>)value;
-						final Map<String, Object> finalMap = map;
 						
 						ctx.defer(new Runnable() {
 							@Override
 							public void run() {
-								finalMap.put(child.getPath().getSegment(), result.now());
+								finalMap.put(mapKey, result.now());
 							}
 						});
+					} else if (value instanceof Partial) {
+						Partial<Object> partial = (Partial<Object>)value;
+						ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
+							@Override
+							public void doUpgrade() {
+								finalMap.put(mapKey, result.now());
+							}
+						});
+						
+						map.put(mapKey, partial.getValue());
+						
 					} else {
-						map.put(child.getPath().getSegment(), value);
+						map.put(mapKey, value);
 					}
 				}
 

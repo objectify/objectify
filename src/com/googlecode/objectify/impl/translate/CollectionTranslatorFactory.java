@@ -6,9 +6,12 @@ import java.util.Collection;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
+import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import com.googlecode.objectify.util.Holder;
 
 
 /**
@@ -40,7 +43,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 	}
 	
 	@Override
-	public Translator<Collection<Object>> create(Path path, Property property, Type type, CreateContext ctx) {
+	public Translator<Collection<Object>> create(Path path, final Property property, Type type, CreateContext ctx) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Collection<?>> collectionType = (Class<? extends Collection<?>>)GenericTypeReflector.erase(type);
 		
@@ -66,14 +69,18 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					else
 						collection.clear();
 					
+					// This is a bit of black magic.  We can't upgrade collections item-by-item the way we can an array
+					// or a Map; we can only reset them.  This tracks whether or not we need to reset them.
+					final Holder<Boolean> upgrading = new Holder<Boolean>(false);
+					
 					for (Node child: node) {
 						try {
+							final Collection<Object> coll = collection;
 							Object value = componentTranslator.load(child, ctx);
+							
 							if (value instanceof Result) {
 								// We need to defer the add
-								
 								final Result<?> result = ((Result<?>)value);
-								final Collection<Object> coll = collection;
 								
 								ctx.defer(new Runnable() {
 									@Override
@@ -81,6 +88,23 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 										coll.add(result.now());
 									}
 								});
+							} else if (value instanceof Partial) {
+								// Ok this is tough, how do we know when we need to reset the damn collection?
+								Partial<Object> partial = (Partial<Object>)value;
+								
+								ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
+									@Override
+									public void doUpgrade() {
+										if (!upgrading.getValue()) {
+											coll.clear();
+											upgrading.setValue(true);
+										}
+										
+										coll.add(result.now());
+									}
+								});
+								
+								collection.add(partial.getValue());
 							} else {
 								collection.add(value);
 							}
