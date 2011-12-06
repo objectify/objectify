@@ -5,6 +5,8 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.LoadParentTests.Child;
 import com.googlecode.objectify.test.LoadParentTests.ChildWithGroup;
 import com.googlecode.objectify.test.LoadParentTests.Father;
@@ -123,17 +125,25 @@ public class LoadParentTestsUsingSession extends TestBase
 		ChildWithGroup ch = new ChildWithGroup();
 		ch.father = f;
 		ch.bar = "bar";
-		ofy.put(ch);
+		Key<ChildWithGroup> kch = ofy.put(ch);
+		
+		// This should get the same entity
+		ChildWithGroup fetched = ofy.get(kch);
+		assert fetched == ch;
+
+		// Now clear session
+		ofy.clear();
 		
 		// This should get a hollow entity
-		ChildWithGroup fetched = ofy.get(fact.<ChildWithGroup>getKey(ch));
-		assert fetched.father.id.equals(f.id);
-		assert fetched.father.foo == null;
+		ChildWithGroup fetched2 = ofy.get(kch);
+		assert fetched2.father.id.equals(f.id);
+		assert fetched2.father.foo == null;
 
 		// This should get the complete parent
-		ChildWithGroup fetched2 = ofy.load().group("group").key(fact.<ChildWithGroup>getKey(ch)).get();
-		assert fetched2.father.id.equals(f.id);
-		assert fetched2.father.foo.equals(f.foo);
+		Ref<ChildWithGroup> ref = ofy.load().group("group").key(kch);
+		ChildWithGroup fetched3 = ref.get();
+		assert fetched3.father.id.equals(f.id);
+		assert fetched3.father.foo.equals(f.foo);
 	}
 	
 }

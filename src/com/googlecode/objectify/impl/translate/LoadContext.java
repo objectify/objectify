@@ -59,6 +59,8 @@ public class LoadContext
 			
 			for (Runnable run: runme)
 				run.run();
+			
+			batch.execute();
 		}
 	}
 	

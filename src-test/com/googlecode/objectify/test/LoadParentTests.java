@@ -82,6 +82,7 @@ public class LoadParentTests extends TestBase
 		TestObjectify ofy = fact.begin();
 		
 		Father f = new Father();
+		f.id = 123L;
 		f.foo = "foo";
 		// don't put
 		

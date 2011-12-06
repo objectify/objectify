@@ -32,6 +32,11 @@ public class SessionValue<T>
 		public Object getPojo() { return this.pojo; }
 		public Property getProperty() { return this.property; }
 		public com.google.appengine.api.datastore.Key getKey() { return this.key; }
+		
+		@Override
+		public String toString() {
+			return this.getClass().getSimpleName() + "(property=" + property.getName() + ", key=" + key + ")";
+		}
 	}
 	
 	/**

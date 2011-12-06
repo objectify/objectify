@@ -189,7 +189,7 @@ public class LoadBatch
 					final PartialProperty partial = partialsIt.next();
 					if (partial.getProperty().shouldLoad(groups)) {
 						if (log.isLoggable(Level.FINEST))
-							log.finest("Reload with groups " + groups + " upgrades property: " + partial.getProperty());
+							log.finest("Reload with groups " + groups + " upgrades key " + partial.getKey() + ", property: " + partial.getProperty());
 
 						if (activate == null)
 							activate = new ArrayList<Runnable>();
@@ -201,6 +201,11 @@ public class LoadBatch
 							public void run() {
 								partial.getProperty().set(partial.getPojo(), fetched.now());
 							}
+							
+							@Override
+							public String toString() {
+								return "(Runnable to activate " + partial + ")";
+							}
 						});
 						
 						// Remove it from the list of partials that need to be filled
@@ -209,6 +214,8 @@ public class LoadBatch
 				}
 				
 				if (activate != null) {
+					execute();
+					
 					final List<Runnable> finalActivate = activate;
 					Result<T> wrapped = new ResultWrapper<T, T>(sv.getResult()) {
 						@Override
