@@ -173,51 +173,50 @@ public class LoadBatch
 	private <T> SessionValue<T> ensureSessionContent(Key<T> key) {
 		SessionValue<T> sv = session.get(key);
 		if (sv == null) {
+			
 			Result<T> result = round.get(key);
 			sv = new SessionValue<T>(key, result);
 			session.add(sv);
-		} else {
-			// Make sure that there aren't any pending loads for the specified groups.  But first we need to
-			// make sure that the old value was processed, otherwise we don't know what those might be.
-			sv.getResult().now();
 			
-			if (!sv.getUpgrades().isEmpty()) {
-				List<Upgrade<?>> prepared = null;
-				
-				Iterator<Upgrade<?>> upgradesIt = sv.getUpgrades().iterator();
-				while (upgradesIt.hasNext()) {
-					final Upgrade<?> upgrade = upgradesIt.next();
-					if (upgrade.shouldLoad(groups)) {
-						if (log.isLoggable(Level.FINEST))
-							log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
+		} else if (!sv.isLoaded(groups)) {
+			final SessionValue<T> svFinal = sv;
+			sv.setResult(new ResultWrapper<T, T>(sv.getResult()) {
+				@Override
+				protected T wrap(T orig) {
+					if (!svFinal.getUpgrades().isEmpty()) {
+						List<Upgrade<?>> prepared = new ArrayList<Upgrade<?>>();
+						
+						Iterator<Upgrade<?>> upgradesIt = svFinal.getUpgrades().iterator();
+						while (upgradesIt.hasNext()) {
+							final Upgrade<?> upgrade = upgradesIt.next();
+							if (upgrade.shouldLoad(groups)) {
+								if (log.isLoggable(Level.FINEST))
+									log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
 
-						if (prepared == null)
-							prepared = new ArrayList<Upgrade<?>>();
+								upgrade.prepare(LoadBatch.this);
+								
+								// Remove it from the list of partials that need to be filled
+								upgradesIt.remove();
+							}
+						}
 						
-						upgrade.prepare(this);
-						
-						// Remove it from the list of partials that need to be filled
-						upgradesIt.remove();
+						if (!prepared.isEmpty()) {
+							execute();
+							for (Upgrade<?> upgrade: prepared)
+								upgrade.doUpgrade();
+						}
 					}
+					
+					return orig;
 				}
 				
-				if (prepared != null) {
-					execute();
-					
-					final List<Upgrade<?>> finalActivate = prepared;
-					Result<T> wrapped = new ResultWrapper<T, T>(sv.getResult()) {
-						@Override
-						protected T wrap(T orig) {
-							for (Upgrade<?> runnable: finalActivate)
-								runnable.doUpgrade();
-							
-							return orig;
-						}
-					};
-					
-					sv.setResult(wrapped);
+				@Override
+				public String toString() {
+					return "(upgrade wrapper for " + groups + ")";
 				}
-			}
+			});
+			
+			sv.addLoaded(groups);
 		}
 		
 		// Now check to see if we need to recurse and add our parent to the round

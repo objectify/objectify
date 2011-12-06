@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -61,12 +62,23 @@ public class SessionValue<T>
 	Key<T> key;
 	
 	/**
-	 * The entity value (possibly async)
+	 * The entity value wrapped in some number of layers of async.  It's possible this chain of layers might grow as
+	 * additional groups are loaded; each one wraps the previous with another result that checks for upgrades.
 	 */
 	Result<T> result;
 	
+	/**
+	 * List of groups that have been loaded for this value already.  As this list expands, the list of upgrades
+	 * will shrink.  Note that this starts out null; that indicates that nothing has been loaded.  We will see
+	 * this when an entity is put(); at this point no @Load fields are considered loaded, not even ones without
+	 * explicit load groups.  When the field is an empty set, that indicates a load happened without any load groups.
+	 */
+	Set<String> loaded;
+	
 	/** 
-	 * Track all the fields which might be fetched in a different load group 
+	 * Track all the fields which might be upgraded in a future request which specifies additional load groups.
+	 * This ends up being a list of all unfulfilled partial entity fields on this root entity (or its embedded
+	 * objects). 
 	 */
 	List<Upgrade<?>> upgrades = new LinkedList<Upgrade<?>>();
 	
@@ -115,5 +127,27 @@ public class SessionValue<T>
 	 */
 	public List<Upgrade<?>> getUpgrades() {
 		return this.upgrades;
+	}
+	
+	/**
+	 * Flag some groups as loaded.  Might be empty to indicate that a base load happened.
+	 */
+	public void addLoaded(Set<String> groups) {
+		if (this.loaded == null)
+			this.loaded = new HashSet<String>();
+		
+		this.loaded.addAll(groups);
+	}
+	
+	/** @return true if all the specified groups have been loaded on this sessionvalue */
+	public boolean isLoaded(Set<String> groups) {
+		if (this.loaded == null)
+			return false;
+		
+		for (String group: groups)
+			if (!loaded.contains(group))
+				return false;
+		
+		return true;
 	}
 }
