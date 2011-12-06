@@ -89,13 +89,13 @@ public class PolymorphicAAATests extends TestBase
 		
 		Animal a = new Animal();
 		a.name = "Bob";
-		Animal a2 = this.putAndGet(a);
+		Animal a2 = this.putClearGet(a);
 		assert a.name.equals(a2.name);
 		
 		Mammal m = new Mammal();
 		m.name = "Bob";
 		m.longHair = true;
-		Mammal m2 = this.putAndGet(m);
+		Mammal m2 = this.putClearGet(m);
 		assert m.name.equals(m2.name);
 		assert m.longHair == m2.longHair;
 
@@ -103,7 +103,7 @@ public class PolymorphicAAATests extends TestBase
 		c.name = "Bob";
 		c.longHair = true;
 		c.hypoallergenic = true;
-		Cat c2 = this.putAndGet(c);
+		Cat c2 = this.putClearGet(c);
 		assert c.name.equals(c2.name);
 		assert c.longHair == c2.longHair;
 		assert c.hypoallergenic == c2.hypoallergenic;

@@ -32,7 +32,7 @@ public class MapTests extends TestBase
 		hml.primitives.put("one", 1L);
 		hml.primitives.put("two", 2L);
 
-		HasMapLong fetched = this.putAndGet(hml);
+		HasMapLong fetched = this.putClearGet(hml);
 		
 		assert fetched.primitives.equals(hml.primitives);
 	}
@@ -81,7 +81,7 @@ public class MapTests extends TestBase
 		HasMapLong hml = new HasMapLong();
 		hml.primitives.put("nullvalue", null);
 
-		HasMapLong fetched = this.putAndGet(hml);
+		HasMapLong fetched = this.putClearGet(hml);
 		assert (fetched.primitives.equals(hml.primitives));
 	}
 }

@@ -50,7 +50,7 @@ public class FieldVisibilityTests extends TestBase
 		ThingWithPrivates thing = new ThingWithPrivates();
 		//thing.stuff.add("foo");
 		
-		ThingWithPrivates fetched = this.putAndGet(thing);
+		ThingWithPrivates fetched = this.putClearGet(thing);
 		
 		assert fetched.id.equals(thing.id);
 	}

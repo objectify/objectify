@@ -35,7 +35,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 		
-		HasSerialize fetched = this.putAndGet(hs);
+		HasSerialize fetched = this.putClearGet(hs);
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
@@ -62,7 +62,7 @@ public class SerializeTests extends TestBase
 		es.simple = new HasLongs();
 		es.simple.longs = new long[] { 1L, 2L, 3L };
 		
-		EmbedSerialize fetched = this.putAndGet(es);
+		EmbedSerialize fetched = this.putClearGet(es);
 		assert Arrays.equals(es.simple.longs, fetched.simple.longs);
 	}
 }

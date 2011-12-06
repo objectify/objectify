@@ -279,12 +279,12 @@ public class CollectionTests extends TestBase
 		this.fact.register(HasInitializedCollection.class);
 		
 		HasInitializedCollection has = new HasInitializedCollection();
-		HasInitializedCollection fetched = this.putAndGet(has);
+		HasInitializedCollection fetched = this.putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 		
 		has = new HasInitializedCollection();
 		has.initialized.add("blah");
-		fetched = this.putAndGet(has);
+		fetched = this.putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 	}
 	
@@ -308,7 +308,7 @@ public class CollectionTests extends TestBase
 		HasRawCollection hrc = new HasRawCollection();
 		hrc.raw.add("foo");
 		
-		HasRawCollection fetched = this.putAndGet(hrc);
+		HasRawCollection fetched = this.putClearGet(hrc);
 		
 		assert hrc.raw.equals(fetched.raw);
 	}

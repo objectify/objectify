@@ -140,7 +140,7 @@ public class ValueTranslationTests extends TestBase
 		
 		HasString has = new HasString();
 		has.string = BIG_STRING;
-		HasString fetched = this.putAndGet(has);
+		HasString fetched = this.putClearGet(has);
 		
 		assert fetched.string.equals(BIG_STRING);
 	}
@@ -158,7 +158,7 @@ public class ValueTranslationTests extends TestBase
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
 		
 		@SuppressWarnings("unused")
-		HasStringArray fetched = this.putAndGet(has);
+		HasStringArray fetched = this.putClearGet(has);
 
 		// When caching is enabled you get the same order back, but if caching is disabled,
 		// you get the Text moved to the end of the heterogenous collection.  Ick.
@@ -205,7 +205,7 @@ public class ValueTranslationTests extends TestBase
 		Blobby b = new Blobby();
 		b.stuff = new byte[] { 1, 2, 3 };
 		
-		Blobby c = this.putAndGet(b);
+		Blobby c = this.putClearGet(b);
 		
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
@@ -228,7 +228,7 @@ public class ValueTranslationTests extends TestBase
 		HasSqlDate hasDate = new HasSqlDate();
 		hasDate.when = new java.sql.Date(System.currentTimeMillis());
 		
-		HasSqlDate fetched = this.putAndGet(hasDate);
+		HasSqlDate fetched = this.putClearGet(hasDate);
 		
 		assert hasDate.when.equals(fetched.when);
 	}
@@ -253,7 +253,7 @@ public class ValueTranslationTests extends TestBase
 		
 		try
 		{
-			this.putAndGet(hbd);
+			this.putClearGet(hbd);
 			assert false;	// shouldn't be possible without registering converter
 		}
 		catch (SaveException ex) {}
@@ -278,7 +278,7 @@ public class ValueTranslationTests extends TestBase
 		// Must re-register the class
 		this.fact.register(HasBigDecimal.class);
 		
-		HasBigDecimal fetched = this.putAndGet(hbd);
+		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 
@@ -294,7 +294,7 @@ public class ValueTranslationTests extends TestBase
 		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
 		this.fact.register(HasBigDecimal.class);
 		
-		HasBigDecimal fetched = this.putAndGet(hbd);
+		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 	
@@ -314,7 +314,7 @@ public class ValueTranslationTests extends TestBase
 		HasTimeZone htz = new HasTimeZone();
 		htz.tz = TimeZone.getDefault();
 
-		HasTimeZone fetched = this.putAndGet(htz);
+		HasTimeZone fetched = this.putClearGet(htz);
 		assert htz.tz.equals(fetched.tz);
 	}
 }

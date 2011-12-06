@@ -71,7 +71,8 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntities fetched = this.putAndGet(he);
+
+		HasEntities fetched = this.putClearGet(he);
 		
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
@@ -92,7 +93,7 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(kNone1);
 		he.multi.add(Ref.create(kNone1));
 		he.multi.add(Ref.create(kNone2));
-		HasEntities fetched = this.putAndGet(he);
+		HasEntities fetched = this.putClearGet(he);
 		
 		assert fetched.single.get().getId().equals(tNone1.getId());
 		assert fetched.single.get().getSomeString() == null;
@@ -133,6 +134,7 @@ public class LoadFieldRefTests extends TestBase
 		node1.next = Ref.create(fact.<ListNode>getKey(node2));
 		ofy.put(node1);
 		
+		ofy.clear();
 		ListNode fetched = ofy.get(fact.<ListNode>getKey(node1));
 		
 		assert fetched.foo.equals(node1.foo);
@@ -160,6 +162,7 @@ public class LoadFieldRefTests extends TestBase
 		node1.next = Ref.create(fact.<ListNode>getKey(node2));
 		ofy.put(node1);
 		
+		ofy.clear();
 		ListNode fetched = ofy.get(fact.<ListNode>getKey(node1));
 		
 		assert fetched.foo.equals(node1.foo);
@@ -176,14 +179,6 @@ public class LoadFieldRefTests extends TestBase
 		public @Load("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
 	
-	/** Useful utility method */
-	private void assertUninitialziedRef(Ref<?> ref) {
-		try {
-			ref.get();
-			assert false;
-		} catch (IllegalStateException ex) {}
-	}
-	
 	/** */
 	@Test
 	public void testGrouping() throws Exception
@@ -194,26 +189,28 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = this.putAndGet(he);
+		HasEntitiesWithGroups fetched = this.putClearGet(he);
 		
 		Key<HasEntitiesWithGroups> hekey = fact.getKey(he);
 		
 		assert fetched.single.key().equals(k1);
-		assertUninitialziedRef(fetched.single);
+		assertRefUninitialzied(fetched.single);
 
 		assert fetched.multi.get(0).equals(fetched.single);
 		for (Ref<Trivial> ref: fetched.multi)
-			assertUninitialziedRef(ref);
+			assertRefUninitialzied(ref);
 		
 		TestObjectify ofy = fact.begin();
 		
+		ofy.clear();
 		fetched = ofy.load().group("single").key(hekey).get();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(0).equals(fetched.single);
 		for (Ref<Trivial> ref: fetched.multi)
-			assertUninitialziedRef(ref);
+			assertRefUninitialzied(ref);
 
+		ofy.clear();
 		fetched = ofy.load().group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
@@ -221,8 +218,9 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 		
 		assert fetched.multi.get(0).equals(fetched.single);
-		assertUninitialziedRef(fetched.single);
+		assertRefUninitialzied(fetched.single);
 		
+		ofy.clear();
 		fetched = ofy.load().group("single").group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());

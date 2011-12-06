@@ -18,6 +18,7 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cache.TriggerFutureHook;
 
 /**
@@ -61,7 +62,7 @@ public class TestBase
 	}
 	
 	/** Utility methods that puts, clears the session, and immediately gets an entity */
-	protected <T> T putAndGet(T saveMe)
+	protected <T> T putClearGet(T saveMe)
 	{
 		Objectify ofy = this.fact.begin();
 		
@@ -84,4 +85,13 @@ public class TestBase
 	{
 		return DatastoreServiceFactory.getDatastoreService();
 	}
+
+	/** Useful utility method */
+	protected void assertRefUninitialzied(Ref<?> ref) {
+		try {
+			ref.get();
+			assert false;
+		} catch (IllegalStateException ex) {}
+	}
+	
 }

@@ -45,7 +45,7 @@ public class CollectionEmbedTests extends TestBase
 		has.someSet.add(new HashableThing(5));
 		has.someSet.add(new HashableThing(6));
 		
-		HasSet fetched = this.putAndGet(has);
+		HasSet fetched = this.putClearGet(has);
 		
 		assert fetched.someSet.size() == 3;
 		assert fetched.someSet.contains(new HashableThing(4));
@@ -61,7 +61,7 @@ public class CollectionEmbedTests extends TestBase
 		HasSet has = new HasSet();
 		has.someSet.add(null);
 		
-		HasSet fetched = this.putAndGet(has);
+		HasSet fetched = this.putClearGet(has);
 		
 		assert fetched.someSet.size() == 1;
 		assert fetched.someSet.contains(null);
@@ -94,7 +94,7 @@ public class CollectionEmbedTests extends TestBase
 		has.deeps.add(new DeepThing(4));
 		has.deeps.add(new DeepThing(5));
 		
-		HasDeepThings fetched = this.putAndGet(has);
+		HasDeepThings fetched = this.putClearGet(has);
 		
 		assert fetched.deeps.size() == 2;
 		assert fetched.deeps.get(0).thing.equals(has.deeps.get(0).thing);

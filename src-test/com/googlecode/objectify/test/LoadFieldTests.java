@@ -70,7 +70,7 @@ public class LoadFieldTests extends TestBase
 		he.single = t1;
 		he.multi.add(t1);
 		he.multi.add(t2);
-		HasEntities fetched = this.putAndGet(he);
+		HasEntities fetched = this.putClearGet(he);
 		
 		assert fetched.single.getId().equals(t1.getId());
 		assert fetched.single.getSomeString().equals(t1.getSomeString());
@@ -91,7 +91,7 @@ public class LoadFieldTests extends TestBase
 		he.single = tNone1;
 		he.multi.add(tNone1);
 		he.multi.add(tNone2);
-		HasEntities fetched = this.putAndGet(he);
+		HasEntities fetched = this.putClearGet(he);
 		
 		assert fetched.single.getId().equals(tNone1.getId());
 		assert fetched.single.getSomeString() == null;
@@ -185,7 +185,7 @@ public class LoadFieldTests extends TestBase
 		he.single = t1;
 		he.multi.add(t1);
 		he.multi.add(t2);
-		HasEntitiesWithGroups fetched = this.putAndGet(he);
+		HasEntitiesWithGroups fetched = this.putClearGet(he);
 		
 		assert fetched.single.getId().equals(t1.getId());
 		assert fetched.single.getSomeString() == null;

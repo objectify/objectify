@@ -262,7 +262,7 @@ public class EmbedTests extends TestBase
 		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
 		embeds.other = new Trivial(123L, "blah", 7);
 		
-		EntityEmbedsOtherEntity fetched = this.putAndGet(embeds);
+		EntityEmbedsOtherEntity fetched = this.putClearGet(embeds);
 		
 		assert embeds.other.getId().equals(fetched.other.getId());
 		assert embeds.other.getSomeString().equals(fetched.other.getSomeString());

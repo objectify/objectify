@@ -79,7 +79,7 @@ public class MapEmbedTests extends TestBase
 		this.fact.register(HasMapEmbed.class);
 
 		HasMapEmbed hasMap = createHasMapEmbed(1);
-		HasMapEmbed fetched = this.putAndGet(hasMap);
+		HasMapEmbed fetched = this.putClearGet(hasMap);
 		
 		assert hasMap.equals(fetched);
 	}
@@ -96,7 +96,7 @@ public class MapEmbedTests extends TestBase
 		hasNested.nestedThings.put("one", hasMap1);
 		hasNested.nestedThings.put("two", hasMap2);
 
-		HasNestedMapEmbed fetched = this.putAndGet(hasNested);
+		HasNestedMapEmbed fetched = this.putClearGet(hasNested);
 		
 		assert fetched.nestedThings.equals(hasNested.nestedThings);
 	}

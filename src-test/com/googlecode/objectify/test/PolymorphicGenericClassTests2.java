@@ -64,7 +64,7 @@ public class PolymorphicGenericClassTests2 extends TestBase
 
 		Car car = new Car();
 		car.name = "Fast";
-		Car c2 = this.putAndGet(car);
+		Car c2 = this.putClearGet(car);
 		assert car.name.equals(c2.name);
 
 		Objectify ofy = this.fact.begin();
