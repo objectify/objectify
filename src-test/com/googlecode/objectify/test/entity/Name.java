@@ -33,6 +33,9 @@ public class Name implements Serializable
 	@Override
 	public int hashCode()
 	{
-		return firstName.hashCode();
+		if (firstName == null)
+			return 0;
+		else
+			return firstName.hashCode();
 	}
 }
