@@ -10,6 +10,8 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.SessionValue;
+import com.googlecode.objectify.impl.SessionValue.PartialProperty;
 import com.googlecode.objectify.impl.engine.LoadBatch;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -51,9 +53,13 @@ public class LoadContext
 	public void done() {
 		batch.execute();
 		
-		if (delayed != null)
-			for (Runnable run: delayed)
+		while (delayed != null) {
+			List<Runnable> runme = delayed;
+			delayed = null;	// reset this because it might get filled with more
+			
+			for (Runnable run: runme)
 				run.run();
+		}
 	}
 	
 	/**
@@ -97,7 +103,7 @@ public class LoadContext
 				}
 			};
 		} else {
-			return new Partial<Object>(makePartial(clazz, key));
+			return new Partial<Object>(key, makePartial(clazz, key));
 		}
 	}
 	
@@ -125,9 +131,17 @@ public class LoadContext
 	}
 	
 	/**
-	 * 
+	 * As translation is occurring, some fields are set with partial entities.  These fields might
+	 * need to be loaded with real entities during a subsequent fetch with different load groups.
+	 * Every time a partial is filled, it is registered in the session value associated with the
+	 * master entity... and if that master entity is reloaded with new load groups, the partials
+	 * are checked to see if anything should be reloaded.
 	 */
-	public void registerPartial(Object pojo, Property prop, Object value) {
+	public void registerPartial(Object pojo, Property prop, com.google.appengine.api.datastore.Key key) {
 		
+		// This should always exist since we're translating something that was just put in the session
+		SessionValue<?> sv = batch.getSessionValue(root);
+		
+		sv.getPartialProperties().add(new PartialProperty(pojo, prop, key));
 	}
 }

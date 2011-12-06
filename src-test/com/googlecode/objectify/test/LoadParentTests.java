@@ -5,6 +5,8 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
@@ -157,10 +159,11 @@ public class LoadParentTests extends TestBase
 		TreeNode node3 = new TreeNode();
 		node3.parent = node2;
 		node3.foo = "foo3";
-		ofy.put(node3);
+		Key<TreeNode> node3Key = ofy.put(node3);
 
 		ofy.clear();
-		TreeNode fetched3 = ofy.get(fact.<TreeNode>getKey(node3));
+		Ref<TreeNode> fetched3Ref = ofy.load().key(node3Key);
+		TreeNode fetched3 = fetched3Ref.get();
 		
 		assert fetched3.parent.id.equals(node2.id);
 		assert fetched3.parent.foo == null;

@@ -12,7 +12,6 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.KeyMetadata;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TranslatableProperty;
@@ -119,7 +118,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 			if (this.parentMeta == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + clazz.getName() + " has no @Parent");
 			
-			parentMeta.executeLoad(Node.of(parentKey), pojo, ctx);
+			parentMeta.setValue(pojo, parentKey, ctx);
 		}
 	}
 	

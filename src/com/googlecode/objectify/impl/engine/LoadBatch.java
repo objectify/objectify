@@ -1,7 +1,10 @@
 package com.googlecode.objectify.impl.engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -18,8 +21,10 @@ import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
+import com.googlecode.objectify.impl.SessionValue.PartialProperty;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.util.ResultWrapper;
 
 /**
  * 
@@ -166,13 +171,58 @@ public class LoadBatch
 	 * its parent keys depending on the @Load commands.  This is a recursive method.
 	 */
 	private <T> SessionValue<T> ensureSessionContent(Key<T> key) {
-		SessionValue<T> sent = session.get(key);
-		if (sent == null) {
+		SessionValue<T> sv = session.get(key);
+		if (sv == null) {
 			Result<T> result = round.get(key);
-			sent = new SessionValue<T>(key, result);
-			session.add(sent);
+			sv = new SessionValue<T>(key, result);
+			session.add(sv);
 		} else {
-			// Make sure that there aren't any pending loads for the specified groups]
+			// Make sure that there aren't any pending loads for the specified groups.  But first we need to
+			// make sure that the old value was processed, otherwise we don't know what those might be.
+			sv.getResult().now();
+			
+			if (!sv.getPartialProperties().isEmpty()) {
+				List<Runnable> activate = null;
+				
+				Iterator<PartialProperty> partialsIt = sv.getPartialProperties().iterator();
+				while (partialsIt.hasNext()) {
+					final PartialProperty partial = partialsIt.next();
+					if (partial.getProperty().shouldLoad(groups)) {
+						if (log.isLoggable(Level.FINEST))
+							log.finest("Reload with groups " + groups + " upgrades property: " + partial.getProperty());
+
+						if (activate == null)
+							activate = new ArrayList<Runnable>();
+						
+						final Result<?> fetched = getResult(Key.create(partial.getKey()));
+						
+						activate.add(new Runnable() {
+							@Override
+							public void run() {
+								partial.getProperty().set(partial.getPojo(), fetched.now());
+							}
+						});
+						
+						// Remove it from the list of partials that need to be filled
+						partialsIt.remove();
+					}
+				}
+				
+				if (activate != null) {
+					final List<Runnable> finalActivate = activate;
+					Result<T> wrapped = new ResultWrapper<T, T>(sv.getResult()) {
+						@Override
+						protected T wrap(T orig) {
+							for (Runnable runnable: finalActivate)
+								runnable.run();
+							
+							return orig;
+						}
+					};
+					
+					sv.setResult(wrapped);
+				}
+			}
 		}
 		
 		// Now check to see if we need to recurse and add our parent to the round
@@ -185,7 +235,7 @@ public class LoadBatch
 			}
 		}
 		
-		return sent;
+		return sv;
 	}
 	
 	/**
@@ -193,5 +243,10 @@ public class LoadBatch
 	 */
 	public boolean shouldLoad(Property property) {
 		return property.shouldLoad(groups);
+	}
+	
+	/** @return the session value, or null if there was no session value */
+	public <T> SessionValue<T> getSessionValue(Key<T> key) {
+		return session.get(key);
 	}
 }

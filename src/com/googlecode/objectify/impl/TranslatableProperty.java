@@ -103,9 +103,9 @@ public class TranslatableProperty<T> {
 		} else if (value instanceof Partial) {
 			// Register the partial as something that maybe gets filled in later
 			@SuppressWarnings("unchecked")
-			T partial = ((Partial<T>)value).get();
-			ctx.registerPartial(pojo, property, partial);
-			setOnPojo(pojo, partial, ctx, path);
+			Partial<T> pt = (Partial<T>)value;
+			ctx.registerPartial(pojo, property, pt.getKey());
+			setOnPojo(pojo, pt.getValue(), ctx, path);
 		} else {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));

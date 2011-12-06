@@ -8,13 +8,19 @@ package com.googlecode.objectify.impl;
  * sometime later.
  */
 public class Partial<T> {
+	com.google.appengine.api.datastore.Key key;
 	T value;
 	
-	public Partial(T value) {
+	public Partial(com.google.appengine.api.datastore.Key key, T value) {
+		this.key = key;
 		this.value = value;
 	}
 	
-	public T get() {
+	com.google.appengine.api.datastore.Key getKey() {
+		return key;
+	}
+	
+	public T getValue() {
 		return value;
 	}
 }

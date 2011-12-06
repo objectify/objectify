@@ -168,13 +168,13 @@ public class LoadParentRefTests extends TestBase
 		
 		// This should get an empty ref
 		ofy.clear();
-		Child fetched = ofy.get(fact.<Child>getKey(ch));
+		ChildWithGroup fetched = ofy.get(fact.<ChildWithGroup>getKey(ch));
 		assert fetched.father.key().getId() == f.id;
 		assert fetched.father.get() == null;
 
 		// This should get a filled in ref
 		ofy.clear();
-		Child fetched2 = ofy.load().group("group").key(fact.<Child>getKey(ch)).get();
+		ChildWithGroup fetched2 = ofy.load().group("group").key(fact.<ChildWithGroup>getKey(ch)).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}
