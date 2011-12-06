@@ -166,9 +166,7 @@ public class LoadFieldRefTests extends TestBase
 		ListNode fetched = ofy.get(fact.<ListNode>getKey(node1));
 		
 		assert fetched.foo.equals(node1.foo);
-		assert fetched.next.get().id.equals(node2.id);
-		assert fetched.next.get().foo == null;
-		assert fetched.next.get().next == null;
+		assert fetched.next.get() == null;	// it was fetched, so this should be initialized and null.
 	}
 	
 	/** */
