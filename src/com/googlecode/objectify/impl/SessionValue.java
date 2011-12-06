@@ -53,6 +53,13 @@ public class SessionValue<T>
 			this.result = batch.getResult(key);
 		}
 		
+		/**
+		 * @return true if this upgrade has been prepared
+		 */
+		public boolean isPrepared() {
+			return this.result != null;
+		}
+		
 		abstract public void doUpgrade();
 	}
 	

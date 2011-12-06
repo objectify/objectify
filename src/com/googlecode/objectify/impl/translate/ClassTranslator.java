@@ -76,8 +76,12 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 			
 		T pojo = fact.construct(clazz);
 		
-		for (TranslatableProperty<Object> prop: props)
+		for (TranslatableProperty<Object> prop: props) {
+			// Set the load context to this property
+			ctx.setCurrentProperty(pojo, prop.getProperty());
+			
 			prop.executeLoad(node, pojo, ctx);
+		}
 		
 		return pojo;
 	}

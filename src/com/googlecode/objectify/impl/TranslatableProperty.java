@@ -83,9 +83,6 @@ public class TranslatableProperty<T> {
 	 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
 	private void setOnPojo(final Object pojo, final T value, final LoadContext ctx, final Path path) {
-		// Set the load context to this property
-		ctx.setCurrentProperty(pojo, property);
-		
 		if (value instanceof Result) {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));

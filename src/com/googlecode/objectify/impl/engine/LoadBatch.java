@@ -1,10 +1,8 @@
 package com.googlecode.objectify.impl.engine;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -184,26 +182,31 @@ public class LoadBatch
 				@Override
 				protected T wrap(T orig) {
 					if (!svFinal.getUpgrades().isEmpty()) {
-						List<Upgrade<?>> prepared = new ArrayList<Upgrade<?>>();
 						
-						Iterator<Upgrade<?>> upgradesIt = svFinal.getUpgrades().iterator();
-						while (upgradesIt.hasNext()) {
-							final Upgrade<?> upgrade = upgradesIt.next();
+						// Prepare any that need it
+						for (Upgrade<?> upgrade: svFinal.getUpgrades()) {
 							if (upgrade.shouldLoad(groups)) {
 								if (log.isLoggable(Level.FINEST))
 									log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
 
 								upgrade.prepare(LoadBatch.this);
-								
-								// Remove it from the list of partials that need to be filled
-								upgradesIt.remove();
 							}
 						}
 						
-						if (!prepared.isEmpty()) {
-							execute();
-							for (Upgrade<?> upgrade: prepared)
+						// A no-op if nothing was prepared.
+						execute();
+						
+						// Then execute + remove any that were prepared
+						Iterator<Upgrade<?>> upgradesIt = svFinal.getUpgrades().iterator();
+						while (upgradesIt.hasNext()) {
+							Upgrade<?> upgrade = upgradesIt.next();
+							if (upgrade.isPrepared()) {
+								
 								upgrade.doUpgrade();
+								
+								// Remove it from the list of upgrades that need to be filled
+								upgradesIt.remove();
+							}
 						}
 					}
 					
