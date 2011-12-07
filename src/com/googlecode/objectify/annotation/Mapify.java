@@ -21,6 +21,9 @@ import com.googlecode.objectify.mapper.Mapper;
 @Target({ElementType.FIELD})
 public @interface Mapify
 {
-	/** An instance of this class will be instantiated and used to extract the key from the value */
-	Class<? extends Mapper<?, ?>> value();
+	/** 
+	 * An instance of this class will be instantiated and used to extract the key from the value. 
+	 */
+	@SuppressWarnings("rawtypes")
+	Class<? extends Mapper> value();
 }
