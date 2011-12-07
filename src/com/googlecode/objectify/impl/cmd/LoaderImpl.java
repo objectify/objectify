@@ -126,7 +126,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <K, E extends K> Map<Key<K>, E> keys(Key<E>... keys) {
-		return keys(Arrays.asList(keys));
+		return this.<K, E>keys(Arrays.asList(keys));
 	}
 
 	/* (non-Javadoc)
@@ -142,7 +142,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <K, E extends K> Map<Key<K>, E> entities(E... entities) {
-		return entities(Arrays.asList(entities));
+		return this.<K, E>entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
