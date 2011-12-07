@@ -26,12 +26,11 @@ class SaverImpl implements Saver
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Put#entity(java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.Saver#entity(java.lang.Object)
 	 */
 	@Override
 	public <K, E extends K> Result<Key<K>> entity(E entity) {
-		@SuppressWarnings({ "rawtypes", "unchecked" })	// jdk compiler on osx is broken
-		Result<Map<Key<K>, E>> base = (Result)entities(Collections.singleton(entity));
+		Result<Map<Key<K>, E>> base = this.<K, E>entities(Collections.singleton(entity));
 		
 		return new ResultWrapper<Map<Key<K>, E>, Key<K>>(base) {
 			@Override
@@ -42,21 +41,19 @@ class SaverImpl implements Saver
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Put#entities(E[])
+	 * @see com.googlecode.objectify.cmd.Saver#entities(E[])
 	 */
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })	// jdk compiler on osx is broken
 	public <K, E extends K> Result<Map<Key<K>, E>> entities(E... entities) {
-		return (Result)entities(Arrays.asList(entities));
+		return this.<K, E>entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Put#entities(java.lang.Iterable)
+	 * @see com.googlecode.objectify.cmd.Saver#entities(java.lang.Iterable)
 	 */
 	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<? extends E> entities) {
-		return (Result)ofy.createWriteEngine().save(entities);
+	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<E> entities) {
+		return ofy.createWriteEngine().<K, E>save(entities);
 	}
 
 }

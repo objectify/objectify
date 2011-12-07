@@ -37,7 +37,7 @@ public interface Saver
 	 * @param entities must be registered entity types
 	 * @return an asynchronous result.  To force a synchronous save, call Result.now().
 	 */
-	<K, E extends K> Result<Map<Key<K>, E>> entities(Iterable<? extends E> entities);
+	<K, E extends K> Result<Map<Key<K>, E>> entities(Iterable<E> entities);
 	
 	/**
 	 * A convenience method for entities(Iterable)
