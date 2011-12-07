@@ -69,8 +69,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					else
 						collection.clear();
 					
-					// This is a bit of black magic.  We can't upgrade collections item-by-item the way we can an array
-					// or a Map; we can only reset them.  This tracks whether or not we need to reset them.
+					// This tracks whether or not we need to reset the collection for an upgrade.
 					final Holder<Boolean> upgrading = new Holder<Boolean>(false);
 					
 					for (Node child: node) {
@@ -89,7 +88,6 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 									}
 								});
 							} else if (value instanceof Partial) {
-								// Ok this is tough, how do we know when we need to reset the damn collection?
 								Partial<Object> partial = (Partial<Object>)value;
 								
 								ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {

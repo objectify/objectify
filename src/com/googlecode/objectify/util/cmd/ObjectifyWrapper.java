@@ -16,13 +16,13 @@ import com.googlecode.objectify.cmd.Saver;
 /**
  * <p>Simple wrapper/decorator for an Objectify interface.</p>
  * 
- * <p>Use by subclassing like this: {@code class MyObjectify extends ObjectifyWrapper<MyObjectify>}</p>
+ * <p>Use by subclassing like this: {@code class MyObjectify extends ObjectifyWrapper<MyObjectify, MyFactory>}</p>
  * 
  * <p>Be aware that chained settings require the wrapper to be cloned.</p>
  * 
  * @author Jeff Schnitzer
  */
-public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectify, Cloneable
+public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends ObjectifyFactory> implements Objectify, Cloneable
 {
 	/** */
 	private Objectify base;
@@ -31,7 +31,7 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	public ObjectifyWrapper(Objectify ofy) {
 		this.base = ofy;
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#load()
 	 */
@@ -68,16 +68,17 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#getFactory()
 	 */
 	@Override
-	public ObjectifyFactory getFactory() {
-		return base.getFactory();
+	@SuppressWarnings("unchecked")
+	public F getFactory() {
+		return (F)base.getFactory();
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
 	 */
 	@Override
-	public T consistency(Consistency policy) {
-		T next = (T)this.clone();
+	public W consistency(Consistency policy) {
+		W next = (W)this.clone();
 		next.base = base.consistency(policy);
 		return next;
 	}
@@ -86,8 +87,8 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
 	 */
 	@Override
-	public T deadline(Double value) {
-		T next = (T)this.clone();
+	public W deadline(Double value) {
+		W next = (W)this.clone();
 		next.base = base.deadline(value);
 		return next;
 	}
@@ -96,8 +97,8 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#cache(boolean)
 	 */
 	@Override
-	public T cache(boolean value) {
-		T next = (T)this.clone();
+	public W cache(boolean value) {
+		W next = (W)this.clone();
 		next.base = base.cache(value);
 		return next;
 	}
@@ -106,8 +107,8 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see com.googlecode.objectify.Objectify#transaction()
 	 */
 	@Override
-	public T transaction() {
-		T next = (T)this.clone();
+	public W transaction() {
+		W next = (W)this.clone();
 		next.base = base.transaction();
 		return next;
 	}
@@ -116,10 +117,10 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	 * @see java.lang.Object#clone()
 	 */
 	@SuppressWarnings("unchecked")
-	protected T clone()
+	protected W clone()
 	{
 		try {
-			return (T)super.clone();
+			return (W)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
@@ -148,4 +149,5 @@ public class ObjectifyWrapper<T extends ObjectifyWrapper<T>> implements Objectif
 	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
 		return base.transact(limitTries, work);
 	}
+
 }

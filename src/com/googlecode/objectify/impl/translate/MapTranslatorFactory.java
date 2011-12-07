@@ -11,6 +11,7 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import com.googlecode.objectify.util.Holder;
 
 
 /**
@@ -70,6 +71,9 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 				else
 					map.clear();
 				
+				// This tracks whether or not we need to reset the map for an upgrade.
+				final Holder<Boolean> upgrading = new Holder<Boolean>(false);
+				
 				final Map<String, Object> finalMap = map;
 				
 				for (Node child: node) {
@@ -90,6 +94,11 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 						ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
 							@Override
 							public void doUpgrade() {
+								if (!upgrading.getValue()) {
+									finalMap.clear();
+									upgrading.setValue(true);
+								}
+								
 								finalMap.put(mapKey, result.now());
 							}
 						});
