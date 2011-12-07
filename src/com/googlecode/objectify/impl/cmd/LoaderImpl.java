@@ -100,39 +100,82 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#entity(com.google.appengine.api.datastore.Key)
-	 */
-	@Override
-	public <K> Ref<K> key(com.google.appengine.api.datastore.Key rawKey) {
-		return key(Key.<K>create(rawKey));
-	}
-
-	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Find#entity(java.lang.Object)
 	 */
 	@Override
-	public <E, K extends E> Ref<K> key(E entity) {
+	public <K, E extends K> Ref<K> entity(E entity) {
 		return key(ofy.getFactory().<K>getKey(entity));
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Object[])
+	 * @see com.googlecode.objectify.cmd.Loader#value(java.lang.Object)
 	 */
 	@Override
-	public <E, K extends E> Map<Key<K>, E> keys(Object... values) {
-		return keys(Arrays.asList(values));
+	@SuppressWarnings("unchecked")
+	public <K> Ref<K> value(Object key) {
+		if (key instanceof Ref) {
+			ref((Ref<K>)key);
+			return (Ref<K>)key;
+		} else {
+			return (Ref<K>)key(ofy.getFactory().getKey(key));
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#keys(com.googlecode.objectify.Key<E>[])
+	 */
+	@Override
+	public <K, E extends K> Map<Key<K>, E> keys(Key<E>... keys) {
+		return keys(Arrays.asList(keys));
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#keys(java.lang.Iterable)
+	 */
+	@Override
+	public <K, E extends K> Map<Key<K>, E> keys(Iterable<Key<E>> keys) {
+		return values(keys);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#entities(E[])
+	 */
+	@Override
+	public <K, E extends K> Map<Key<K>, E> entities(E... entities) {
+		return entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <E, K extends E> Map<Key<K>, E> keys(Iterable<?> values) {
+	public <K, E extends K> Map<Key<K>, E> entities(Iterable<E> values) {
+		return values(values);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Object[])
+	 */
+	@Override
+	public <K, E extends K> Map<Key<K>, E> values(Object... values) {
+		return values(Arrays.asList(values));
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Iterable)
+	 */
+	@Override
+	public <K, E extends K> Map<Key<K>, E> values(Iterable<?> values) {
 		final Map<Key<?>, Ref<?>> refs = new LinkedHashMap<Key<?>, Ref<?>>();
 		
 		for (Object keyish: values) {
-			Key<?> key = ofy.getFactory().getKey(keyish);
-			refs.put(key, Ref.create(key));
+			if (keyish instanceof Ref) {
+				Ref<?> ref = (Ref<?>)keyish;
+				refs.put(ref.getKey(), ref);
+			} else {
+				Key<?> key = ofy.getFactory().getKey(keyish);
+				refs.put(key, Ref.create(key));
+			}
 		}
 		
 		// Get real results

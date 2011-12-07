@@ -91,7 +91,8 @@ public class LoadFieldTestsReallySimple extends TestBase
 		
 		ofy.clear();
 		
-		Map<Key<Object>, Object> result = ofy.load().keys(kch, kf);
+		@SuppressWarnings({ "unchecked", "rawtypes" })	// erasure is retarded
+		Map<Key<Object>, Object> result = ofy.load().keys((Key)kch, (Key)kf);
 		Father fetched = (Father)result.get(kf);
 		
 		assert fetched.child.id == ch.id;
