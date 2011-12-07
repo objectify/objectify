@@ -11,7 +11,7 @@ import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.SessionValue.Upgrade;
-import com.googlecode.objectify.impl.engine.LoadBatch;
+import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.util.ResultWrapper;
 
 /** 
@@ -23,7 +23,7 @@ public class LoadContext
 	Objectify ofy;
 	
 	/** */
-	LoadBatch batch;
+	LoadEngine batch;
 	
 	/** Lazily created, but executed at the end of done() */
 	List<Runnable> deferred;
@@ -32,7 +32,7 @@ public class LoadContext
 	Key<?> currentRoot;
 	
 	/** */
-	public LoadContext(Objectify ofy, LoadBatch batch)
+	public LoadContext(Objectify ofy, LoadEngine batch)
 	{
 		this.ofy = ofy;
 		this.batch = batch;

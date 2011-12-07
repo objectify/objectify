@@ -11,11 +11,7 @@ import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.QueryResultIterable;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.KeyMetadata;
@@ -23,11 +19,8 @@ import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.impl.ref.StdRef;
-import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
-import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
  * This is the master logic for loading, saving, and deleting entities from the datastore.  It provides the
@@ -36,10 +29,10 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterable;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Engine
+public class WriteEngine
 {
 	/** */
-	private static final Logger log = Logger.getLogger(Engine.class.getName());
+	private static final Logger log = Logger.getLogger(WriteEngine.class.getName());
 	
 	/** */
 	protected ObjectifyImpl ofy;
@@ -53,7 +46,7 @@ public class Engine
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public Engine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
+	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
@@ -134,44 +127,5 @@ public class Engine
 				return orig;
 			}
 		};
-	}
-	
-	/**
-	 * The fundamental query() operation, which provides Refs.  Might be a keys only query.
-	 */
-	public <T> QueryResultIterable<Ref<T>> query(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
-		return new ToRefIterable<T>(pq.asQueryResultIterable(fetchOpts));
-	}
-
-	/**
-	 * The fundamental query count operation.  This is sufficiently different from normal query().
-	 */
-	public int queryCount(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
-		return pq.countEntities(fetchOpts);
-	}
-
-	/**
-	 * Iterable that translates from datastore Entity to Ref
-	 */
-	protected class ToRefIterable<T> extends TranslatingQueryResultIterable<Entity, Ref<T>> {
-		public ToRefIterable(QueryResultIterable<Entity> source) {
-			super(source);
-		}
-		
-		@Override
-		protected Ref<T> translate(Entity from) {
-			Key<T> key = Key.create(from.getKey());
-			SessionValue<T> cached = session.get(key);
-			
-			if (cached == null || cached.getResult().now() == null) {
-				T obj = ofy.load(from, new LoadContext(ofy, null));	// todo
-				cached = new SessionValue<T>(key, new ResultNow<T>(obj));
-				session.add(cached);
-			}
-			
-			return new StdRef<T>(key, cached.getResult().now());
-		}
 	}
 }

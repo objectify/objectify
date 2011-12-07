@@ -53,7 +53,7 @@ class SaverImpl implements Saver
 	 */
 	@Override
 	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<? extends E> entities) {
-		return ofy.createEngine().save(entities);
+		return ofy.createWriteEngine().save(entities);
 	}
 
 }

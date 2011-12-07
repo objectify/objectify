@@ -17,10 +17,10 @@ import com.googlecode.objectify.cmd.QueryKeys;
 abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
-	ObjectifyImpl ofy;
+	protected ObjectifyImpl ofy;
 	
 	/** */
-	Set<String> fetchGroups;
+	protected Set<String> fetchGroups;
 	
 	/**
 	 * Takes ownership of the fetch groups set.

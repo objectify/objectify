@@ -33,6 +33,12 @@ import com.googlecode.objectify.util.TranslatingQueryResultIterable;
  */
 class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 {
+	/**
+	 * Because we process @Load batches, we need to always work in chunks.  So we should always specify
+	 * a chunk size to the query.  This is the default if user does not specify an explicit chunk size.
+	 */
+	static final int DEFAULT_CHUNK_SIZE = 30;
+	
 	/** We need to track this because it enables the ability to filter/sort by id */
 	Class<T> classRestriction;
 	
@@ -54,7 +60,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	int offset;
 	Cursor startAt;
 	Cursor endAt;
-	Integer chunk;
+	int chunk = DEFAULT_CHUNK_SIZE;
 	
 	/** */
 	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
@@ -369,7 +375,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public int count() {
-		return ofy.createEngine().queryCount(this.getActualQuery(), this.fetchOptions());
+		return ofy.createQueryEngine(fetchGroups).queryCount(this.getActualQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -421,7 +427,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Produces the basic iterable on refs based on the current query.  Used to generate all other iterables. */
 	private QueryResultIterable<Ref<T>> refIterable()
 	{
-		return ofy.createEngine().query(this.getActualQuery(), this.fetchOptions());
+		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions());
 	}
 	
 	/* (non-Javadoc)
@@ -463,8 +469,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		if (this.offset != 0)
 			opts = opts.offset(this.offset);
 
-		if (this.chunk != null)
-			opts = opts.chunkSize(this.chunk);
+		opts = opts.chunkSize(this.chunk);
 
 		return opts;
 	}

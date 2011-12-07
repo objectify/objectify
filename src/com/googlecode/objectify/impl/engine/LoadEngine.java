@@ -28,10 +28,10 @@ import com.googlecode.objectify.util.ResultWrapper;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadBatch
+public class LoadEngine
 {
 	/** */
-	private static final Logger log = Logger.getLogger(LoadBatch.class.getName());
+	private static final Logger log = Logger.getLogger(LoadEngine.class.getName());
 	
 	/** 
 	 * Each round in the series of fetches required to complete a batch.  A round executes when
@@ -67,7 +67,7 @@ public class LoadBatch
 					if (translated == null) {
 						translated = new HashMap<Key<?>, Object>(entities.now().size() * 2);
 						
-						LoadContext ctx = new LoadContext(ofy, LoadBatch.this);
+						LoadContext ctx = new LoadContext(ofy, LoadEngine.this);
 						
 						for (Entity ent: entities.now().values()) {
 							Key<?> key = Key.create(ent.getKey());
@@ -120,7 +120,7 @@ public class LoadBatch
 	
 	/**
 	 */
-	public LoadBatch(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Set<String> groups) {
+	public LoadEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Set<String> groups) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
@@ -189,7 +189,7 @@ public class LoadBatch
 								if (log.isLoggable(Level.FINEST))
 									log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
 
-								upgrade.prepare(LoadBatch.this);
+								upgrade.prepare(LoadEngine.this);
 							}
 						}
 						

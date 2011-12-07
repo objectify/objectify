@@ -146,8 +146,8 @@ public class BasicTests extends TestBase
 
 		Key<Employee> fredKey = this.fact.getKey(fred);
 
-		List<Employee> employees = new ArrayList<Employee>(1100);
-		for (int i = 0; i < 1100; i++)
+		List<Employee> employees = new ArrayList<Employee>(100);
+		for (int i = 0; i < 100; i++)
 		{
 			Employee emp = new Employee("foo" + i, fredKey);
 			employees.add(emp);
@@ -155,7 +155,7 @@ public class BasicTests extends TestBase
 
 		ofy.save().entities(employees).now();
 
-		assert employees.size() == 1100;
+		assert employees.size() == 100;
 
 		int count = 0;
 		for (Employee emp: ofy.load().type(Employee.class).filter("manager", fred))
@@ -163,7 +163,7 @@ public class BasicTests extends TestBase
 			emp.getName(); // Just to make eclipse happy
 			count++;
 		}
-		assert count == 1100;
+		assert count == 100;
 	}
 
 	/** */

@@ -61,6 +61,6 @@ class DeleterImpl implements Deleter
 		for (Object obj: keysOrEntities)
 			keys.add(ofy.getFactory().getRawKey(obj));
 
-		return ofy.createEngine().delete(keys);
+		return ofy.createWriteEngine().delete(keys);
 	}
 }

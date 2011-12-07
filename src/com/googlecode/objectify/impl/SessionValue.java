@@ -7,7 +7,7 @@ import java.util.Set;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.engine.LoadBatch;
+import com.googlecode.objectify.impl.engine.LoadEngine;
 
 
 /**
@@ -49,7 +49,7 @@ public class SessionValue<T>
 		/**
 		 * Starts the async result fetch; when doUpgrade is called later the result should be set on the relevant field.
 		 */
-		public void prepare(LoadBatch batch) {
+		public void prepare(LoadEngine batch) {
 			this.result = batch.getResult(key);
 		}
 		

@@ -2,7 +2,7 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.engine.LoadBatch;
+import com.googlecode.objectify.impl.engine.LoadEngine;
 
 /**
  * <p>A translator knows how convert between POJO objects and the EntityNode tree structure
@@ -29,7 +29,7 @@ public interface Translator<T>
 	 * 
 	 * @throws SkipException if the subtree should not be loaded into a containing entity
 	 * 
-	 * @see LoadBatch
+	 * @see LoadEngine
 	 */
 	T load(Node node, LoadContext ctx) throws SkipException;
 	

@@ -88,7 +88,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public <S> Result<Void> ids(Iterable<S> ids) {
-		return ofy.createEngine().delete(DatastoreUtils.createKeys(parent, kind, ids));
+		return ofy.createWriteEngine().delete(DatastoreUtils.createKeys(parent, kind, ids));
 	}
 
 }
