@@ -90,12 +90,12 @@ public class ObjectifyFactory
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Collection<?>> T constructCollection(Class<T> type, int size) {
-		if (type == Set.class)
-			return (T)new HashSet<Object>((int)(size * 1.5));
-		else if (type == SortedSet.class)
-			return (T)new TreeSet<Object>();
-		else if (type == List.class)
+		if ((Class<?>)type == List.class || (Class<?>)type == Collection.class)
 			return (T)new ArrayList<Object>(size);
+		else if ((Class<?>)type == Set.class)
+			return (T)new HashSet<Object>((int)(size * 1.5));
+		else if ((Class<?>)type == SortedSet.class)
+			return (T)new TreeSet<Object>();
 		else
 			return construct(type);
 	}
@@ -110,9 +110,9 @@ public class ObjectifyFactory
 	 */
 	@SuppressWarnings("unchecked")
 	public <T extends Map<?, ?>> T constructMap(Class<T> type) {
-		if (type == Map.class)
+		if ((Class<?>)type == Map.class)
 			return (T)new HashMap<Object, Object>();
-		else if (type == SortedMap.class)
+		else if ((Class<?>)type == SortedMap.class)
 			return (T)new TreeMap<Object, Object>();
 		else
 			return construct(type);

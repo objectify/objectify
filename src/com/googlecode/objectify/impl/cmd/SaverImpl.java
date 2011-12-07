@@ -30,7 +30,8 @@ class SaverImpl implements Saver
 	 */
 	@Override
 	public <K, E extends K> Result<Key<K>> entity(E entity) {
-		Result<Map<Key<K>, E>> base = entities(Collections.singleton(entity));
+		@SuppressWarnings({ "rawtypes", "unchecked" })	// jdk compiler on osx is broken
+		Result<Map<Key<K>, E>> base = (Result)entities(Collections.singleton(entity));
 		
 		return new ResultWrapper<Map<Key<K>, E>, Key<K>>(base) {
 			@Override
@@ -44,16 +45,18 @@ class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Put#entities(E[])
 	 */
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })	// jdk compiler on osx is broken
 	public <K, E extends K> Result<Map<Key<K>, E>> entities(E... entities) {
-		return entities(Arrays.asList(entities));
+		return (Result)entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Put#entities(java.lang.Iterable)
 	 */
 	@Override
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<? extends E> entities) {
-		return ofy.createWriteEngine().save(entities);
+		return (Result)ofy.createWriteEngine().save(entities);
 	}
 
 }
