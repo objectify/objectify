@@ -1,8 +1,8 @@
 package com.googlecode.objectify.condition;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
 
 
@@ -15,33 +15,30 @@ import com.googlecode.objectify.impl.TypeUtils;
  * <blockquote><pre>
  * public class MyEntity {
  *     &#64;Id Long id;
- *     &#64;NotSaved(IfDefault.class) String foo = "defaultFoo";
+ *     &#64;IgnoreSave(IfDefault.class) String foo = "defaultFoo";
  * }
  * </pre></blockquote>
  * 
  * <p>The {@code foo} field will be left unsaved when it has the value "defaultFoo".</p>
  * 
  * <p>Specifically, this conditional constructs an instance of your entity class
- * using the default (no-arg) constructor and stores the default field value for
- * later comparison.  Note that if you initialize the field in your default constructor,
- * this counts!</p>
+ * and stores the default field value for later comparison.  Note that if you
+ * initialize the field in your default constructor, this counts!</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class IfDefault extends ValueIf<Object>
+public class IfDefault extends ValueIf<Object> implements InitializeIf
 {
 	Object defaultValue;
 	
-	public IfDefault(Class<?> clazz, Field field)
-	{
-		Constructor<?> ctor = TypeUtils.getNoArgConstructor(clazz);
-		Object pojo = TypeUtils.newInstance(ctor);
+	@Override
+	public void init(ObjectifyFactory fact, Class<?> concreteClass, Field field) {
+		Object pojo = fact.construct(concreteClass);
 		this.defaultValue = TypeUtils.field_get(field, pojo);
 	}
 	
 	@Override
-	public boolean matches(Object value)
-	{
+	public boolean matchesValue(Object value) {
 		if (this.defaultValue == null)
 			return value == null;
 		else

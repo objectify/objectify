@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import java.util.concurrent.Future;
 
 
 /**
@@ -23,10 +22,5 @@ public interface Result<T>
 	 * 
 	 * @return the computed result
 	 */
-	T get();
-	
-	/**
-	 * @return the underlying Future object
-	 */
-	Future<T> getFuture();
+	T now();
 }

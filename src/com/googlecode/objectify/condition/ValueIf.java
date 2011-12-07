@@ -9,21 +9,13 @@ package com.googlecode.objectify.condition;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ValueIf<T> implements If<T, Object>
+abstract public class ValueIf<V> implements If<V, Object>
 {
-	/**
-	 * Override this method to test a field value for your condition.
-	 * 
-	 * For example, for a class IfNull, return true if the value is null.
-	 */
-	abstract public boolean matches(T value);
-	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.condition.If#matches(java.lang.Object, java.lang.Object)
+	 * @see com.googlecode.objectify.condition.If#matchesPojo(java.lang.Object)
 	 */
 	@Override
-	final public boolean matches(T value, Object onPojo)
-	{
-		return this.matches(value);
+	final public boolean matchesPojo(Object value) {
+		return false;
 	}
 }

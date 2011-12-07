@@ -13,8 +13,7 @@ public class IfNotEmpty extends ValueIf<Object>
 	IfEmpty opposite = new IfEmpty();
 	
 	@Override
-	public boolean matches(Object value)
-	{
-		return !opposite.matches(value);
+	public boolean matchesValue(Object value) {
+		return !opposite.matchesValue(value);
 	}
 }

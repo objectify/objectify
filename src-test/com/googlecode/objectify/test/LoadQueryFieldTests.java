@@ -1,0 +1,88 @@
+/*
+ */
+
+package com.googlecode.objectify.test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
+
+/**
+ * Tests the fetching via queries
+ * 
+ * @author Jeff Schnitzer <jeff@infohazard.org>
+ */
+public class LoadQueryFieldTests extends TestBase
+{
+	Trivial t0;
+	Trivial t1;
+	Trivial tNone0;
+	Trivial tNone1;
+	Key<Trivial> k0;
+	Key<Trivial> k1;
+	Key<Trivial> kNone0;
+	Key<Trivial> kNone1;
+	
+	/** */
+	@BeforeMethod
+	public void createTwo() {
+		fact.register(Trivial.class);
+		TestObjectify ofy = fact.begin();
+		
+		t0 = new Trivial("foo", 11);
+		k0 = ofy.put(t0);
+		
+		t1 = new Trivial("bar", 22);
+		k1 = ofy.put(t1);
+		
+		tNone0 = new Trivial(123L, "fooNone", 33);
+		tNone1 = new Trivial(456L, "barNone", 44);
+		
+		kNone0 = fact.getKey(tNone0);
+		kNone1 = fact.getKey(tNone1);
+	}
+
+	/** */
+	@Entity
+	public static class HasEntities {
+		public @Id Long id;
+		public @Load Trivial single;
+		public @Load List<Trivial> multi = new ArrayList<Trivial>();
+	}
+	
+	/** */
+	@Test
+	public void testTargetsExist() throws Exception
+	{
+		fact.register(HasEntities.class);
+		TestObjectify ofy = fact.begin();
+		
+		HasEntities he = new HasEntities();
+		he.single = t0;
+		he.multi.add(t0);
+		he.multi.add(t1);
+		
+		Key<HasEntities> hekey = ofy.save().entity(he).now();
+		ofy.clear();
+		
+		HasEntities fetched = ofy.load().type(HasEntities.class).filterKey("=", hekey).first().get();
+		
+		assert fetched.single.getId().equals(t0.getId());
+		assert fetched.single.getSomeString().equals(t0.getSomeString());
+		
+		assert fetched.multi.get(0) == fetched.single;
+		
+		assert fetched.multi.get(1).getId().equals(t1.getId());
+		assert fetched.multi.get(1).getSomeString().equals(t1.getSomeString());
+	}
+}

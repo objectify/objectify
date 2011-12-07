@@ -22,7 +22,7 @@ public class ResultAdapter<T> implements Result<T>
 	}
 
 	@Override
-	public T get()
+	public T now()
 	{
 		try
 		{
@@ -33,11 +33,5 @@ public class ResultAdapter<T> implements Result<T>
 			FutureHelper.unwrapAndThrow(e);
 			return null;	// make compiler happy
 		}
-	}
-
-	@Override
-	public Future<T> getFuture()
-	{
-		return this.future;
 	}
 }

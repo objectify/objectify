@@ -7,7 +7,8 @@ import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.impl.translate.LoadContext;
 
 
 /**
@@ -55,13 +56,13 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		 */
 		public void addIndexedDiscriminators(Class<?> clazz)
 		{
-			if (clazz.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class) || clazz.isAnnotationPresent(javax.persistence.Entity.class))
+			if (clazz.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class))
 				return;
 
 			this.addIndexedDiscriminators(clazz.getSuperclass());
 			
-			Subclass sub = clazz.getAnnotation(Subclass.class);
-			if (sub != null && !sub.unindexed())
+			EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
+			if (sub != null && sub.index())
 			{
 				String disc = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
 				this.indexedDiscriminators.add(disc);
@@ -90,13 +91,13 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 	
 	/**
-	 * Registers a @Subclass in a polymorphic hierarchy.
+	 * Registers an @EntitySubclass in a polymorphic hierarchy.
 	 * 
-	 * @param clazz must have the @Subclass annotation
+	 * @param clazz must have the @EntitySubclass annotation
 	 */
 	public <S extends T> void addSubclass(Class<S> clazz, ConcreteEntityMetadata<S> subclassMeta)
 	{
-		Subclass sub = clazz.getAnnotation(Subclass.class);
+		EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 		assert sub != null;
 		
 		String discriminator = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
@@ -109,14 +110,6 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		this.byDiscriminator.put(discriminator, subclassMeta);
 		for (String alsoLoad: sub.alsoLoad())
 			this.byDiscriminator.put(alsoLoad, subclassMeta);
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getKind()
-	 */
-	public String getKind()
-	{
-		return this.base.metadata.getKind();
 	}
 	
 	/**
@@ -156,27 +149,30 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.EntityMetadata#getCacheExpirySeconds()
 	 */
+	@Override
 	public Integer getCacheExpirySeconds()
 	{
 		return this.base.metadata.getCacheExpirySeconds();
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#load(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
-	public T toObject(Entity ent, Objectify ofy)
+	@Override
+	public T load(Entity ent, LoadContext ctx)
 	{
-		return this.getConcrete(ent).toObject(ent, ofy);
+		return this.getConcrete(ent).load(ent, ctx);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#toEntity(java.lang.Object, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#save(java.lang.Object, com.googlecode.objectify.Objectify)
 	 */
-	public Entity toEntity(T pojo, Objectify ofy)
+	@Override
+	public Entity save(T pojo, Objectify ofy)
 	{
 		SubclassInfo<T> info = this.getConcrete(pojo);
 
-		Entity ent = info.metadata.toEntity(pojo, ofy);
+		Entity ent = info.metadata.save(pojo, ofy);
 		
 		// Now put the discriminator value in entity
 		if (info.discriminator != null)
@@ -189,43 +185,12 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#setKey(java.lang.Object, com.google.appengine.api.datastore.Key)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#getKeyMetadata()
 	 */
-	public void setKey(T obj, com.google.appengine.api.datastore.Key key)
+	@Override
+	public KeyMetadata<T> getKeyMetadata()
 	{
-		this.base.metadata.setKey(obj, key);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#getRawKey(java.lang.Object)
-	 */
-	public com.google.appengine.api.datastore.Key getRawKey(Object obj)
-	{
-		return this.base.metadata.getRawKey(obj);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#isIdField(java.lang.String)
-	 */
-	public boolean isIdField(String propertyName)
-	{
-		return this.base.metadata.isIdField(propertyName);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#isNameField(java.lang.String)
-	 */
-	public boolean isNameField(String propertyName)
-	{
-		return this.base.metadata.isNameField(propertyName);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#hasParentField()
-	 */
-	public boolean hasParentField()
-	{
-		return this.base.metadata.hasParentField();
+		return base.metadata.getKeyMetadata();
 	}
 
 	/* (non-Javadoc)

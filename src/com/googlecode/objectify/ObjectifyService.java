@@ -28,12 +28,6 @@ public class ObjectifyService
 	/** @see ObjectifyFactory#begin() */
 	public static Objectify begin() { return factory().begin(); }
 	
-	/** @see ObjectifyFactory#beginTransaction() */
-	public static Objectify beginTransaction() { return factory().beginTransaction(); }
-	
-	/** @see ObjectifyFactory#begin(ObjectifyOpts) */
-	public static Objectify begin(ObjectifyOpts opts) { return factory().begin(opts); }
-	
 	/** @see ObjectifyFactory#register(Class) */
 	public static void register(Class<?> clazz) { factory().register(clazz); }
 }

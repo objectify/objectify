@@ -9,8 +9,12 @@ package com.googlecode.objectify.condition;
 public class Always implements If<Object, Object>
 {
 	@Override
-	public boolean matches(Object value, Object onPojo)
-	{
+	public boolean matchesValue(Object value) {
+		return true;
+	}
+
+	@Override
+	public boolean matchesPojo(Object pojo) {
 		return true;
 	}
 }

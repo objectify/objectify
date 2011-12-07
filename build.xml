@@ -228,9 +228,10 @@
 	</target>
 	
 	<target name="test" depends="classes">
-		<taskdef name="testng" classpathref="run.classpath" classname="org.testng.TestNGAntTask" />
+		<taskdef resource="testngtasks" classpathref="run.classpath"/>
 
 		<testng classpathref="run.classpath" outputdir="${build.dir}/test-output">
+			<!--<jvmarg value="-Djava.util.logging.config.file=logging.properties"/>-->
 			<classfileset dir="${build.classes.dir}" includes="**/test/*.class"/>
 		</testng>
 	</target>

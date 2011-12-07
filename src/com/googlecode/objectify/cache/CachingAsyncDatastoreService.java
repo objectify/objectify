@@ -24,7 +24,7 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.cache.EntityMemcache.Bucket;
-import com.googlecode.objectify.util.NowFuture;
+import com.googlecode.objectify.util.FutureNow;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
@@ -285,7 +285,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 			// If there was nothing from the cache, don't need to merge!
 			if (cached.isEmpty())
 				if (pending == null)
-					return new NowFuture<Map<Key, Entity>>(cached);	// empty!
+					return new FutureNow<Map<Key, Entity>>(cached);	// empty!
 				else
 					return pending;
 			else

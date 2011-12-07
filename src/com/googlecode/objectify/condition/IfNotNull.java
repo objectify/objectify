@@ -9,8 +9,7 @@ package com.googlecode.objectify.condition;
 public class IfNotNull extends ValueIf<Object>
 {
 	@Override
-	public boolean matches(Object value)
-	{
+	public boolean matchesValue(Object value) {
 		return value != null;
 	}
 }

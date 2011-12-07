@@ -2,11 +2,12 @@ package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.annotation.EntitySubclass;
 
 /**
  * <p>Maintains information about registered entity classes<p>
@@ -18,6 +19,10 @@ import com.googlecode.objectify.annotation.Subclass;
  */
 public class Registrar
 {
+	/** */
+	@SuppressWarnings("unused")
+	private static final Logger log = Logger.getLogger(Registrar.class.getName());
+	
 	/** Needed to obtain the converters */
 	protected ObjectifyFactory fact;
 	
@@ -48,39 +53,36 @@ public class Registrar
 	 * <p>All POJO entity classes which are to be managed by Objectify
 	 * must be registered first.  This method must be called in a single-threaded
 	 * mode sometime around application initialization.</p> 
+	 * 
+	 * @param clazz must be annotated with either @Entity or @EntitySubclass
 	 */
 	public <T> void register(Class<T> clazz)
 	{
+		// TODO: make this a bit smarter some day so that re-registration of same item doesn't reparse everything.
+		// However, that must be done carefully because sometimes you want to re-register something (say, after adding translators).
+		
 		// There are two possible cases
-		// 1) This might be a simple class with @Entity or unannotated
-		// 2) This might be a class annotated with @Subclass
+		// 1) This might be a simple class with @Entity
+		// 2) This might be a class annotated with @EntitySubclass
 		
 		String kind = Key.getKind(clazz);
 		
-		if (clazz.isAnnotationPresent(Subclass.class))
+		if (clazz.isAnnotationPresent(EntitySubclass.class))
 		{
 			this.registerPolymorphicHierarchy(kind, clazz);
 		}
+		else if (clazz.isAnnotationPresent(Entity.class))
+		{
+			ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
+			this.byKind.put(kind, cmeta);
+			this.byClass.put(clazz, cmeta);
+			
+			if (cmeta.getCacheExpirySeconds() != null)
+				this.cacheEnabled = true;
+		}
 		else
 		{
-			EntityMetadata<?> meta = this.byKind.get(kind);
-			if (meta == null)
-			{
-				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
-				this.byKind.put(kind, cmeta);
-				this.byClass.put(clazz, cmeta);
-				
-				if (cmeta.getCacheExpirySeconds() != null)
-					this.cacheEnabled = true;
-			}
-			else if (meta instanceof PolymorphicEntityMetadata<?>)
-			{
-				// nothing special - the base class must already have been registered
-			}
-			else
-			{
-				throw new IllegalArgumentException("Attempted to register kind '" + kind + "' twice");
-			}
+			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @EntitySubclass");
 		}
 	}
 	
@@ -96,15 +98,15 @@ public class Registrar
 	protected <T> PolymorphicEntityMetadata<? super T> registerPolymorphicHierarchy(String kind, Class<T> clazz)
 	{
 		if (clazz == Object.class)
-			throw new IllegalArgumentException("A @Subclass hierarchy must have an @Entity superclass (direct or indirect)");
+			throw new IllegalArgumentException("An @EntitySubclass hierarchy must have an @Entity superclass (direct or indirect)");
 		
 		// First thing we do is climb and take care of the actual root @Entity
-		if (clazz.isAnnotationPresent(Entity.class) || clazz.isAnnotationPresent(javax.persistence.Entity.class))
+		if (clazz.isAnnotationPresent(Entity.class))
 		{
 			// We're at the end of the recursion, deal with the base
 			EntityMetadata<?> meta = this.byKind.get(kind);
 			if (meta == null)
-				meta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
+				meta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 			
 			if (meta instanceof ConcreteEntityMetadata<?>)
 			{
@@ -122,10 +124,10 @@ public class Registrar
 			// Climb the superclass tree, then check for subclass registration
 			PolymorphicEntityMetadata<? super T> polymeta = this.registerPolymorphicHierarchy(kind, clazz.getSuperclass());
 
-			// We only register @Subclass entities; other intermediate classes are not registered
-			if (clazz.isAnnotationPresent(Subclass.class) && !this.byClass.containsKey(clazz))
+			// We only register @EntitySubclass entities; other intermediate classes are not registered
+			if (clazz.isAnnotationPresent(EntitySubclass.class) && !this.byClass.containsKey(clazz))
 			{
-				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact.getConversions(), clazz);
+				ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
 				polymeta.addSubclass(clazz, cmeta);
 				this.byClass.put(clazz, polymeta);	// always the poly version when available
 			}
