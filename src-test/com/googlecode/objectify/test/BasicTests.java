@@ -199,4 +199,30 @@ public class BasicTests extends TestBase
 		
 		ofy.save().entities(Collections.emptyList()).now();
 	}
+
+	/** */
+	@Test
+	public void testChunking() throws Exception
+	{
+		fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		List<Trivial> trivs = new ArrayList<Trivial>(100);
+		for (int i = 0; i < 100; i++) {
+			Trivial triv = new Trivial(1000L + i, "foo" + i, i);
+			trivs.add(triv);
+		}
+
+		ofy.save().entities(trivs).now();
+
+		assert trivs.size() == 100;
+
+		int count = 0;
+		for (Trivial triv: ofy.load().type(Trivial.class).chunk(2)) {
+			assert triv.getSomeNumber() == count;
+			count++;
+		}
+		assert count == 100;
+	}
+
 }
