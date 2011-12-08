@@ -38,6 +38,9 @@
 	<property name="src.dir" location="src" />
 	<property name="super.src.dir" location="super" />
 	
+	<property name="ecj.jar" location="${lib.dir}/build-only/ecj-3.7.1.jar" />
+    <property name="ecj.prefs" value=".settings/org.eclipse.jdt.core.prefs" />
+	
 	<patternset id="sdk.client.files">
 		<!-- Datastore data classes -->
 		<include name="com/google/appengine/api/datastore/AppIdNamespace.class"/>
@@ -130,7 +133,9 @@
 				debug="${build.debug}"
 				deprecation="${build.deprecation}"
 				includeantruntime="true"
-			>
+    	        compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
+            <compilerclasspath location="${ecj.jar}" />
+            <compilerarg line="-warn:-serial,+null,+semicolon,-raw,-javadoc -time -enableJavadoc -properties ${ecj.prefs}" />
 			<classpath refid="master.classpath" />
 		</javac>
 
@@ -141,7 +146,9 @@
 				debug="${build.debug}"
 				deprecation="${build.deprecation}"
 				includeantruntime="true"
-			>
+	            compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
+            <compilerclasspath location="${ecj.jar}" />
+            <compilerarg line="-warn:-serial,+null,+semicolon,-raw,-javadoc -time -enableJavadoc -properties ${ecj.prefs}" />
 		</javac>
 	</target>
 

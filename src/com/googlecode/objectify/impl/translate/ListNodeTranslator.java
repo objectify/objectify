@@ -6,7 +6,7 @@ import com.googlecode.objectify.impl.Path;
 /**
  * <p>Helper which expects a list node in the data structure and throws an exception one is not found.
  * Also handles skipping when a null list is found.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
@@ -19,10 +19,10 @@ abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
 		// Just ignore nulls for all collection types
 		if (node.hasPropertyValue() && node.getPropertyValue() == null)
 			throw new SkipException();
-		
+
 		if (!node.hasList())
 			node.getPath().throwIllegalState("Expected list structure but found " + node);
-		
+
 		return this.loadList(node, ctx);
 	}
 
@@ -37,15 +37,15 @@ abstract public class ListNodeTranslator<T> extends AbstractTranslator<T>
 		// if the developer decided to later initialize the collection in the default constructor.
 		if (pojo == null)
 			throw new SkipException();
-		
+
 		return this.saveList(pojo, path, index, ctx);
-	};
-	
+	}
+
 	/**
 	 * Implement this knowing that we have a proper list node
 	 */
 	abstract protected T loadList(Node node, LoadContext ctx);
-	
+
 	/**
 	 * Implement this to return a proper list node
 	 */
