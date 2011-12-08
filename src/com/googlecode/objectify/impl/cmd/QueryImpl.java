@@ -60,7 +60,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	int offset;
 	Cursor startAt;
 	Cursor endAt;
-	int chunk = DEFAULT_CHUNK_SIZE;
+	Integer chunk;
 	
 	/** */
 	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
@@ -247,6 +247,9 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Modifies the instance */
 	void setLimit(int value) {
 		this.limit = value;
+		
+		if (this.chunk == null)
+			this.chunk = value;
 	}
 	
 	/** Modifies the instance */
@@ -469,7 +472,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		if (this.offset != 0)
 			opts = opts.offset(this.offset);
 
-		opts = opts.chunkSize(this.chunk);
+		if (this.chunk == null)
+			opts = opts.chunkSize(DEFAULT_CHUNK_SIZE);
+		else
+			opts = opts.chunkSize(this.chunk);
 
 		return opts;
 	}
