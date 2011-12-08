@@ -129,6 +129,7 @@
 				destdir="${build.classes.dir}"
 				debug="${build.debug}"
 				deprecation="${build.deprecation}"
+				includeantruntime="true"
 			>
 			<classpath refid="master.classpath" />
 		</javac>
@@ -139,6 +140,7 @@
 				destdir="${build.super.dir}"
 				debug="${build.debug}"
 				deprecation="${build.deprecation}"
+				includeantruntime="true"
 			>
 		</javac>
 	</target>
