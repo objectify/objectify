@@ -53,7 +53,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 		final Class<? extends Map<?, ?>> mapType = (Class<? extends Map<?, ?>>)GenericTypeReflector.erase(type);
 
 		if (!Map.class.isAssignableFrom(mapType))
-			path.throwIllegalState("@Mapify annotation must be placed on a field of type Map");
+			return null;	// We might be here processing the component type of the mapify map!
 
 		ctx.enterCollection(path);
 		try {

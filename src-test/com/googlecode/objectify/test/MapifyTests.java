@@ -39,10 +39,10 @@ public class MapifyTests extends TestBase
 		}
 	}
 	
-	public static class ThingMapper implements Mapper<String, Thing> {
+	public static class ThingMapper implements Mapper<Long, Thing> {
 		@Override
-		public String getKey(Thing value) {
-			return value.name;
+		public Long getKey(Thing value) {
+			return value.weight;
 		}
 	}
 	
@@ -51,7 +51,7 @@ public class MapifyTests extends TestBase
 		@Id Long id;
 		
 		@Mapify(ThingMapper.class)
-		Map<String, Thing> things = new HashMap<String, Thing>();
+		Map<Long, Thing> things = new HashMap<Long, Thing>();
 	}
 
 
@@ -61,9 +61,9 @@ public class MapifyTests extends TestBase
 
 		HasMapify hasMap = new HasMapify();
 		Thing thing0 = new Thing("foo", 123L);
-		hasMap.things.put(thing0.name, thing0);
+		hasMap.things.put(thing0.weight, thing0);
 		Thing thing1 = new Thing("bar", 456L);
-		hasMap.things.put(thing1.name, thing1);
+		hasMap.things.put(thing1.weight, thing1);
 		
 		HasMapify fetched = this.putClearGet(hasMap);
 		
