@@ -242,9 +242,9 @@ public class ValueTranslationTests extends TestBase
 		public BigDecimal data;
 	}
 	
-	/** */
+	/** Make sure we can't execute without converter registration */
 	@Test
-	public void testAddedConversion() throws Exception
+	public void testAddedConversion1() throws Exception
 	{
 		this.fact.register(HasBigDecimal.class);
 
@@ -257,7 +257,12 @@ public class ValueTranslationTests extends TestBase
 			assert false;	// shouldn't be possible without registering converter
 		}
 		catch (SaveException ex) {}
-		
+	}
+
+	/** Make sure we can execute with converter registration */
+	@Test
+	public void testAddedConversion2() throws Exception
+	{
 		this.fact.getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
 			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Property property, Type type, CreateContext ctx) {
@@ -275,8 +280,10 @@ public class ValueTranslationTests extends TestBase
 			}
 		});
 		
-		// Must re-register the class
 		this.fact.register(HasBigDecimal.class);
+
+		HasBigDecimal hbd = new HasBigDecimal();
+		hbd.data = new BigDecimal(32.25);
 		
 		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
@@ -286,13 +293,11 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigDecimalLongConverter() throws Exception
 	{
+		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
 		this.fact.register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
-		
-		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
-		this.fact.register(HasBigDecimal.class);
 		
 		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
