@@ -1,8 +1,10 @@
 package com.googlecode.objectify.impl.engine;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -182,32 +184,31 @@ public class LoadEngine
 				@Override
 				protected T wrap(T orig) {
 					if (!svFinal.getUpgrades().isEmpty()) {
+						// We can't upgrade them in the upgrades list because it might add to the list and cause comodofication problems
+						List<Upgrade<?>> todo = new ArrayList<Upgrade<?>>();
 						
 						// Prepare any that need it
-						for (Upgrade<?> upgrade: svFinal.getUpgrades()) {
+						Iterator<Upgrade<?>> upgradesIt = svFinal.getUpgrades().iterator();
+						while (upgradesIt.hasNext()) {
+							Upgrade<?> upgrade = upgradesIt.next();
 							if (upgrade.shouldLoad(groups)) {
 								if (log.isLoggable(Level.FINEST))
 									log.finest("Reload with groups " + groups + " upgrades: " + upgrade);
 
 								upgrade.prepare(LoadEngine.this);
+								todo.add(upgrade);
+								
+								// Remove it from the list of upgrades that need to be filled
+								upgradesIt.remove();
 							}
 						}
 						
 						// A no-op if nothing was prepared.
 						execute();
 						
-						// Then execute + remove any that were prepared
-						Iterator<Upgrade<?>> upgradesIt = svFinal.getUpgrades().iterator();
-						while (upgradesIt.hasNext()) {
-							Upgrade<?> upgrade = upgradesIt.next();
-							if (upgrade.isPrepared()) {
-								
+						if (!todo.isEmpty())
+							for (Upgrade<?> upgrade: todo)
 								upgrade.doUpgrade();
-								
-								// Remove it from the list of upgrades that need to be filled
-								upgradesIt.remove();
-							}
-						}
 					}
 					
 					return orig;
