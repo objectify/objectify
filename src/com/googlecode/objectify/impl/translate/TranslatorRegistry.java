@@ -40,27 +40,27 @@ public class TranslatorRegistry
 		this.fact = fact;
 		
 		// The order is CRITICAL!
-		this.translators.add(fact.construct(SerializeTranslatorFactory.class));	// Serialize has priority over everything
-		this.translators.add(fact.construct(ByteArrayTranslatorFactory.class));
-		this.translators.add(fact.construct(ArrayTranslatorFactory.class));		// AFTER byte array otherwise we will occlude it
-		this.translators.add(fact.construct(CollectionTranslatorFactory.class));
-		this.translators.add(fact.construct(MapTranslatorFactory.class));
-		this.translators.add(fact.construct(EmbedClassTranslatorFactory.class));	// AFTER the various collections so we only process the content
-		this.translators.add(fact.construct(EntityReferenceTranslatorFactory.class));	// AFTER embed so that you can embed entities if you want
+		this.translators.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
+		this.translators.add(new ByteArrayTranslatorFactory());
+		this.translators.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
+		this.translators.add(new CollectionTranslatorFactory());
+		this.translators.add(new MapTranslatorFactory());
+		this.translators.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
+		this.translators.add(new EntityReferenceTranslatorFactory());	// AFTER embed so that you can embed entities if you want
 		
 		// Magic inflection point at which we want to prioritize added translators
 		this.insertPoint = this.translators.size();
 		
-		this.translators.add(fact.construct(StringTranslatorFactory.class));
-		this.translators.add(fact.construct(NumberTranslatorFactory.class));
-		this.translators.add(fact.construct(KeyTranslatorFactory.class));
-		this.translators.add(fact.construct(RefTranslatorFactory.class));
-		this.translators.add(fact.construct(EnumTranslatorFactory.class));
-		this.translators.add(fact.construct(SqlDateTranslatorFactory.class));
-		this.translators.add(fact.construct(TimeZoneTranslatorFactory.class));
+		this.translators.add(new StringTranslatorFactory());
+		this.translators.add(new NumberTranslatorFactory());
+		this.translators.add(new KeyTranslatorFactory());
+		this.translators.add(new RefTranslatorFactory());
+		this.translators.add(new EnumTranslatorFactory());
+		this.translators.add(new SqlDateTranslatorFactory());
+		this.translators.add(new TimeZoneTranslatorFactory());
 		
 		// LAST!  It catches everything.
-		this.translators.add(fact.construct(AsIsTranslatorFactory.class));
+		this.translators.add(new AsIsTranslatorFactory());
 	}
 	
 	/**

@@ -89,8 +89,8 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 				Class<?>[] ptypes = method.getParameterTypes();
 				
 				for (int i=0; i<ptypes.length; i++)
-					if (ptypes[i] != Objectify.class && ptypes[i] != Entity.class)
-						throw new IllegalStateException("@OnSave and @OnLoad methods can only have parameters of type Objectify or Entity");
+					if (ptypes[i] != Objectify.class && ptypes[i] != LoadContext.class && ptypes[i] != SaveContext.class)
+						throw new IllegalStateException("@OnSave and @OnLoad methods can only have parameters of type Objectify, LoadContext, or SaveContext");
 				
 				if (method.isAnnotationPresent(OnSave.class))
 				{

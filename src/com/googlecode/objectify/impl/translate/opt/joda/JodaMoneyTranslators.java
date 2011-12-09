@@ -14,7 +14,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 public class JodaMoneyTranslators
 {
 	public static void add(ObjectifyFactory fact) {
-		fact.getTranslators().add(fact.construct(MoneyStringTranslatorFactory.class));
-		fact.getTranslators().add(fact.construct(BigMoneyStringTranslatorFactory.class));
+		fact.getTranslators().add(new MoneyStringTranslatorFactory());
+		fact.getTranslators().add(new BigMoneyStringTranslatorFactory());
 	}
 }
