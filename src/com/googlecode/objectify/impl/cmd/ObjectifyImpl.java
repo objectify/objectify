@@ -367,4 +367,11 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			return meta.save(pojo, this);
 		}
 	}
+	
+	/**
+	 * Get the wrapper instance
+	 */
+	public Objectify getWrapper() {
+		return this.wrapper;
+	}
 }

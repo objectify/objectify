@@ -67,7 +67,7 @@ public class LoadEngine
 					if (translated == null) {
 						translated = new HashMap<Key<?>, Object>(entities.now().size() * 2);
 						
-						LoadContext ctx = new LoadContext(ofy, LoadEngine.this);
+						LoadContext ctx = new LoadContext(ofy.getWrapper(), LoadEngine.this);
 						
 						for (Entity ent: entities.now().values()) {
 							Key<?> key = Key.create(ent.getKey());

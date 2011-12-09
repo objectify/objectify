@@ -7,7 +7,9 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests the lifecycle annotations
@@ -23,11 +25,18 @@ public class LifecycleTests extends TestBase
 		boolean onSavedWithObjectify;
 		boolean onLoaded;
 		boolean onLoadedWithObjectify;
+		boolean onLoadedWithLoadContext;
 
 		@OnSave void onSave() { this.onSaved = true; }
 		@OnSave void onSave(Objectify ofy) { this.onSavedWithObjectify = true; }
 		@OnLoad void onLoad() { this.onLoaded = true; }
 		@OnLoad void onLoad(Objectify ofy) { this.onLoadedWithObjectify = true; }
+		
+		@OnLoad void onLoad(LoadContext ofy) {
+			this.onLoadedWithLoadContext = true;
+			// Check to make sure that the correct wrapper made it through
+			assert ofy.getObjectify() instanceof TestObjectify;
+		}
 	}
 
 	@com.googlecode.objectify.annotation.Entity
