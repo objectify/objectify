@@ -6,10 +6,13 @@ import java.util.Map;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Test persisting of Map with @Mapify annotations
@@ -69,4 +72,62 @@ public class MapifyTests extends TestBase
 		
 		assert hasMap.things.equals(fetched.things);
 	}
+
+
+	/** */
+	@Entity
+	public static class Top {
+		public @Id long id;
+		
+		@Mapify(BottomMapper.class)
+		public Map<String, Bottom> bottoms = new HashMap<String, Bottom>();
+		
+		public Top() {}
+		public Top(long id) { this.id = id; }
+	}
+	
+	/** */
+	@Embed
+	public static class Bottom {
+		public @Load Top top;
+		public String name;
+		public Bottom() {}
+	}
+	
+	public static class BottomMapper implements Mapper<String, Bottom> {
+		@Override
+		public String getKey(Bottom value) {
+			return value.name;
+		}
+	}
+	
+	/**
+	 * This is a perverse case that gives nasty trouble.
+	 */
+	@Test
+	public void testBidirectionalMapify() throws Exception
+	{
+		fact.register(Top.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		Top top = new Top(123);
+		
+		Bottom bot = new Bottom();
+		bot.name = "foo";
+		bot.top = top;
+		
+		top.bottoms.put(bot.name, bot);
+		
+		ofy.put(top);
+		ofy.clear();
+		
+		Top topFetched = ofy.load().entity(top).get();
+		assert topFetched.bottoms.size() == 1;
+		
+		Bottom bottomFetched = topFetched.bottoms.get(bot.name);
+		assert bottomFetched.top.id == top.id;
+		assert bottomFetched.name.equals(bot.name);
+	}
+
 }
