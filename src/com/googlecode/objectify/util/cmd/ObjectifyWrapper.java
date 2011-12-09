@@ -30,6 +30,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	/** Wraps the base objectify */
 	public ObjectifyWrapper(Objectify ofy) {
 		this.base = ofy;
+		this.base.setWrapper(this);
 	}
 	
 	/* (non-Javadoc)
@@ -80,6 +81,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	public W consistency(Consistency policy) {
 		W next = (W)this.clone();
 		next.base = base.consistency(policy);
+		next.base.setWrapper(next);
 		return next;
 	}
 
@@ -90,6 +92,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	public W deadline(Double value) {
 		W next = (W)this.clone();
 		next.base = base.deadline(value);
+		next.base.setWrapper(next);
 		return next;
 	}
 
@@ -100,6 +103,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	public W cache(boolean value) {
 		W next = (W)this.clone();
 		next.base = base.cache(value);
+		next.base.setWrapper(next);
 		return next;
 	}
 
@@ -110,6 +114,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	public W transaction() {
 		W next = (W)this.clone();
 		next.base = base.transaction();
+		next.base.setWrapper(next);
 		return next;
 	}
 
@@ -132,6 +137,14 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	@Override
 	public void clear() {
 		base.clear();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#setWrapper(com.googlecode.objectify.Objectify)
+	 */
+	@Override
+	public void setWrapper(Objectify ofy) {
+		base.setWrapper(ofy);
 	}
 
 	/* (non-Javadoc)

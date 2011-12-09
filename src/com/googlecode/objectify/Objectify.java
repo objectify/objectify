@@ -163,4 +163,10 @@ public interface Objectify
 	 */
 	void clear();
 
+	/**
+	 * Sets the object instance that should be passed on by the base implementation in subsequent actions; for
+	 * example, the Objectify instance that is passed to transact() Work.  You probably don't need to worry about
+	 * this method; just subclass ObjectifyWrapper. 
+	 */
+	void setWrapper(Objectify ofy);
 }

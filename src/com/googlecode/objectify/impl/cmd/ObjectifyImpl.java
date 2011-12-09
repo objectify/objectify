@@ -44,6 +44,9 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/** */
 	private static final Logger log = Logger.getLogger(ObjectifyImpl.class.getName());
 	
+	/** */
+	protected Objectify wrapper = this;
+	
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
 
@@ -165,7 +168,9 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	protected ObjectifyImpl clone() {
 		try {
-			return (ObjectifyImpl)super.clone();
+			ObjectifyImpl clone = (ObjectifyImpl)super.clone();
+			clone.wrapper = clone;
+			return clone;
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
@@ -203,7 +208,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	private <O extends Objectify, R> R transactOnce(TxnWork<O, R> work) {
 		@SuppressWarnings("unchecked")
-		O txnOfy = (O)this.transaction();
+		O txnOfy = (O)wrapper.transaction();
 		try {
 			R result = work.run(txnOfy);
 			txnOfy.getTxn().commit();
@@ -224,6 +229,14 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		session.clear();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#setWrapper(com.googlecode.objectify.Objectify)
+	 */
+	@Override
+	public void setWrapper(Objectify ofy) {
+		this.wrapper = ofy;
+	}
+	
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */

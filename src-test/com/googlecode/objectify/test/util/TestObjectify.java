@@ -5,6 +5,7 @@ import java.util.Map;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.util.cmd.ObjectifyWrapper;
 
 /**
@@ -12,6 +13,11 @@ import com.googlecode.objectify.util.cmd.ObjectifyWrapper;
  */
 public class TestObjectify extends ObjectifyWrapper<TestObjectify, ObjectifyFactory>
 {
+	/**
+	 * A Work interface you can use with TestObjectify.
+	 */
+	public interface Work<R> extends TxnWork<TestObjectify, R> {}
+
 	/** */
 	public TestObjectify(Objectify ofy) {
 		super(ofy);

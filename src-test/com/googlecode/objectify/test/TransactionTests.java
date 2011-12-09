@@ -17,6 +17,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
+import com.googlecode.objectify.test.util.TestObjectify.Work;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -137,5 +138,30 @@ public class TransactionTests extends TestBase
 		// This will be fetched from the cache, and must not be the "shouldn't work"
 		assert fetched.getSomeString().equals("bar");
 	}
-	
+
+	/**
+	 */
+	@Test
+	public void testTransactWork() throws Exception
+	{
+		this.fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+		
+		final Trivial triv = new Trivial("foo", 5);
+		ofy.put(triv);
+		
+		Trivial updated = ofy.transact(new Work<Trivial>() {
+			@Override
+			public Trivial run(TestObjectify ofy) {
+				Trivial result = ofy.load().entity(triv).get();
+				result.setSomeNumber(6);
+				ofy.put(result);
+				return result;
+			}
+		});
+		assert updated.getSomeNumber() == 6;
+		
+		Trivial fetched = ofy.load().entity(triv).get();
+		assert fetched.getSomeNumber() == 6;
+	}
 }
