@@ -57,44 +57,50 @@ public interface Query<T> extends SimpleQuery<T>
 	public Query<T> order(String condition);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#filterKey(java.lang.String, java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#filterKey(java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public Query<T> filterKey(String condition, Object value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#ancestor(java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#ancestor(java.lang.Object)
 	 */
 	@Override
 	public Query<T> ancestor(Object keyOrEntity);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#limit(int)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#limit(int)
 	 */
 	@Override
 	public Query<T> limit(int value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#offset(int)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#offset(int)
 	 */
 	@Override
 	public Query<T> offset(int value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#startAt(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#startAt(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
 	public Query<T> startAt(Cursor value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#endAt(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#endAt(com.google.appengine.api.datastore.Cursor)
 	 */
 	@Override
 	public Query<T> endAt(Cursor value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryCommon#chunk(int)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#chunk(int)
 	 */
 	@Override
 	public Query<T> chunk(int value);
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#chunkAll()
+	 */
+	@Override
+	public Query<T> chunkAll();
 }

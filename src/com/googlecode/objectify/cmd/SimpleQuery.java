@@ -81,6 +81,14 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	public SimpleQuery<T> chunk(int value);
 	
 	/**
+	 * <p>Sets the internal chunking and prefetching strategy within the low-level API to attempt to get all
+	 * results at once.  Affects performance only; the result set will be the same.</p>
+	 * 
+	 * <p>Same as chunk(Integer.MAX_VALUE).</p>
+	 */
+	public SimpleQuery<T> chunkAll();
+	
+	/**
 	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
 	 * which are significantly cheaper (~7X) than fetching whole entities.
 	 */

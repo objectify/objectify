@@ -114,6 +114,15 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	}
 
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#chunkAll()
+	 */
+	@Override
+	public QueryImpl<T> chunkAll()
+	{
+		return chunk(Integer.MAX_VALUE);
+	}
+
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Query#keys()
 	 */
 	@Override

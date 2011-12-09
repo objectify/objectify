@@ -113,6 +113,14 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 	}
 
 	@Override
+	public H chunkAll()
+	{
+		H next = this.clone();
+		next.base = base.chunkAll();
+		return next;
+	}
+
+	@Override
 	public QueryResultIterator<T> iterator()
 	{
 		return base.iterator();
