@@ -97,6 +97,7 @@ public class MapifyTests extends TestBase
 	public static class BottomMapper implements Mapper<String, Bottom> {
 		@Override
 		public String getKey(Bottom value) {
+			assert value.top != null;	// this is the problem place
 			return value.name;
 		}
 	}
