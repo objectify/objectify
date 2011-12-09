@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.translate;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -144,5 +145,12 @@ public class LoadContext
 	 */
 	public void registerUpgrade(Upgrade<?> upgrade) {
 		batch.registerUpgrade(currentRoot, upgrade);
+	}
+	
+	/**
+	 * Gets the currently enabled set of load groups
+	 */
+	public Set<String> getLoadGroups() {
+		return batch.getLoadGroups();
 	}
 }

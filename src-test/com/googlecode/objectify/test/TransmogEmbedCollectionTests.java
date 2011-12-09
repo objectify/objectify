@@ -58,7 +58,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("asdf"));
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" } ] }
 		{
@@ -120,7 +120,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("qwer"));
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		// Should look like { id: 123L, things: [ { foo: "asdf" }, { foo: "qwer" } ] }
 		{
@@ -211,7 +211,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("asdf", 123L));
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		// Should look like: {id='222', things=[{foo='asdf', bar='123'}]}
 		{
@@ -280,7 +280,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("zxcv", 456L));
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		{
 			assert !rootNode.hasPropertyValue();

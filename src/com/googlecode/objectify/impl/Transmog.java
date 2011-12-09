@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.impl.translate.CreateContext;
@@ -88,15 +87,13 @@ public class Transmog<T>
 	 * 
 	 * @param fromPojo is your typed entity
 	 */
-	public Entity save(T fromPojo, Objectify ofy)
+	public Entity save(T fromPojo, SaveContext ctx)
 	{
 		if (log.isLoggable(Level.FINEST))
 			log.finest("\tTranslating " + fromPojo);
 		
 		try {
-			SaveContext ctx = new SaveContext(ofy);
-			
-			Node root = save(fromPojo, ctx);
+			Node root = saveToNode(fromPojo, ctx);
 			Entity entity = save(root);
 			return entity;
 		}
@@ -107,7 +104,7 @@ public class Transmog<T>
 	}
 	
 	/** Public just for testing */
-	public Node save(T fromPojo, SaveContext ctx) {
+	public Node saveToNode(T fromPojo, SaveContext ctx) {
 		// Default index state is false!
 		return (Node)rootTranslator.save(fromPojo, Path.root(), false, ctx);
 	}

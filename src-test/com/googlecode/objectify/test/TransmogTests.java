@@ -44,7 +44,7 @@ public class TransmogTests extends TransmogTestBase
 		Trivial triv = new Trivial(123L, "foo", 456L);
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(triv, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(triv, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", triv.getId());
@@ -102,7 +102,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.add("bar");
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		Node stuffNode;
 		
 		assert !rootNode.hasPropertyValue();
@@ -154,7 +154,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -196,7 +196,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff = null;	// explicitly null it out
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -244,7 +244,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.id = 123L;
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 		
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -292,7 +292,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.put("foo", 5L);
 		
 		// Check the tree structure
-		Node rootNode = transmog.save(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
 
 		// id and foo
 		{

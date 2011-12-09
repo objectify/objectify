@@ -252,4 +252,11 @@ public class LoadEngine
 		SessionValue<?> sv = session.get(root);
 		sv.getUpgrades().add(upgrade);
 	}
+	
+	/**
+	 * @return the currently enabled set of load groups
+	 */
+	public Set<String> getLoadGroups() {
+		return this.groups;
+	}
 }

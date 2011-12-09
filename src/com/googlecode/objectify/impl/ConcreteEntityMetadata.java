@@ -12,6 +12,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 
 
 /**
@@ -120,7 +121,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		T pojo = this.transmog.load(ent, ctx);
 		
 		// If there are any @OnLoad methods, call them
-		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ctx.getObjectify());
+		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ctx.getObjectify(), ctx, null);
 
 		return pojo;
 	}
@@ -131,20 +132,24 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	@Override
 	public Entity save(T pojo, Objectify ofy)
 	{
-		// If there are any @OnSave methods, call them
-		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ofy);
+		SaveContext ctx = new SaveContext(ofy);
 		
-		Entity ent = this.transmog.save(pojo, ofy);
+		// If there are any @OnSave methods, call them
+		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ofy, null, ctx);
+		
+		Entity ent = this.transmog.save(pojo, ctx);
 		
 		return ent;
 	}
 	
 	/**
-	 * Invoke a set of lifecycle callbacks on the pojo.
+	 * Invoke a set of @OnLoad/@OnSave lifecycle callbacks on the pojo.
 	 * 
 	 * @param callbacks can be null if there are no callbacks
+	 * @param lctx is the load context if this is a load operation
+	 * @param sctx is the save context if this is a save operation
 	 */
-	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Objectify ofy)
+	private void invokeLifecycleCallbacks(List<Method> callbacks, Object pojo, Objectify ofy, LoadContext lctx, SaveContext sctx)
 	{
 		try
 		{
@@ -160,6 +165,10 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 							Class<?> ptype = method.getParameterTypes()[i];
 							if (ptype == Objectify.class)
 								params[i] = ofy;
+							else if (ptype == LoadContext.class)
+								params[i] = lctx;
+							else if (ptype == SaveContext.class)
+								params[i] = sctx;
 							else
 								throw new IllegalStateException("Lifecycle callback cannot have parameter type " + ptype);
 						}
