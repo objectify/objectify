@@ -225,4 +225,22 @@ public class BasicTests extends TestBase
 		assert count == 100;
 	}
 
+	/** */
+	@Test
+	public void deleteBatch() throws Exception
+	{
+		fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		Trivial triv1 = new Trivial("foo5", 5);
+		Trivial triv2 = new Trivial("foo6", 6);
+
+		ofy.save().entities(triv1, triv2).now();
+		
+		assert ofy.load().entities(triv1, triv2).size() == 2;
+		
+		ofy.delete().keys(triv1, triv2).now();
+		
+		assert ofy.load().entities(triv1, triv2).size() == 0;
+	}
 }
