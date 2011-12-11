@@ -81,11 +81,38 @@ public class QueryCursorTests extends TestBase
 
 		// We should be at end
 		cursor = it.getCursor();
+		assert cursor != null;
 		it = q.startAt(cursor).iterator();
 		assert !it.hasNext();
 		
 		// Try that again just to be sure
 		cursor = it.getCursor();
+		assert cursor != null;
+		it = q.startAt(cursor).iterator();
+		assert !it.hasNext();
+	}
+
+	/** */
+	@Test
+	public void testCursorOneFetchToEnd() throws Exception
+	{
+		TestObjectify ofy = this.fact.begin();
+		Query<Trivial> q = ofy.load().type(Trivial.class);
+		QueryResultIterator<Trivial> it = q.iterator();
+		
+		it.next();
+		it.next();
+		assert !it.hasNext();
+		
+		// We should be at end
+		Cursor cursor = it.getCursor();
+		assert cursor != null;
+		it = q.startAt(cursor).iterator();
+		assert !it.hasNext();
+		
+		// Try that again just to be sure
+		cursor = it.getCursor();
+		assert cursor != null;
 		it = q.startAt(cursor).iterator();
 		assert !it.hasNext();
 	}
