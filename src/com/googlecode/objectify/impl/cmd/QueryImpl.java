@@ -61,6 +61,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	Cursor startAt;
 	Cursor endAt;
 	Integer chunk;
+	boolean hybrid;	// starts false
 	
 	/** */
 	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
@@ -80,6 +81,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
 			this.actual.addFilter(PolymorphicEntityMetadata.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
 		}
+		
+		// If the class is cacheable, hybridize
+		if (ofy.getFactory().getMetadata(clazz).getCacheExpirySeconds() != null)
+			hybrid = true;
 		
 		this.classRestriction = clazz;
 	}
@@ -273,6 +278,11 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/** Modifies the instance */
+	void setHybrid(boolean force) {
+		this.hybrid = force;
+	}
+
+	/** Modifies the instance */
 	void setKeysOnly() {
 		this.actual.setKeysOnly();
 	}
@@ -430,7 +440,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Produces the basic iterable on refs based on the current query.  Used to generate all other iterables. */
 	private QueryResultIterable<Ref<T>> refIterable()
 	{
-		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions());
+		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions(), hybrid);
 	}
 	
 	/* (non-Javadoc)

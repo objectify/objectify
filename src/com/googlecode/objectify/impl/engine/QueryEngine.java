@@ -49,18 +49,22 @@ public class QueryEngine
 
 	/**
 	 * The fundamental query() operation, which provides Refs.  Might be a keys only query.
+	 * @param hybridize if true, convert to a keys-only query + batch load
 	 */
-	public <T> QueryResultIterable<Ref<T>> query(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
-		// We force all queries into keysonly and perform batch loading
+	public <T> QueryResultIterable<Ref<T>> query(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts, final boolean hybridize) {
+		// We might hybridize the query, so we need to know if the user really wanted a keysonly to begin with
 		final boolean keysOnly = query.isKeysOnly();
-		query = DatastoreUtils.cloneQuery(query).setKeysOnly();
+		
+		if (hybridize)
+			query = DatastoreUtils.cloneQuery(query).setKeysOnly();
 		
 		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
 		final QueryResultIterable<Entity> source = pq.asQueryResultIterable(fetchOpts);
+		
 		return new QueryResultIterable<Ref<T>>() {
 			@Override
 			public QueryResultIterator<Ref<T>> iterator() {
-				return new ChunkingToRefIterator<T>(source.iterator(), fetchOpts.getChunkSize(), keysOnly);
+				return new ChunkingToRefIterator<T>(source.iterator(), fetchOpts.getChunkSize(), keysOnly, hybridize);
 			}
 		};
 	}
@@ -73,7 +77,8 @@ public class QueryEngine
 		return pq.countEntities(fetchOpts);
 	}
 
-	/** Used in the chunking iterator */
+	
+	/** Used in the hybrid iterator */
 	private static class RefAndCursor<T> {
 		public Ref<T> ref;
 		public Cursor cursor;
@@ -94,19 +99,18 @@ public class QueryEngine
 		QueryResultIterator<Entity> source;
 		int chunkSize;
 		boolean keysOnly;
+		boolean hybrid;
 		
 		/** As we process */
 		Iterator<RefAndCursor<T>> batchIt;
 		Cursor currentCursor;
 		
-		//Iterator<Map.Entry<Key<?>, Result<?>>> batch = new LinkedHashMap<Key<?>, Result<?>>();
-		//List<Key<?>> batch = new ArrayList<Key<?>>();
-	
 		/** */
-		public ChunkingToRefIterator(QueryResultIterator<Entity> source, int chunkSize, boolean keysOnly) {
+		public ChunkingToRefIterator(QueryResultIterator<Entity> source, int chunkSize, boolean keysOnly, boolean hybrid) {
 			this.source = source;
 			this.chunkSize = chunkSize;
 			this.keysOnly = keysOnly;
+			this.hybrid = hybrid;
 			
 			this.advanceBatch();
 		}
@@ -138,6 +142,9 @@ public class QueryEngine
 				Entity ent = source.next();
 				Key<T> key = Key.create(ent.getKey());
 				Ref<T> ref = Ref.create(key);
+				
+				if (!hybrid && !keysOnly)
+					loader.stuffSession(ent);
 				
 				if (!keysOnly)
 					loader.loadRef(ref);

@@ -89,6 +89,36 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	public SimpleQuery<T> chunkAll();
 	
 	/**
+	 * <p>This method forces Objectify to (or not to) hybridize the query into a keys-only fetch plus batch get.</p>
+	 * 
+	 * <p>If Objectify knows you are fetching an entity type that can be cached, it automatically converts
+	 * queries into a "hybrid" of keys-only query followed by a batch fetch of the keys.  This is cheaper (keys-only
+	 * results are 1/7th the price of a full fetch) and, if the cache hits, significantly faster.  However,
+	 * there are some circumstances in which you may wish to force behavior one way or another:</p>
+	 * 
+	 * <ul>
+	 * <li>Issuing a kindless query (which Objectify will not auto-hybridize) when you know a significant portion
+	 * of the result set is cacheable.</li>
+	 * <li>Some exotic queries cannot be made keys-only, and produce an exception from the Low-Level API when you
+	 * try to execute the query.  Objectify tries to detect these cases but since the underlying implementation
+	 * may change, you may need to force hybridization off in some cases.</li>
+	 * <li>Hybrid queries have a slightly different consistency model than normal queries.  You may wish to
+	 * force hybridization off to ensure a weakly consistent query (see below).</li>
+	 * </ul>
+	 * 
+	 * <p>For the most part, hybridization only affects the performance and cost of queries.  However, it is possible
+	 * for hybridization to alter the content of the result set.  In the HRD, queries
+	 * always have EVENTUAL consistency but get operations may have either STRONG or EVENTUAL consistency depending
+	 * on the read policy (see {@code Objectify.consistency()}.  The keys-only query results will always be EVENTUAL and may
+	 * return data that has been deleted, but Objectify will exclude these results when the more-current batch get fails to return
+	 * data.  So the count of the returned data may actually be less than the limit(), even if there are plenty of
+	 * actual results.  {@code hybrid(false)} will prevent this behavior.</p>
+	 * 
+	 * <p>Note that in hybrid queries, the chunk size defines the batch size.</p>
+	 */
+	public SimpleQuery<T> hybrid(boolean force);
+	
+	/**
 	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
 	 * which are significantly cheaper (~7X) than fetching whole entities.
 	 */

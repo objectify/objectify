@@ -119,6 +119,14 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.chunkAll();
 		return next;
 	}
+	
+	@Override
+	public SimpleQuery<T> hybrid(boolean force)
+	{
+		H next = this.clone();
+		next.base = base.hybrid(force);
+		return next;
+	}
 
 	@Override
 	public QueryResultIterator<T> iterator()

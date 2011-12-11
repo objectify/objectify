@@ -112,6 +112,17 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		q.setChunk(value);
 		return q;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#hybrid(boolean)
+	 */
+	@Override
+	public SimpleQuery<T> hybrid(boolean force)
+	{
+		QueryImpl<T> q = createQuery();
+		q.setHybrid(force);
+		return q;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#chunkAll()

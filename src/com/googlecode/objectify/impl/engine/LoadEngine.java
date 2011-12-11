@@ -20,6 +20,7 @@ import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.util.ResultNow;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
@@ -223,5 +224,12 @@ public class LoadEngine
 	 */
 	public Set<String> getLoadGroups() {
 		return this.groups;
+	}
+
+	/**
+	 * Stuffs an Entity into the session.  Called by non-hybrid queries to add results and eliminate batch fetching.
+	 */
+	public void stuffSession(Entity ent) {
+		session.add(new SessionValue(Key.create(ent.getKey()), new ResultNow<Entity>(ent)));
 	}
 }
