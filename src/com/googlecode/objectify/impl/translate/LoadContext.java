@@ -9,9 +9,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
-import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -73,13 +71,6 @@ public class LoadContext
 		
 		if (batch.shouldLoad(property)) {
 			batch.loadRef(ref);
-		} else if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
-			batch.registerUpgrade(currentRoot, new Upgrade<T>(property, key) {
-				@Override
-				public void doUpgrade() {
-					ref.set(result);
-				}
-			});
 		}
 		
 		return ref;
@@ -113,7 +104,7 @@ public class LoadContext
 				}
 			};
 		} else {
-			return new Partial<Object>(Key.create(key), makePartial(clazz, key));
+			return makePartial(clazz, key);
 		}
 	}
 	
@@ -140,13 +131,6 @@ public class LoadContext
 		this.deferred.add(runnable);
 	}
 
-	/**
-	 * Register an upgrade on the specified root entity.
-	 */
-	public void registerUpgrade(Upgrade<?> upgrade) {
-		batch.registerUpgrade(currentRoot, upgrade);
-	}
-	
 	/**
 	 * Gets the currently enabled set of load groups
 	 */

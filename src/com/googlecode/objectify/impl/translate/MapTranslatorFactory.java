@@ -6,12 +6,9 @@ import java.util.Map;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
-import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-import com.googlecode.objectify.util.Holder;
 
 
 /**
@@ -71,40 +68,19 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 				else
 					map.clear();
 				
-				// This tracks whether or not we need to reset the map for an upgrade.
-				final Holder<Boolean> upgrading = new Holder<Boolean>(false);
-				
 				final Map<String, Object> finalMap = map;
 				
 				for (Node child: node) {
 					final String mapKey = child.getPath().getSegment();
 					
-					Object value = componentTranslator.load(child, ctx);
+					final Object value = componentTranslator.load(child, ctx);
 					if (value instanceof Result) {
-						final Result<?> result = (Result<?>)value;
-						
 						ctx.defer(new Runnable() {
 							@Override
 							public void run() {
-								finalMap.put(mapKey, result.now());
+								finalMap.put(mapKey, ((Result<?>)value).now());
 							}
 						});
-					} else if (value instanceof Partial) {
-						Partial<Object> partial = (Partial<Object>)value;
-						ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
-							@Override
-							public void doUpgrade() {
-								if (!upgrading.getValue()) {
-									finalMap.clear();
-									upgrading.setValue(true);
-								}
-								
-								finalMap.put(mapKey, result.now());
-							}
-						});
-						
-						map.put(mapKey, partial.getValue());
-						
 					} else {
 						map.put(mapKey, value);
 					}

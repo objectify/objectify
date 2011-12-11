@@ -6,12 +6,9 @@ import java.util.Collection;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
-import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-import com.googlecode.objectify.util.Holder;
 
 
 /**
@@ -69,9 +66,6 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					else
 						collection.clear();
 
-					// This tracks whether or not we need to reset the collection for an upgrade.
-					final Holder<Boolean> upgrading = new Holder<Boolean>(false);
-
 					for (Node child: node) {
 						try {
 							final Collection<Object> coll = collection;
@@ -87,22 +81,6 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 										coll.add(result.now());
 									}
 								});
-							} else if (value instanceof Partial) {
-								Partial<Object> partial = (Partial<Object>)value;
-
-								ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
-									@Override
-									public void doUpgrade() {
-										if (!upgrading.getValue()) {
-											coll.clear();
-											upgrading.setValue(true);
-										}
-
-										coll.add(result.now());
-									}
-								});
-
-								collection.add(partial.getValue());
 							} else {
 								collection.add(value);
 							}

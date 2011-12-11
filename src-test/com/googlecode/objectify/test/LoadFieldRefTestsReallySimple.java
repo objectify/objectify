@@ -109,7 +109,35 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 		ofy.get(hmkey);	// load once
 		HasMulti fetched = ofy.load().group("multi").key(hmkey).get();	// upgrade with multi
 		
-		assert fetched.multi.get(0).get().id == other0.id;
+		Ref<Other> m0 = fetched.multi.get(0);
+		assert m0.get().id == other0.id;
+		
 		assert fetched.multi.get(1).get().id == other1.id;
 	}
+
+	/** */
+	@Entity
+	public static class HasSingle {
+		public @Id Long id;
+		public @Load("single") Ref<Other> single;
+	}
+	
+	/** */
+	@Test
+	public void testSingleReloaded() throws Exception
+	{
+		fact.register(HasSingle.class);
+		TestObjectify ofy = fact.begin();
+		
+		HasSingle hs = new HasSingle();
+		hs.single = Ref.create(ko0);
+		Key<HasSingle> hskey = ofy.put(hs);
+		
+		ofy.clear();
+		ofy.get(hskey);	// load once
+		HasSingle fetched = ofy.load().group("single").key(hskey).get();	// upgrade with single
+		
+		assert fetched.single.get().id == other0.id;
+	}
+
 }

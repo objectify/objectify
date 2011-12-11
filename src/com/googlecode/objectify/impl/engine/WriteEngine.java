@@ -60,7 +60,7 @@ public class WriteEngine
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
 		
-		List<Entity> entityList = new ArrayList<Entity>();
+		final List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
@@ -78,11 +78,8 @@ public class WriteEngine
 			protected Map<Key<K>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
 				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
 
-				// We need to take a pass to do two things:
-				// 1) Patch up any generated ids in the original objects
-				// 2) Add values to session
-				
-				// Order should be exactly the same
+				// One pass through the translated pojos to patch up any generated ids in the original objects
+				// Iterator order should be exactly the same for keys and values
 				Iterator<com.google.appengine.api.datastore.Key> keysIt = base.iterator();
 				for (E obj: entities)
 				{
@@ -95,13 +92,12 @@ public class WriteEngine
 					
 					Key<K> key = Key.create(k);
 					result.put(key, obj);
+				}
 
-					// Normally we would update the session value here but it screws up @Load operations
-					// so for now let's just hack it.
-					session.remove(key);
-//					@SuppressWarnings("unchecked")
-//					SessionValue<E> sv = new SessionValue<E>((Key<E>)key, new ResultNow<E>(obj)); 
-//					session.add(sv);
+				// One pass through the entity list to update session cache values
+				for (Entity ent: entityList) {
+					SessionValue sv = new SessionValue(Key.create(ent.getKey()), new ResultNow<Entity>(ent)); 
+					session.add(sv);
 				}
 				
 				if (log.isLoggable(Level.FINEST))
@@ -122,7 +118,7 @@ public class WriteEngine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(new SessionValue<Object>(Key.create(key), new ResultNow<Object>(null)));
+					session.add(new SessionValue(Key.create(key), new ResultNow<Entity>(null)));
 				
 				return orig;
 			}

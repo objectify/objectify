@@ -91,15 +91,15 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		for (Ref<Trivial> ref: fetched.multi)
 			assertRefUninitialzied(ref);
 
-		// This should add multi
 		fetched = ofy.load().group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		// Not valid anymore, everything is done separately
+		//assert fetched.single.get() == fetched.multi.get(0).get();
+		assertRefUninitialzied(fetched.single);
 		
-		// This shouldn't actually do anything at all
 		fetched = ofy.load().group("single").group("multi").key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());

@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
@@ -101,29 +100,7 @@ public class TranslatableProperty<T> {
 					return "(delayed Runnable to set " + property.getName() + ")";
 				}
 			});
-		}
-		else if (value instanceof Partial) {
-			@SuppressWarnings("unchecked")
-			final Partial<T> partial = (Partial<T>)value;
-			
-			if (property.getLoadGroups() != null) {	// if there are some circumstances under which it might be loaded
-				ctx.registerUpgrade(new Upgrade<T>(property, partial.getKey()) {
-					@Override
-					public void doUpgrade() {
-						property.set(pojo, result.now());
-					}
-					
-					@Override
-					public String toString() {
-						return "(upgrade " + property.getName() + " on " + pojo + " to value of " + partial.getKey() + ")";
-					}
-				});
-			}
-			
-			property.set(pojo, partial.getValue());
-			
-		}
-		else {
+		} else {
 			if (log.isLoggable(Level.FINEST))
 				log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
 			

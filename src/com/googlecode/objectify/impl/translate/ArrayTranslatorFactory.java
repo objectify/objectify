@@ -7,10 +7,8 @@ import java.util.List;
 
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.Node;
-import com.googlecode.objectify.impl.Partial;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.SessionValue.Upgrade;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
@@ -57,32 +55,17 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 					// We can't use List.toArray() because it doesn't work with primitives
 					final Object array = Array.newInstance(GenericTypeReflector.erase(componentType), list.size());
 					for (int i=0; i<list.size(); i++) {
-						Object value = list.get(i);
+						final Object value = list.get(i);
 						final int index = i;
 						
 						if (value instanceof Result) {
 							// defer the set operation
-							final Result<?> result = (Result<?>)value;
-							
 							ctx.defer(new Runnable() {
 								@Override
 								public void run() {
-									Array.set(array, index, result.now());
+									Array.set(array, index, ((Result<?>)value).now());
 								}
 							});
-						} else if (value instanceof Partial) {
-							@SuppressWarnings("unchecked")
-							Partial<Object> partial = (Partial<Object>)value;
-							
-							ctx.registerUpgrade(new Upgrade<Object>(property, partial.getKey()) {
-								@Override
-								public void doUpgrade() {
-									Array.set(array, index, result.now());
-								}
-							});
-							
-							Array.set(array, i, partial.getValue());
-							
 						} else {
 							Array.set(array, i, value);
 						}
