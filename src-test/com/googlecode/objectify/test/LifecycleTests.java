@@ -5,9 +5,11 @@ import org.testng.annotations.Test;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -90,5 +92,38 @@ public class LifecycleTests extends TestBase
 		{
 			// this is correct
 		}
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasLoad
+	{
+		@Id Long id;
+		@Load Trivial triv;
+		@OnLoad void onLoad() {
+			assert triv != null;
+		}
+	}
+
+	/**
+	 * Make sure that lifecycle methods are called after @Load happens 
+	 */
+	@Test
+	public void testLifecycleLoadTiming() throws Exception
+	{
+		fact.register(HasLoad.class);
+		fact.register(Trivial.class);
+		
+		TestObjectify ofy = fact.begin();
+		
+		Trivial triv = new Trivial("foo", 123);
+		ofy.put(triv);
+		
+		HasLoad hl = new HasLoad();
+		hl.triv = triv;
+		ofy.put(hl);
+		
+		ofy.load().entity(hl).get();
 	}
 }
