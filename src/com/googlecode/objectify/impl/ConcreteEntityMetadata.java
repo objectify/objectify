@@ -116,12 +116,17 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	 * @see com.googlecode.objectify.impl.EntityMetadata#toObject(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
 	@Override
-	public T load(Entity ent, LoadContext ctx)
+	public T load(Entity ent, final LoadContext ctx)
 	{
-		T pojo = this.transmog.load(ent, ctx);
+		final T pojo = this.transmog.load(ent, ctx);
 		
-		// If there are any @OnLoad methods, call them
-		this.invokeLifecycleCallbacks(this.onLoadMethods, pojo, ctx.getObjectify(), ctx, null);
+		// If there are any @OnLoad methods, call them after everything else
+		ctx.defer(new Runnable() {
+			@Override
+			public void run() {
+				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getObjectify(), ctx, null);
+			}
+		});
 
 		return pojo;
 	}
