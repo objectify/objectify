@@ -64,7 +64,7 @@ public class QueryEngine
 		return new QueryResultIterable<Ref<T>>() {
 			@Override
 			public QueryResultIterator<Ref<T>> iterator() {
-				return new ChunkingToRefIterator<T>(source.iterator(), fetchOpts.getChunkSize(), keysOnly, hybridize);
+				return new ChunkingToRefIterator<T>(source.iterator(), fetchOpts.getStartCursor(), fetchOpts.getChunkSize(), keysOnly, hybridize);
 			}
 		};
 	}
@@ -106,11 +106,12 @@ public class QueryEngine
 		Cursor currentCursor;
 		
 		/** */
-		public ChunkingToRefIterator(QueryResultIterator<Entity> source, int chunkSize, boolean keysOnly, boolean hybrid) {
+		public ChunkingToRefIterator(QueryResultIterator<Entity> source, Cursor startAt, int chunkSize, boolean keysOnly, boolean hybrid) {
 			this.source = source;
 			this.chunkSize = chunkSize;
 			this.keysOnly = keysOnly;
 			this.hybrid = hybrid;
+			this.currentCursor = startAt;
 			
 			this.advanceBatch();
 		}
