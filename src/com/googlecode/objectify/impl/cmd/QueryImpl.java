@@ -63,6 +63,11 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	Integer chunk;
 	boolean hybrid;	// starts false
 	
+	/** Need to know this so that we can force hybrid off when we get a multiquery (IN/NOT) or order */
+	boolean hasForcedHybrid;
+	boolean hasMulti;
+	boolean hasNonKeyOrder;
+	
 	/** */
 	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
 		super(objectify, fetchGroups);
@@ -188,6 +193,9 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		// Convert to something filterable, possibly extracting/converting keys
 		value = ofy.makeFilterable(value);
 		this.actual.addFilter(prop, op, value);
+		
+		if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
+			hasMulti = true;
 	}
 	
 	/**
@@ -227,6 +235,8 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 			dir = SortDirection.DESCENDING;
 			condition = condition.substring(1).trim();
 		}
+
+		boolean isNonKeyOrder = true;
 		
 		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
 		if (this.classRestriction != null)
@@ -238,10 +248,14 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 				
 				condition = "__key__";
 				keyOrder = dir;
+				isNonKeyOrder = false;
 			}
 		}
 
 		this.actual.addSort(condition, dir);
+		
+		if (isNonKeyOrder)
+			this.hasNonKeyOrder = true;
 	}
 	
 	/** Modifies the instance */
@@ -280,6 +294,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Modifies the instance */
 	void setHybrid(boolean force) {
 		this.hybrid = force;
+		this.hasForcedHybrid = true;
 	}
 
 	/** Modifies the instance */
@@ -440,7 +455,16 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Produces the basic iterable on refs based on the current query.  Used to generate all other iterables. */
 	private QueryResultIterable<Ref<T>> refIterable()
 	{
-		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions(), hybrid);
+		boolean hybridize = hybrid;
+		
+		if (!hasForcedHybrid) {
+			// These are the special conditions we know about.  It may expand.
+			
+			if (hasMulti && hasNonKeyOrder)
+				hybridize = false;
+		}
+		
+		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions(), hybridize);
 	}
 	
 	/* (non-Javadoc)
