@@ -8,6 +8,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -125,5 +126,63 @@ public class LifecycleTests extends TestBase
 		ofy.put(hl);
 		
 		ofy.load().entity(hl).get();
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class ParentThing
+	{
+		@Id Long id;
+		String foo;
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasParent
+	{
+		@Load @Parent ParentThing parent;
+		@Id Long id;
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasHasParent
+	{
+		@Id Long id;
+		@Load HasParent hasParent;
+		
+		@OnLoad void onLoad() {
+			assert hasParent.parent.foo.equals("fooValue");
+		}
+	}
+
+	/**
+	 * More complicated test of a more complicated structure 
+	 */
+	@Test
+	public void testComplicatedLifecycle() throws Exception
+	{
+		fact.register(ParentThing.class);
+		fact.register(HasParent.class);
+		fact.register(HasHasParent.class);
+		
+		TestObjectify ofy = fact.begin();
+
+		ParentThing pt = new ParentThing();
+		pt.foo = "fooValue";
+		ofy.put(pt);
+		
+		HasParent hp = new HasParent();
+		hp.parent = pt;
+		ofy.put(hp);
+
+		HasHasParent hhp = new HasHasParent();
+		hhp.hasParent = hp;
+		ofy.put(hhp);
+		
+		ofy.load().entity(hhp).get();
 	}
 }
