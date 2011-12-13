@@ -20,8 +20,14 @@ public class ReallySimpleFormatter extends SimpleFormatter
 	{
 		StringBuilder bld = new StringBuilder();
 		
-		// Log level
-		bld.append(record.getLevel()).append(":  ");
+		// Log level, pad to spacing for longest level (WARNING)
+		String longest = "       ";
+		String level = record.getLevel().toString();
+		int diff = longest.length() - level.length(); 
+		if (diff > 0)
+			level = longest.substring(0, diff) + level;
+		
+		bld.append(level).append(":  ");
 		
 		// Class.method using shortName
 		String className = record.getSourceClassName();
