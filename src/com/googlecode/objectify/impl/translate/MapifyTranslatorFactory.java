@@ -83,7 +83,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 								// We need to defer the add
 								final Result<?> result = ((Result<?>)value);
 
-								ctx.defer(new Runnable() {
+								ctx.deferA(new Runnable() {
 									@Override
 									public void run() {
 										Object key = mapper.getKey(result.now());

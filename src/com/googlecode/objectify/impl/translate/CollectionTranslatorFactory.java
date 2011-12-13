@@ -75,7 +75,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 								// We need to defer the add
 								final Result<?> result = ((Result<?>)value);
 
-								ctx.defer(new Runnable() {
+								ctx.deferA(new Runnable() {
 									@Override
 									public void run() {
 										coll.add(result.now());

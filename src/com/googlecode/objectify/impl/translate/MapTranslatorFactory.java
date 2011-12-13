@@ -75,7 +75,7 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 					
 					final Object value = componentTranslator.load(child, ctx);
 					if (value instanceof Result) {
-						ctx.defer(new Runnable() {
+						ctx.deferA(new Runnable() {
 							@Override
 							public void run() {
 								finalMap.put(mapKey, ((Result<?>)value).now());

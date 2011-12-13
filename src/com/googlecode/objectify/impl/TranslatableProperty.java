@@ -84,7 +84,7 @@ public class TranslatableProperty<T> {
 	 */
 	private void setOnPojo(final Object pojo, final T value, final LoadContext ctx, final Path path) {
 		if (value instanceof Result) {
-			ctx.defer(new Runnable() {
+			ctx.deferA(new Runnable() {
 				@Override
 				public void run() {
 					@SuppressWarnings("unchecked")

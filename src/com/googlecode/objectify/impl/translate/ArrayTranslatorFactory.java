@@ -60,7 +60,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 						
 						if (value instanceof Result) {
 							// defer the set operation
-							ctx.defer(new Runnable() {
+							ctx.deferA(new Runnable() {
 								@Override
 								public void run() {
 									Array.set(array, index, ((Result<?>)value).now());
