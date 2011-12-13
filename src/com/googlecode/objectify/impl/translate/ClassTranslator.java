@@ -35,7 +35,7 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 		this.clazz = clazz;
 
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Creating class translator for " + path);
+			log.finest("Creating class translator for " + clazz.getName() + " at path '"+ path + "'");
 		
 		// Quick sanity check - can we construct one of these?  If not, blow up.
 		try {

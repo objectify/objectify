@@ -2,6 +2,8 @@ package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
 
@@ -13,17 +15,26 @@ import com.googlecode.objectify.Key;
 public class Session
 {
 	/** */
+	private static final Logger log = Logger.getLogger(Session.class.getName());
+	
+	/** */
 	private Map<Key<?>, SessionValue> map = new HashMap<Key<?>, SessionValue>();
 	
 	/**
 	 * Add/overwrite a SE.
 	 */
 	public void add(SessionValue se) {
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Adding to session: " + se.getKey() + " -> " + se.getResult());
+		
 		map.put(se.getKey(), se);
 	}
 	
 	/** Add all entries in the other session to this one */
 	public void addAll(Session other) {
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Adding all values to session: " + other.map.keySet());
+		
 		map.putAll(other.map);
 	}
 	
@@ -34,12 +45,10 @@ public class Session
 	
 	/** */
 	public void clear() {
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Clearing session");
+		
 		map.clear();
-	}
-	
-	/** Normally this isn't necessary but it is currently used for a hack around save() operations */
-	public SessionValue remove(Key<?> key) {
-		return map.remove(key);
 	}
 	
 	/** Convenient for debugging */

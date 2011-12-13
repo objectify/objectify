@@ -71,7 +71,7 @@ public class LoadEngine
 					
 					@Override
 					public String toString() {
-						return "(Session value result for " + key + ")";
+						return "(Fetch result for " + key + ")";
 					}
 				});
 				session.add(sv);
@@ -111,7 +111,7 @@ public class LoadEngine
 
 				@Override
 				public String toString() {
-					return "(Round Result of " + key + ")";
+					return "(Round result of " + key + ")";
 				}
 			};
 		}

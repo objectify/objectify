@@ -19,4 +19,9 @@ public class ResultNow<T> implements Result<T>
 	public T now() {
 		return value;
 	}
+	
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + "(" + value + ")";
+	}
 }

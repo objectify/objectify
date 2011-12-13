@@ -55,6 +55,6 @@ public class SessionValue
 	 */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "(" + key + ")";
+		return this.getClass().getSimpleName() + "(" + key + " -> " + result + ")";
 	}
 }
