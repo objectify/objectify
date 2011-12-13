@@ -112,7 +112,6 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(java.lang.Iterable)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <S> Map<S, T> ids(Iterable<S> ids) {
 		Map<S, Ref<T>> refs = new LinkedHashMap<S, Ref<T>>();
 		

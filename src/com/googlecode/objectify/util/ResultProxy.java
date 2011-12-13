@@ -18,7 +18,6 @@ public class ResultProxy<T> implements InvocationHandler
 	/**
 	 * Converts an Iterable into a list asynchronously, using the ResultProxy. 
 	 */
-	@SuppressWarnings("unchecked")
 	public static <S> List<S> makeAsyncList(Iterable<S> it) {
 		Result<List<S>> result = new ResultTranslator<Iterable<S>, List<S>>(it) {
 			@Override
@@ -38,8 +37,8 @@ public class ResultProxy<T> implements InvocationHandler
 	 * Create a ResultProxy for the given interface.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T, I extends T> T create(Class<I> interf, Result<T> result) {
-		return (T)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<T>(result));
+	public static <S> S create(Class<? super S> interf, Result<S> result) {
+		return (S)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<S>(result));
 	}
 	
 	Result<T> result;
