@@ -24,6 +24,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	public LoaderWrapper(Loader base) {
 		super(base);
 		this.base = base;
+		this.base.setWrapper(this);
 	}
 
 	@Override
