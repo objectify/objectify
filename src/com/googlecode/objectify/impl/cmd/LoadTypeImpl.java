@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.cmd;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -31,14 +30,14 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	
 	/**
 	 */
-	LoadTypeImpl(ObjectifyImpl ofy, Set<String> fetchGroups, Class<T> type) {
-		super(ofy, fetchGroups);
+	LoadTypeImpl(LoaderImpl loader, Class<T> type) {
+		super(loader);
 		this.type = type;
 	}
 	
 	/** */
-	LoadTypeImpl(ObjectifyImpl ofy, Set<String> fetchGroups, Class<T> type, Key<T> parent) {
-		this(ofy, fetchGroups, type);
+	LoadTypeImpl(LoaderImpl loader, Class<T> type, Key<T> parent) {
+		this(loader, type);
 		this.parent = parent;
 	}
 	
@@ -47,7 +46,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	QueryImpl<T> createQuery() {
-		return new QueryImpl<T>(ofy, fetchGroups, type);
+		return new QueryImpl<T>(loader, type);
 	}
 
 	/* (non-Javadoc)
@@ -89,7 +88,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	/** Utility method */
 	private Ref<T> refOf(Key<T> key) {
 		Ref<T> ref = Ref.create(key);
-		ofy.load().ref(ref);
+		loader.ref(ref);
 		return ref;
 	}
 
@@ -117,7 +116,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	public <S> Map<S, T> ids(Iterable<S> ids) {
 		Map<S, Ref<T>> refs = new LinkedHashMap<S, Ref<T>>();
 		
-		LoadEngine batch = ofy.createLoadEngine(fetchGroups);
+		LoadEngine batch = loader.createLoadEngine();
 		
 		for (S id: ids) {
 			Key<T> key = DatastoreUtils.createKey(parent, type, id);
@@ -145,8 +144,8 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public LoadIds<T> parent(Object keyOrEntity) {
-		Key<T> parentKey = ofy.getFactory().getKey(keyOrEntity);
-		return new LoadTypeImpl<T>(ofy, fetchGroups, type, parentKey);
+		Key<T> parentKey = loader.getObjectify().getFactory().getKey(keyOrEntity);
+		return new LoadTypeImpl<T>(loader, type, parentKey);
 	}
 
 }

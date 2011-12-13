@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.engine;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,7 +15,7 @@ import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
@@ -30,21 +29,13 @@ public class QueryEngine
 	private static final Logger log = Logger.getLogger(QueryEngine.class.getName());
 	
 	/** */
-	protected ObjectifyImpl ofy;
-	
-	/** */
-	protected AsyncDatastoreService ads;
-	
-	/** */
-	protected Set<String> groups;
+	protected LoaderImpl loader;
 	
 	/**
 	 * @param txn can be null to not use transactions. 
 	 */
-	public QueryEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Set<String> groups) {
-		this.ofy = ofy;
-		this.ads = ads;
-		this.groups = groups;
+	public QueryEngine(LoaderImpl loader) {
+		this.loader = loader;
 	}
 
 	/**
@@ -63,7 +54,9 @@ public class QueryEngine
 			log.finest("Starting " + description + " query");
 		}
 		
-		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
+		AsyncDatastoreService ads = loader.getObjectifyImpl().createAsyncDatastoreService();
+		
+		PreparedQuery pq = ads.prepare(loader.getObjectifyImpl().getTxnRaw(), query);
 		final QueryResultIterable<Entity> source = pq.asQueryResultIterable(fetchOpts);
 		
 		return new QueryResultIterable<Ref<T>>() {
@@ -78,7 +71,9 @@ public class QueryEngine
 	 * The fundamental query count operation.  This is sufficiently different from normal query().
 	 */
 	public int queryCount(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {
-		PreparedQuery pq = ads.prepare(ofy.getTxnRaw(), query);
+		AsyncDatastoreService ads = loader.getObjectifyImpl().createAsyncDatastoreService();
+		
+		PreparedQuery pq = ads.prepare(loader.getObjectifyImpl().getTxnRaw(), query);
 		return pq.countEntities(fetchOpts);
 	}
 
@@ -138,7 +133,7 @@ public class QueryEngine
 		}
 		
 		private void advanceBatch() {
-			LoadEngine loader = ofy.createLoadEngine(groups);
+			LoadEngine loadEngine = loader.createLoadEngine();
 			List<RefAndCursor<T>> racs = new ArrayList<RefAndCursor<T>>();
 
 			for (int i=0; i<chunkSize; i++) {
@@ -153,15 +148,15 @@ public class QueryEngine
 					log.finest("Query found " + ent.getKey());
 				
 				if (!hybrid && !keysOnly)
-					loader.stuffSession(ent);
+					loadEngine.stuffSession(ent);
 				
 				if (!keysOnly)
-					loader.loadRef(ref);
+					loadEngine.loadRef(ref);
 				
 				racs.add(new RefAndCursor<T>(ref, source.getCursor()));
 			}
 			
-			loader.execute();
+			loadEngine.execute();
 			batchIt = racs.iterator();
 		}
 

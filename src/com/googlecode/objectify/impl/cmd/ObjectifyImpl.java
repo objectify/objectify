@@ -4,7 +4,6 @@ import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,8 +24,6 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.NullProperty;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.engine.LoadEngine;
-import com.googlecode.objectify.impl.engine.QueryEngine;
 import com.googlecode.objectify.impl.engine.WriteEngine;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -252,27 +249,10 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */
-	protected AsyncDatastoreService createAsyncDatastoreService() {
+	public AsyncDatastoreService createAsyncDatastoreService() {
 		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), cache);
 	}
 	
-	/**
-	 * Use this once for one operation and then throw it away
-	 * @param groups is the set of load groups that are active
-	 * @return a fresh engine that handles fundamental datastore operations for load commands
-	 */
-	public LoadEngine createLoadEngine(Set<String> groups) {
-		return new LoadEngine(this, createAsyncDatastoreService(), session, groups);
-	}
-
-	/**
-	 * Use this once for one operation and then throw it away
-	 * @return a fresh engine that handles fundamental datastore operations for queries
-	 */
-	public QueryEngine createQueryEngine(Set<String> groups) {
-		return new QueryEngine(this, createAsyncDatastoreService(), groups);
-	}
-
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
@@ -373,5 +353,10 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	public Objectify getWrapper() {
 		return this.wrapper;
+	}
+	
+	/** */
+	public Session getSession() {
+		return this.session;
 	}
 }

@@ -1,8 +1,10 @@
 package com.googlecode.objectify.cmd;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 
 
@@ -193,4 +195,20 @@ public interface Loader extends SimpleQuery<Object>
 	 * <p>A convenient substitute for values(Iterable)</p>
 	 */
 	<K, E extends K> Map<Key<K>, E> values(Object... keysOrEntities);
+	
+	/**
+	 * @return the parent Objectify instance (possibly the wrapper)
+	 */
+	public Objectify getObjectify();
+	
+	/**
+	 * @return the currently enabled load groups in an unmodifiable list
+	 */
+	public Set<String> getLoadGroups();
+
+	/**
+	 * Sets the object instance that should be passed on by the base implementation in subsequent actions.
+	 * You probably don't need to worry about this method; just subclass LoaderWrapper.
+	 */
+	void setWrapper(Loader loader);
 }

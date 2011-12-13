@@ -7,9 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.engine.LoadEngine;
@@ -23,8 +23,8 @@ public class LoadContext
 	/** */
 	private static final Logger log = Logger.getLogger(LoadContext.class.getName());
 	
-	/** The objectify instance */
-	Objectify ofy;
+	/** The loader instance */
+	Loader loader;
 	
 	/** */
 	LoadEngine batch;
@@ -39,14 +39,13 @@ public class LoadContext
 	Key<?> currentRoot;
 	
 	/** */
-	public LoadContext(Objectify ofy, LoadEngine batch)
-	{
-		this.ofy = ofy;
+	public LoadContext(Loader loader, LoadEngine batch) {
+		this.loader = loader;
 		this.batch = batch;
 	}
 	
 	/** */
-	public Objectify getObjectify() { return this.ofy; }
+	public Loader getLoader() { return this.loader; }
 	
 	/** Sets the current root entity */
 	public void setCurrentRoot(Key<?> rootEntity) {
@@ -134,10 +133,10 @@ public class LoadContext
 	 * Create a partial entity as a reference
 	 */
 	private Object makePartial(Class<?> clazz, com.google.appengine.api.datastore.Key key) {
-		Object instance = ofy.getFactory().construct(clazz);
+		Object instance = loader.getObjectify().getFactory().construct(clazz);
 		
 		@SuppressWarnings("unchecked")
-		EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.getFactory().getMetadata(clazz);
+		EntityMetadata<Object> meta = (EntityMetadata<Object>)loader.getObjectify().getFactory().getMetadata(clazz);
 		meta.getKeyMetadata().setKey(instance, key, this);
 		
 		return instance;
@@ -173,6 +172,6 @@ public class LoadContext
 	 * Gets the currently enabled set of load groups
 	 */
 	public Set<String> getLoadGroups() {
-		return batch.getLoadGroups();
+		return loader.getLoadGroups();
 	}
 }

@@ -8,31 +8,46 @@ import java.util.Map;
 import java.util.Set;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.LoadType;
+import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.engine.LoadEngine;
+import com.googlecode.objectify.impl.engine.QueryEngine;
 import com.googlecode.objectify.util.ResultProxy;
 
 
 /**
- * Implementation of the Find interface.
+ * Implementation of the Loader interface.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class LoaderImpl extends Queryable<Object> implements Loader
+public class LoaderImpl extends Queryable<Object> implements Loader
 {
 	/** */
+	protected Loader wrapper = this;
+	
+	/** */
+	protected ObjectifyImpl ofy;
+	
+	/** */
+	protected Set<String> loadGroups;
+	
+	/** */
 	LoaderImpl(ObjectifyImpl ofy) {
-		super(ofy, Collections.<String>emptySet());
+		super(null);
+		this.ofy = ofy;
+		this.loadGroups = Collections.<String>emptySet();
 	}
 
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	LoaderImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
-		super(ofy, fetchGroups);
+	LoaderImpl(ObjectifyImpl ofy, Set<String> loadGroups) {
+		super(null);
+		this.ofy = ofy;
+		this.loadGroups = Collections.unmodifiableSet(loadGroups);
 	}
 
 	/* (non-Javadoc)
@@ -40,7 +55,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	QueryImpl<Object> createQuery() {
-		return new QueryImpl<Object>(ofy, fetchGroups);
+		return new QueryImpl<Object>(this);
 	}
 
 	/* (non-Javadoc)
@@ -49,7 +64,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	@Override
 	public Loader group(String... groupName) {
 		Set<String> next = new HashSet<String>(Arrays.asList(groupName));
-		next.addAll(this.fetchGroups);
+		next.addAll(this.loadGroups);
 		return new LoaderImpl(ofy, next);
 	}
 
@@ -58,7 +73,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <E> LoadType<E> type(Class<E> type) {
-		return new LoadTypeImpl<E>(ofy, fetchGroups, type);
+		return new LoadTypeImpl<E>(this, type);
 	}
 
 	/* (non-Javadoc)
@@ -82,7 +97,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public void refs(Iterable<? extends Ref<?>> refs) {
-		LoadEngine batch = ofy.createLoadEngine(fetchGroups);
+		LoadEngine batch = createLoadEngine();
 		for (Ref<?> ref: refs)
 			batch.loadRef(ref);
 		
@@ -197,4 +212,52 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		
 		return map;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#getObjectify()
+	 */
+	@Override
+	public Objectify getObjectify() {
+		return ofy.getWrapper();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#getLoadGroups()
+	 */
+	@Override
+	public Set<String> getLoadGroups() {
+		// This is unmodifiable
+		return loadGroups;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#setWrapper(com.googlecode.objectify.cmd.Loader)
+	 */
+	@Override
+	public void setWrapper(Loader loader) {
+		this.wrapper = loader;
+	}
+	
+	/** */
+	public ObjectifyImpl getObjectifyImpl() {
+		return this.ofy;
+	}
+
+	/**
+	 * Use this once for one operation and then throw it away
+	 * @param groups is the set of load groups that are active
+	 * @return a fresh engine that handles fundamental datastore operations for load commands
+	 */
+	public LoadEngine createLoadEngine() {
+		return new LoadEngine(this);
+	}
+
+	/**
+	 * Use this once for one operation and then throw it away
+	 * @return a fresh engine that handles fundamental datastore operations for queries
+	 */
+	public QueryEngine createQueryEngine() {
+		return new QueryEngine(this);
+	}
+
 }

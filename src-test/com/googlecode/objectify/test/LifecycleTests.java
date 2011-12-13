@@ -35,10 +35,10 @@ public class LifecycleTests extends TestBase
 		@OnLoad void onLoad() { this.onLoaded = true; }
 		@OnLoad void onLoad(Objectify ofy) { this.onLoadedWithObjectify = true; }
 		
-		@OnLoad void onLoad(LoadContext ofy) {
+		@OnLoad void onLoad(LoadContext ctx) {
 			this.onLoadedWithLoadContext = true;
 			// Check to make sure that the correct wrapper made it through
-			assert ofy.getObjectify() instanceof TestObjectify;
+			assert ctx.getLoader().getObjectify() instanceof TestObjectify;
 		}
 	}
 

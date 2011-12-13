@@ -18,6 +18,7 @@ import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
+import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultNow;
@@ -92,7 +93,7 @@ public class LoadEngine
 						
 						translated = new HashMap<Key<?>, Object>(enlisted.values().size() * 2);
 						
-						LoadContext ctx = new LoadContext(ofy.getWrapper(), LoadEngine.this);
+						LoadContext ctx = new LoadContext(loader, LoadEngine.this);
 						
 						for (Result<Entity> rent: enlisted.values()) {
 							Entity ent = rent.now();
@@ -140,10 +141,10 @@ public class LoadEngine
 	}
 	
 	/** */
+	LoaderImpl loader;
 	ObjectifyImpl ofy;
 	AsyncDatastoreService ads;
 	Session session;
-	Set<String> groups;
 	
 	/** We recycle instances during each batch, across rounds */
 	Map<Key<?>, Result<?>> instanceCache = new HashMap<Key<?>, Result<?>>();
@@ -153,14 +154,14 @@ public class LoadEngine
 	
 	/**
 	 */
-	public LoadEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Set<String> groups) {
-		this.ofy = ofy;
-		this.ads = ads;
-		this.session = session;
-		this.groups = groups;
+	public LoadEngine(LoaderImpl loader) {
+		this.loader = loader;
+		this.ofy = loader.getObjectifyImpl();
+		this.session = loader.getObjectifyImpl().getSession();
+		this.ads = loader.getObjectifyImpl().createAsyncDatastoreService();
 		
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Starting load engine with groups " + groups);
+			log.finest("Starting load engine with groups " + loader.getLoadGroups());
 	}
 	
 	/**
@@ -197,7 +198,7 @@ public class LoadEngine
 		if (key.getParent() != null) {
 			EntityMetadata<?> meta = ofy.getFactory().getMetadata(key);
 			if (meta != null) {
-				if (meta.getKeyMetadata().shouldLoadParent(groups)) {
+				if (meta.getKeyMetadata().shouldLoadParent(loader.getLoadGroups())) {
 					getResult(key.getParent());
 				}
 			}
@@ -219,14 +220,7 @@ public class LoadEngine
 	 * @return true if the specified property should be loaded in this batch
 	 */
 	public boolean shouldLoad(Property property) {
-		return property.shouldLoad(groups);
-	}
-
-	/**
-	 * @return the currently enabled set of load groups
-	 */
-	public Set<String> getLoadGroups() {
-		return this.groups;
+		return property.shouldLoad(loader.getLoadGroups());
 	}
 
 	/**

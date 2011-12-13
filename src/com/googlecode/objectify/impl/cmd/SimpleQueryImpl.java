@@ -1,11 +1,9 @@
 package com.googlecode.objectify.impl.cmd;
 
-import java.util.Set;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.cmd.SimpleQuery;
 import com.googlecode.objectify.cmd.QueryKeys;
+import com.googlecode.objectify.cmd.SimpleQuery;
 
 
 /**
@@ -17,17 +15,13 @@ import com.googlecode.objectify.cmd.QueryKeys;
 abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
-	protected ObjectifyImpl ofy;
-	
-	/** */
-	protected Set<String> fetchGroups;
+	protected LoaderImpl loader;
 	
 	/**
-	 * Takes ownership of the fetch groups set.
+	 * There is a special case - if loader is null, use 'this' as the LoaderImpl
 	 */
-	SimpleQueryImpl(ObjectifyImpl ofy, Set<String> fetchGroups) {
-		this.ofy = ofy;
-		this.fetchGroups = fetchGroups;
+	SimpleQueryImpl(LoaderImpl loader) {
+		this.loader = loader == null ? (LoaderImpl)this : loader;
 	}
 	
 	/**

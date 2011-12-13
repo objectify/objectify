@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.FetchOptions;
@@ -16,6 +15,7 @@ import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.cmd.Query;
@@ -69,14 +69,14 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	boolean hasNonKeyOrder;
 	
 	/** */
-	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups) {
-		super(objectify, fetchGroups);
+	QueryImpl(LoaderImpl loader) {
+		super(loader);
 		this.actual = new com.google.appengine.api.datastore.Query();
 	}
 	
 	/** */
-	QueryImpl(ObjectifyImpl objectify, Set<String> fetchGroups, Class<T> clazz) {
-		super(objectify, fetchGroups);
+	QueryImpl(LoaderImpl loader, Class<T> clazz) {
+		super(loader);
 		
 		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
 		
@@ -88,7 +88,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		}
 		
 		// If the class is cacheable, hybridize
-		if (ofy.getFactory().getMetadata(clazz).getCacheExpirySeconds() != null)
+		if (fact().getMetadata(clazz).getCacheExpirySeconds() != null)
 			hybrid = true;
 		
 		this.classRestriction = clazz;
@@ -155,14 +155,14 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		// If we have a class restriction, check to see if the property is the @Parent or @Id
 		if (this.classRestriction != null)
 		{
-			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
+			KeyMetadata<?> meta = fact().getMetadata(this.classRestriction).getKeyMetadata();
 			
 			if (prop.equals(meta.getParentFieldName())) {
 				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
 					throw new IllegalArgumentException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
 				
 				keyOp = op;
-				parentValue = ofy.getFactory().getRawKey(value);
+				parentValue = fact().getRawKey(value);
 				return;
 			}
 			else if (prop.equals(meta.getIdFieldName())) {
@@ -191,7 +191,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys
-		value = ofy.makeFilterable(value);
+		value = loader.getObjectifyImpl().makeFilterable(value);
 		this.actual.addFilter(prop, op, value);
 		
 		if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
@@ -241,7 +241,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
 		if (this.classRestriction != null)
 		{
-			KeyMetadata<?> meta = ofy.getFactory().getMetadata(this.classRestriction).getKeyMetadata();
+			KeyMetadata<?> meta = fact().getMetadata(this.classRestriction).getKeyMetadata();
 			if (condition.equals(meta.getParentFieldName()) || condition.equals(meta.getIdFieldName())) {
 				if (keyOrder != null && keyOrder != dir)
 					throw new IllegalStateException("You cannot order @Parent one direction and @Id the other. Both must be ascending or descending.");
@@ -260,7 +260,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	
 	/** Modifies the instance */
 	void setAncestor(Object keyOrEntity) {
-		this.actual.setAncestor(ofy.getFactory().getRawKey(keyOrEntity));
+		this.actual.setAncestor(fact().getRawKey(keyOrEntity));
 	}
 	
 	/** Modifies the instance */
@@ -403,7 +403,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public int count() {
-		return ofy.createQueryEngine(fetchGroups).queryCount(this.getActualQuery(), this.fetchOptions());
+		return loader.createQueryEngine().queryCount(this.getActualQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
@@ -464,7 +464,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 				hybridize = false;
 		}
 		
-		return ofy.createQueryEngine(fetchGroups).query(this.getActualQuery(), this.fetchOptions(), hybridize);
+		return loader.createQueryEngine().query(this.getActualQuery(), this.fetchOptions(), hybridize);
 	}
 	
 	/* (non-Javadoc)
@@ -512,5 +512,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 			opts = opts.chunkSize(this.chunk);
 
 		return opts;
+	}
+	
+	/** Convenience method */
+	private ObjectifyFactory fact() {
+		return loader.getObjectify().getFactory();
 	}
 }

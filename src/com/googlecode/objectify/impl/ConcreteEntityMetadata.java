@@ -124,7 +124,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		ctx.deferB(new Runnable() {
 			@Override
 			public void run() {
-				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getObjectify(), ctx, null);
+				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getLoader().getObjectify(), ctx, null);
 			}
 			
 			@Override

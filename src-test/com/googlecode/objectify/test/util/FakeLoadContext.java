@@ -15,7 +15,7 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 public class FakeLoadContext extends LoadContext
 {
 	public FakeLoadContext() {
-		super(null, new LoadEngine(null, null, null, null) {
+		super(null, new LoadEngine(null) {
 			@Override
 			public boolean shouldLoad(Property prop) {
 				return false;

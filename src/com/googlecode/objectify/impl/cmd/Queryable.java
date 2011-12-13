@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl.cmd;
 
 import java.util.List;
-import java.util.Set;
 
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
@@ -17,10 +16,9 @@ import com.googlecode.objectify.Ref;
 abstract class Queryable<T> extends SimpleQueryImpl<T>
 {
 	/**
-	 * Takes ownership of the fetch groups set.
 	 */
-	Queryable(ObjectifyImpl ofy, Set<String> fetchGroups) {
-		super(ofy, fetchGroups);
+	Queryable(LoaderImpl loader) {
+		super(loader);
 	}
 	
 	@Override

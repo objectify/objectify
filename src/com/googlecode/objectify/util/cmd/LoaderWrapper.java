@@ -1,8 +1,10 @@
 package com.googlecode.objectify.util.cmd;
 
 import java.util.Map;
+import java.util.Set;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Loader;
@@ -94,6 +96,21 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	@Override
 	public <K, E extends K> Map<Key<K>, E> values(Object... keysOrEntities) {
 		return base.values(keysOrEntities);
+	}
+
+	@Override
+	public Objectify getObjectify() {
+		return base.getObjectify();
+	}
+
+	@Override
+	public Set<String> getLoadGroups() {
+		return base.getLoadGroups();
+	}
+
+	@Override
+	public void setWrapper(Loader loader) {
+		base.setWrapper(loader);
 	}
 	
 }
