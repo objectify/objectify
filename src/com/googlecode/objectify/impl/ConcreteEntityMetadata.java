@@ -126,6 +126,11 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 			public void run() {
 				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getObjectify(), ctx, null);
 			}
+			
+			@Override
+			public String toString() {
+				return "(deferred invoke lifecycle callbacks on " + pojo + ")";
+			}
 		});
 
 		return pojo;

@@ -97,7 +97,7 @@ public class TranslatableProperty<T> {
 				
 				@Override
 				public String toString() {
-					return "(delayed Runnable to set " + property.getName() + ")";
+					return "(deferred set '" + property.getName() + "' to " + value + ")";
 				}
 			});
 		} else {
