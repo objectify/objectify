@@ -158,6 +158,9 @@ public class LoadEngine
 		this.ads = ads;
 		this.session = session;
 		this.groups = groups;
+		
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Starting load engine with groups " + groups);
 	}
 	
 	/**

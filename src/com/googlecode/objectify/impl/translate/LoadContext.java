@@ -3,6 +3,8 @@ package com.googlecode.objectify.impl.translate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -18,6 +20,9 @@ import com.googlecode.objectify.util.ResultWrapper;
  */
 public class LoadContext
 {
+	/** */
+	private static final Logger log = Logger.getLogger(LoadContext.class.getName());
+	
 	/** The objectify instance */
 	Objectify ofy;
 	
@@ -55,10 +60,12 @@ public class LoadContext
 			List<Runnable> runme = deferred;
 			deferred = null;	// reset this because it might get filled with more
 			
-			for (Runnable run: runme)
+			for (Runnable run: runme) {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Executing " + run);
+				
 				run.run();
-			
-			batch.execute();
+			}
 		}
 	}
 	
@@ -127,6 +134,9 @@ public class LoadContext
 	public void defer(Runnable runnable) {
 		if (this.deferred == null)
 			this.deferred = new ArrayList<Runnable>();
+
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Deferring " + runnable);
 		
 		this.deferred.add(runnable);
 	}

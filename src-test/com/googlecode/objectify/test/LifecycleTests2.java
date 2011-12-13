@@ -1,8 +1,5 @@
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Entity;
@@ -35,26 +32,12 @@ public class LifecycleTests2 extends TestBase
 	/** */
 	@Entity
 	public static class Product {
+		@Load @Parent Event event;
 		@Id Long id;
-		@Load Event event;
 		
 		@OnLoad void onLoad() {
 			assert event.org.foo.equals("fooValue");
 		}
-	}
-
-	/** */
-	@Entity
-	public static class Ticket {
-		@Id Long id;
-		@Load Product product;
-	}
-
-	/** */
-	@Entity
-	public static class TicketGroup {
-		@Id Long id;
-		@Load List<Ticket> tickets = new ArrayList<Ticket>();
 	}
 
 	/**
@@ -65,8 +48,6 @@ public class LifecycleTests2 extends TestBase
 		fact.register(Org.class);
 		fact.register(Event.class);
 		fact.register(Product.class);
-		fact.register(Ticket.class);
-		fact.register(TicketGroup.class);
 		
 		TestObjectify ofy = fact.begin();
 
@@ -81,19 +62,9 @@ public class LifecycleTests2 extends TestBase
 		Product prod = new Product();
 		prod.event = event;
 		ofy.put(prod);
-		
-		Ticket ticket = new Ticket();
-		ticket.product = prod;
-		ofy.put(ticket);
-		
-		TicketGroup group = new TicketGroup();
-		group.tickets.add(ticket);
-		ofy.put(group);
-		
+
 		ofy.clear();
-		//ofy.load().entity(group).get();
-		
-		TicketGroup fetched = ofy.load().type(TicketGroup.class).first().get();
-		assert fetched.tickets.get(0).product.event.org.foo.equals("fooValue");
+		Product fetched = ofy.load().entity(prod).get();
+		assert fetched.event.org.foo.equals("fooValue");
 	}
 }

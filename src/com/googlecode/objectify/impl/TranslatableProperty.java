@@ -84,9 +84,6 @@ public class TranslatableProperty<T> {
 	 */
 	private void setOnPojo(final Object pojo, final T value, final LoadContext ctx, final Path path) {
 		if (value instanceof Result) {
-			if (log.isLoggable(Level.FINEST))
-				log.finest(LogUtils.msg(path, "Delaying set property " + property.getName()));
-				
 			ctx.defer(new Runnable() {
 				@Override
 				public void run() {
@@ -97,7 +94,7 @@ public class TranslatableProperty<T> {
 				
 				@Override
 				public String toString() {
-					return "(deferred set '" + property.getName() + "' to " + value + ")";
+					return "(deferred set property '" + property.getName() + "' to " + value + ")";
 				}
 			});
 		} else {
