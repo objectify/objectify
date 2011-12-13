@@ -4,9 +4,9 @@ package com.googlecode.objectify;
 
 /**
  * <p>This is a simple container for a single static instance of ObjectifyFactory.
- * You can choose to use this class or build your own equivalent.  You may prefer
- * to use a dependency injection system like Weld or Guice directly with an
- * ObjectifyFactory and eschew this class entirely.</p>
+ * You can choose to use this class or build your own equivalent - look at the source
+ * code, there are only four lines.  If you use a dependency injection system like Weld
+ * or Guice, you do not need this class at all - simply inject an ObjectifyFactory.</p>
  * 
  * <p>For further advice, see the
  * <a href="http://code.google.com/p/objectify-appengine/wiki/BestPractices">BestPractices</a>.</p>
