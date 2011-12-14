@@ -16,7 +16,7 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
-import com.googlecode.objectify.test.entity.Person;
+import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -28,15 +28,15 @@ public class EmbedTests extends TestBase
 {
 	public static class PartiallyIndexedStruct
 	{
-		@Embed @Index Person indexedPerson;
-		@Embed @Unindex Person unindexedPerson;
+		@Embed @Index Someone indexedPerson;
+		@Embed @Unindex Someone unindexedPerson;
 
 		@Index String indexedString;
 		@Unindex String unidexedString;
 
 		public PartiallyIndexedStruct() { }
 
-		PartiallyIndexedStruct(Person indexedPerson, Person unindexedPerson, String indexedString, String unidexedString)
+		PartiallyIndexedStruct(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString)
 		{
 			this.indexedPerson = indexedPerson;
 			this.unindexedPerson = unindexedPerson;
@@ -97,7 +97,7 @@ public class EmbedTests extends TestBase
 
 		// null mayor
 		Town t1 = new Town();
-		t1.mayor = new Person(null, 30);
+		t1.mayor = new Someone(null, 30);
 
 		Key<Town> t1Key = ofy.put(t1);
 
@@ -108,7 +108,7 @@ public class EmbedTests extends TestBase
 
 		// mayor with null names
 		t1 = new Town();
-		t1.mayor = new Person(new Name(null, null), 30);
+		t1.mayor = new Someone(new Name(null, null), 30);
 
 		t1Key = ofy.put(t1);
 
@@ -132,11 +132,11 @@ public class EmbedTests extends TestBase
 
 		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
 				new PartiallyIndexedStruct(
-						new Person(new Name("A", "B"), 30),
-						new Person(new Name("C", "D"), 31), "1", "2"),
+						new Someone(new Name("A", "B"), 30),
+						new Someone(new Name("C", "D"), 31), "1", "2"),
 				new PartiallyIndexedStruct(
-						new Person(new Name("a", "b"), 32),
-						new Person(new Name("c", "d"), 33), "3", "4")
+						new Someone(new Name("a", "b"), 32),
+						new Someone(new Name("c", "d"), 33), "3", "4")
 		);
 
 		Key<PartiallyIndexedEntity> key = ofy.put(obj);

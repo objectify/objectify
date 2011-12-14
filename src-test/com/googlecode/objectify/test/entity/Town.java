@@ -17,8 +17,8 @@ public class Town
 	public String name;
 	
 	@Embed
-	public Person mayor;
+	public Someone mayor;
 
 	@Embed
-	public Person[] folk;
+	public Someone[] folk;
 }

@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Name;
-import com.googlecode.objectify.test.entity.Person;
+import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -33,10 +33,10 @@ public class ExampleDocoTests extends TestBase
 
 		town = new Town();
 		town.name = "Springfield";
-		town.mayor = new Person(new Name("Joe", "Quimby"), 53);
-		town.folk = new Person[] {
-				new Person(new Name("Homer", "Simpson"), 39),
-				new Person(new Name("Apu", "Nahasapeemapetilon"), 48)
+		town.mayor = new Someone(new Name("Joe", "Quimby"), 53);
+		town.folk = new Someone[] {
+				new Someone(new Name("Homer", "Simpson"), 39),
+				new Someone(new Name("Apu", "Nahasapeemapetilon"), 48)
 		};
 
 		e = townToEntity(town);
@@ -92,7 +92,7 @@ public class ExampleDocoTests extends TestBase
 
 		town = new Town();
 		town.name = null;
-		town.mayor = new Person(new Name("Joe", null), 53);
+		town.mayor = new Someone(new Name("Joe", null), 53);
 		town.folk = null;
 		e = townToEntity(town);
 		System.out.println(e);
@@ -130,7 +130,7 @@ public class ExampleDocoTests extends TestBase
 		town = new Town();
 		town.name = "Springfield";
 		town.mayor = null;
-		town.folk = new Person[0];
+		town.folk = new Someone[0];
 
 		e = townToEntity(town);
 		System.out.println(e);

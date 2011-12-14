@@ -8,16 +8,16 @@ import com.googlecode.objectify.annotation.Entity;
  */
 @Entity
 @Cache
-public class Person
+public class Someone
 {
 	@Embed public Name name;
 	public int age;
 
-	public Person()
+	public Someone()
 	{
 	}
 
-	public Person(Name name, int age)
+	public Someone(Name name, int age)
 	{
 		this.name = name;
 		this.age = age;
