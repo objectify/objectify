@@ -216,7 +216,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	 * @see com.googlecode.objectify.impl.KeyMetadata#shouldLoadParent(java.util.Set)
 	 */
 	@Override
-	public boolean shouldLoadParent(Set<String> enabledGroups) {
+	public boolean shouldLoadParent(Set<Class<?>> enabledGroups) {
 		if (this.parentMeta == null)
 			return false;
 		

@@ -14,6 +14,8 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Multi;
+import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -56,9 +58,12 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 	/** */
 	@Entity
 	public static class HasEntitiesWithGroups {
+		public static class Single {}
+		public static class Multi {}
+
 		public @Id Long id;
-		public @Load("single") Ref<Trivial> single;
-		public @Load("multi") List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load(Single.class) Ref<Trivial> single;
+		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
 	
 	/** */
@@ -84,14 +89,14 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		
 		TestObjectify ofy = fact.begin();
 		
-		fetched = ofy.load().group("single").key(hekey).get();
+		fetched = ofy.load().group(Single.class).key(hekey).get();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(0).equals(fetched.single);
 		for (Ref<Trivial> ref: fetched.multi)
 			assertRefUninitialzied(ref);
 
-		fetched = ofy.load().group("multi").key(hekey).get();
+		fetched = ofy.load().group(Multi.class).key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
@@ -100,7 +105,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		//assert fetched.single.get() == fetched.multi.get(0).get();
 		assertRefUninitialzied(fetched.single);
 		
-		fetched = ofy.load().group("single").group("multi").key(hekey).get();
+		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());

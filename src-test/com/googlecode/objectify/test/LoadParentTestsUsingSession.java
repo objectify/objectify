@@ -9,6 +9,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.LoadParentTests.Child;
 import com.googlecode.objectify.test.LoadParentTests.ChildWithGroup;
+import com.googlecode.objectify.test.LoadParentTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.LoadParentTests.Father;
 import com.googlecode.objectify.test.LoadParentTests.TreeNode;
 import com.googlecode.objectify.test.util.TestBase;
@@ -140,7 +141,7 @@ public class LoadParentTestsUsingSession extends TestBase
 		assert fetched2.father.foo == null;
 
 		// This should get the complete parent
-		Ref<ChildWithGroup> ref = ofy.load().group("group").key(kch);
+		Ref<ChildWithGroup> ref = ofy.load().group(Group.class).key(kch);
 		ChildWithGroup fetched3 = ref.get();
 		assert fetched3.father.id.equals(f.id);
 		assert fetched3.father.foo.equals(f.foo);

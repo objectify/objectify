@@ -32,19 +32,19 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	protected ObjectifyImpl ofy;
 	
 	/** */
-	protected Set<String> loadGroups;
+	protected Set<Class<?>> loadGroups;
 	
 	/** */
 	LoaderImpl(ObjectifyImpl ofy) {
 		super(null);
 		this.ofy = ofy;
-		this.loadGroups = Collections.<String>emptySet();
+		this.loadGroups = Collections.<Class<?>>emptySet();
 	}
 
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	LoaderImpl(ObjectifyImpl ofy, Set<String> loadGroups) {
+	LoaderImpl(ObjectifyImpl ofy, Set<Class<?>> loadGroups) {
 		super(null);
 		this.ofy = ofy;
 		this.loadGroups = Collections.unmodifiableSet(loadGroups);
@@ -59,11 +59,11 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loading#group(java.lang.String[])
+	 * @see com.googlecode.objectify.cmd.Loader#group(java.lang.Class<?>[])
 	 */
 	@Override
-	public Loader group(String... groupName) {
-		Set<String> next = new HashSet<String>(Arrays.asList(groupName));
+	public Loader group(Class<?>... groups) {
+		Set<Class<?>> next = new HashSet<Class<?>>(Arrays.asList(groups));
 		next.addAll(this.loadGroups);
 		return new LoaderImpl(ofy, next);
 	}
@@ -225,7 +225,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#getLoadGroups()
 	 */
 	@Override
-	public Set<String> getLoadGroups() {
+	public Set<Class<?>> getLoadGroups() {
 		// This is unmodifiable
 		return loadGroups;
 	}

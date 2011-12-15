@@ -9,6 +9,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.LoadParentRefTests.Child;
 import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup;
+import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.LoadParentRefTests.Father;
 import com.googlecode.objectify.test.LoadParentRefTests.TreeNode;
 import com.googlecode.objectify.test.util.TestBase;
@@ -135,7 +136,7 @@ public class LoadParentRefTestsUsingSession extends TestBase
 		assertRefUninitialzied(fetched.father);
 
 		// This should get a filled in ref
-		ChildWithGroup fetched2 = ofy.load().group("group").key(fact.<ChildWithGroup>getKey(ch)).get();
+		ChildWithGroup fetched2 = ofy.load().group(Group.class).key(fact.<ChildWithGroup>getKey(ch)).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}

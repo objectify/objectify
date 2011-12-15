@@ -11,6 +11,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
+import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -143,8 +144,10 @@ public class LoadParentRefTests extends TestBase
 	/** */
 	@Entity
 	public static class ChildWithGroup {
+		public static class Group {}
+
 		public @Id Long id;
-		public @Load("group") @Parent Ref<Father> father;
+		public @Load(Group.class) @Parent Ref<Father> father;
 		public String bar;
 	}
 	
@@ -178,7 +181,7 @@ public class LoadParentRefTests extends TestBase
 
 		// This should get a filled in ref
 		ofy.clear();
-		ChildWithGroup fetched2 = ofy.load().group("group").key(kch).get();
+		ChildWithGroup fetched2 = ofy.load().group(Group.class).key(kch).get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}

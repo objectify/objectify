@@ -55,7 +55,7 @@ public interface KeyMetadata<T>
 	/**
 	 * @return true if the parent should be loaded given the enabled fetch groups
 	 */
-	public boolean shouldLoadParent(Set<String> enabledGroups);
+	public boolean shouldLoadParent(Set<Class<?>> enabledGroups);
 	
 	/**
 	 * @return true if the id field is uppercase-Long, which can be genearted.

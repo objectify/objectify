@@ -25,14 +25,17 @@ public interface Loader extends SimpleQuery<Object>
 {
 	/**
 	 * <p>Enables one or more fetch groups.  This will cause any entity fields (or Ref fields) which
-	 * are annotated with @Load("groupName") to be fetched along with your entities.</p>
+	 * are annotated with @Load(XYZGroup.class) to be fetched along with your entities.  The class
+	 * definition can be any arbitrary class, but inheritance is respected - if you have a
+	 * {@code class Foo extends Bar}, then {@code group(Bar.class)} will cause loading of all {@code @Load(Foo.class)}
+	 * properties.</p>
 	 * 
-	 * <p>Calling this method multiple times is the same as passing all the group names into one call.</p>
+	 * <p>Calling this method multiple times is the same as passing all the groups into one call.</p>
 	 * 
-	 * @param groupNames are one or more fetch groups to enable
+	 * @param groups are one or more load groups to enable.  They can be any arbitrary class.
 	 * @return a continuation of the immutable command pattern, enabled for fetching this group.
 	 */
-	Loader group(String... groupNames);
+	Loader group(Class<?>... groups);
 	
 	/**
 	 * <p>Restricts the find operation to entities of a particular type.  The type may be the
@@ -204,7 +207,7 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * @return the currently enabled load groups in an unmodifiable list
 	 */
-	public Set<String> getLoadGroups();
+	public Set<Class<?>> getLoadGroups();
 
 	/**
 	 * Sets the object instance that should be passed on by the base implementation in subsequent actions.

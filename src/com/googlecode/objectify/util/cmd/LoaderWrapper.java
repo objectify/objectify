@@ -28,9 +28,9 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public H group(String... groupNames) {
+	public H group(Class<?>... groups) {
 		H next = this.clone();
-		next.base = base.group(groupNames);
+		next.base = base.group(groups);
 		return next;
 	}
 
@@ -105,7 +105,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public Set<String> getLoadGroups() {
+	public Set<Class<?>> getLoadGroups() {
 		return base.getLoadGroups();
 	}
 

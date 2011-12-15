@@ -13,6 +13,8 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.test.LoadFieldTests.HasEntitiesWithGroups.Multi;
+import com.googlecode.objectify.test.LoadFieldTests.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -171,9 +173,12 @@ public class LoadFieldTests extends TestBase
 	/** */
 	@Entity
 	public static class HasEntitiesWithGroups {
+		public static class Single {}
+		public static class Multi {}
+		
 		public @Id Long id;
-		public @Load("single") Trivial single;
-		public @Load("multi") List<Trivial> multi = new ArrayList<Trivial>();
+		public @Load(Single.class) Trivial single;
+		public @Load(Multi.class) List<Trivial> multi = new ArrayList<Trivial>();
 	}
 	
 	/** */
@@ -197,7 +202,7 @@ public class LoadFieldTests extends TestBase
 		TestObjectify ofy = fact.begin();
 		
 		ofy.clear();
-		fetched = ofy.load().group("single").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group(Single.class).key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.single.getId().equals(t0.getId());
 		assert fetched.single.getSomeString().equals(t0.getSomeString());
 		assert fetched.multi.get(0).getId().equals(t0.getId());	// or should this be same as single?
@@ -206,7 +211,7 @@ public class LoadFieldTests extends TestBase
 		assert fetched.multi.get(1).getSomeString() == null;
 
 		ofy.clear();
-		fetched = ofy.load().group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group(Multi.class).key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.multi.get(0).getId().equals(t0.getId());
 		assert fetched.multi.get(0).getSomeString().equals(t0.getSomeString());
 		assert fetched.multi.get(1).getId().equals(t1.getId());
@@ -215,7 +220,7 @@ public class LoadFieldTests extends TestBase
 		assert fetched.single.getSomeString() == null;	// or should this be the same item as multi[0]?
 		
 		ofy.clear();
-		fetched = ofy.load().group("single").group("multi").key(fact.<HasEntitiesWithGroups>getKey(he)).get();
+		fetched = ofy.load().group(Single.class).group(Multi.class).key(fact.<HasEntitiesWithGroups>getKey(he)).get();
 		assert fetched.multi.get(0).getId().equals(t0.getId());
 		assert fetched.multi.get(0).getSomeString().equals(t0.getSomeString());
 		assert fetched.multi.get(1).getId().equals(t1.getId());

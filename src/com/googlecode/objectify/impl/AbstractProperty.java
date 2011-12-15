@@ -18,7 +18,7 @@ abstract public class AbstractProperty implements Property
 	Annotation[] annotations;
 	
 	/** The states are important - null means none, empty means "all" */
-	String[] loadGroups;
+	Class<?>[] loadGroups;
 	
 	/** */
 	public AbstractProperty(String name, Annotation[] annotations, Object thingForDebug) {
@@ -68,21 +68,22 @@ abstract public class AbstractProperty implements Property
 	}
 
 	@Override
-	public String[] getLoadGroups() {
+	public Class<?>[] getLoadGroups() {
 		return loadGroups;
 	}
 	
 	@Override
-	public boolean shouldLoad(Set<String> groups) {
+	public boolean shouldLoad(Set<Class<?>> groups) {
 		if (loadGroups == null)
 			return false;
 		
 		if (loadGroups.length == 0)
 			return true;
 		
-		for (String loadGroup: loadGroups)
-			if (groups.contains(loadGroup))
-				return true;
+		for (Class<?> propertyGroup: loadGroups)
+			for (Class<?> enabledGroup: groups)
+				if (enabledGroup.isAssignableFrom(propertyGroup))
+					return true;
 		
 		return false;
 	}

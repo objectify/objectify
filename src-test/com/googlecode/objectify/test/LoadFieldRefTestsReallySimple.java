@@ -14,6 +14,8 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.test.LoadFieldRefTestsReallySimple.HasMulti.Multi;
+import com.googlecode.objectify.test.LoadFieldRefTestsReallySimple.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -53,8 +55,10 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 	/** */
 	@Entity
 	public static class HasMulti {
+		public static class Multi {}
+		
 		public @Id Long id;
-		public @Load("multi") List<Ref<Other>> multi = new ArrayList<Ref<Other>>();
+		public @Load(Multi.class) List<Ref<Other>> multi = new ArrayList<Ref<Other>>();
 	}
 	
 	/** */
@@ -87,7 +91,7 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 		Key<HasMulti> hmkey = ofy.put(hm);
 
 		ofy.clear();
-		HasMulti fetched = ofy.load().group("multi").key(hmkey).get();
+		HasMulti fetched = ofy.load().group(Multi.class).key(hmkey).get();
 		
 		assert fetched.multi.get(0).get().id == other0.id;
 		assert fetched.multi.get(1).get().id == other1.id;
@@ -107,7 +111,7 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 		
 		ofy.clear();
 		ofy.get(hmkey);	// load once
-		HasMulti fetched = ofy.load().group("multi").key(hmkey).get();	// upgrade with multi
+		HasMulti fetched = ofy.load().group(Multi.class).key(hmkey).get();	// upgrade with multi
 		
 		Ref<Other> m0 = fetched.multi.get(0);
 		assert m0.get().id == other0.id;
@@ -118,8 +122,10 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 	/** */
 	@Entity
 	public static class HasSingle {
+		public static class Single {}
+
 		public @Id Long id;
-		public @Load("single") Ref<Other> single;
+		public @Load(Single.class) Ref<Other> single;
 	}
 	
 	/** */
@@ -135,7 +141,7 @@ public class LoadFieldRefTestsReallySimple extends TestBase
 		
 		ofy.clear();
 		ofy.get(hskey);	// load once
-		HasSingle fetched = ofy.load().group("single").key(hskey).get();	// upgrade with single
+		HasSingle fetched = ofy.load().group(Single.class).key(hskey).get();	// upgrade with single
 		
 		assert fetched.single.get().id == other0.id;
 	}

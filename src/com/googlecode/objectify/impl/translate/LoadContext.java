@@ -171,7 +171,7 @@ public class LoadContext
 	/**
 	 * Gets the currently enabled set of load groups
 	 */
-	public Set<String> getLoadGroups() {
+	public Set<Class<?>> getLoadGroups() {
 		return loader.getLoadGroups();
 	}
 }

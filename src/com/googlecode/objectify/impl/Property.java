@@ -52,10 +52,10 @@ public interface Property
 	/**
 	 * @return true if the property should be loaded when the given loadgroups are active
 	 */
-	boolean shouldLoad(Set<String> groups);
+	boolean shouldLoad(Set<Class<?>> groups);
 	
 	/**
 	 * @return the load groups under which this property will be loaded.  null means none, an empty array means all.
 	 */
-	String[] getLoadGroups();
+	Class<?>[] getLoadGroups();
 }

@@ -12,6 +12,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.test.LoadFieldTestsReallySimple.FatherLoadGroup.Yes;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -113,8 +114,10 @@ public class LoadFieldTestsReallySimple extends TestBase
 	/** */
 	@Entity
 	public static class FatherLoadGroup {
+		public static class Yes {}
+		
 		public @Id long id;
-		public @Load("yes") ChildLoadGroup child;
+		public @Load(Yes.class) ChildLoadGroup child;
 
 		@Override
 		public String toString() {
@@ -151,7 +154,7 @@ public class LoadFieldTestsReallySimple extends TestBase
 		assert fetched.child.bar == null;
 
 		ofy.clear();
-		ref = ofy.load().group("yes").key(kf);
+		ref = ofy.load().group(Yes.class).key(kf);
 		fetched = ref.get();
 		assert fetched.child.id == ch.id;
 		assert fetched.child.bar.equals(ch.bar);
@@ -183,7 +186,7 @@ public class LoadFieldTestsReallySimple extends TestBase
 		ref = ofy.load().key(kf);
 
 		// Now load again without clear
-		ref = ofy.load().group("yes").key(kf);
+		ref = ofy.load().group(Yes.class).key(kf);
 		fetched = ref.get();
 		assert fetched.child.id == ch.id;
 		assert fetched.child.bar.equals(ch.bar);
