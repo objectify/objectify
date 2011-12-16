@@ -82,7 +82,7 @@ abstract public class AbstractProperty implements Property
 		
 		for (Class<?> propertyGroup: loadGroups)
 			for (Class<?> enabledGroup: groups)
-				if (enabledGroup.isAssignableFrom(propertyGroup))
+				if (propertyGroup.isAssignableFrom(enabledGroup))
 					return true;
 		
 		return false;

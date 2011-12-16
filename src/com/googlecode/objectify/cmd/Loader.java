@@ -27,7 +27,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * <p>Enables one or more fetch groups.  This will cause any entity fields (or Ref fields) which
 	 * are annotated with @Load(XYZGroup.class) to be fetched along with your entities.  The class
 	 * definition can be any arbitrary class, but inheritance is respected - if you have a
-	 * {@code class Foo extends Bar}, then {@code group(Bar.class)} will cause loading of all {@code @Load(Foo.class)}
+	 * {@code class Foo extends Bar}, then {@code group(Foo.class)} will cause loading of all {@code @Load(Bar.class)}
 	 * properties.</p>
 	 * 
 	 * <p>Calling this method multiple times is the same as passing all the groups into one call.</p>

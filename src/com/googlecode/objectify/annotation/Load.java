@@ -13,8 +13,8 @@ import java.lang.annotation.Target;
  * will be fetched only if the load group is activated.  The class can be any arbitrary
  * class, and class inheritance is respected.</p>
  * 
- * <p>For example, for a class Foo extends Bar, specifying @Load(Foo.class) will cause
- * a field to load if the Bar.class group is enabled.</p>
+ * <p>For example, for a class Foo extends Bar, specifying @Load(Bar.class) will cause
+ * a field to load if the Foo.class group is enabled.</p>
  *  
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
