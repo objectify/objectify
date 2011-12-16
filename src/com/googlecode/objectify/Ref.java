@@ -8,6 +8,10 @@ import com.googlecode.objectify.impl.ref.StdRef;
 /**
  * <p>Ref associates a Key<?> with an entity value.</p>
  * 
+ * <p>Note that the methods might or might not throw runtime exceptions related to datastore operations;
+ * ConcurrentModificationException, DatastoreTimeoutException, DatastoreFailureException, and DatastoreNeedIndexException.
+ * Some Refs hide asynchronous operations that could throw these exceptions.</p>
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
