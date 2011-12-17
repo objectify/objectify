@@ -241,6 +241,8 @@ public class BasicTests extends TestBase
 		
 		ofy.delete().entities(triv1, triv2).now();
 		
-		assert ofy.load().entities(triv1, triv2).size() == 0;
+		Map<Key<Trivial>, Trivial> result = ofy.load().entities(triv1, triv2);
+		System.out.println("Result is " + result);
+		assert result.size() == 0;
 	}
 }
