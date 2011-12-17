@@ -2,13 +2,12 @@ package com.googlecode.objectify.impl.cmd;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.DeleteType;
+import com.googlecode.objectify.cmd.Deleter;
 
 
 /**
@@ -36,31 +35,58 @@ class DeleterImpl implements Deleter
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Delete#value(java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.Deleter#key(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public Result<Void> key(Object keyOrEntity) {
-		return keys(Collections.singleton(keyOrEntity));
+	public Result<Void> key(Key<?> key) {
+		return keys(key);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Object[])
+	 * @see com.googlecode.objectify.cmd.Deleter#keys(com.googlecode.objectify.Key<?>[])
 	 */
 	@Override
-	public Result<Void> keys(Object... keysOrEntities) {
-		return keys(Arrays.asList(keysOrEntities));
+	public Result<Void> keys(Key<?>... keys) {
+		return keys(Arrays.asList(keys));
 	}
 	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Iterable)
 	 */
 	@Override
-	public Result<Void> keys(Iterable<?> keysOrEntities) {
-		
+	public Result<Void> keys(Iterable<Key<?>> keys) {
+		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		for (Key<?> key: keys)
+			rawKeys.add(key.getRaw());
+
+		return ofy.createWriteEngine().delete(rawKeys);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Deleter#entity(java.lang.Object)
+	 */
+	@Override
+	public Result<Void> entity(Object entity) {
+		return entities(entity);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Deleter#entities(java.lang.Iterable)
+	 */
+	@Override
+	public Result<Void> entities(Iterable<?> entities) {
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
-		for (Object obj: keysOrEntities)
+		for (Object obj: keys)
 			keys.add(ofy.getFactory().getRawKey(obj));
 
 		return ofy.createWriteEngine().delete(keys);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Deleter#entities(java.lang.Object[])
+	 */
+	@Override
+	public Result<Void> entities(Object... entities) {
+		return entities(Arrays.asList(entities));
 	}
 }

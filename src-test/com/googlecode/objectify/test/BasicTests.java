@@ -239,7 +239,7 @@ public class BasicTests extends TestBase
 		
 		assert ofy.load().entities(triv1, triv2).size() == 2;
 		
-		ofy.delete().keys(triv1, triv2).now();
+		ofy.delete().entities(triv1, triv2).now();
 		
 		assert ofy.load().entities(triv1, triv2).size() == 0;
 	}

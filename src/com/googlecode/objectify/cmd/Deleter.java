@@ -1,5 +1,6 @@
 package com.googlecode.objectify.cmd;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 
 
@@ -29,22 +30,45 @@ public interface Deleter
 	 * <p>Begin asynchronous deletion of a specific entity.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
 	 * 
-	 * @param keyOrEntity can be any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
+	 * @param key defines which entity to delete 
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
-	Result<Void> key(Object keyOrEntity);
+	Result<Void> key(Key<?> key);
 
 	/**
 	 * <p>Begin asynchronous deletion of specific entities.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
 	 * 
-	 * @param keyOrEntities can be any key-like structures; Key<?>s, native datastore Keys, or entity objects with valid id/parent fields. 
+	 * @param keys defines which entities to delete 
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
-	Result<Void> keys(Iterable<?> keysOrEntities);
+	Result<Void> keys(Iterable<Key<?>> keys);
+	
+	/**
+	 * Convenient substitute for keys(Iterable)
+	 */
+	Result<Void> keys(Key<?>... keys);
+
+	/**
+	 * <p>Begin asynchronous deletion of a specific entity.</p>
+	 * <p>To force synchronous delete, call now() on the returned Result.</p>
+	 * 
+	 * @param entity can be an entity or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
+	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
+	 */
+	Result<Void> entity(Object entity);
+
+	/**
+	 * <p>Begin asynchronous deletion of specific entities.</p>
+	 * <p>To force synchronous delete, call now() on the returned Result.</p>
+	 * 
+	 * @param entities can be entity instances or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
+	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
+	 */
+	Result<Void> entities(Iterable<?> entities);
 	
 	/**
 	 * Convenient substitute for entities(Iterable)
 	 */
-	Result<Void> keys(Object... keysOrEntities);
+	Result<Void> entities(Object... entities);
 }
