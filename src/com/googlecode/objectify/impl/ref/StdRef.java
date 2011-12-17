@@ -49,9 +49,20 @@ public class StdRef<T> extends Ref<T>
 	@Override
 	public T get() {
 		if (this.result == null)
-			this.result = makeResult();
-
-		return this.result.now();
+			throw new IllegalStateException("Ref<?> value has not been initialized");
+		else
+			return this.result.now();
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Ref#getValue()
+	 */
+	@Override
+	public T getValue() {
+		if (this.result == null)
+			return null;
+		else
+			return this.result.now();
 	}
 	
 	/* (non-Javadoc)
@@ -59,13 +70,5 @@ public class StdRef<T> extends Ref<T>
 	 */
 	public void set(Result<T> result) {
 		this.result = result;
-	}
-
-	/**
-	 * The default version of this just throws an exception because the StdRef can't make a result by itself.
-	 * Subclasses might override it to do something fancier, especially if they have a link to the datastore.
-	 */
-	protected Result<T> makeResult() {
-		throw new IllegalStateException("Ref<?> value has not been initialized");
 	}
 }

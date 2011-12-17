@@ -38,6 +38,14 @@ abstract public class ProxyRef<T> extends Ref<T>
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Ref#getValue()
+	 */
+	@Override
+	public T getValue() {
+		return getRef().getValue();
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Ref#set(com.googlecode.objectify.Result)
 	 */
 	@Override

@@ -25,7 +25,6 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 
 	/**
 	 * @return the key associated with this Ref
-	 * @throws IllegalStateException if the value has not been initialized
 	 */
 	abstract public Key<T> key();
 	
@@ -36,6 +35,15 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * @throws IllegalStateException if the value has not been initialized
 	 */
 	abstract public T get();
+	
+	/**
+	 * Nearly identical to get() but conforms to JavaBean conventions and returns null instead of
+	 * throwing IllegalStateException if uninitialized.  This is convenient for use in a JSON
+	 * converter or an expression language.
+	 * 
+	 * @return the entity referenced, or null if either the entity was not found or this Ref is uninitialized
+	 */
+	abstract public T getValue();
 	
 	/**
 	 * Explicitly sets (or resets) the value of this Ref.
@@ -80,14 +88,6 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 			return t;
 	}
 
-	/**
-	 * Same as get() but conforms to JavaBeans conventions in case this is being processed by a JSON
-	 * converter or expression language.
-	 */
-	final public T getValue() {
-		return get();
-	}
-	
 	/** Comparison is based on key */
 	@Override
 	public int compareTo(Ref<T> o) {
