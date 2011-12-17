@@ -65,7 +65,7 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * @throws NotFoundException if the specified entity was not found
 	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
-	final public Key<T> keySafe() {
+	final public Key<T> safeKey() {
 		Key<T> k = this.key();
 		if (k == null)
 			throw new NotFoundException();
@@ -80,7 +80,7 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * @throws NotFoundException if the specified entity was not found
 	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
-	final public T safe() {
+	final public T safeGet() {
 		T t = this.get();
 		if (t == null)
 			throw new NotFoundException(key());
