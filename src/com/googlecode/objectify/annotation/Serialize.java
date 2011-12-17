@@ -4,6 +4,7 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.util.zip.Deflater;
 
 /**
  * <p>When placed on an entity field, the field will be written as a single Blob
@@ -30,4 +31,14 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Serialize
 {
+	/** 
+	 * If true, the data stream will be compressed on write using a DeflatorInputStream.  This only affects
+	 * writes; on read, Objectify will understand both compressed and uncompressed data. 
+	 */
+	boolean zip() default false;
+	
+	/**
+	 * If zip is true, sets the compression level of the Deflater.
+	 */
+	int compressionLevel() default Deflater.DEFAULT_COMPRESSION;
 }
