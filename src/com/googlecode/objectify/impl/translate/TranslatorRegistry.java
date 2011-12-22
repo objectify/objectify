@@ -40,12 +40,14 @@ public class TranslatorRegistry
 		this.fact = fact;
 		
 		// The order is CRITICAL!
+		this.translators.add(new TranslateTranslatorFactory(true));	// Early translators get first shot at everything
 		this.translators.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translators.add(new ByteArrayTranslatorFactory());
 		this.translators.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
 		this.translators.add(new CollectionTranslatorFactory());
 		this.translators.add(new MapifyTranslatorFactory());
 		this.translators.add(new MapTranslatorFactory());
+		this.translators.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 		this.translators.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
 		this.translators.add(new EntityReferenceTranslatorFactory());	// AFTER embed so that you can embed entities if you want
 		
