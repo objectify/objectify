@@ -12,7 +12,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  */
-public class TransientTests extends TestBase
+public class IgnoreTests extends TestBase
 {
     @com.googlecode.objectify.annotation.Entity
 	@Cache
