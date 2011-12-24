@@ -98,14 +98,12 @@ public class LoadContext
 	}
 	
 	/**
-	 * Create an entity reference object for the key.  If not loaded, the reference will be a Partial<?>
-	 * If loaded, the return value will be a Result<?> that produces a loaded instance.  Note that the
-	 * Result<?> will never be a Result<Partial<?>>; even if the value is notfound on fetch, an unwrapped partial
-	 * is returned so that the higher levels don't try to fetch it again in the future.
+	 * Create an entity reference object for the key.  If not loaded, the reference will be a simple partial (pojo
+	 * with only key fields populated).  If loaded, the return value will be a Result<?> that produces a loaded instance.
 	 * 
 	 * @param property is the property which will hold the reference
 	 * @param clazz is the type of the reference to generate, or base class of the result (in either case it is the field type)
-	 * @return a Result<Object> or a Partial<Object>
+	 * @return either a partial entity or a Result<Object> which provides a loaded entity
 	 */
 	public Object makeReference(Property property, final Class<?> clazz, final com.google.appengine.api.datastore.Key key) {
 		if (batch.shouldLoad(property)) {
@@ -156,7 +154,7 @@ public class LoadContext
 	}
 
 	/**
-	 * Delays an operation until the context is done().  Executes after A.
+	 * Delays an operation until the context is done().  Executes after A.  This is for lifecycle methods.
 	 */
 	public void deferB(Runnable runnable) {
 		if (this.deferredB == null)
