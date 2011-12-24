@@ -33,7 +33,7 @@ public interface If<V, P>
 	 * Override this method to test a whole pojo for your condition.  The pojo might
 	 * be an entity or an embedded class object - whichever holds the field being tested. 
 	 * 
-	 * @param onPojo is the entity object on which the field/value exists
+	 * @param pojo is the entity object on which the field/value exists
 	 * @return true if the value matches the condition defined by an instance of this interface.
 	 */
 	public boolean matchesPojo(P pojo);

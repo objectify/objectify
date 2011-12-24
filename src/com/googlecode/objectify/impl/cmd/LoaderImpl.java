@@ -245,7 +245,6 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 
 	/**
 	 * Use this once for one operation and then throw it away
-	 * @param groups is the set of load groups that are active
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	public LoadEngine createLoadEngine() {

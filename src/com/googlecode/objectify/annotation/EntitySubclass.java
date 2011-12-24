@@ -24,8 +24,7 @@ import java.lang.annotation.Target;
  * 
  * <p>Actual Java subclasses are not required to have @EntitySubclass, but only Java classes
  * which have @EntitySubclass can be persisted and queried for.  Note that subclass discriminators
- * are not indexed by default, so if you want to query for specific types of subclasses, use
- * @EntitySubclass(index=true).</p>
+ * are not indexed by default, so if you want to query for specific types of subclasses, use @EntitySubclass(index=true).</p>
  * 
  * @author Jeff Schnitzer
  */

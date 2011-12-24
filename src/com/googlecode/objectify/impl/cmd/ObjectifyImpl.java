@@ -56,7 +56,6 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected Session session = new Session();
 
 	/**
-	 * @param txn can be null to not use transactions. 
 	 */
 	public ObjectifyImpl(ObjectifyFactory fact) {
 		this.factory = fact;

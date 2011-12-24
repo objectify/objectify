@@ -14,8 +14,8 @@ import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 
 /**
- * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
- * methods that use transactions to avoid the confusion of implicit transactions.
+ * Implementation for when we start a transaction.  Maintains a separate session, but then copies all
+ * data into the original session on successful commit.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -28,7 +28,6 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	protected Session parentSession;
 
 	/**
-	 * @param txn can be null to not use transactions. 
 	 */
 	public ObjectifyImplTxn(ObjectifyImpl parent) {
 		super(parent);

@@ -36,8 +36,8 @@ public interface KeyMetadata<T>
 	/**
 	 * Gets a key composed of the relevant id and parent fields in the object.
 	 * 
-	 * @param obj must be of the entityClass type for this metadata.
-	 * @throws IllegalArgumentException if obj has a null id
+	 * @param pojo must be of the entityClass type for this metadata.
+	 * @throws IllegalArgumentException if pojo has a null id
 	 */
 	public com.google.appengine.api.datastore.Key getRawKey(T pojo);
 		

@@ -32,7 +32,6 @@ public class QueryEngine
 	protected LoaderImpl loader;
 	
 	/**
-	 * @param txn can be null to not use transactions. 
 	 */
 	public QueryEngine(LoaderImpl loader) {
 		this.loader = loader;

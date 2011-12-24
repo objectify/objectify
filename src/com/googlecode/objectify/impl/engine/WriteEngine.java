@@ -44,7 +44,6 @@ public class WriteEngine
 	protected Session session;
 	
 	/**
-	 * @param txn can be null to not use transactions. 
 	 */
 	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
 		this.ofy = ofy;
