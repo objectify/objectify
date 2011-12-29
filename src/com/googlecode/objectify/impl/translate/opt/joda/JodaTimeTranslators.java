@@ -16,6 +16,7 @@ public class JodaTimeTranslators
 	public static void add(ObjectifyFactory fact) {
 		fact.getTranslators().add(new ReadableInstantTranslatorFactory());
 		fact.getTranslators().add(new LocalDateTranslatorFactory());
+		fact.getTranslators().add(new LocalDateTimeTranslatorFactory());
 		fact.getTranslators().add(new DateTimeZoneTranslatorFactory());
 	}
 }
