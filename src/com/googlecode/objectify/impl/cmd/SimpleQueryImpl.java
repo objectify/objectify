@@ -42,6 +42,15 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	}
 	
 	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#filterKey(java.lang.Object)
+	 */
+	@Override
+	public QueryImpl<T> filterKey(Object value)
+	{
+		return filterKey("=", value);
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Query#ancestor(java.lang.Object)
 	 */
 	@Override

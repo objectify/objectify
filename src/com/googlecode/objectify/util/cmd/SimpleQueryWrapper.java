@@ -35,6 +35,14 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 	}
 	
 	@Override
+	public SimpleQuery<T> filterKey(Object value)
+	{
+		H next = this.clone();
+		next.base = base.filterKey(value);
+		return next;
+	}
+	
+	@Override
 	public H ancestor(Object keyOrEntity)
 	{
 		H next = this.clone();

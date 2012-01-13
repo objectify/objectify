@@ -31,6 +31,11 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	public SimpleQuery<T> filterKey(String condition, Object value);
 	
 	/**
+	 * An alias for {@code filterKey("=", value)}
+	 */
+	public SimpleQuery<T> filterKey(Object value);
+	
+	/**
 	 * Restricts result set only to objects which have the given ancestor
 	 * somewhere in the chain.  Doesn't need to be the immediate parent.
 	 * 
