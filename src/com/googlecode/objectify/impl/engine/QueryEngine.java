@@ -55,13 +55,12 @@ public class QueryEngine
 		
 		AsyncDatastoreService ads = loader.getObjectifyImpl().createAsyncDatastoreService();
 		
-		PreparedQuery pq = ads.prepare(loader.getObjectifyImpl().getTxnRaw(), query);
-		final QueryResultIterable<Entity> source = pq.asQueryResultIterable(fetchOpts);
+		final PreparedQuery pq = ads.prepare(loader.getObjectifyImpl().getTxnRaw(), query);
 		
 		return new QueryResultIterable<Ref<T>>() {
 			@Override
 			public QueryResultIterator<Ref<T>> iterator() {
-				return new ChunkingToRefIterator<T>(source.iterator(), fetchOpts.getStartCursor(), fetchOpts.getChunkSize(), keysOnly, hybridize);
+				return new ChunkingToRefIterator<T>(pq, fetchOpts, keysOnly, hybridize);
 			}
 		};
 	}
@@ -76,18 +75,6 @@ public class QueryEngine
 		return pq.countEntities(fetchOpts);
 	}
 
-	
-	/** Used in the hybrid iterator */
-	private static class RefAndCursor<T> {
-		public Ref<T> ref;
-		public Cursor cursor;
-		
-		public RefAndCursor(Ref<T> ref, Cursor cursor) {
-			this.ref = ref;
-			this.cursor = cursor;
-		}
-	}
-	
 	/**
 	 * Takes a keys-only iterable source, breaks it down into batches of a specific chunk size, and
 	 * uses batch loading to load the actual values.  This makes @Cache and @Load annotations work.
@@ -95,22 +82,24 @@ public class QueryEngine
 	protected class ChunkingToRefIterator<T> implements QueryResultIterator<Ref<T>> {
 		
 		/** Input values */
+		PreparedQuery pq;
 		QueryResultIterator<Entity> source;
 		int chunkSize;
 		boolean keysOnly;
 		boolean hybrid;
 		
 		/** As we process */
-		Iterator<RefAndCursor<T>> batchIt;
-		Cursor currentCursor;
+		Iterator<Ref<T>> batchIt;
+		Cursor baseCursor;
+		int offsetIntoBatch;
 		
 		/** */
-		public ChunkingToRefIterator(QueryResultIterator<Entity> source, Cursor startAt, int chunkSize, boolean keysOnly, boolean hybrid) {
-			this.source = source;
-			this.chunkSize = chunkSize;
+		public ChunkingToRefIterator(PreparedQuery pq, FetchOptions fetchOpts, boolean keysOnly, boolean hybrid) {
+			this.pq = pq;
+			this.source = pq.asQueryResultIterator(fetchOpts);
+			this.chunkSize = fetchOpts.getChunkSize();
 			this.keysOnly = keysOnly;
 			this.hybrid = hybrid;
-			this.currentCursor = startAt;
 			
 			this.advanceBatch();
 		}
@@ -122,18 +111,22 @@ public class QueryEngine
 
 		@Override
 		public Ref<T> next() {
-			RefAndCursor<T> rac = batchIt.next();
-			currentCursor = rac.cursor;
+			Ref<T> ref = batchIt.next();
+			offsetIntoBatch++;
 			
 			if (!batchIt.hasNext())
 				this.advanceBatch();
 			
-			return rac.ref;
+			return ref;
 		}
 		
 		private void advanceBatch() {
 			LoadEngine loadEngine = loader.createLoadEngine();
-			List<RefAndCursor<T>> racs = new ArrayList<RefAndCursor<T>>();
+			List<Ref<T>> refs = new ArrayList<Ref<T>>();
+			
+			// Initialize the cursor and the offset so that we can generate a cursor later
+			baseCursor = source.getCursor();
+			offsetIntoBatch = 0;
 
 			for (int i=0; i<chunkSize; i++) {
 				if (!source.hasNext())
@@ -152,11 +145,11 @@ public class QueryEngine
 				if (!keysOnly)
 					loadEngine.loadRef(ref);
 				
-				racs.add(new RefAndCursor<T>(ref, source.getCursor()));
+				refs.add(ref);
 			}
 			
 			loadEngine.execute();
-			batchIt = racs.iterator();
+			batchIt = refs.iterator();
 		}
 
 		@Override
@@ -164,9 +157,23 @@ public class QueryEngine
 			throw new UnsupportedOperationException();
 		}
 
+		/**
+		 * From Alfred Fuller (principal GAE datastore guru):
+		 * 
+		 * Calling getCursor() for results in the middle of a batch forces the sdk to run a new query as seen here:
+		 * http://code.google.com/p/googleappengine/source/browse/trunk/java/src/main/com/google/appengine/api/datastore/Cursor.java#70
+		 * 
+		 * Doing this for every result will definitely give you really bad performance. I have several yet to be implemented ideas
+		 * that would solve this problem (which you potentially could push me into prioritizing), but I believe you can solve the
+		 * performance problem today by saving the start_cursor an offset into the batch. Then you can evaluate the real cursor on
+		 * demand using "query.asQueryResultIterator(withStartCursor(cursor).offset(n).limit(0)).getCursor()"
+		 */
 		@Override
 		public Cursor getCursor() {
-			return currentCursor;
+			if (offsetIntoBatch == 0)
+				return source.getCursor();
+			else
+				return pq.asQueryResultIterator(FetchOptions.Builder.withStartCursor(baseCursor).offset(offsetIntoBatch).limit(0)).getCursor();
 		}
 	}
 }
