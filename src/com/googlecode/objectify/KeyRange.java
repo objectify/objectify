@@ -19,7 +19,7 @@ public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 	com.google.appengine.api.datastore.KeyRange raw;
 	
 	/** */
-	KeyRange(com.google.appengine.api.datastore.KeyRange raw)
+	public KeyRange(com.google.appengine.api.datastore.KeyRange raw)
 	{
 		this.raw = raw;
 	}
