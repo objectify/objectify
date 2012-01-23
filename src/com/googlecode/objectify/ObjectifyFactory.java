@@ -275,9 +275,10 @@ public class ObjectifyFactory
 	 * with the automatic generator.  This is just a convenience method for allocateIds().
 	 * 
 	 * @param clazz must be a registered entity class with a Long or long id field.
+	 * @return a key with an id that is unique to the kind
 	 */
-	public <T> long allocateId(Class<T> clazz) {
-		return allocateIds(clazz, 1).iterator().next().getId();
+	public <T> Key<T> allocateId(Class<T> clazz) {
+		return allocateIds(clazz, 1).iterator().next();
 	}
 
 	/**
@@ -290,9 +291,10 @@ public class ObjectifyFactory
 	 * point to an existent entity, but it must be the correct type for clazz.
 	 * @param clazz must be a registered entity class with a Long or long id field, and
 	 * a parent key of the correct type.
+	 * @return a key with a new id unique to the kind and parent
 	 */
-	public <T> long allocateId(Object parentKeyOrEntity, Class<T> clazz) {
-		return allocateIds(parentKeyOrEntity, clazz, 1).iterator().next().getId();
+	public <T> Key<T> allocateId(Object parentKeyOrEntity, Class<T> clazz) {
+		return allocateIds(parentKeyOrEntity, clazz, 1).iterator().next();
 	}
 	
 	/**
