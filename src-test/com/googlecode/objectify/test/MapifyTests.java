@@ -5,12 +5,14 @@ import java.util.Map;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
+import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
@@ -131,4 +133,38 @@ public class MapifyTests extends TestBase
 		assert bottomFetched.name.equals(bot.name);
 	}
 
+	/** */
+	public static class TrivialMapper implements Mapper<Key<Trivial>, Trivial> {
+		@Override
+		public Key<Trivial> getKey(Trivial value) {
+			return Key.create(Trivial.class, value.getId());
+		}
+	}
+	
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasMapifyTrivial {
+		@Id Long id;
+		
+		@Mapify(TrivialMapper.class)
+		@Load
+		Map<Key<Trivial>, Trivial> trivials = new HashMap<Key<Trivial>, Trivial>();
+	}
+
+	/** Tests using mapify on entities */
+	@Test
+	public void testMapifyTrivials() throws Exception {
+		this.fact.register(Trivial.class);
+		this.fact.register(HasMapifyTrivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		Trivial triv = new Trivial("foo", 123L);
+		Key<Trivial> trivKey = ofy.save().entity(triv).now();
+		
+		HasMapifyTrivial hasMap = new HasMapifyTrivial();
+		hasMap.trivials.put(trivKey, triv);
+		
+		HasMapifyTrivial fetched = this.putClearGet(hasMap);
+		
+		assert hasMap.trivials.get(trivKey).getSomeString().equals(fetched.trivials.get(trivKey).getSomeString());
+	}
 }
