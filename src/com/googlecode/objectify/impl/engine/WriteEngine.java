@@ -69,10 +69,11 @@ public class WriteEngine
 			}
 		}
 
+		// The CachingDatastoreService needs its own raw transaction
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxnRaw(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
-		return new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<K>, E>>(adapted) {
+		Result<Map<Key<K>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<K>, E>>(adapted) {
 			@Override
 			protected Map<Key<K>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
 				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
@@ -105,6 +106,11 @@ public class WriteEngine
 				return result;
 			}
 		};
+		
+		if (ofy.getTxn() != null)
+			ofy.getTxn().enlist(result);
+		
+		return result;
 	}
 
 	/**
@@ -112,8 +118,8 @@ public class WriteEngine
 	 */
 	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
 		Future<Void> fut = ads.delete(ofy.getTxnRaw(), keys);
-		Result<Void> result = new ResultAdapter<Void>(fut);
-		return new ResultWrapper<Void, Void>(result) {
+		Result<Void> adapted = new ResultAdapter<Void>(fut);
+		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
@@ -122,5 +128,10 @@ public class WriteEngine
 				return orig;
 			}
 		};
+		
+		if (ofy.getTxn() != null)
+			ofy.getTxn().enlist(result);
+		
+		return result;
 	}
 }

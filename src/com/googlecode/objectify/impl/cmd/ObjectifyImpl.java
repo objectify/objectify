@@ -24,6 +24,7 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.NullProperty;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Session;
+import com.googlecode.objectify.impl.cmd.ObjectifyImplTxn.TransactionImpl;
 import com.googlecode.objectify.impl.engine.WriteEngine;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -80,20 +81,19 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
-	public Transaction getTxn() {
+	public TransactionImpl getTxn() {
 		// This version doesn't have a transaction
 		return null;
 	}
 	
-	/**
-	 * Get the raw version, unwrapped by a proxy.  The engine needs this to pass through to the AsyncDatastoreService,
-	 * which might have given us a wrapped Transaction itself (ie, CachingAsyncDatastoreService).
-	 */
+	/** Get the raw transaction we received from the AsyncDatastoreService (or CachingAsyncDatastoreService, if applicable) */
 	public Transaction getTxnRaw() {
-		// This version doesn't have a transaction
-		return null;
+		if (getTxn() == null)
+			return null;
+		else
+			return getTxn().getRaw();
 	}
-
+	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find()
 	 */

@@ -1,8 +1,7 @@
 package com.googlecode.objectify.impl.cmd;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.Transaction;
@@ -11,7 +10,10 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.util.DatastoreIntrospector;
+import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.util.ResultWrapper;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
+import com.googlecode.objectify.util.cmd.TransactionWrapper;
 
 /**
  * Implementation for when we start a transaction.  Maintains a separate session, but then copies all
@@ -21,8 +23,50 @@ import com.googlecode.objectify.util.SimpleFutureWrapper;
  */
 public class ObjectifyImplTxn extends ObjectifyImpl
 {
+	/** */
+	public class TransactionImpl extends TransactionWrapper {
+		/**
+		 * Operations which modify the session must be enlisted in the transaction and completed
+		 * before the transaction commits.  This is so that the session reaches a consistent state
+		 * before it is propagated to the parent session.
+		 */
+		List<Result<?>> enlisted = new ArrayList<Result<?>>();
+		
+		/** */
+		public TransactionImpl(Transaction raw) {
+			super(raw);
+		}
+		
+		/**
+		 * Enlist any operations that modify the session.
+		 */
+		public void enlist(Result<?> result) {
+			enlisted.add(result);
+		}
+		
+		@Override
+		public void commit() {
+			FutureHelper.quietGet(commitAsync());
+		}
+		
+		@Override
+		public Future<Void> commitAsync() {
+			// Complete any enlisted operations so that the session becomes consistent
+			for (Result<?> result: enlisted)
+				result.now();
+			
+			return new SimpleFutureWrapper<Void, Void>(super.commitAsync()) {
+				@Override
+				protected Void wrap(Void nothing) throws Exception {
+					parentSession.addAll(session);
+					return nothing;
+				}
+			};
+		}
+	}
+	
 	/** The transaction to use.  If null, do not use transactions. */
-	protected Result<Transaction> txn;
+	protected Result<TransactionImpl> txn;
 	
 	/** The session is a simple hashmap */
 	protected Session parentSession;
@@ -35,7 +79,12 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
 		Future<Transaction> fut = createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
-		txn = new ResultAdapter<Transaction>(fut);
+		txn = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<Transaction>(fut)) {
+			@Override
+			protected TransactionImpl wrap(Transaction raw) {
+				return new TransactionImpl(raw);
+			}
+		};
 		
 		// Transactions get a new session, but are still linked to the old one
 		parentSession = session;
@@ -45,34 +94,8 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
-	public Transaction getTxn() {
-		return (Transaction)Proxy.newProxyInstance(txn.now().getClass().getClassLoader(), new Class[] { Transaction.class }, new InvocationHandler() {
-			@Override
-			public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-				if (method.getName().equals("commit")) {
-					txn.now().commit();
-					parentSession.addAll(session);
-					return null;	// void
-				} else if (method.getName().equals("commitAsync")) {
-					return new SimpleFutureWrapper<Void, Void>(txn.now().commitAsync()) {
-						@Override
-						protected Void wrap(Void paramK) throws Exception {
-							parentSession.addAll(session);
-							return paramK;
-						}
-					};
-				} else {
-					return method.invoke(txn.now(), args);
-				}
-			}
-		});
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#getTxnRaw()
-	 */
 	@Override
-	public Transaction getTxnRaw() {
+	public TransactionImpl getTxn() {
 		return this.txn.now();
 	}
 }

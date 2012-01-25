@@ -9,17 +9,15 @@ import java.util.concurrent.Future;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.util.FutureHelper;
+import com.googlecode.objectify.util.cmd.TransactionWrapper;
 
 /**
  * This is necessary to track writes and update the cache only on successful commit. 
  */
-class TransactionWrapper implements Transaction
+class CachingTransaction extends TransactionWrapper
 {
 	/** */
 	EntityMemcache cache;
-	
-	/** The real implementation */
-	Transaction raw;
 	
 	/** Lazily constructed set of keys we will EMPTY if transaction commits */
 	Set<Key> deferred;
@@ -32,45 +30,18 @@ class TransactionWrapper implements Transaction
 	List<Future<?>> enlistedFutures = new ArrayList<Future<?>>();
 	
 	/** */
-	public TransactionWrapper(EntityMemcache cache, Transaction raw)
-	{
+	public CachingTransaction(EntityMemcache cache, Transaction raw) {
+		super(raw);
 		this.cache = cache;
-		this.raw = raw;
 	}
 
 	@Override
-	public void commit()
-	{
+	public void commit() {
 		FutureHelper.quietGet(this.commitAsync());
 	}
 
 	@Override
-	public String getId()
-	{
-		return this.raw.getId();
-	}
-
-	@Override
-	public boolean isActive()
-	{
-		return this.raw.isActive();
-	}
-
-	@Override
-	public void rollback()
-	{
-		FutureHelper.quietGet(this.rollbackAsync());
-	}
-
-	@Override
-	public String getApp()
-	{
-		return this.raw.getApp();
-	}
-
-	@Override
-	public Future<Void> commitAsync()
-	{
+	public Future<Void> commitAsync() {
 		// We need to ensure that any enlisted Futures are completed before we try
 		// to run the commit.  The GAE SDK does this itself, but unfortunately this
 		// doesn't help our wrapped Futures.  When we can hook into Futures natively
@@ -78,7 +49,7 @@ class TransactionWrapper implements Transaction
 		for (Future<?> fut: this.enlistedFutures)
 			FutureHelper.quietGet(fut);
 		
-		Future<Void> future = new TriggerFuture<Void>(this.raw.commitAsync()) {
+		Future<Void> future = new TriggerFuture<Void>(super.commitAsync()) {
 			@Override
 			protected void trigger()
 			{
@@ -105,17 +76,10 @@ class TransactionWrapper implements Transaction
 		return future;
 	}
 
-	@Override
-	public Future<Void> rollbackAsync()
-	{
-		return this.raw.rollbackAsync();
-	}
-
 	/**
 	 * Adds some keys which will be deleted if the commit is successful.
 	 */
-	public void deferEmptyFromCache(Key key)
-	{
+	public void deferEmptyFromCache(Key key) {
 		if (this.deferred == null)
 			this.deferred = new HashSet<Key>();
 		
@@ -126,8 +90,7 @@ class TransactionWrapper implements Transaction
 	 * Adds a Future to our transaction; this Future will be completed before the transaction commits.
 	 * TODO:  remove this method when the GAE SDK provides a way to hook into Futures.
 	 */
-	public void enlist(Future<?> future)
-	{
+	public void enlist(Future<?> future) {
 		this.enlistedFutures.add(future);
 	}
 }

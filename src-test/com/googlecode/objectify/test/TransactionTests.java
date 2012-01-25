@@ -164,4 +164,34 @@ public class TransactionTests extends TestBase
 		Trivial fetched = ofy.load().entity(triv).get();
 		assert fetched.getSomeNumber() == 6;
 	}
+
+	/**
+	 * Make sure that an async delete in a transaction fixes the session cache when the transaction is committed.
+	 */
+	@Test
+	public void testAsyncDelete() throws Exception {
+		this.fact.register(Trivial.class);
+		
+		final Trivial triv = new Trivial("foo", 5);
+		
+		// Make sure it's in the session (and memcache for that matter)
+		this.putClearGet(triv);
+		
+		TestObjectify ofy = this.fact.begin();
+		
+		ofy.transact(new Work<Void>() {
+			@Override
+			public Void run(TestObjectify ofy) {
+				// Load this, enlist in txn
+				Trivial fetched = ofy.load().entity(triv).get();
+				
+				// Do this async, don't complete it manually
+				ofy.delete().entity(fetched);
+				
+				return null;
+			}
+		});
+		
+		assert ofy.load().entity(triv).get() == null;
+	}
 }

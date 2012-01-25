@@ -89,7 +89,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	 */
 	private class TransactionFutureWrapper extends SimpleFutureWrapper<Transaction, Transaction>
 	{
-		TransactionWrapper xact;
+		CachingTransaction xact;
 
 		public TransactionFutureWrapper(Future<Transaction> base)
 		{
@@ -100,7 +100,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		protected Transaction wrap(Transaction t)
 		{
 			if (xact == null)
-				xact = new TransactionWrapper(memcache, t);
+				xact = new CachingTransaction(memcache, t);
 			
 			return xact;
 		}
@@ -130,7 +130,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	private void checkForImplicitTransaction()
 	{
 		if (this.rawAsync.getCurrentTransaction(null) != null)
-			throw new UnsupportedOperationException("Implicit, thread-local transactions are not supported by the cache.  You must pass in an transaction explicitly.");
+			throw new UnsupportedOperationException("Implicit, thread-local transactions are not supported by the cache.  You must pass in an transaction (or null) explicitly.");
 	}
 
 	/* (non-Javadoc)
@@ -179,7 +179,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				if (txn != null)
 				{
 					for (Key key: keys)
-						((TransactionWrapper)txn).deferEmptyFromCache(key);
+						((CachingTransaction)txn).deferEmptyFromCache(key);
 				}
 				else
 				{
@@ -188,8 +188,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 			}
 		};
 		
-		if (txn instanceof TransactionWrapper)
-			((TransactionWrapper)txn).enlist(future);
+		if (txn instanceof CachingTransaction)
+			((CachingTransaction)txn).enlist(future);
 		
 		return future;
 	}
@@ -439,7 +439,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				if (txn != null)
 				{
 					for (Key key: keys)
-						((TransactionWrapper)txn).deferEmptyFromCache(key);
+						((CachingTransaction)txn).deferEmptyFromCache(key);
 				}
 				else
 				{
@@ -448,8 +448,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 			}
 		};
 		
-		if (txn instanceof TransactionWrapper)
-			((TransactionWrapper)txn).enlist(future);
+		if (txn instanceof CachingTransaction)
+			((CachingTransaction)txn).enlist(future);
 		
 		return future;
 	}
