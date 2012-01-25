@@ -61,6 +61,7 @@ public class TranslatorRegistry
 		this.translators.add(new EnumTranslatorFactory());
 		this.translators.add(new SqlDateTranslatorFactory());
 		this.translators.add(new TimeZoneTranslatorFactory());
+		this.translators.add(new URLTranslatorFactory());
 		
 		// LAST!  It catches everything.
 		this.translators.add(new AsIsTranslatorFactory());

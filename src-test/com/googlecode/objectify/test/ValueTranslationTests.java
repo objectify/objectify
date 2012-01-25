@@ -5,6 +5,7 @@ package com.googlecode.objectify.test;
 
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.util.Arrays;
 import java.util.TimeZone;
 import java.util.logging.Logger;
@@ -291,7 +292,7 @@ public class ValueTranslationTests extends TestBase
 
 	/** */
 	@Test
-	public void testBigDecimalLongConverter() throws Exception
+	public void testBigDecimalLongTranslator() throws Exception
 	{
 		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
 		this.fact.register(HasBigDecimal.class);
@@ -303,6 +304,7 @@ public class ValueTranslationTests extends TestBase
 		assert hbd.data.equals(fetched.data);
 	}
 	
+	/** */
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasTimeZone
 	{
@@ -312,7 +314,7 @@ public class ValueTranslationTests extends TestBase
 
 	/** */
 	@Test
-	public void testTimeZoneConverter() throws Exception
+	public void testTimeZoneTranslator() throws Exception
 	{
 		this.fact.register(HasTimeZone.class);
 
@@ -321,5 +323,26 @@ public class ValueTranslationTests extends TestBase
 
 		HasTimeZone fetched = this.putClearGet(htz);
 		assert htz.tz.equals(fetched.tz);
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasURL
+	{
+		public @Id Long id;
+		public URL url;
+	}
+
+	/** */
+	@Test
+	public void testURLTranslator() throws Exception
+	{
+		this.fact.register(HasURL.class);
+
+		HasURL hu = new HasURL();
+		hu.url = new URL("http://example.com/foo?bar=baz");
+
+		HasURL fetched = this.putClearGet(hu);
+		assert hu.url.equals(fetched.url);
 	}
 }
