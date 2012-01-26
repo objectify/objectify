@@ -1,9 +1,11 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -69,7 +71,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#type(java.lang.Class)
+	 * @see com.googlecode.objectify.cmd.Loader#type(java.lang.Class)
 	 */
 	@Override
 	public <E> LoadType<E> type(Class<E> type) {
@@ -77,45 +79,62 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#ref(com.googlecode.objectify.Ref)
+	 * @see com.googlecode.objectify.cmd.Loader#ref(com.googlecode.objectify.Ref)
 	 */
 	@Override
-	public void ref(Ref<?> ref) {
+	@SuppressWarnings("unchecked")
+	public <K> Ref<K> ref(Ref<K> ref) {
 		refs(ref);
+		return ref;
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#refs(com.googlecode.objectify.Ref<?>[])
+	 * @see com.googlecode.objectify.cmd.Loader#refs(com.googlecode.objectify.Ref<?>[])
 	 */
 	@Override
-	public void refs(Ref<?>... refs) {
-		refs(Arrays.asList(refs));
+	public <K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs) {
+		return refs(Arrays.asList(refs));
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#refs(java.lang.Iterable)
+	 * @see com.googlecode.objectify.cmd.Loader#refs(java.lang.Iterable)
 	 */
 	@Override
-	public void refs(Iterable<? extends Ref<?>> refs) {
+	public <K, E extends K> Map<Key<K>, E> refs(final Iterable<Ref<E>> refs) {
 		LoadEngine batch = createLoadEngine();
 		for (Ref<?> ref: refs)
 			batch.loadRef(ref);
 		
 		batch.execute();
+
+		// Now asynchronously translate into a normal-looking map
+		@SuppressWarnings("unchecked")
+		Map<Key<K>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<K>, E>>() {
+			@Override
+			public Map<Key<K>, E> now() {
+				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>();
+				for (Ref<E> ref: refs)
+					if (ref.get() != null)
+						result.put((Key<K>)ref.key(), (E)ref.get());
+
+				return result;
+			}
+		});
+		
+		return map;
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#entity(com.googlecode.objectify.Key)
+	 * @see com.googlecode.objectify.cmd.Loader#entity(com.googlecode.objectify.Key)
 	 */
 	@Override
 	public <K> Ref<K> key(Key<K> key) {
 		Ref<K> ref = Ref.create(key);
-		ref(ref);
-		return ref;
+		return ref(ref);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#entity(java.lang.Object)
+	 * @see com.googlecode.objectify.cmd.Loader#entity(java.lang.Object)
 	 */
 	@Override
 	public <K, E extends K> Ref<K> entity(E entity) {
@@ -129,8 +148,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	@SuppressWarnings("unchecked")
 	public <K> Ref<K> value(Object key) {
 		if (key instanceof Ref) {
-			ref((Ref<K>)key);
-			return (Ref<K>)key;
+			return ref((Ref<K>)key);
 		} else {
 			return (Ref<K>)key(ofy.getFactory().getKey(key));
 		}
@@ -161,7 +179,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Find#entities(java.lang.Iterable)
+	 * @see com.googlecode.objectify.cmd.Loader#entities(java.lang.Iterable)
 	 */
 	@Override
 	public <K, E extends K> Map<Key<K>, E> entities(Iterable<E> values) {
@@ -180,37 +198,20 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Iterable)
 	 */
 	@Override
+	@SuppressWarnings("unchecked")
 	public <K, E extends K> Map<Key<K>, E> values(Iterable<?> values) {
-		final Map<Key<?>, Ref<?>> refs = new LinkedHashMap<Key<?>, Ref<?>>();
+		final List<Ref<E>> refs = new ArrayList<Ref<E>>();
 		
 		for (Object keyish: values) {
 			if (keyish instanceof Ref) {
-				Ref<?> ref = (Ref<?>)keyish;
-				refs.put(ref.getKey(), ref);
+				refs.add((Ref<E>)keyish);
 			} else {
-				Key<?> key = ofy.getFactory().getKey(keyish);
-				refs.put(key, Ref.create(key));
+				Key<E> key = ofy.getFactory().getKey(keyish);
+				refs.add(Ref.create(key));
 			}
 		}
 		
-		// Get real results
-		this.refs(refs.values());
-		
-		// Now asynchronously translate into a normal-looking map
-		@SuppressWarnings("unchecked")
-		Map<Key<K>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<K>, E>>() {
-			@Override
-			public Map<Key<K>, E> now() {
-				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>();
-				for (Ref<?> ref: refs.values())
-					if (ref.get() != null)
-						result.put((Key<K>)ref.key(), (E)ref.get());
-
-				return result;
-			}
-		});
-		
-		return map;
+		return this.refs(refs);
 	}
 
 	/* (non-Javadoc)

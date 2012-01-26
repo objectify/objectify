@@ -79,7 +79,8 @@ public class RefTests extends TestBase
 		Ref<Trivial> ref2 = Ref.create(k2);
 		Ref<Trivial> refNone = Ref.create(kNone);
 
-		ofy.load().refs(ref1, ref2, refNone);
+		@SuppressWarnings({ "unused", "unchecked" })
+		Object foo = ofy.load().refs(ref1, ref2, refNone);
 		
 		assert ref1.get().getSomeString().equals(t1.getSomeString());
 		assert ref2.get().getSomeString().equals(t2.getSomeString());

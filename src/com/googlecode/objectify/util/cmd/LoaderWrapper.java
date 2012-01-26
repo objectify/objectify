@@ -40,18 +40,18 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public void ref(Ref<?> ref) {
-		base.ref(ref);
+	public <E> Ref<E> ref(Ref<E> ref) {
+		return base.ref(ref);
 	}
 
 	@Override
-	public void refs(Iterable<? extends Ref<?>> refs) {
-		base.refs(refs);
+	public <K, E extends K> Map<Key<K>, E> refs(Iterable<Ref<E>> refs) {
+		return base.refs(refs);
 	}
 
 	@Override
-	public void refs(Ref<?>... refs) {
-		base.refs(refs);
+	public <K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs) {
+		return base.refs(refs);
 	}
 
 	@Override

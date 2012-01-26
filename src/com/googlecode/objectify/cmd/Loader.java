@@ -53,9 +53,10 @@ public interface Loader extends SimpleQuery<Object>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
 	 * will be thrown from {@code Ref<?>.get()}.</p>
 	 * 
-	 * @param ref holds the key to fetch and will receive the asynchronous result.  
+	 * @param ref holds the key to fetch and will receive the asynchronous result.
+	 * @return the exact ref passed in  
 	 */
-	void ref(Ref<?> ref);
+	<K> Ref<K> ref(Ref<K> ref);
 	
 	/**
 	 * <p>Load multiple refs in a batch operation.  This starts an asynchronous fetch.</p>
@@ -66,13 +67,14 @@ public interface Loader extends SimpleQuery<Object>
 	 * will be thrown from {@code Ref<?>.get()}.</p>
 	 * 
 	 * @param refs provide the keys to fetch and will receive the asynchronous result.
+	 * @return as an alternative to accessing the Refs directly, a Map of the asynchronous result. 
 	 */
-	void refs(Iterable<? extends Ref<?>> refs);
+	<K, E extends K> Map<Key<K>, E> refs(Iterable<Ref<E>> refs);
 	
 	/**
 	 * <p>A convenient substitute for refs(Iterable)</p>
 	 */
-	void refs(Ref<?>... refs);
+	<K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs);
 
 	/**
 	 * <p>Load a single entity by key.  This starts an asynchronous fetch.</p>
@@ -200,12 +202,12 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * @return the parent Objectify instance (possibly the wrapper)
 	 */
-	public Objectify getObjectify();
+	Objectify getObjectify();
 	
 	/**
 	 * @return the currently enabled load groups in an unmodifiable list
 	 */
-	public Set<Class<?>> getLoadGroups();
+	Set<Class<?>> getLoadGroups();
 
 	/**
 	 * Sets the object instance that should be passed on by the base implementation in subsequent actions.
