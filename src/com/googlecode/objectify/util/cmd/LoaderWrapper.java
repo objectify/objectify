@@ -50,7 +50,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <E> Map<Key<E>, E> refs(Ref<E>... refs) {
+	public <E> Map<Key<E>, E> refs(Ref<? extends E>... refs) {
 		return base.refs(refs);
 	}
 

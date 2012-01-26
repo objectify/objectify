@@ -74,7 +74,7 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * <p>A convenient substitute for refs(Iterable)</p>
 	 */
-	<E> Map<Key<E>, E> refs(Ref<E>... refs);
+	<E> Map<Key<E>, E> refs(Ref<? extends E>... refs);
 
 	/**
 	 * <p>Load a single entity by key.  This starts an asynchronous fetch.</p>

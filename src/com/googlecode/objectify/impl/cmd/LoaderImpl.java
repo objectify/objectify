@@ -92,8 +92,9 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#refs(com.googlecode.objectify.Ref<?>[])
 	 */
 	@Override
-	public <E> Map<Key<E>, E> refs(Ref<E>... refs) {
-		return refs(Arrays.asList(refs));
+	@SuppressWarnings("unchecked")
+	public <E> Map<Key<E>, E> refs(Ref<? extends E>... refs) {
+		return refs(Arrays.asList((Ref<E>[])refs));
 	}
 
 	/* (non-Javadoc)
