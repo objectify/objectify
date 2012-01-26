@@ -105,7 +105,7 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * <p>A convenient substitute for keys(Iterable)</p>
 	 */
-	<E> Map<Key<E>, E> keys(Key<E>... keys);
+	<E> Map<Key<E>, E> keys(Key<? extends E>... keys);
 
 	/**
 	 * <p>Load a single entity which has the same id/parent as the specified entity.  This starts an asynchronous fetch.</p>

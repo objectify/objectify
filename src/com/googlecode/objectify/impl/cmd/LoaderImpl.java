@@ -158,8 +158,9 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#keys(com.googlecode.objectify.Key<E>[])
 	 */
 	@Override
-	public <E> Map<Key<E>, E> keys(Key<E>... keys) {
-		return this.keys(Arrays.asList(keys));
+	@SuppressWarnings("unchecked")
+	public <E> Map<Key<E>, E> keys(Key<? extends E>... keys) {
+		return this.keys(Arrays.asList((Key<E>[])keys));
 	}
 
 	/* (non-Javadoc)
