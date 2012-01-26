@@ -94,10 +94,20 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		return this.key().compareTo(o.key());
 	}
 	
-	/** Equality comparison is based on key and nothing else */
+	/** Equality comparison is based on key equivalence */
 	@Override
 	public boolean equals(Object obj) {
 		return obj != null && obj instanceof Ref && key().equals(((Ref<?>)obj).key());
+	}
+	
+	/** Type-safe comparison for key equivalence */
+	public boolean equivalent(Ref<T> other) {
+		return equals(other);
+	}
+	
+	/** Type safe comparison for key equivalence */
+	public boolean equivalent(Key<T> other) {
+		return key().equivalent(other);
 	}
 	
 	/** Hash code is simply that of key */

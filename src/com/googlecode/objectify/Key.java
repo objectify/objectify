@@ -182,9 +182,14 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return this.compareTo((Key<?>)obj) == 0;
 	}
 	
-	/** A type-safe equality comparison */
-	public boolean equalsKey(Key<T> other) {
+	/** A type-safe equivalence comparison */
+	public boolean equivalent(Key<T> other) {
 		return equals(other);
+	}
+
+	/** A type-safe equivalence comparison */
+	public boolean equivalent(Ref<T> other) {
+		return equals(other.key());
 	}
 
 	/** */
