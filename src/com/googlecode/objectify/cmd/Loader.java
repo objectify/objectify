@@ -56,7 +56,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param ref holds the key to fetch and will receive the asynchronous result.
 	 * @return the exact ref passed in  
 	 */
-	<K> Ref<K> ref(Ref<K> ref);
+	<E> Ref<E> ref(Ref<E> ref);
 	
 	/**
 	 * <p>Load multiple refs in a batch operation.  This starts an asynchronous fetch.</p>
@@ -69,12 +69,12 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param refs provide the keys to fetch and will receive the asynchronous result.
 	 * @return as an alternative to accessing the Refs directly, a Map of the asynchronous result. 
 	 */
-	<K, E extends K> Map<Key<K>, E> refs(Iterable<Ref<E>> refs);
+	<E> Map<Key<E>, E> refs(Iterable<Ref<E>> refs);
 	
 	/**
 	 * <p>A convenient substitute for refs(Iterable)</p>
 	 */
-	<K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs);
+	<E> Map<Key<E>, E> refs(Ref<E>... refs);
 
 	/**
 	 * <p>Load a single entity by key.  This starts an asynchronous fetch.</p>
@@ -87,7 +87,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param key defines the entity to fetch
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K> Ref<K> key(Key<K> key);
+	<E> Ref<E> key(Key<E> key);
 
 	/**
 	 * <p>Load multiple entities by key from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -100,12 +100,12 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param keys are the keys to fetch
 	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
 	 */
-	<K, E extends K> Map<Key<K>, E> keys(Iterable<Key<E>> keys);
+	<E> Map<Key<E>, E> keys(Iterable<Key<E>> keys);
 	
 	/**
 	 * <p>A convenient substitute for keys(Iterable)</p>
 	 */
-	<K, E extends K> Map<Key<K>, E> keys(Key<E>... keys);
+	<E> Map<Key<E>, E> keys(Key<E>... keys);
 
 	/**
 	 * <p>Load a single entity which has the same id/parent as the specified entity.  This starts an asynchronous fetch.</p>
@@ -121,7 +121,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param entity defines the entity to fetch; it must be of a registered entity type and have valid id/parent fields.
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K, E extends K> Ref<K> entity(E entity);
+	<E> Ref<E> entity(E entity);
 	
 	/**
 	 * <p>Load multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -138,12 +138,12 @@ public interface Loader extends SimpleQuery<Object>
 	 *  properly set.
 	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
 	 */
-	<K, E extends K> Map<Key<K>, E> entities(Iterable<E> entities);
+	<E> Map<Key<E>, E> entities(Iterable<E> entities);
 	
 	/**
 	 * <p>A convenient substitute for entities(Iterable)</p>
 	 */
-	<K, E extends K> Map<Key<K>, E> entities(E... entities);
+	<E> Map<Key<E>, E> entities(E... entities);
 
 	/**
 	 * <p>Load a single entity given any of a variety of acceptable key-like structures.  This starts an asynchronous fetch.</p>
@@ -167,7 +167,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * @param key defines the entity to fetch; can be anything that represents a key structure
 	 * @return a Ref<?> which holds the asynchronous result 
 	 */
-	<K> Ref<K> value(Object key);
+	<E> Ref<E> value(Object key);
 
 	/**
 	 * <p>Fetch multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -192,12 +192,12 @@ public interface Loader extends SimpleQuery<Object>
 	 * entity instances with valid id/parent fields.
 	 * @return a Map of the asynchronous result.  The fetch will be completed when the Map is first accessed. 
 	 */
-	<K, E extends K> Map<Key<K>, E> values(Iterable<?> keysOrEntities);
+	<E> Map<Key<E>, E> values(Iterable<?> keysOrEntities);
 	
 	/**
 	 * <p>A convenient substitute for values(Iterable)</p>
 	 */
-	<K, E extends K> Map<Key<K>, E> values(Object... keysOrEntities);
+	<E> Map<Key<E>, E> values(Object... keysOrEntities);
 	
 	/**
 	 * @return the parent Objectify instance (possibly the wrapper)

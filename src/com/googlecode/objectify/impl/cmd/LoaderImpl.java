@@ -83,7 +83,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <K> Ref<K> ref(Ref<K> ref) {
+	public <E> Ref<E> ref(Ref<E> ref) {
 		refs(ref);
 		return ref;
 	}
@@ -92,7 +92,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#refs(com.googlecode.objectify.Ref<?>[])
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs) {
+	public <E> Map<Key<E>, E> refs(Ref<E>... refs) {
 		return refs(Arrays.asList(refs));
 	}
 
@@ -100,7 +100,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#refs(java.lang.Iterable)
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> refs(final Iterable<Ref<E>> refs) {
+	public <E> Map<Key<E>, E> refs(final Iterable<Ref<E>> refs) {
 		LoadEngine batch = createLoadEngine();
 		for (Ref<?> ref: refs)
 			batch.loadRef(ref);
@@ -108,14 +108,13 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 		batch.execute();
 
 		// Now asynchronously translate into a normal-looking map
-		@SuppressWarnings("unchecked")
-		Map<Key<K>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<K>, E>>() {
+		Map<Key<E>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<E>, E>>() {
 			@Override
-			public Map<Key<K>, E> now() {
-				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>();
+			public Map<Key<E>, E> now() {
+				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>();
 				for (Ref<E> ref: refs)
 					if (ref.get() != null)
-						result.put((Key<K>)ref.key(), (E)ref.get());
+						result.put(ref.key(), ref.get());
 
 				return result;
 			}
@@ -128,8 +127,8 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#entity(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public <K> Ref<K> key(Key<K> key) {
-		Ref<K> ref = Ref.create(key);
+	public <E> Ref<E> key(Key<E> key) {
+		Ref<E> ref = Ref.create(key);
 		return ref(ref);
 	}
 
@@ -137,8 +136,8 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#entity(java.lang.Object)
 	 */
 	@Override
-	public <K, E extends K> Ref<K> entity(E entity) {
-		return key(ofy.getFactory().<K>getKey(entity));
+	public <E> Ref<E> entity(E entity) {
+		return key(ofy.getFactory().<E>getKey(entity));
 	}
 
 	/* (non-Javadoc)
@@ -146,11 +145,11 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <K> Ref<K> value(Object key) {
+	public <E> Ref<E> value(Object key) {
 		if (key instanceof Ref) {
-			return ref((Ref<K>)key);
+			return ref((Ref<E>)key);
 		} else {
-			return (Ref<K>)key(ofy.getFactory().getKey(key));
+			return (Ref<E>)key(ofy.getFactory().getKey(key));
 		}
 	}
 
@@ -158,15 +157,15 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#keys(com.googlecode.objectify.Key<E>[])
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> keys(Key<E>... keys) {
-		return this.<K, E>keys(Arrays.asList(keys));
+	public <E> Map<Key<E>, E> keys(Key<E>... keys) {
+		return this.keys(Arrays.asList(keys));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Loader#keys(java.lang.Iterable)
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> keys(Iterable<Key<E>> keys) {
+	public <E> Map<Key<E>, E> keys(Iterable<Key<E>> keys) {
 		return values(keys);
 	}
 
@@ -174,15 +173,15 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#entities(E[])
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(E... entities) {
-		return this.<K, E>entities(Arrays.asList(entities));
+	public <E> Map<Key<E>, E> entities(E... entities) {
+		return this.entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Loader#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(Iterable<E> values) {
+	public <E> Map<Key<E>, E> entities(Iterable<E> values) {
 		return values(values);
 	}
 
@@ -190,7 +189,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Object[])
 	 */
 	@Override
-	public <K, E extends K> Map<Key<K>, E> values(Object... values) {
+	public <E> Map<Key<E>, E> values(Object... values) {
 		return values(Arrays.asList(values));
 	}
 
@@ -199,7 +198,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <K, E extends K> Map<Key<K>, E> values(Iterable<?> values) {
+	public <E> Map<Key<E>, E> values(Iterable<?> values) {
 		final List<Ref<E>> refs = new ArrayList<Ref<E>>();
 		
 		for (Object keyish: values) {

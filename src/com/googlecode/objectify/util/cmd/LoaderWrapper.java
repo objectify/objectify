@@ -45,57 +45,57 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> refs(Iterable<Ref<E>> refs) {
+	public <E> Map<Key<E>, E> refs(Iterable<Ref<E>> refs) {
 		return base.refs(refs);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> refs(Ref<E>... refs) {
+	public <E> Map<Key<E>, E> refs(Ref<E>... refs) {
 		return base.refs(refs);
 	}
 
 	@Override
-	public <K> Ref<K> key(Key<K> key) {
+	public <E> Ref<E> key(Key<E> key) {
 		return base.key(key);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> keys(Iterable<Key<E>> keys) {
+	public <E> Map<Key<E>, E> keys(Iterable<Key<E>> keys) {
 		return base.keys(keys);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> keys(Key<E>... keys) {
+	public <E> Map<Key<E>, E> keys(Key<E>... keys) {
 		return base.keys(keys);
 	}
 
 	@Override
-	public <K, E extends K> Ref<K> entity(E entity) {
+	public <E> Ref<E> entity(E entity) {
 		return base.entity(entity);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(Iterable<E> entities) {
+	public <E> Map<Key<E>, E> entities(Iterable<E> entities) {
 		return base.entities(entities);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> entities(E... entities) {
+	public <E> Map<Key<E>, E> entities(E... entities) {
 		return base.entities(entities);
 	}
 
 	@Override
-	public <K> Ref<K> value(Object key) {
+	public <E> Ref<E> value(Object key) {
 		return base.value(key);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> values(Iterable<?> keysOrEntities) {
+	public <E> Map<Key<E>, E> values(Iterable<?> keysOrEntities) {
 		return base.values(keysOrEntities);
 	}
 
 	@Override
-	public <K, E extends K> Map<Key<K>, E> values(Object... keysOrEntities) {
+	public <E> Map<Key<E>, E> values(Object... keysOrEntities) {
 		return base.values(keysOrEntities);
 	}
 
