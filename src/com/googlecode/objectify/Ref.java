@@ -21,7 +21,7 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
 	public static <T> Ref<T> create(Key<T> key) {
 		if (key == null)
-			throw new NullPointerException("Cannot create a Ref with a null key");
+			throw new NullPointerException("Cannot create a Ref from a null key");
 		
 		return new StdRef<T>(key);
 	}
