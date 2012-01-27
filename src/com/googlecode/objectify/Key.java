@@ -189,7 +189,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** A type-safe equivalence comparison */
 	public boolean equivalent(Ref<T> other) {
-		return equals(other.key());
+		return (other == null) ? false : equals(other.key());
 	}
 
 	/** */
