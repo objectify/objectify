@@ -17,6 +17,9 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	
 	/** Key.create(key) is easier to type than new Key<Blah>(key) */
 	public static <T> Key<T> create(com.google.appengine.api.datastore.Key raw) {
+		if (raw == null)
+			throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
+		
 		return new Key<T>(raw);
 	}
 	
@@ -42,7 +45,10 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** Key.create(webSafeString) is easier to type than new Key<Blah>(webSafeString) */
 	public static <T> Key<T> create(String webSafeString) {
-		return new Key<T>(webSafeString);
+		if (webSafeString == null)
+			throw new NullPointerException("Cannot create a Key<?> from a null String");
+		
+	return new Key<T>(webSafeString);
 	}
 	
 	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
