@@ -42,7 +42,7 @@ public interface Deleter
 	 * @param keys defines which entities to delete 
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
-	Result<Void> keys(Iterable<Key<?>> keys);
+	Result<Void> keys(Iterable<? extends Key<?>> keys);
 	
 	/**
 	 * Convenient substitute for keys(Iterable)

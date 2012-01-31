@@ -54,7 +54,7 @@ class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Iterable)
 	 */
 	@Override
-	public Result<Void> keys(Iterable<Key<?>> keys) {
+	public Result<Void> keys(Iterable<? extends Key<?>> keys) {
 		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Key<?> key: keys)
 			rawKeys.add(key.getRaw());
