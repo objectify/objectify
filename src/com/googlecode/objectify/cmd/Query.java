@@ -33,11 +33,11 @@ public interface Query<T> extends SimpleQuery<T>
 	 * for an explanation of what you can and cannot filter for.</p>
 	 * 
 	 * <p>In addition to filtering on indexed properties, you can filter on @Id properties
-	 * <strong>if</strong> this query is restricted to a Class<T> and the entity has no @Parent.  If you are
-	 * having trouble working around this limitation, please consult the
-	 * objectify-appengine google group.</p>
+	 * <strong>if</strong> this query is restricted to a Class<T> which has no @Parent. This
+	 * is a convenient alias for {@code filterKey()} which builds the key for you.</p>
+	 * 
 	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
-	 * the {@code ancestor()} method instead.</p>
+	 * {@code filterKey()} or {@code ancestor()} instead.</p>
 	 */
 	public Query<T> filter(String condition, Object value);
 	
@@ -49,9 +49,10 @@ public interface Query<T> extends SimpleQuery<T>
 	 * <li>{@code order("-age")} (descending sort)</li>
 	 * </ul>
 	 * 
-	 * <p>You can sort on id properties <strong>if</strong> this query is
-	 * restricted to a Class<T>.  Note that this is only important for
+	 * <p>You can sort on @Id properties <strong>if</strong> this query is
+	 * restricted to a Class<T> which has no @Parent.  Note that this is only important for
 	 * descending sorting; default iteration is key-ascending.</p>
+	 * 
 	 * <p>You can <strong>not</strong> sort on @Parent properties.</p>
 	 */
 	public Query<T> order(String condition);

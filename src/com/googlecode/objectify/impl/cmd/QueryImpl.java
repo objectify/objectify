@@ -45,16 +45,6 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** The actual datastore query constructed by this object */
 	com.google.appengine.api.datastore.Query actual;
 	
-	/**
-	 * We need to maintain the __key__ predicates outside of the Query because we create them one at a time,
-	 * ie filter("parent", parentValue).filter("id", idValue).  If we set __key__ on the first filter() we can't
-	 * reset it for the second.  So we populate these at the last second.
-	 */
-	FilterOperator keyOp;
-	Object idValue;
-	com.google.appengine.api.datastore.Key parentValue;
-	SortDirection keyOrder;
-	
 	/** */
 	int limit;
 	int offset;
@@ -126,20 +116,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 
 	/** @return the underlying datastore query object */
 	private com.google.appengine.api.datastore.Query getActualQuery() {
-		if (this.keyOp != null) {
-			if (parentValue != null && this.idValue == null)
-				throw new IllegalStateException("If you filter by the @Parent field, you must also filter by the @Id field");
-			
-			String kind = Key.getKind(this.classRestriction);
-			com.google.appengine.api.datastore.Key key = DatastoreUtils.createKey(parentValue, kind, idValue);
-			
-			com.google.appengine.api.datastore.Query q = DatastoreUtils.cloneQuery(this.actual);
-			q.addFilter("__key__", keyOp, key);
-			
-			return q;
-		} else {
-			return this.actual;
-		}
+		return this.actual;
 	}
 	
 	/** Modifies the instance */
@@ -158,35 +135,23 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 			KeyMetadata<?> meta = fact().getMetadata(this.classRestriction).getKeyMetadata();
 			
 			if (prop.equals(meta.getParentFieldName())) {
-				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
-					throw new IllegalArgumentException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
-				
-				keyOp = op;
-				parentValue = fact().getRawKey(value);
-				return;
+				throw new IllegalArgumentException("@Parent fields cannot be filtered on. Perhaps you wish to use filterKey() or ancestor() instead?");
 			}
 			else if (prop.equals(meta.getIdFieldName())) {
-				if (meta.hasParentField() && parentValue == null)
-					throw new IllegalStateException("Since " + classRestriction.getName() + " has a @Parent, you must specify a" +
-							" filter on the parent field '" + meta.getParentFieldName() + "' before you can filter by the id field '" + prop + "'");
+				if (meta.hasParentField())
+					throw new IllegalArgumentException("@Id fields cannot be filtered on classes that have @Parent fields. Perhaps you wish to use filterKey() instead?");
 				
-				if (keyOp != null && keyOp != op)
-					throw new IllegalArgumentException("Filter operation on id must exactly match the filter operation on parent");
-				
-				if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
-					throw new IllegalArgumentException("@Parent and @Id fields cannot be filtered IN or <>. Perhaps you wish to filter on '__key__' instead?");
-				
+				String kind = Key.getKind(this.classRestriction);
+
 				if (value instanceof Number) {
-					value = ((Number)value).longValue();
+					value = DatastoreUtils.createKey(null, kind, ((Number)value).longValue());	// accept non-long values
 				} else if (value instanceof String) {
-					// This is fine by itself
+					value = DatastoreUtils.createKey(null, kind, value);
 				} else {
 					throw new IllegalArgumentException("Id filter values must be Long or String");
 				}
 				
-				keyOp = op;
-				idValue = value;
-				return;
+				prop = "__key__";
 			}
 		}
 
@@ -242,12 +207,15 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		if (this.classRestriction != null)
 		{
 			KeyMetadata<?> meta = fact().getMetadata(this.classRestriction).getKeyMetadata();
-			if (condition.equals(meta.getParentFieldName()) || condition.equals(meta.getIdFieldName())) {
-				if (keyOrder != null && keyOrder != dir)
-					throw new IllegalStateException("You cannot order @Parent one direction and @Id the other. Both must be ascending or descending.");
+			
+			if (condition.equals(meta.getParentFieldName()))
+				throw new IllegalStateException("You cannot order by @Parent field. Perhaps you wish to order by __key__ instead?");
+				
+			if (condition.equals(meta.getIdFieldName())) {
+				if (meta.hasParentField())
+					throw new IllegalStateException("You cannot order by @Id field if class has a @Parent field. Perhaps you wish to order by __key__ instead?");
 				
 				condition = "__key__";
-				keyOrder = dir;
 				isNonKeyOrder = false;
 			}
 		}
@@ -316,10 +284,6 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		if (this.actual.getAncestor() != null)
 			bld.append(KeyFactory.keyToString(this.actual.getAncestor()));
 
-		// The key predicates
-		if (parentValue != null || idValue != null)
-			bld.append(",key").append(keyOp.name()).append('(').append(parentValue).append(',').append(idValue).append(')');
-		
 		// We need to sort filters to make a stable string value
 		FilterPredicate[] filters = this.actual.getFilterPredicates().toArray(new FilterPredicate[this.actual.getFilterPredicates().size()]);
 		Arrays.sort(filters, new Comparator<FilterPredicate>() {
