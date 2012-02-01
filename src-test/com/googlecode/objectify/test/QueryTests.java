@@ -179,6 +179,19 @@ public class QueryTests extends TestBase
 	
 	/** */
 	@Test
+	public void testIdFilteringTwoBounds() throws Exception
+	{
+		TestObjectify ofy = this.fact.begin();
+		Query<Trivial> query = ofy.load().type(Trivial.class).filter("id >", triv1.getId()).filter("id <=", triv2.getId());
+		Iterator<Trivial> it = query.iterator();
+		
+		Trivial t2 = it.next();
+		assert !it.hasNext();
+		assert t2.getId().equals(triv2.getId()); 
+	}
+	
+	/** */
+	@Test
 	public void testQueryToString() throws Exception
 	{
 		TestObjectify ofy = this.fact.begin();
