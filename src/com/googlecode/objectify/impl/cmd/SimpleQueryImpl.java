@@ -120,7 +120,7 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#hybrid(boolean)
 	 */
 	@Override
-	public SimpleQuery<T> hybrid(boolean force)
+	public QueryImpl<T> hybrid(boolean force)
 	{
 		QueryImpl<T> q = createQuery();
 		q.setHybrid(force);

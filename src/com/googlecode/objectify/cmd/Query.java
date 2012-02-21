@@ -104,4 +104,10 @@ public interface Query<T> extends SimpleQuery<T>
 	 */
 	@Override
 	public Query<T> chunkAll();
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#hybrid(boolean)
+	 */
+	@Override
+	public Query<T> hybrid(boolean force);
 }

@@ -129,7 +129,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 	}
 	
 	@Override
-	public SimpleQuery<T> hybrid(boolean force)
+	public H hybrid(boolean force)
 	{
 		H next = this.clone();
 		next.base = base.hybrid(force);
