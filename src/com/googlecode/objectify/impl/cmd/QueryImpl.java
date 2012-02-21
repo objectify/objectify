@@ -78,7 +78,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		}
 		
 		// If the class is cacheable, hybridize
-		if (fact().getMetadata(clazz).getCacheExpirySeconds() != null)
+		if (loader.getObjectifyImpl().getCache() && fact().getMetadata(clazz).getCacheExpirySeconds() != null)
 			hybrid = true;
 		
 		this.classRestriction = clazz;

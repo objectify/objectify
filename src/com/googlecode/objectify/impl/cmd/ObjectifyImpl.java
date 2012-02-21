@@ -358,4 +358,9 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public Session getSession() {
 		return this.session;
 	}
+	
+	/** @return true if cache is enabled */
+	public boolean getCache() {
+		return cache;
+	}
 }
