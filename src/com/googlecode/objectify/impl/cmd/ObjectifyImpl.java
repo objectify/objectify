@@ -192,6 +192,9 @@ public class ObjectifyImpl implements Objectify, Cloneable
 				if (limitTries-- > 0) {
 					if (log.isLoggable(Level.WARNING))
 						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
+					
+					if (log.isLoggable(Level.FINEST))
+						log.log(Level.FINEST, "Details of optimistic concurrency failure", ex);
 				} else {
 					throw ex;
 				}
