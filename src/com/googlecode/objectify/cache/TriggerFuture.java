@@ -78,7 +78,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 	{
 		boolean done = this.raw.isDone();
 		
-		if (!triggered)
+		if (!triggered && done)
 		{
 			this.triggered = true;
 			TriggerFutureHook.removePending(this);
