@@ -3,6 +3,7 @@ package com.googlecode.objectify;
 import java.io.Serializable;
 
 import com.googlecode.objectify.impl.ref.StdRef;
+import com.googlecode.objectify.util.ResultNow;
 
 
 /**
@@ -24,6 +25,13 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 			throw new NullPointerException("Cannot create a Ref from a null key");
 		
 		return new StdRef<T>(key);
+	}
+
+	/** Creates a Ref that starts out with a value too */
+	public static <T> Ref<T> create(Key<T> key, T value) {
+		Ref<T> ref = create(key);
+		ref.set(new ResultNow<T>(value));
+		return ref;
 	}
 
 	/**
