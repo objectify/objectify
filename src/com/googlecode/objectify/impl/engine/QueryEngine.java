@@ -10,6 +10,7 @@ import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
@@ -174,6 +175,11 @@ public class QueryEngine
 				return source.getCursor();
 			else
 				return pq.asQueryResultIterator(FetchOptions.Builder.withStartCursor(baseCursor).offset(offsetIntoBatch).limit(0)).getCursor();
+		}
+
+		@Override
+		public List<Index> getIndexList() {
+			return this.source.getIndexList();
 		}
 	}
 }

@@ -1,6 +1,9 @@
 package com.googlecode.objectify.util;
 
+import java.util.List;
+
 import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.QueryResultIterator;
 
 /**
@@ -20,5 +23,11 @@ abstract public class TranslatingQueryResultIterator<F, T> extends TranslatingIt
 	public Cursor getCursor()
 	{
 		return ((QueryResultIterator<F>)this.base).getCursor();
+	}
+	
+	@Override
+	public List<Index> getIndexList()
+	{
+		return ((QueryResultIterator<F>)this.base).getIndexList();
 	}
 }

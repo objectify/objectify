@@ -6,9 +6,8 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.appengine.api.memcache.ErrorHandler;
+import com.google.appengine.api.memcache.ErrorHandlers;
 import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.StrictErrorHandler;
 
 /**
  * <p>Dynamic proxy which wraps a MemcacheService and adds retries when an exception occurs.
@@ -25,11 +24,6 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	private static final int DEFAULT_RETRIES = 4;
 	
 	/**
-	 * We use this on the memcacheservice for writes so that we get real exceptions when something goes wrong.
-	 */
-	private static final ErrorHandler DOES_NOT_MASK_EXCEPTIONS = new StrictErrorHandler();
-	
-	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
 	public static MemcacheService createProxy(MemcacheService raw)
@@ -42,7 +36,7 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	 */
 	public static MemcacheService createProxy(MemcacheService raw, int retryCount)
 	{
-		raw.setErrorHandler(DOES_NOT_MASK_EXCEPTIONS);
+		raw.setErrorHandler(ErrorHandlers.getStrict());
 		
 		return (MemcacheService)java.lang.reflect.Proxy.newProxyInstance(
 			raw.getClass().getClassLoader(),

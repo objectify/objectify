@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.memcache.ErrorHandlers;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
@@ -174,6 +175,7 @@ public class EntityMemcache
 	public EntityMemcache(String namespace, CacheControl cacheControl, MemcacheStats stats)
 	{
 		this.memcache = MemcacheServiceFactory.getMemcacheService(namespace);
+		this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
 		this.memcacheWithRetry = MemcacheServiceRetryProxy.createProxy(MemcacheServiceFactory.getMemcacheService(namespace));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
