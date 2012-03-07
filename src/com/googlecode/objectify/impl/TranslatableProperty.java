@@ -9,6 +9,7 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
+import com.googlecode.objectify.impl.translate.MapifyTranslatorFactory.MapifyListNodeTranslator;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -65,6 +66,11 @@ public class TranslatableProperty<T> {
 					Map map = (Map)this.property.get(onPojo);
 					MapMapNodeTranslator mapTranslator = (MapMapNodeTranslator)translator;
 					value = (T)mapTranslator.loadMapIntoExistingMap(actual, ctx, map);
+				}
+				else if (translator instanceof MapifyListNodeTranslator && actual.hasList()) {
+					Map map = (Map)this.property.get(onPojo);
+					MapifyListNodeTranslator mapTranslator = (MapifyListNodeTranslator)translator;
+					value = (T)mapTranslator.loadListIntoExistingMap(actual, ctx, map);
 				}
 				else {
 					value = translator.load(actual, ctx);

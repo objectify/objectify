@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.testng.annotations.Test;
@@ -56,7 +57,7 @@ public class MapifyTests extends TestBase
 		@Id Long id;
 		
 		@Mapify(ThingMapper.class)
-		Map<Long, Thing> things = new HashMap<Long, Thing>();
+		Map<Long, Thing> things = new LinkedHashMap<Long, Thing>();
 	}
 
 
@@ -73,6 +74,8 @@ public class MapifyTests extends TestBase
 		HasMapify fetched = this.putClearGet(hasMap);
 		
 		assert hasMap.things.equals(fetched.things);
+		
+		assert fetched.things instanceof LinkedHashMap;
 	}
 
 
