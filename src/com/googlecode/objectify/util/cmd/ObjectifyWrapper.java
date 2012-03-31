@@ -120,7 +120,7 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	}
 
 	@Override
-	public Objectify transactionless() {
+	public W transactionless() {
 		W next = (W)this.clone();
 		next.base = base.transactionless();
 		next.base.setWrapper(next);
