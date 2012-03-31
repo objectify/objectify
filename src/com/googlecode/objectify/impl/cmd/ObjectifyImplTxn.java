@@ -101,6 +101,15 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	}
 
 	/**
+	 * A little complicated because we need to make sure the parentSession is the transactionless session, not the session
+	 * for our transaction.  This gives proper transaction isolation.
+	 */
+	@Override
+	public Objectify transaction() {
+		return transactionless().transaction();
+	}
+	
+	/**
 	 * This version goes back to life without a transaction, but preserves current state
 	 */
 	@Override
