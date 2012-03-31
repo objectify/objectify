@@ -132,6 +132,17 @@ public interface Objectify
 	Objectify transaction();
 
 	/**
+	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
+	 * current transaction and works with the session prior to the transaction start.  Inherits any
+	 * settings (consistency, deadline, etc) from the present Objectify instance.</p>
+	 * 
+	 * <p>If you are not in a transaction, this simply returns "this".
+	 * 
+	 * @return an Objectify instance outside of a transaction, with the session as it was before txn start. 
+	 */
+	Objectify transactionless();
+
+	/**
 	 * The Work interface for an Objectify transaction.  This is typically what you will use to execute
 	 * a transaction in transact().  It shortens the amount of typing you need to perform. 
 	 */

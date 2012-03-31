@@ -158,6 +158,14 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public Objectify transaction() {
 		return new ObjectifyImplTxn(this);
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transactionless()
+	 */
+	@Override
+	public Objectify transactionless() {
+		return this;
+	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()

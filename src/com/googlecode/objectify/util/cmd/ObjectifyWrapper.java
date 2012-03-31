@@ -119,6 +119,14 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 		return next;
 	}
 
+	@Override
+	public Objectify transactionless() {
+		W next = (W)this.clone();
+		next.base = base.transactionless();
+		next.base.setWrapper(next);
+		return next;
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */

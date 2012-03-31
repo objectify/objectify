@@ -6,6 +6,7 @@ import java.util.concurrent.Future;
 
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
@@ -97,5 +98,15 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	@Override
 	public TransactionImpl getTxn() {
 		return this.txn.now();
+	}
+
+	/**
+	 * This version goes back to life without a transaction, but preserves current state
+	 */
+	@Override
+	public Objectify transactionless() {
+		ObjectifyImpl impl = new ObjectifyImpl(this);
+		impl.session = parentSession;
+		return impl;
 	}
 }
