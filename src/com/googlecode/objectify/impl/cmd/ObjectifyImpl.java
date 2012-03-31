@@ -340,7 +340,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * Converts a typed pojo object into a datastore entity
 	 * @param pojo can be an Entity, which will be returned as-is
 	 */
-	public Entity save(Object pojo) {
+	@Override
+	public Entity toEntity(Object pojo) {
 		if (pojo instanceof Entity) {
 			return (Entity)pojo;
 		} else {
@@ -350,6 +351,15 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
+	 */
+	@Override
+	public <T> T toPojo(Entity entity) {
+		LoaderImpl loader = (LoaderImpl)this.load();
+		return this.load(entity, new LoadContext(loader, loader.createLoadEngine()));
+	}
+
 	/**
 	 * Get the wrapper instance
 	 */
@@ -366,4 +376,5 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public boolean getCache() {
 		return cache;
 	}
+
 }

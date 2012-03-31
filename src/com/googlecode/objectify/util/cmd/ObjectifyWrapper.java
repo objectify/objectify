@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.util.cmd;
 
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
@@ -161,6 +162,22 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	@Override
 	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
 		return base.transact(limitTries, work);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#toEntity(java.lang.Object)
+	 */
+	@Override
+	public Entity toEntity(Object pojo) {
+		return base.toEntity(pojo);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
+	 */
+	@Override
+	public <T> T toPojo(Entity entity) {
+		return base.toPojo(entity);
 	}
 
 }
