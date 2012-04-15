@@ -1,0 +1,21 @@
+package com.googlecode.objectify.util.jackson;
+
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+
+/**
+ * Configuring this serializer will make native datastore Key objects render as their web-safe string.
+ */
+public class RawKeySerializer extends JsonSerializer<Key> {
+
+	@Override
+	public void serialize(Key value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
+		jgen.writeString(KeyFactory.keyToString(value));
+	}
+}

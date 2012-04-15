@@ -6,6 +6,8 @@
 	<classpathentry kind="lib" path="lib/joda-time-2.0.jar"/>
 	<classpathentry kind="lib" path="lib/joda-money-0.6.jar"/>
 	<classpathentry kind="lib" path="lib/build-only/testng-6.3.1.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-core-2.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/jackson-databind-2.0.0.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
 	<classpathentry kind="var" path="GAE_SDK/lib/testing/appengine-testing.jar"/>
