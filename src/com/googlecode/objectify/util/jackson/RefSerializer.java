@@ -18,7 +18,10 @@ public class RefSerializer extends JsonSerializer<Ref> {
 	public void serialize(Ref value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
 		Object obj = value.getValue();
 		if (obj != null) {
-			jgen.writeObject(obj);
+			// writeObject() abandons the serialization context and breaks @JsonView
+			//jgen.writeObject(obj);
+			// Tatu says that this is better:
+			provider.defaultSerializeValue(value.getValue(), jgen);
 		} else {
 			jgen.writeString(value.key().getString());
 		}
