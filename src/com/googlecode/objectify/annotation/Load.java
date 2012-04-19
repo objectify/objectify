@@ -22,5 +22,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 public @interface Load
 {
+	/** Groups which indicate the value should be loaded.  Empty means "always". */
 	Class<?>[] value() default {};
+	
+	/** Groups which negate loading.  In case of conflict with value(), unless() wins. */
+	Class<?>[] unless() default {};
 }
