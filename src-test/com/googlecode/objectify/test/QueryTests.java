@@ -238,6 +238,27 @@ public class QueryTests extends TestBase
 	
 	/** */
 	@Test
+	public void testFilteringByEntityField() throws Exception
+	{
+		fact.register(Employee.class);
+		TestObjectify ofy = this.fact.begin();
+		
+		Employee bob = new Employee("bob");
+		ofy.put(bob);
+		
+		Employee fred = new Employee("fred", bob);
+		ofy.put(fred);
+		
+		Iterator<Employee> it = ofy.load().type(Employee.class).filter("manager2", bob).iterator();
+
+		assert it.hasNext();
+		Employee fetched = it.next();
+		assert !it.hasNext();
+		assert fred.getName().equals(fetched.getName()); 
+	}
+	
+	/** */
+	@Test
 	public void testFilteringByAncestor() throws Exception
 	{
 		fact.register(Child.class);

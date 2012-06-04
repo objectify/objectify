@@ -25,6 +25,9 @@ public class Employee
 	@Index
 	public Key<Employee> manager;
 
+	@Index
+	public Employee manager2;
+	
 	/** Default constructor must always exist */
 	public Employee() {}
 
@@ -39,6 +42,13 @@ public class Employee
 	{
 		this.name = name;
 		this.manager = manager;
+	}
+
+	/** set a name and manager */
+	public Employee(String name, Employee manager2)
+	{
+		this.name = name;
+		this.manager2 = manager2;
 	}
 
 	/** */
