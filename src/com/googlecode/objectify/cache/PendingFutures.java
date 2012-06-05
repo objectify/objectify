@@ -55,17 +55,17 @@ public class PendingFutures
 		}
 	}
 	
-	/**
-	 * If any futures are pending, check if they are done.  This will process their callbacks.
-	 * Don't use this method - see comments on Pending.checkPendingFutures()
-	 */
-	@Deprecated
-	public static void checkPendingFutures()
-	{
-		Pending pend = pending.get();
-		if (pend != null)
-			pend.checkPendingFutures();
-	}
+//	/**
+//	 * If any futures are pending, check if they are done.  This will process their callbacks.
+//	 * Don't use this method - see comments on Pending.checkPendingFutures()
+//	 */
+//	@Deprecated
+//	public static void checkPendingFutures()
+//	{
+//		Pending pend = pending.get();
+//		if (pend != null)
+//			pend.checkPendingFutures();
+//	}
 	
 	/**
 	 * Iterate through all pending futures and get() them, forcing any callbacks to be called.
