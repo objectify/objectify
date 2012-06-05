@@ -109,15 +109,13 @@
 	</path>
 
 	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>
-	<taskdef resource="com/googlecode/svntask/svntask.xml" classpathref="master.classpath"/>
 
 	<target name="init">
 		<tstamp>
 			<format property="YEAR" pattern="yyyy" />
 		</tstamp>
 
-        <svn><info path="${basedir}" revisionProperty="revisionVersion" /></svn>
-        <property name="build.version" value="${revisionVersion}" />
+        <property name="build.version" value="SNAPSHOT" />
 	</target>
 
 
@@ -230,9 +228,6 @@
 
 		<sync todir="${javadoc.dir}" includeEmptyDirs="true">
 			<fileset dir="${build.javadoc.dir}" />
-			<preserveintarget>
-				<include name="**/.svn/**"/>
-			</preserveintarget>
 		</sync>
 	</target>
 	
