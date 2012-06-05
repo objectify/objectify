@@ -19,7 +19,7 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cache.TriggerFutureHook;
+import com.googlecode.objectify.cache.PendingFutures;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -57,7 +57,7 @@ public class TestBase
 	public void tearDown()
 	{
 		// This normally is done in the AsyncCacheFilter but that doesn't exist for tests
-		TriggerFutureHook.completeAllPendingFutures();
+		PendingFutures.completeAllPendingFutures();
 		this.helper.tearDown();
 	}
 	

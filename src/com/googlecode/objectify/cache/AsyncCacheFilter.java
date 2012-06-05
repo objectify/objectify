@@ -58,7 +58,7 @@ public class AsyncCacheFilter implements Filter
 		}
 		finally
 		{
-			TriggerFutureHook.completeAllPendingFutures();
+			PendingFutures.completeAllPendingFutures();
 		}
 	}
 }

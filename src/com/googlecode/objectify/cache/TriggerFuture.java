@@ -9,19 +9,22 @@ import java.util.concurrent.TimeoutException;
 /**
  * <p>
  * A Future<?> wrapper that executes an abstract method with the result at some point after
- * the data becomes available.  A "best effort" is made to ensure execution is made in a
- * timely manner by hooking into the ApiProxy delegate system.  Notification will happen ONCE:
+ * the data becomes available.  A "best effort" is made to ensure execution, but it may be
+ * left untriggered until the end of a request.
+ * </p>
+ * 
+ * <p>
+ * Notification will happen ONCE:
  * </p>
  * 
  * <ul>
  * <li>After get() is called</li>
  * <li>When the future is done and isDone() is called</li>
- * <li>When the future is done and any remote call is made through the ApiProxy</li>
+ * <li>At the end of a request that has the AsyncCacheFilter enabled.</li>
  * </ul>
  * 
- * <p>To work, this future relies on the TriggerFutureHook.  It must be installed
- * on a per-thread basis at the beginning of a request and uninstalled at the end of
- * a request.  Typically this is done by the AsyncCacheFilter.</p>
+ * <p>Use the AsyncCacheFilter for normal requests. For situations where a filter is not appropriate
+ * (ie, the remote api) be sure to call PendingFutures.completeAllPendingFutures() manually.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -39,7 +42,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 		this.raw = raw;
 		
 		// We now need to register ourself so that we'll get checked at future API calls
-		TriggerFutureHook.addPending(this);
+		PendingFutures.addPending(this);
 	}
 	
 	/**
@@ -81,7 +84,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 		if (!triggered && done)
 		{
 			this.triggered = true;
-			TriggerFutureHook.removePending(this);
+			PendingFutures.removePending(this);
 			
 			this.trigger();
 		}

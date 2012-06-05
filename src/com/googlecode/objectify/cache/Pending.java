@@ -61,7 +61,10 @@ public class Pending
 	
 	/**
 	 * If any futures are pending, check if they are done.  This will process their callbacks.
+	 * NOTE:  This method should not be used because isDone() on GAE futures seems to always
+	 * block and complete them.  Leaving this method here in case that behavior ever changes.
 	 */
+	@Deprecated
 	public void checkPendingFutures()
 	{
 		// Re-entrancy would cause us to recurse endlessly
@@ -100,7 +103,7 @@ public class Pending
 				}
 				catch (Exception e)
 				{
-					log.log(Level.SEVERE, "Error cleaning up pending Future", e);
+					log.log(Level.SEVERE, "Error cleaning up pending Future: " + fut, e);
 				}
 			}
 		}
