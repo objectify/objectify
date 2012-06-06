@@ -57,6 +57,8 @@ public class EmbeddedNullTests2 extends TestBase {
 		 *
 		 * fooBar.foos.bar.aField = [aField, aField, aField, aField, aField]
 		 * fooBar.foos.bar.bField = [1,2,3,4,5]
+		 * 
+		 * JMS:  this actually should produce a metaproperty .^null = [1,2,3,4]
 		 */
 		for (int i = 0; i < 5; i++) {
 			Foo foo = createFoo();
