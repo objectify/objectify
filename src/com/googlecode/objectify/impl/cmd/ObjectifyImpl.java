@@ -223,8 +223,13 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		}
 		finally
 		{
-			if (txnOfy.getTxn().isActive())
-				txnOfy.getTxn().rollback();
+			if (txnOfy.getTxn().isActive()) {
+				try {
+					txnOfy.getTxn().rollback();
+				} catch (RuntimeException ex) {
+					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
+				}
+			}
 		}
 	}
 
