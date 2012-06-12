@@ -1,0 +1,8 @@
+This is the Objectify opensource project.  The official project documentation and repository are here:
+
+https://objectify-appengine.googlecode.com/
+
+An officially-maintained github mirror of the repository is available here:
+
+https://github.com/stickfigure/objectify
+
