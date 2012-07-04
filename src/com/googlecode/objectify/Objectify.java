@@ -149,8 +149,10 @@ public interface Objectify
 	interface Work<R> extends TxnWork<Objectify, R> {}
 	
 	/**
-	 * Executes the work in a transaction, repeating as many times as necessary to finish the job. This is the same
-	 * as transact(Integer.MAX_VALUE, work).  Work <b>MUST</b> idempotent.
+	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
+	 * finish the job. Work <b>MUST</b> idempotent.</p>
+	 * 
+	 * <p>Note that this is equivalent to execute(TxnType.REQUIRED_NEW, work);</p>
 	 * 
 	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
 	 * @return the result of the work
@@ -158,7 +160,7 @@ public interface Objectify
 	<O extends Objectify, R> R transact(TxnWork<O, R> work);
 
 	/**
-	 * <p>Executes the work in a transaction, repeating up to limitTries times when a ConcurrentModificationException
+	 * <p>Executes the work in a new transaction, repeating up to limitTries times when a ConcurrentModificationException
 	 * is thrown.  This requires your Work to be idempotent; otherwise limit tries to 1.
 	 * 
 	 * <p>The Objectify instance passed in to the Work run() method will have a transaction
@@ -168,6 +170,19 @@ public interface Objectify
 	 * @return the result of the work
 	 */
 	<O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work);
+
+	/**
+	 * <p>Executes the work with the transactional behavior defined by the parameter txnType.  This is very similar
+	 * to EJB semantics.  The work can inherit a transaction, create a new transaction, prevent transactions, etc.</p>
+	 * 
+	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
+	 * finish the job. Work <b>MUST</b> idempotent.</p>
+	 * 
+	 * @param txnType defines what kind of transaction context the work should be executed in.
+	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
+	 * @return the result of the work
+	 */
+	<O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work);
 
 	/**
 	 * <p>Clears the session.  If, for example, you are iterating through large quantities of data

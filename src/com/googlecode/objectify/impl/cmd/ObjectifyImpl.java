@@ -15,6 +15,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
@@ -178,6 +179,31 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
+		switch (txnType) {
+			case MANDATORY:
+				throw new IllegalStateException("MANDATORY transaction but no transaction present");
+			
+			case NOT_SUPPORTED:
+			case NEVER:
+			case SUPPORTS:
+				return work.run((O)wrapper);
+				 
+			case REQUIRED:
+			case REQUIRES_NEW:
+				return transact(work);
+
+			default:
+				throw new IllegalStateException("Impossible, some unknown txn type");
+		}
+		
 	}
 
 	/* (non-Javadoc)

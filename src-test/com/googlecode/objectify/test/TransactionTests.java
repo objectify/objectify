@@ -194,4 +194,39 @@ public class TransactionTests extends TestBase
 		
 		assert ofy.load().entity(triv).get() == null;
 	}
+	
+	/** For transactionless tests */
+	@Entity
+	@Cache
+	public static class Thing {
+		@Id long id;
+		String foo;
+		public Thing() {}
+		public Thing(long id) { this.id = id; this.foo = "foo"; }
+	}
+	
+	/** */
+	@Test
+	public void testTransactionless() throws Exception
+	{
+		this.fact.register(Thing.class);
+		TestObjectify ofy = this.fact.begin();
+
+		for (int i=1; i<10; i++) {
+			Thing th = new Thing(i);
+			ofy.put(th);
+		}
+
+		ofy.transact(new Work<Void>() {
+			@Override
+			public Void run(TestObjectify ofy) {
+				for (int i=1; i<10; i++)
+					ofy.transactionless().load().type(Thing.class).id(i).get();
+				
+				ofy.put(new Thing(99));
+				return null;
+			}
+		});
+	}
+	
 }

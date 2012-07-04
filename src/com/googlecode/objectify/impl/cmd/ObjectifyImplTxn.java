@@ -8,6 +8,8 @@ import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.TxnType;
+import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.util.DatastoreIntrospector;
@@ -118,4 +120,33 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		impl.session = parentSession;
 		return impl;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
+		switch (txnType) {
+			case MANDATORY:
+			case REQUIRED:
+			case SUPPORTS:
+				return work.run((O)wrapper);
+			
+			case NOT_SUPPORTED:
+				// TODO:  clean up this hack
+				return work.run((O)((ObjectifyImpl)transactionless()).getWrapper());
+				
+			case NEVER:
+				throw new IllegalStateException("MANDATORY transaction but no transaction present");
+				 
+			case REQUIRES_NEW:
+				return transact(work);
+
+			default:
+				throw new IllegalStateException("Impossible, some unknown txn type");
+		}
+		
+	}
+
 }

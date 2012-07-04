@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
@@ -170,6 +171,11 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	@Override
 	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
 		return base.transact(limitTries, work);
+	}
+
+	@Override
+	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
+		return base.execute(txnType, work);
 	}
 
 	/* (non-Javadoc)
