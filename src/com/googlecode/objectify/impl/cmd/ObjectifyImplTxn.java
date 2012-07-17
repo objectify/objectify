@@ -149,4 +149,9 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		
 	}
 
+	@Override
+	@SuppressWarnings("unchecked")
+	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
+		return work.run((O)wrapper);
+	}
 }

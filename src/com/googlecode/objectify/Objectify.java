@@ -149,15 +149,28 @@ public interface Objectify
 	interface Work<R> extends TxnWork<Objectify, R> {}
 	
 	/**
+	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.
+	 * If there is not already a transaction context, a new transaction will be started.</p>
+	 * 
 	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
 	 * finish the job. Work <b>MUST</b> idempotent.</p>
 	 * 
-	 * <p>Note that this is equivalent to execute(TxnType.REQUIRED_NEW, work);</p>
+	 * @param work defines the work to be done in a transaction.  If this method started a new transaction, it
+	 * will be committed when work is complete.
+	 * @return the result of the work
+	 */
+	<O extends Objectify, R> R transact(TxnWork<O, R> work);
+
+	/**
+	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
+	 * finish the job. Work <b>MUST</b> idempotent.</p>
+	 * 
+	 * <p>Note that this is equivalent to transactNew(Integer.MAX_VALUE, work);</p>
 	 * 
 	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
 	 * @return the result of the work
 	 */
-	<O extends Objectify, R> R transact(TxnWork<O, R> work);
+	<O extends Objectify, R> R transactNew(TxnWork<O, R> work);
 
 	/**
 	 * <p>Executes the work in a new transaction, repeating up to limitTries times when a ConcurrentModificationException
@@ -169,7 +182,7 @@ public interface Objectify
 	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
 	 * @return the result of the work
 	 */
-	<O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work);
+	<O extends Objectify, R> R transactNew(int limitTries, TxnWork<O, R> work);
 
 	/**
 	 * <p>Executes the work with the transactional behavior defined by the parameter txnType.  This is very similar

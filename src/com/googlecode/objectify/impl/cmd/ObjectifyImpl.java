@@ -198,7 +198,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 				 
 			case REQUIRED:
 			case REQUIRES_NEW:
-				return transact(work);
+				return transactNew(work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
@@ -211,14 +211,22 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
-		return this.transact(Integer.MAX_VALUE, work);
+		return this.transactNew(work);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
 	 */
 	@Override
-	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
+	public <O extends Objectify, R> R transactNew(TxnWork<O, R> work) {
+		return this.transactNew(Integer.MAX_VALUE, work);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transactNew(int limitTries, TxnWork<O, R> work) {
 		while (true) {
 			try {
 				return transactOnce(work);

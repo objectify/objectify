@@ -166,13 +166,24 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transact(int, com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.TxnWork)
 	 */
 	@Override
-	public <O extends Objectify, R> R transact(int limitTries, TxnWork<O, R> work) {
-		return base.transact(limitTries, work);
+	public <O extends Objectify, R> R transactNew(TxnWork<O, R> work) {
+		return base.transactNew(work);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transactNew(int, com.googlecode.objectify.TxnWork)
+	 */
+	@Override
+	public <O extends Objectify, R> R transactNew(int limitTries, TxnWork<O, R> work) {
+		return base.transactNew(limitTries, work);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.TxnWork)
+	 */
 	@Override
 	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
 		return base.execute(txnType, work);
