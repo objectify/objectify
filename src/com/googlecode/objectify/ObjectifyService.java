@@ -1,33 +1,79 @@
+/*
+ */
+
 package com.googlecode.objectify;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 
+import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
 
 /**
- * <p>This is a simple container for a single static instance of ObjectifyFactory.
- * You can choose to use this class or build your own equivalent - look at the source
- * code, there are only four lines.  If you use a dependency injection system like Weld
- * or Guice, you do not need this class at all - simply inject an ObjectifyFactory.</p>
+ * Holder of the master ObjectifyFactory and provider of the current thread-local Objectify instance.
+ * Call {@code ofy()} at any point to get the current Objectify with the correct transaction context.
  * 
- * <p>For further advice, see the
- * <a href="http://code.google.com/p/objectify-appengine/wiki/BestPractices">BestPractices</a>.</p>
- * 
- * @author Jeff Schnitzer <jeff@infohazard.org>
+ * @author Jeff Schnitzer
  */
 public class ObjectifyService
 {
-	/** Singleton instance */
-	protected static ObjectifyFactory factory = new ObjectifyFactory();
-	
-	/** Call this to get the instance */
-	public static ObjectifyFactory factory() { return factory; }
+	/** */
+	private static ObjectifyFactory factory = new ObjectifyFactory();
 
-	//
-	// All static methods simply pass-through to the singleton factory
-	//
+	/** */
+	public static void setFactory(ObjectifyFactory fact) {
+		factory = fact;
+	}
 
-	/** @see ObjectifyFactory#begin() */
-	public static Objectify begin() { return factory().begin(); }
+	/**
+	 * Thread local stack of Objectify instances corresponding to transaction depth
+	 */
+	private static final ThreadLocal<Deque<Objectify>> STACK = new ThreadLocal<Deque<Objectify>>() {
+		@Override
+		protected Deque<Objectify> initialValue() {
+			return new ArrayDeque<Objectify>();
+		}
+	};
+
+	/**
+	 * The method to call at any time to get the current Objectify, which may change depending on txn context
+	 */
+	public static Objectify ofy() {
+		Deque<Objectify> stack = STACK.get();
+		if (stack.isEmpty())
+			stack.add(factory.begin());
+
+		return stack.getLast();
+	}
+
+	/**
+	 * @return the current factory
+	 */
+	public static ObjectifyFactory factory() {
+		return factory;
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyFactory.register()}
+	 *  
+	 * @see ObjectifyFactory#register(Class) 
+	 */
+	public static void register(Class<?> clazz) {
+		factory().register(clazz); 
+	}
 	
-	/** @see ObjectifyFactory#register(Class) */
-	public static void register(Class<?> clazz) { factory().register(clazz); }
+	/** Pushes new context onto stack when a transaction starts */
+	public static void push(Objectify ofy) {
+		STACK.get().add(ofy);
+	}
+
+	/** Pops context off of stack after a transaction completes */
+	public static void pop() {
+		STACK.get().removeLast();
+	}
+
+	/** Clear the stack of any leftover Objectify instances */
+	public static void reset() {
+		STACK.get().clear();
+	}
 }

@@ -15,6 +15,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.TxnWork;
 import com.googlecode.objectify.cmd.Deleter;
@@ -251,12 +252,16 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		@SuppressWarnings("unchecked")
 		O txnOfy = (O)wrapper.transaction();
 		try {
+			ObjectifyService.push(txnOfy);
+			
 			R result = work.run(txnOfy);
 			txnOfy.getTxn().commit();
 			return result;
 		}
 		finally
 		{
+			ObjectifyService.pop();
+			
 			if (txnOfy.getTxn().isActive()) {
 				try {
 					txnOfy.getTxn().rollback();

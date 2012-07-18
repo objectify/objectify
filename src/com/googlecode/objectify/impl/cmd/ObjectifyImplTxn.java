@@ -7,6 +7,7 @@ import java.util.concurrent.Future;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.TxnWork;
@@ -135,7 +136,13 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 			
 			case NOT_SUPPORTED:
 				// TODO:  clean up this hack
-				return work.run((O)((ObjectifyImpl)transactionless()).getWrapper());
+				try {
+					O ofy = (O)((ObjectifyImpl)transactionless()).getWrapper();
+					ObjectifyService.push(ofy);
+					return work.run(ofy);
+				} finally {
+					ObjectifyService.pop();
+				}
 				
 			case NEVER:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
