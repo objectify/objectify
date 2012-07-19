@@ -5,7 +5,6 @@ package com.googlecode.objectify;
 
 import java.io.IOException;
 
-import javax.inject.Singleton;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -41,7 +40,6 @@ import com.googlecode.objectify.cache.AsyncCacheFilter;
  * 
  * @author Jeff Schnitzer
  */
-@Singleton
 public class ObjectifyFilter extends AsyncCacheFilter
 {
 	/** */

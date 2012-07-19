@@ -2,7 +2,6 @@ package com.googlecode.objectify.cache;
 
 import java.io.IOException;
 
-import javax.inject.Singleton;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -44,7 +43,6 @@ import javax.servlet.ServletResponse;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Singleton
 public class AsyncCacheFilter implements Filter
 {
 	@Override
