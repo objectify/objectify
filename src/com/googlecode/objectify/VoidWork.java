@@ -15,5 +15,5 @@ abstract public class VoidWork implements Work<Void>
 		return null;
 	}
 	
-	abstract void vrun();
+	public abstract void vrun();
 }
