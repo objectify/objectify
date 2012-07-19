@@ -2,6 +2,7 @@ package com.googlecode.objectify.cache;
 
 import java.io.IOException;
 
+import javax.inject.Singleton;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -35,30 +36,38 @@ import javax.servlet.ServletResponse;
  *      filter("/*").through(AsyncCacheFilter.class);
  *</pre>
  *
+ * <p>Note that you do not need to configure this filter if you use the {@code ObjectifyFilter}.</p>
+ * 
+ * <p>If you use the CachingAsyncDatastoreService outside of the context of a request (say, using the remote
+ * API or from a unit test), then you should call {@code AsyncCacheFilter.complete()} after every operation
+ * that you consider a "request".  For example, after each test.</p>
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Singleton
 public class AsyncCacheFilter implements Filter
 {
 	@Override
-	public void init(FilterConfig config) throws ServletException
-	{
+	public void init(FilterConfig config) throws ServletException {
 	}
 
 	@Override
-	public void destroy()
-	{
+	public void destroy() {
 	}
 
 	@Override
-	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
-	{
-		try
-		{
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+		try {
 			chain.doFilter(request, response);
+		} finally {
+			complete();
 		}
-		finally
-		{
-			PendingFutures.completeAllPendingFutures();
-		}
+	}
+	
+	/**
+	 * Perform the actions that are performed upon normal completion of a request.
+	 */
+	public static void complete() {
+		PendingFutures.completeAllPendingFutures();
 	}
 }

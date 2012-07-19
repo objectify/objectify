@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -11,13 +13,13 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
-import com.googlecode.objectify.test.util.TestObjectify.Work;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -152,10 +154,10 @@ public class TransactionTests extends TestBase
 		
 		Trivial updated = ofy.transact(new Work<Trivial>() {
 			@Override
-			public Trivial run(TestObjectify ofy) {
-				Trivial result = ofy.load().entity(triv).get();
+			public Trivial run() {
+				Trivial result = ofy().load().entity(triv).get();
 				result.setSomeNumber(6);
-				ofy.put(result);
+				ofy().put(result);
 				return result;
 			}
 		});
@@ -181,12 +183,12 @@ public class TransactionTests extends TestBase
 		
 		ofy.transact(new Work<Void>() {
 			@Override
-			public Void run(TestObjectify ofy) {
+			public Void run() {
 				// Load this, enlist in txn
-				Trivial fetched = ofy.load().entity(triv).get();
+				Trivial fetched = ofy().load().entity(triv).get();
 				
 				// Do this async, don't complete it manually
-				ofy.delete().entity(fetched);
+				ofy().delete().entity(fetched);
 				
 				return null;
 			}
@@ -219,11 +221,11 @@ public class TransactionTests extends TestBase
 
 		ofy.transact(new Work<Void>() {
 			@Override
-			public Void run(TestObjectify ofy) {
+			public Void run() {
 				for (int i=1; i<10; i++)
-					ofy.transactionless().load().type(Thing.class).id(i).get();
+					ofy().transactionless().load().type(Thing.class).id(i).get();
 				
-				ofy.put(new Thing(99));
+				ofy().put(new Thing(99));
 				return null;
 			}
 		});

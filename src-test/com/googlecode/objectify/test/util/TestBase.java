@@ -18,8 +18,8 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFilter;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cache.PendingFutures;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -49,15 +49,16 @@ public class TestBase
 	{
 		this.helper.setUp();
 		
-		this.fact = new TestObjectifyFactory();
+		this.fact = TestObjectifyService.factory();
 	}
 
 	/** */
 	@AfterMethod
 	public void tearDown()
 	{
-		// This normally is done in the AsyncCacheFilter but that doesn't exist for tests
-		PendingFutures.completeAllPendingFutures();
+		// This is normally done in ObjectifyFilter but that doesn't exist for tests
+		ObjectifyFilter.complete();
+		
 		this.helper.tearDown();
 	}
 	

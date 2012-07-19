@@ -9,7 +9,7 @@ import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
-import com.googlecode.objectify.TxnWork;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -158,34 +158,34 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
+	public <R> R transact(Work<R> work) {
 		return base.transact(work);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <O extends Objectify, R> R transactNew(TxnWork<O, R> work) {
+	public <R> R transactNew(Work<R> work) {
 		return base.transactNew(work);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transactNew(int, com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.Objectify#transactNew(int, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <O extends Objectify, R> R transactNew(int limitTries, TxnWork<O, R> work) {
+	public <R> R transactNew(int limitTries, Work<R> work) {
 		return base.transactNew(limitTries, work);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
+	public <R> R execute(TxnType txnType, Work<R> work) {
 		return base.execute(txnType, work);
 	}
 

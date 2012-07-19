@@ -10,7 +10,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
-import com.googlecode.objectify.TxnWork;
+import com.googlecode.objectify.Work;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.util.DatastoreIntrospector;
@@ -123,23 +123,21 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.TxnWork)
+	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public <O extends Objectify, R> R execute(TxnType txnType, TxnWork<O, R> work) {
+	public <R> R execute(TxnType txnType, Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 			case REQUIRED:
 			case SUPPORTS:
-				return work.run((O)wrapper);
+				return work.run();
 			
 			case NOT_SUPPORTED:
-				// TODO:  clean up this hack
 				try {
-					O ofy = (O)((ObjectifyImpl)transactionless()).getWrapper();
+					Objectify ofy = ((ObjectifyImpl)transactionless()).getWrapper();
 					ObjectifyService.push(ofy);
-					return work.run(ofy);
+					return work.run();
 				} finally {
 					ObjectifyService.pop();
 				}
@@ -156,9 +154,11 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#transact(com.googlecode.objectify.Work)
+	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public <O extends Objectify, R> R transact(TxnWork<O, R> work) {
-		return work.run((O)wrapper);
+	public <R> R transact(Work<R> work) {
+		return work.run();
 	}
 }
