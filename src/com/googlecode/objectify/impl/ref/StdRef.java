@@ -26,12 +26,15 @@ public class StdRef<T> extends Ref<T>
 
 	/** Create a Ref based on the key, no value initialized */
 	public StdRef(Key<T> key) {
+		if (key == null)
+			throw new NullPointerException("Cannot create a Ref for a null key");
+		
 		this.key = key;
 	}
 	
 	/** Create a Ref based on the key */
 	public StdRef(Key<T> key, T value) {
-		this.key = key;
+		this(key);
 		this.result = new ResultNow<T>(value);
 	}
 	
