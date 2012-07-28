@@ -29,6 +29,6 @@ public class FirstRef<T> extends ProxyRef<T>
 		if (it.hasNext())
 			return it.next();
 		else
-			return new StdRef<T>(null, null);
+			return new NullRef<T>();
 	}
 }
