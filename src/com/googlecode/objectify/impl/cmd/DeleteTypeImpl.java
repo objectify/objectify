@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl.cmd;
 import java.util.Arrays;
 import java.util.Collections;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteIds;
 import com.googlecode.objectify.cmd.DeleteType;
@@ -17,29 +18,28 @@ import com.googlecode.objectify.util.DatastoreUtils;
 class DeleteTypeImpl implements DeleteType
 {
 	/** */
-	ObjectifyImpl ofy;
+	DeleterImpl deleter;
 	
 	/** Translated from the type class */
-	String kind;
+	Class<?> type;
 	
 	/** Possible parent */
-	com.google.appengine.api.datastore.Key parent;
+	Key<?> parent;
 	
 	/**
 	 * @param type must be a registered type 
 	 */
-	DeleteTypeImpl(ObjectifyImpl ofy, String kind) {
-		this.ofy = ofy;
-		this.kind = kind;
+	DeleteTypeImpl(DeleterImpl deleter, Class<?> type) {
+		this.deleter = deleter;
+		this.type = type;
 	}
 
 	/**
 	 * @param parent can be Key, Key<?>, or entity 
 	 */
-	DeleteTypeImpl(ObjectifyImpl ofy, String kind, com.google.appengine.api.datastore.Key parent) {
-		this(ofy, kind);
-		this.parent = ofy.getFactory().getRawKey(parent);
-
+	DeleteTypeImpl(DeleterImpl deleter, Class<?> type, Key<?> parent) {
+		this(deleter, type);
+		this.parent = parent;
 	}
 
 	/* (non-Javadoc)
@@ -47,8 +47,8 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public DeleteIds parent(Object keyOrEntity) {
-		com.google.appengine.api.datastore.Key parentKey = ofy.getFactory().getRawKey(keyOrEntity);
-		return new DeleteTypeImpl(ofy, kind, parentKey);
+		Key<?> parentKey = this.deleter.ofy.getFactory().getKey(keyOrEntity);
+		return new DeleteTypeImpl(deleter, type, parentKey);
 	}
 
 	/* (non-Javadoc)
@@ -88,7 +88,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public <S> Result<Void> ids(Iterable<S> ids) {
-		return ofy.createWriteEngine().delete(DatastoreUtils.createKeys(parent, kind, ids));
+		return this.deleter.keys(DatastoreUtils.createKeys(parent, type, ids));
 	}
 
 }

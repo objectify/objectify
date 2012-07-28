@@ -82,7 +82,20 @@ public class DatastoreUtils
 		
 		return keys;
 	}
-	
+
+	/**
+	 * Make a list of Key<?>s
+	 * @param ids must contain either Long or String
+	 */
+	public static <T> List<Key<T>> createKeys(Key<?> parent, Class<T> kind, Iterable<?> ids) {
+		List<Key<T>> keys = new ArrayList<Key<T>>();
+		
+		for (Object id: ids)
+			keys.add(createKey(parent, kind, id));
+		
+		return keys;
+	}
+
 	/**
 	 * Gets the String or Long id from the key, or null if incomplete
 	 */

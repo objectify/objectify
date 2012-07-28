@@ -30,8 +30,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public DeleteType type(Class<?> type) {
-		String kind = Key.getKind(type);
-		return new DeleteTypeImpl(ofy, kind);
+		return new DeleteTypeImpl(this, type);
 	}
 
 	/* (non-Javadoc)
@@ -39,7 +38,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> key(Key<?> key) {
-		return keys(key);
+		return this.keys(key);
 	}
 
 	/* (non-Javadoc)
@@ -47,7 +46,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> keys(Key<?>... keys) {
-		return keys(Arrays.asList(keys));
+		return this.keys(Arrays.asList(keys));
 	}
 	
 	/* (non-Javadoc)
@@ -67,7 +66,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> entity(Object entity) {
-		return entities(entity);
+		return this.entities(entity);
 	}
 
 	/* (non-Javadoc)
@@ -87,6 +86,6 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> entities(Object... entities) {
-		return entities(Arrays.asList(entities));
+		return this.entities(Arrays.asList(entities));
 	}
 }
