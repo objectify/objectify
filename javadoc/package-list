@@ -14,3 +14,4 @@ com.googlecode.objectify.mapper
 com.googlecode.objectify.repackaged.gentyref
 com.googlecode.objectify.util
 com.googlecode.objectify.util.cmd
+com.googlecode.objectify.util.jackson
