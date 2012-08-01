@@ -327,11 +327,6 @@
 	        description="Checks out the maven repository, and deployes the jar artifact into it (but does not commit)"
 	        unless="skip.maven">
 
-		<svn failonerror="false">
-			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify" depth="files"/>
-			<update path="${maven.repo.dir}/com/googlecode/objectify/objectify/${build.version}" depth="infinite"/>
-		</svn>
-
 		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpathref="master.classpath" />
 
 		<copy file="pom-template.xml" tofile="${build.dir}/pom.xml">
@@ -347,7 +342,6 @@
 			<attach file="${build.sources.file}" classifier="sources"/>
 		</artifact:deploy>
 
-		<svn><add path="${maven.repo.dir}/com/googlecode/objectify/objectify"/></svn>
 		<echo>NB: please commit maven repository in ${maven.repo.dir}</echo>
 	</target>
 
