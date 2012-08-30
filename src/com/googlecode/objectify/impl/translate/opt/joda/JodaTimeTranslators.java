@@ -7,7 +7,7 @@ import com.googlecode.objectify.ObjectifyFactory;
  * We can't enable the joda-time converters automatically or it would force everyone to add joda-time.jar
  * whether they use it or not.  To enable, call this:</p>
  * 
- * <p>{@code JodaTimeConverters.add(ObjectifyService.factory());}
+ * <p>{@code JodaTimeTranslators.add(ObjectifyService.factory());}
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
