@@ -3,8 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -13,6 +11,7 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
@@ -20,6 +19,8 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -231,4 +232,28 @@ public class TransactionTests extends TestBase
 		});
 	}
 	
+	/**
+	 */
+	@Test
+	public void testTransactionRollback() throws Exception
+	{
+		this.fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+		
+		try {
+    		ofy.transact(new VoidWork() {
+    			@Override
+    			public void vrun() {
+    				Trivial triv = new Trivial("foo", 5);
+    				ofy().put(triv);
+    				throw new RuntimeException();
+    			}
+    		});
+		} catch (RuntimeException ex) {}
+		
+		// Now verify that it was not saved
+		Trivial fetched = ofy.load().type(Trivial.class).first().get();
+		assert fetched == null;
+	}
+
 }
