@@ -4,14 +4,15 @@
 	Build file for Objectify.
 -->
 
-<project name="objectify" default="jar" basedir="." xmlns:artifact="antlib:org.apache.maven.artifact.ant">
+<project name="objectify" default="jar" basedir="."
+	xmlns:artifact="antlib:org.apache.maven.artifact.ant"
+	xmlns:ivy="antlib:org.apache.ivy.ant">
 
 	<property name="name" value="${ant.project.name}" />
 	
 	<property file="user.properties" />
 	<property file="${user.home}/build.properties" />
 	<property file="build.properties" />
-	<property file="edit-this-to-build.properties" />
 
 	<property name="build.debug" value="on" />
 	<property name="build.deprecation" value="on" />
@@ -31,8 +32,6 @@
 	<property name="super.package" value="com/googlecode/objectify/impl/emul"/>
 
 	<property name="googlecode.projectname" value="objectify-appengine"/>
-	
-	<property name="maven.repo.dir" location="../objectify-maven" />
 
 	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
@@ -61,14 +60,6 @@
 		<include name="com/google/appengine/api/datastore/ShortBlob.class"/>
 		<include name="com/google/appengine/api/datastore/Text.class"/>
 		<include name="com/google/appengine/api/users/User.class"/>
-		
-		<!-- JPA Annotations we use -->
-		<include name="javax/persistence/Entity.class"/>
-		<include name="javax/persistence/Id.class"/>
-		<include name="javax/persistence/Embedded.class"/>
-		<include name="javax/persistence/PostLoad.class"/>
-		<include name="javax/persistence/PrePersist.class"/>
-		<include name="javax/persistence/Transient.class"/>
 	</patternset>
 	
 	<patternset id="objectify.client.files">
@@ -80,27 +71,8 @@
 		<include name="com/googlecode/objectify/impl/TypeUtils.class"/>
 	</patternset>
 
-	<!-- Used for building as well as for extracting sdk client files -->
-	<path id="sdk.classpath">
-		<fileset dir="${gae.sdk.dir}/lib">
-			<include name="user/appengine-api-1.0-sdk-*.jar" />
-			<include name="user/appengine-api-labs-*.jar" />
-			<include name="user/orm/geronimo-jpa_3.0_spec-*.jar" />
-			<include name="testing/appengine-testing.jar" />
-			<include name="impl/**/*.jar" />
-		</fileset>
-		<fileset dir="${gwt.sdk.dir}">
-			<include name="gwt-user.jar" />
-		</fileset>
-	</path>
-	
-	<!-- Used for building -->
-	<path id="master.classpath">		
-		<path refid="sdk.classpath" />
-		<fileset dir="${lib.dir}">
-			<include name="**/*.jar" />
-		</fileset>
-	</path>
+	<!-- We get our path from ivy -->
+	<ivy:cachepath pathid="master.classpath" />
 
 	<!-- Used for running unit tests via ant -->
 	<path id="run.classpath">
@@ -108,7 +80,7 @@
 		<path refid="master.classpath" />
 	</path>
 
-	<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>
+	<!--<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>-->
 
 	<target name="init">
 		<tstamp>
@@ -117,7 +89,6 @@
 
         <property name="build.version" value="SNAPSHOT" />
 	</target>
-
 
 	<target name="clean">
 		<delete dir="${build.dir}" />
@@ -132,7 +103,7 @@
 				deprecation="${build.deprecation}"
 				includeantruntime="true"
     	        compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
-            <compilerclasspath location="${ecj.jar}" />
+            <compilerclasspath refid="master.classpath" />
             <compilerarg line="-warn:-serial,+null,+semicolon,-raw,-javadoc -time -enableJavadoc -properties ${ecj.prefs}" />
 			<classpath refid="master.classpath" />
 		</javac>
@@ -145,7 +116,7 @@
 				deprecation="${build.deprecation}"
 				includeantruntime="true"
 	            compiler="org.eclipse.jdt.core.JDTCompilerAdapter">
-            <compilerclasspath location="${ecj.jar}" />
+            <compilerclasspath refid="master.classpath" />
             <compilerarg line="-warn:-serial,+null,+semicolon,-raw,-javadoc -time -enableJavadoc -properties ${ecj.prefs}" />
 		</javac>
 	</target>
@@ -187,7 +158,7 @@
 
 		<unjar dest="${build.extract.dir}">
 			<patternset refid="sdk.client.files"/>
-			<path refid="sdk.classpath" />
+			<path refid="master.classpath" />
 		</unjar>
 		
 		<jar destfile="${build.client-jar.file}">
@@ -229,15 +200,6 @@
 		<sync todir="${javadoc.dir}" includeEmptyDirs="true">
 			<fileset dir="${build.javadoc.dir}" />
 		</sync>
-	</target>
-	
-	<target name="test" depends="classes">
-		<taskdef resource="testngtasks" classpathref="run.classpath"/>
-
-		<testng classpathref="run.classpath" outputdir="${build.dir}/test-output">
-			<!--<jvmarg value="-Djava.util.logging.config.file=logging.properties"/>-->
-			<classfileset dir="${build.classes.dir}" includes="**/test/*.class"/>
-		</testng>
 	</target>
 	
 	<target name="dist" depends="clean, init-version, jar, build-docs, maven">

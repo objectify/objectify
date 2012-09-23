@@ -1,18 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="con" path="com.google.gwt.eclipse.core.GWT_CONTAINER"/>
-	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/joda-time-2.0.jar"/>
-	<classpathentry kind="lib" path="lib/joda-money-0.6.jar"/>
-	<classpathentry kind="lib" path="lib/build-only/testng-6.3.1.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-core-2.0.0.jar"/>
-	<classpathentry kind="lib" path="lib/jackson-databind-2.0.0.jar"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="src-test"/>
-	<classpathentry kind="var" path="GAE_SDK/lib/testing/appengine-testing.jar"/>
-	<classpathentry kind="var" path="GAE_SDK/lib/impl/appengine-api-labs.jar"/>
-	<classpathentry kind="var" path="GAE_SDK/lib/impl/appengine-api-stubs.jar"/>
-	<classpathentry kind="var" path="GAE_SDK/lib/impl/appengine-api.jar"/>
+	<classpathentry kind="con" path="org.apache.ivyde.eclipse.cpcontainer.IVYDE_CONTAINER/?project=objectify&amp;ivyXmlPath=ivy.xml&amp;confs=*"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
