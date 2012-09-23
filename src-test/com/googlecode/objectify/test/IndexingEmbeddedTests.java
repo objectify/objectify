@@ -54,7 +54,6 @@ public class IndexingEmbeddedTests extends TestBase
 	}
 
 	@Entity
-	@SuppressWarnings("unused")
 	public static class EmbeddedIndexedPojo
 	{
 		@Id Long id;
