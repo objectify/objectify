@@ -66,6 +66,7 @@
 		<include name="com/googlecode/objectify/Key.class"/>
 		<include name="com/googlecode/objectify/KeyRange.class"/>
 		<include name="com/googlecode/objectify/NotFoundException.class"/>
+		<include name="com/googlecode/objectify/Ref.class"/>
 		<include name="com/googlecode/objectify/annotation/**/*.class"/>
 		<include name="com/googlecode/objectify/condition/**/*.class"/>
 		<include name="com/googlecode/objectify/impl/TypeUtils.class"/>
@@ -199,33 +200,31 @@
 		</sync>
 	</target>
 	
-	<target name="dist" depends="clean, init-version, jar, build-docs, maven">
+	<target name="dist" depends="clean, init-version, jar, build-docs">
 		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
-        <property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
-
+		<property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
+		
 		<copy todir="${build.dist.dir}">
-	        <fileset dir=".">
-	        	<include name="license.txt"/>
-				<include name="src/**"/>
-	        	<include name="javadoc/**"/>
-	        	<include name="edit-this-to-build.properties"/>
-	        </fileset>
-        </copy>
-
+			<fileset dir=".">
+				<include name="license.txt"/>
+				<include name="javadoc/**"/>
+			<include 
+			</fileset>
+		</copy>
+		
 		<copy todir="${build.dist.dir}">
-            <fileset dir="${build.dir}">
-        		<include name="docs/**" />
-        		<include name="*.jar" />
-            </fileset>
-        </copy>
-
-        <dirname property="build.dist.dir.dirname" file="${build.dist.dir}" />
-        <basename property="build.dist.dir.basename" file="${build.dist.dir}" />
-
-        <zip zipfile="${build.dist.zip}" basedir="${build.dist.dir.dirname}">
-                <include name="${build.dist.dir.basename}/**" />
-        </zip>
-
+			<fileset dir="${build.dir}">
+				<include name="docs/**" />
+				<include name="*.jar" />
+			</fileset>
+		</copy>
+		
+		<dirname property="build.dist.dir.dirname" file="${build.dist.dir}" />
+		<basename property="build.dist.dir.basename" file="${build.dist.dir}" />
+		
+		<zip zipfile="${build.dist.zip}" basedir="${build.dist.dir.dirname}">
+			<include name="${build.dist.dir.basename}/**" />
+		</zip>
 	</target>
 
 	<target name="build-docs" description="downloads docs from wiki and processes them into the build/docs dir">

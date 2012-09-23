@@ -6,6 +6,15 @@
 	
 	<info organisation="com.googlecode.objectify" module="objectify" />
 	
+	<configurations>
+		<conf name="compile" description="everything needed for compilation" />
+		<conf name="default" description="needed for actually running, much less" />
+	</configurations>
+	
+	<publications>
+		<artifact name="objectify" type="jar" conf="default" ext="jar"/>
+	</publications>	
+	
 	<dependencies defaultconf="default">
 		<dependency org="com.google.appengine" name="appengine-api-1.0-sdk" rev="1.7.2" />
 		<dependency org="com.google.appengine" name="appengine-api-labs" rev="1.7.2" />
