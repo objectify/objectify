@@ -208,7 +208,6 @@
 			<fileset dir=".">
 				<include name="license.txt"/>
 				<include name="javadoc/**"/>
-			<include 
 			</fileset>
 		</copy>
 		
@@ -232,9 +231,9 @@
 				
 		<mkdir dir="${docs.dir}"/>
 		
-		<svn><ls repository="http://${googlecode.projectname}.googlecode.com/svn" path="wiki" filterType="file" filterContains=".wiki"/></svn>
+		<!--<svn><ls repository="http://${googlecode.projectname}.googlecode.com/svn" path="wiki" filterType="file" filterContains=".wiki"/></svn>
 		<propertyregex property="wiki.pages" input="${svn.ls}" regexp="\.wiki" replace=""/> 
-		<echo message="Getting wiki pages: ${wiki.pages}"/>
+		<echo message="Getting wiki pages: ${wiki.pages}"/>-->
 		
 		<!-- Get files from wiki-->
 		<for list="${wiki.pages}" param="wiki.page" parallel="yes">
