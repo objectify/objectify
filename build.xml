@@ -80,8 +80,6 @@
 		<path refid="master.classpath" />
 	</path>
 
-	<!--<taskdef resource="net/sf/antcontrib/antlib.xml" classpathref="master.classpath"/>-->
-
 	<target name="init">
 		<tstamp>
 			<format property="YEAR" pattern="yyyy" />
@@ -131,9 +129,8 @@
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
 			
-			<fileset dir="${build.classes.dir}">
-				<exclude name="**/test/**"/>
-			</fileset>
+			<fileset dir="${build.classes.dir}" />
+			
 			<fileset dir="${src.dir}">
 				<include name="**/*.gwt.xml"/>
 				<!-- <include name="**/Key.java"/> -->
