@@ -13,7 +13,7 @@ import com.googlecode.objectify.cmd.Saver;
  * <p>{@code Objectify} instances are obtained by calling the static method {@code ObjectifyService.ofy()}.  This method
  * will always provide the correct {@code Objectify} instance for a given transactional context.  You can run
  * transactions by calling {@code Objectify.transact()} or {@code Objectify.transactNew()}; calling {@code ObjectifyService.ofy()}
- * within {@code Work.run()} will produce the correct {@Objectify} instance associated with the correct transaction.</p>
+ * within {@code Work.run()} will produce the correct {@code Objectify} instance associated with the correct transaction.</p>
  * 
  * <p>Objectify instances are immutable but they are NOT thread-safe.  The instance contains
  * a session cache of entities that have been loaded from the instance.  You should never access an Objectify

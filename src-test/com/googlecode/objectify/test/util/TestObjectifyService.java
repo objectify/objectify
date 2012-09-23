@@ -3,8 +3,6 @@
 
 package com.googlecode.objectify.test.util;
 
-import javax.inject.Singleton;
-
 import com.googlecode.objectify.ObjectifyService;
 
 /**
@@ -12,7 +10,6 @@ import com.googlecode.objectify.ObjectifyService;
  * 
  * @author Jeff Schnitzer
  */
-@Singleton
 public class TestObjectifyService
 {
 	static {

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<ivy-module version="2.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+	
+	<info organisation="com.googlecode.objectify" module="objectify" />
+	
+	<configurations>
+		<conf name="compile" description="everything needed for compilation" />
+		<conf name="default" description="needed for actually running, much less" />
+	</configurations>
+	
+	<publications>
+		<artifact name="objectify" type="jar" conf="default" ext="jar"/>
+	</publications>	
+	
+	<dependencies defaultconf="default">
+		<dependency org="com.google.appengine" name="appengine-api-1.0-sdk" rev="1.7.2" />
+		<dependency org="com.google.appengine" name="appengine-api-labs" rev="1.7.2" />
+		<dependency org="com.google.gwt" name="gwt-user" rev="2.5.0-rc1" transitive="false" />
+		
+		<!-- for testing -->
+		<dependency org="com.google.appengine" name="appengine-testing" rev="1.7.2" />
+		<dependency org="com.google.appengine" name="appengine-api-stubs" rev="1.7.2" />
+		<dependency org="org.testng" name="testng" rev="6.8" transitive="false" />
+
+		<!-- some optional components at runtime -->		
+		<dependency org="joda-time" name="joda-time" rev="2.1" />
+		<dependency org="org.joda" name="joda-money" rev="0.6" />
+		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.0.6" />
+		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.0.6" />
+		
+		<!-- For build -->
+		<dependency org="org.eclipse.jdt.core.compiler" name="ecj" rev="3.7.2" />
+		
+	</dependencies>
+</ivy-module>
