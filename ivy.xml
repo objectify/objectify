@@ -2,17 +2,23 @@
 
 <ivy-module version="2.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd">
+	xsi:noNamespaceSchemaLocation="http://ant.apache.org/ivy/schemas/ivy.xsd"
+	xmlns:m="http://ant.apache.org/ivy/maven">
 	
 	<info organisation="com.googlecode.objectify" module="objectify" />
 	
 	<configurations>
-		<conf name="compile" description="everything needed for compilation" />
-		<conf name="default" description="needed for actually running, much less" />
+		<conf name="default" description="everything needed for compilation" />
+		<conf name="runtime" description="needed for actually running, much less" />
+		<conf name="build" description="just for building; creates the compiler classpath" />
+		<conf name="sources" description="everything needed for building sources" />
 	</configurations>
 	
 	<publications>
-		<artifact name="objectify" type="jar" conf="default" ext="jar"/>
+		<artifact type="pom" ext="pom"/>
+		<artifact type="jar" ext="jar"/>
+		<artifact type="source" ext="jar" conf="sources" m:classifier="sources"/>
+		<artifact type="javadoc" ext="jar" conf="sources" m:classifier="javadoc"/>
 	</publications>	
 	
 	<dependencies defaultconf="default">
@@ -31,8 +37,8 @@
 		<dependency org="com.fasterxml.jackson.core" name="jackson-core" rev="2.0.6" />
 		<dependency org="com.fasterxml.jackson.core" name="jackson-databind" rev="2.0.6" />
 		
-		<!-- For build -->
-		<dependency org="org.eclipse.jdt.core.compiler" name="ecj" rev="3.7.2" />
-		
+		<!-- Only for building, allows us to use ecj to compile -->
+		<dependency org="org.eclipse.jdt.core.compiler" name="ecj" rev="3.7.2" conf="build->*" />
 	</dependencies>
+	
 </ivy-module>

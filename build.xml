@@ -25,6 +25,7 @@
 	<property name="build.super.dir" location="${build.dir}/super" />
 	<property name="build.javadoc.dir" location="${build.dir}/javadoc" />
 	<property name="build.extract.dir" location="${build.dir}/extract" />
+	<property name="build.meta.dir" location="${build.dir}/META-INF" />
 
 	<property name="docs.dir" value="${build.dir}/docs" />
 	<property name="javadoc.dir" value="javadoc" />
@@ -33,7 +34,6 @@
 
 	<property name="googlecode.projectname" value="objectify-appengine"/>
 
-	<property name="lib.dir" location="lib" />
 	<property name="src.dir" location="src" />
 	<property name="super.src.dir" location="super" />
 	
@@ -86,7 +86,9 @@
 			<format property="YEAR" pattern="yyyy" />
 		</tstamp>
 
-        <property name="build.version" value="SNAPSHOT" />
+        <property name="revision" value="SNAPSHOT" />
+		
+        <property name="artifactname" value="${name}-${revision}" />
 	</target>
 
 	<target name="clean">
@@ -119,16 +121,29 @@
             <compilerarg line="-warn:-serial,+null,+semicolon,-raw,-javadoc -time -enableJavadoc -properties ${ecj.prefs}" />
 		</javac>
 	</target>
+	
+	<target name="pom" depends="classes">
+		<mkdir dir="${build.meta.dir}" />
+		<ivy:makepom ivyfile="${basedir}/ivy.xml" pomfile="${build.meta.dir}/maven/com.googlecode.objectify/objectify/pom.xml">
+			<mapping conf="default" scope="compile"/>
+			<mapping conf="runtime" scope="runtime"/>
+		</ivy:makepom>
+		<ivy:makepom ivyfile="${basedir}/ivy.xml" pomfile="${build.dir}/${name}-${revision}.pom">
+			<mapping conf="default" scope="compile"/>
+			<mapping conf="runtime" scope="runtime"/>
+		</ivy:makepom>
+	</target>
 
-	<target name="jar" depends="classes">
-		<property name="build.jar.file" location="${build.dir}/${name}-${build.version}.jar" />
-		<property name="build.sources.file" location="${build.dir}/${name}-${build.version}-src.zip" />
+	<target name="jar" depends="pom">
+		<property name="build.jar.file" location="${build.dir}/${artifactname}.jar" />
 
 		<jar destfile="${build.jar.file}">
 			<manifest>
-				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Specification-Version" value="${revision}" />
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
+			
+			<metainf dir="${build.meta.dir}" />
 			
 			<fileset dir="${build.classes.dir}" />
 			
@@ -145,14 +160,42 @@
 				<include name="**/*_CustomFieldSerializer.java"/>
 			</zipfileset>
 		</jar>
+	</target>
+
+	<target name="sources" depends="init">
+		<property name="build.sources.file" location="${build.dir}/${artifactname}-sources.jar" />
 
 		<jar zipfile="${build.sources.file}">
 			<fileset dir="${src.dir}" includes="**/*.java"/>
 		</jar>
 	</target>
 
+	<target name="javadoc" depends="classes">
+		<property name="build.javadoc.file" location="${build.dir}/${artifactname}-javadoc.jar" />
+		
+		<javadoc
+			destdir="${build.javadoc.dir}"
+			packagenames="*"
+			classpathref="run.classpath"
+			author="true"
+			version="true"
+			Windowtitle="Objectify App Engine Javadoc">
+			
+			<fileset dir="${src.dir}">
+				<include name="**/com/googlecode/objectify/**/*.java" />
+			</fileset>
+			
+			<doctitle><![CDATA[<h1>Objectify App Engine</h1>]]></doctitle>
+			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer and a gang of pirates. All Rights Reserved. Build version: ${revision}</i>]]></bottom>
+		</javadoc>
+
+		<jar zipfile="${build.javadoc.file}">
+			<fileset dir="${build.javadoc.dir}" />
+		</jar>
+	</target>
+	
 	<target name="client-jar" depends="classes">
-		<property name="build.client-jar.file" location="${build.dir}/${name}-client-${build.version}.jar" />
+		<property name="build.client-jar.file" location="${build.dir}/${name}-client-${revision}.jar" />
 
 		<unjar dest="${build.extract.dir}">
 			<patternset refid="sdk.client.files"/>
@@ -161,7 +204,7 @@
 		
 		<jar destfile="${build.client-jar.file}">
 			<manifest>
-				<attribute name="Specification-Version" value="${build.version}" />
+				<attribute name="Specification-Version" value="${revision}" />
 				<attribute name="Implementation-Version" value="${TODAY}" />
 			</manifest>
 			
@@ -172,37 +215,28 @@
 		</jar>
 	</target>
 
+	<target name="publish" depends="jar, sources, javadoc"> 
+		<ivy:publish
+			artifactspattern="${build.dir}/[artifact]-[revision](-[classifier]).[ext]" 
+			resolver="local"
+			pubrevision="${revision}" 
+			status="release"
+			overwrite="true"/>
+	</target>
+	
 	<target name="init-version">
-		<input addproperty="build.version" message="Version number?" />
+		<input addproperty="revision" message="Version number?" />
 	</target>
 
-	<target name="javadoc" depends="init-version, classes">
-		<javadoc
-			destdir="${build.javadoc.dir}"
-			packagenames="*"
-			classpathref="run.classpath"
-			author="true"
-			version="true"
-			Windowtitle="Objectify-AppEngine Javadoc"
-		>
-			<fileset dir="${src.dir}">
-				<include name="**/com/googlecode/objectify/**/*.java" />
-				<exclude name="**/test/**" />
-				<exclude name="**/*.xml" />
-			</fileset>
-			
-			<doctitle><![CDATA[<h1>Objectify-AppEngine</h1>]]></doctitle>
-			<bottom><![CDATA[<i>Copyright &#169; ${YEAR} Jeff Schnitzer and a gang of pirates. All Rights Reserved. Build version: ${build.version}</i>]]></bottom>
-		</javadoc>
-
+	<target name="syncjavadoc" depends="init-version, javadoc">
 		<sync todir="${javadoc.dir}" includeEmptyDirs="true">
 			<fileset dir="${build.javadoc.dir}" />
 		</sync>
 	</target>
 	
 	<target name="dist" depends="clean, init-version, jar, build-docs">
-		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${build.version}"/>
-		<property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${build.version}.zip"/>
+		<property name="build.dist.dir" location="${build.dir}/${ant.project.name}-${revision}"/>
+		<property name="build.dist.zip" location="${build.dir}/${ant.project.name}-${revision}.zip"/>
 		
 		<copy todir="${build.dist.dir}">
 			<fileset dir=".">
@@ -255,51 +289,16 @@
 		
 	</target>
 
-	<target name="init-maven-repo" unless="maven.repo.dir">
-		<if><available file="../maven" type="dir"/>
-			<then>
-				<property name="maven.repo.dir" location="../maven"/>
-			</then>
-			<else>
-				<property name="maven.repo.dir" location="target/maven"/>
-				<svn failonerror="true">
-					<checkout
-							url="https://objectify-appengine.googlecode.com/svn/maven"
-							path="${maven.repo.dir}"
-							depth="immediates"
-							/>
-					<!-- update sparsely until we get to our directory -->
-					<update path="${maven.repo.dir}/com/googlecode" depth="immediates"/>
-					<update path="${maven.repo.dir}/com/googlecode/objectify" depth="immediates"/>
-				</svn>
-			</else>
-		</if>
-	</target>
-
 	<!--
 	Using either "ant dist" or "ant maven" will deploy the maven artifacts to maven.repo.dir.
 	If you don't set maven.repo.dir then ../maven is used if it exists, otherwise ./target/maven is used
 	-->
-	<target name="maven" depends="init-maven-repo, init-version, jar"
-	        description="Checks out the maven repository, and deployes the jar artifact into it (but does not commit)"
-	        unless="skip.maven">
+	<target name="mavencentral" depends="dist"
+	        description="Uploads dist jar to maven central">
 
-		<typedef resource="org/apache/maven/artifact/ant/antlib.xml" uri="antlib:org.apache.maven.artifact.ant" classpathref="master.classpath" />
-
-		<copy file="pom-template.xml" tofile="${build.dir}/pom.xml">
-			<filterset>
-				<filter token="BUILD.VERSION" value="${build.version}"/>
-			</filterset>
-		</copy>
-
-		<artifact:pom file="${build.dir}/pom.xml" id="objectify-pom"/>
-		<artifact:deploy file="${build.jar.file}">
-			<pom refid="objectify-pom"/>
-			<remoterepository url="file://${maven.repo.dir}"/>
-			<attach file="${build.sources.file}" classifier="sources"/>
-		</artifact:deploy>
-
-		<echo>NB: please commit maven repository in ${maven.repo.dir}</echo>
+		<ivy:publish
+			publishivy="false"
+			artifactspattern="${build.javarepository}/[organisation]/[module]/[artifact]/[revision]/[artifact]-[revision](-[classifier]).[ext]"
+			resolver="nexus"/>
 	</target>
-
 </project>
