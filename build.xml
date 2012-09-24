@@ -123,15 +123,15 @@
 	</target>
 	
 	<target name="pom" depends="classes">
-		<mkdir dir="${build.meta.dir}" />
-		<ivy:makepom ivyfile="${basedir}/ivy.xml" pomfile="${build.meta.dir}/maven/com.googlecode.objectify/objectify/pom.xml">
+		<property name="build.pom.file" location="${build.dir}/${artifactname}.pom" />
+			
+		<!-- the ivy.xml file needs to be the built one -->
+		<ivy:makepom ivyfile="${basedir}/ivy.xml" pomfile="${build.pom.file}">
 			<mapping conf="default" scope="compile"/>
 			<mapping conf="runtime" scope="runtime"/>
 		</ivy:makepom>
-		<ivy:makepom ivyfile="${basedir}/ivy.xml" pomfile="${build.dir}/${name}-${revision}.pom">
-			<mapping conf="default" scope="compile"/>
-			<mapping conf="runtime" scope="runtime"/>
-		</ivy:makepom>
+		
+		<copy file="${build.pom.file}" todir="${build.meta.dir}/maven/com.googlecode.objectify/objectify/pom.xml" />
 	</target>
 
 	<target name="jar" depends="pom">
@@ -213,6 +213,12 @@
 			</fileset>
 			<fileset dir="${build.extract.dir}"/>
 		</jar>
+	</target>
+	
+	<target name="signjars" depends="jar, sources, javadoc">
+		<signjar jar="${build.jar.file}" alias="objectify" keystore="../objectify.keystore" storepass="notsecret"/>
+		<signjar jar="${build.sources.file}" alias="objectify" keystore="../objectify.keystore" storepass="notsecret"/>
+		<signjar jar="${build.javadoc.file}" alias="objectify" keystore="../objectify.keystore" storepass="notsecret"/>
 	</target>
 
 	<target name="publish" depends="jar, sources, javadoc"> 
