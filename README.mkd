@@ -1,8 +1,18 @@
-This is the Objectify opensource project.  The official project documentation and repository are here:
+This is the Objectify opensource project.  The official project documentation
+and repository are here:
 
 https://objectify-appengine.googlecode.com/
 
-An officially-maintained github mirror of the repository is available here:
+An officially-maintained github mirror of the repository (to which you can
+submit pull requests) is available here:
 
 https://github.com/stickfigure/objectify
 
+BUILDING:
+
+This project builds with Gradle.  Install Gradle and then run "gradle build".
+Don't be confused by the vestigial ant/ivy files which will someday be removed.
+
+DEVELOPMENT:
+
+Install the Gradle IDE in Eclipse. 

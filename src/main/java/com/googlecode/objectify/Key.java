@@ -66,33 +66,28 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	private Key() {}
 
 	/** Wrap a raw Key */
-	private Key(com.google.appengine.api.datastore.Key raw)
-	{
+	private Key(com.google.appengine.api.datastore.Key raw) {
 		this.raw = raw;
 	}
 
 	/** Create a key with a long id */
-	private Key(Class<? extends T> kindClass, long id)
-	{
+	private Key(Class<? extends T> kindClass, long id) {
 		this(null, kindClass, id);
 	}
 	
 	/** Create a key with a String name */
-	private Key(Class<? extends T> kindClass, String name)
-	{
+	private Key(Class<? extends T> kindClass, String name) {
 		this(null, kindClass, name);
 	}
 	
 	/** Create a key with a parent and a long id */
-	private Key(Key<?> parent, Class<? extends T> kindClass, long id)
-	{
+	private Key(Key<?> parent, Class<? extends T> kindClass, long id) {
 		this.raw = KeyFactory.createKey(key(parent), getKind(kindClass), id);
 		this.parent = parent;
 	}
 	
 	/** Create a key with a parent and a String name */
-	private Key(Key<?> parent, Class<? extends T> kindClass, String name)
-	{
+	private Key(Key<?> parent, Class<? extends T> kindClass, String name) {
 		this.raw = KeyFactory.createKey(key(parent), getKind(kindClass), name);
 		this.parent = parent;
 	}
@@ -101,40 +96,35 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Reconstitute a Key from a web safe string.  This can be generated with getString()
 	 * or KeyFactory.strongToKey().
 	 */
-	private Key(String webSafe)
-	{
+	private Key(String webSafe) {
 		this(KeyFactory.stringToKey(webSafe));
 	}
 	
 	/**
 	 * @return the raw datastore version of this key
 	 */
-	public com.google.appengine.api.datastore.Key getRaw()
-	{
+	public com.google.appengine.api.datastore.Key getRaw() {
 		return this.raw;
 	}
 	
 	/**
 	 * @return the id associated with this key, or 0 if this key has a name.
 	 */
-	public long getId()
-	{
+	public long getId() {
 		return this.raw.getId();
 	}
 	
 	/**
 	 * @return the name associated with this key, or null if this key has an id
 	 */
-	public String getName()
-	{
+	public String getName() {
 		return this.raw.getName();
 	}
 	
 	/**
 	 * @return the low-level datastore kind associated with this Key
 	 */
-	public String getKind()
-	{
+	public String getKind() {
 		return this.raw.getKind();
 	}
 	
@@ -143,8 +133,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 *  the parent could potentially have any type. 
 	 */
 	@SuppressWarnings("unchecked")
-	public <V> Key<V> getParent()
-	{
+	public <V> Key<V> getParent() {
 		if (this.parent == null && this.raw.getParent() != null)
 			this.parent = new Key<V>(this.raw.getParent());
 		
@@ -158,8 +147,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Note that the root key could potentially have any type. 
 	 */
 	@SuppressWarnings("unchecked")
-	public <V> Key<V> getRoot()
-	{
+	public <V> Key<V> getRoot() {
 		if (this.getParent() == null)
 			return (Key<V>)this;
 		else
@@ -170,15 +158,13 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * <p>Compares based on comparison of the raw key</p>
 	 */
 	@Override
-	public int compareTo(Key<?> other)
-	{
+	public int compareTo(Key<?> other) {
 		return this.raw.compareTo(other.raw);
 	}
 
 	/** */
 	@Override
-	public boolean equals(Object obj)
-	{
+	public boolean equals(Object obj) {
 		if (obj == null)
 			return false;
 		
@@ -200,15 +186,13 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** */
 	@Override
-	public int hashCode()
-	{
+	public int hashCode() {
 		return this.raw.hashCode();
 	}
 
 	/** Creates a human-readable version of this key */
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		return "Key<?>(" + this.raw + ")";
 	}
 	
@@ -216,16 +200,14 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
 	 * constructor that takes a websafe string.
 	 */
-	public String getString()
-	{
+	public String getString() {
 		return KeyFactory.keyToString(this.raw);
 	}
 	
 	/**
 	 * Easy null-safe conversion of the raw key.
 	 */
-	public static <V> Key<V> key(com.google.appengine.api.datastore.Key raw)
-	{
+	public static <V> Key<V> key(com.google.appengine.api.datastore.Key raw) {
 		if (raw == null)
 			return null;
 		else
@@ -235,8 +217,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	/**
 	 * Easy null-safe conversion of the typed key.
 	 */
-	public static com.google.appengine.api.datastore.Key key(Key<?> typed)
-	{
+	public static com.google.appengine.api.datastore.Key key(Key<?> typed) {
 		if (typed == null)
 			return null;
 		else
@@ -249,8 +230,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 *
 	 * @throws IllegalArgumentException if a kind cannot be determined (ie no @Entity in hierarchy).
 	 */
-	public static String getKind(Class<?> clazz)
-	{
+	public static String getKind(Class<?> clazz) {
 		String kind = getKindRecursive(clazz);
 		if (kind == null)
 			throw new IllegalArgumentException("Class hierarchy for " + clazz + " has no @Entity annotation");
@@ -263,8 +243,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 *
 	 * @return null if kind cannot be found
 	 */
-	private static String getKindRecursive(Class<?> clazz)
-	{
+	private static String getKindRecursive(Class<?> clazz) {
 		if (clazz == Object.class)
 			return null;
 		
@@ -278,8 +257,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	/**
 	 * Get the kind from the class if the class has an @Entity annotation, otherwise return null.
 	 */
-	private static String getKindHere(Class<?> clazz)
-	{
+	private static String getKindHere(Class<?> clazz) {
 		Entity ourAnn = clazz.getAnnotation(Entity.class);
 		if (ourAnn != null)
 			if (ourAnn.name() != null && ourAnn.name().length() != 0)
