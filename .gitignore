@@ -1,7 +1,7 @@
-target/
-test-output/
-WEB-INF/
-.sass-cache/
+build
+target
+test-output
 .settings
 .svn
 .gwt
+.gradle
