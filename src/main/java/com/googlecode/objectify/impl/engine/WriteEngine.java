@@ -54,7 +54,7 @@ public class WriteEngine
 	/**
 	 * The fundamental put() operation.
 	 */
-	public <K, E extends K> Result<Map<Key<K>, E>> save(final Iterable<? extends E> entities) {
+	public <E> Result<Map<Key<E>, E>> save(final Iterable<? extends E> entities) {
 		
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
@@ -73,10 +73,10 @@ public class WriteEngine
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxnRaw(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
-		Result<Map<Key<K>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<K>, E>>(adapted) {
+		Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<E>, E>>(adapted) {
 			@Override
-			protected Map<Key<K>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
-				Map<Key<K>, E> result = new LinkedHashMap<Key<K>, E>(base.size() * 2);
+			protected Map<Key<E>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
+				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>(base.size() * 2);
 
 				// One pass through the translated pojos to patch up any generated ids in the original objects
 				// Iterator order should be exactly the same for keys and values
@@ -90,7 +90,7 @@ public class WriteEngine
 							metadata.setLongId(obj, k.getId());
 					}
 					
-					Key<K> key = Key.create(k);
+					Key<E> key = Key.create(k);
 					result.put(key, obj);
 				}
 

@@ -27,7 +27,7 @@ import com.googlecode.objectify.cmd.Saver;
 public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends ObjectifyFactory> implements Objectify, Cloneable
 {
 	/** */
-	private Objectify base;
+	Objectify base;
 	
 	/** Wraps the base objectify */
 	public ObjectifyWrapper(Objectify ofy) {

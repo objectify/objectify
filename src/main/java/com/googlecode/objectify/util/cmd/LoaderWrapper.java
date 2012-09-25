@@ -18,7 +18,7 @@ import com.googlecode.objectify.cmd.Loader;
 public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrapper<H, Object> implements Loader
 {
 	/** */
-	private Loader base;
+	Loader base;
 	
 	/** */
 	public LoaderWrapper(Loader base) {

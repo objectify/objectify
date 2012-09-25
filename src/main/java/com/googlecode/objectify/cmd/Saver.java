@@ -24,7 +24,7 @@ public interface Saver
 	 * @param entity must be a registered entity type
 	 * @return an asynchronous result.  To force a synchronous save, call Result.now().
 	 */
-	<K, E extends K> Result<Key<K>> entity(E entity);
+	<E> Result<Key<E>> entity(E entity);
 	
 	/**
 	 * <p>Asynchronously save a batch of entities in the datastore.</p>
@@ -37,10 +37,10 @@ public interface Saver
 	 * @param entities must be registered entity types
 	 * @return an asynchronous result.  To force a synchronous save, call Result.now().
 	 */
-	<K, E extends K> Result<Map<Key<K>, E>> entities(Iterable<E> entities);
+	<E> Result<Map<Key<E>, E>> entities(Iterable<E> entities);
 	
 	/**
 	 * A convenience method for entities(Iterable)
 	 */
-	<K, E extends K> Result<Map<Key<K>, E>> entities(E... entities);
+	<E> Result<Map<Key<E>, E>> entities(E... entities);
 }

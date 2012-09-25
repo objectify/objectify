@@ -1,0 +1,32 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.6
+targetCompatibility = 1.6
+version = 4.0
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'com.google.appengine:appengine-api-1.0-sdk:1.7.2',
+		'com.google.appengine:appengine-api-labs:1.7.2',
+		'com.google.gwt:gwt-user:2.5.0-rc1',	// make transitive=false
+		
+		// some optional components at runtime
+		'joda-time:joda-time:2.1',
+		'org.joda:joda-money:0.6',
+		'com.fasterxml.jackson.core:jackson-core:2.0.6',
+		'com.fasterxml.jackson.core:jackson-databind:2.0.6'
+		
+		// Only for building, allows us to use ecj to compile
+		//'org.eclipse.jdt.core.compiler:ecj:3.7.2'	// conf="build->*" />
+	
+	testCompile 'org.testng:testng:6.8',	// transitive="false"
+		'com.google.appengine:appengine-testing:1.7.2',
+		'com.google.appengine:appengine-api-stubs:1.7.2'
+}
+
+test {
+	useTestNG()
+}

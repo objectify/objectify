@@ -29,12 +29,12 @@ class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#entity(java.lang.Object)
 	 */
 	@Override
-	public <K, E extends K> Result<Key<K>> entity(E entity) {
-		Result<Map<Key<K>, E>> base = this.<K, E>entities(Collections.singleton(entity));
+	public <E> Result<Key<E>> entity(E entity) {
+		Result<Map<Key<E>, E>> base = this.<E>entities(Collections.singleton(entity));
 		
-		return new ResultWrapper<Map<Key<K>, E>, Key<K>>(base) {
+		return new ResultWrapper<Map<Key<E>, E>, Key<E>>(base) {
 			@Override
-			protected Key<K> wrap(Map<Key<K>, E> base) {
+			protected Key<E> wrap(Map<Key<E>, E> base) {
 				return base.keySet().iterator().next();
 			}
 		}; 
@@ -44,16 +44,16 @@ class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#entities(E[])
 	 */
 	@Override
-	public <K, E extends K> Result<Map<Key<K>, E>> entities(E... entities) {
-		return this.<K, E>entities(Arrays.asList(entities));
+	public <E> Result<Map<Key<E>, E>> entities(E... entities) {
+		return this.<E>entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Saver#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <K, E extends K> Result<Map<Key<K>, E>> entities(final Iterable<E> entities) {
-		return ofy.createWriteEngine().<K, E>save(entities);
+	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
+		return ofy.createWriteEngine().<E>save(entities);
 	}
 
 }

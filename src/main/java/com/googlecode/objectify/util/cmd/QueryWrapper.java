@@ -11,7 +11,7 @@ import com.googlecode.objectify.cmd.Query;
 public class QueryWrapper<H extends QueryWrapper<H, T>, T> extends SimpleQueryWrapper<H, T> implements Query<T>
 {
 	/** */
-	private Query<T> base;
+	Query<T> base;
 	
 	/** */
 	public QueryWrapper(Query<T> base) 

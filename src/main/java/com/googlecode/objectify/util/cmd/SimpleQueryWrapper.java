@@ -18,7 +18,7 @@ import com.googlecode.objectify.cmd.SimpleQuery;
 public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implements SimpleQuery<T>, Cloneable
 {
 	/** */
-	private SimpleQuery<T> base;
+	SimpleQuery<T> base;
 	
 	/** */
 	public SimpleQueryWrapper(SimpleQuery<T> base) 

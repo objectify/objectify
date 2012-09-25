@@ -17,17 +17,17 @@ public class SaverWrapper implements Saver {
 	}
 
 	@Override
-	public <K, E extends K> Result<Key<K>> entity(E entity) {
+	public <E> Result<Key<E>> entity(E entity) {
 		return this.base.entity(entity);
 	}
 
 	@Override
-	public <K, E extends K> Result<Map<Key<K>, E>> entities(Iterable<E> entities) {
+	public <E> Result<Map<Key<E>, E>> entities(Iterable<E> entities) {
 		return this.base.entities(entities);
 	}
 
 	@Override
-	public <K, E extends K> Result<Map<Key<K>, E>> entities(E... entities) {
+	public <E> Result<Map<Key<E>, E>> entities(E... entities) {
 		return this.base.entities(entities);
 	}
 }
