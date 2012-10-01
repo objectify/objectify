@@ -24,19 +24,6 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<T>(raw);
 	}
 	
-	/** Key.create(webSafeString) is easier to type than new Key<Blah>(webSafeString) */
-	public static <T> Key<T> create(String webSafeString) {
-		if (webSafeString == null)
-			throw new NullPointerException("Cannot create a Key<?> from a null String");
-		
-	return new Key<T>(webSafeString);
-	}
-	
-	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
-	public static <T> Key<T> valueOf(String webSafeString) {
-		return Key.create(webSafeString);
-	}
-	
 	/** */
 	protected com.google.appengine.api.datastore.Key raw;
 	
