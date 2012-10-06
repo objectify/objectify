@@ -36,17 +36,17 @@ import com.googlecode.objectify.impl.translate.Translator;
 /**
  * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
  * methods that use transactions to avoid the confusion of implicit transactions.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ObjectifyImpl implements Objectify, Cloneable
 {
 	/** */
 	private static final Logger log = Logger.getLogger(ObjectifyImpl.class.getName());
-	
+
 	/** */
 	protected Objectify wrapper = this;
-	
+
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
 
@@ -54,7 +54,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected boolean cache = true;
 	protected Consistency consistency = Consistency.STRONG;
 	protected Double deadline;
-	
+
 	/** */
 	protected Session session = new Session();
 
@@ -63,7 +63,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public ObjectifyImpl(ObjectifyFactory fact) {
 		this.factory = fact;
 	}
-	
+
 	/** Copy constructor */
 	ObjectifyImpl(ObjectifyImpl other) {
 		this.factory = other.factory;
@@ -72,7 +72,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		this.deadline = other.deadline;
 		this.session = other.session;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getFactory()
 	 */
@@ -87,7 +87,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		// This version doesn't have a transaction
 		return null;
 	}
-	
+
 	/** Get the raw transaction we received from the AsyncDatastoreService (or CachingAsyncDatastoreService, if applicable) */
 	public Transaction getTxnRaw() {
 		if (getTxn() == null)
@@ -95,7 +95,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		else
 			return getTxn().getRaw();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find()
 	 */
@@ -127,7 +127,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public Objectify consistency(Consistency value) {
 		if (value == null)
 			throw new IllegalArgumentException("Consistency cannot be null");
-		
+
 		ObjectifyImpl clone = this.clone();
 		clone.consistency = value;
 		return clone;
@@ -152,7 +152,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		clone.cache = value;
 		return clone;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transaction()
 	 */
@@ -160,7 +160,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public Objectify transaction() {
 		return new ObjectifyImplTxn(this);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transactionless()
 	 */
@@ -190,12 +190,12 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		switch (txnType) {
 			case MANDATORY:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
-			
+
 			case NOT_SUPPORTED:
 			case NEVER:
 			case SUPPORTS:
 				return work.run();
-				 
+
 			case REQUIRED:
 			case REQUIRES_NEW:
 				return transactNew(work);
@@ -203,7 +203,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
 		}
-		
+
 	}
 
 	/* (non-Javadoc)
@@ -234,7 +234,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 				if (limitTries-- > 0) {
 					if (log.isLoggable(Level.WARNING))
 						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
-					
+
 					if (log.isLoggable(Level.FINEST))
 						log.log(Level.FINEST, "Details of optimistic concurrency failure", ex);
 				} else {
@@ -251,7 +251,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		Objectify txnOfy = wrapper.transaction();
 		try {
 			ObjectifyService.push(txnOfy);
-			
+
 			R result = work.run();
 			txnOfy.getTxn().commit();
 			return result;
@@ -259,7 +259,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		finally
 		{
 			ObjectifyService.pop();
-			
+
 			if (txnOfy.getTxn().isActive()) {
 				try {
 					txnOfy.getTxn().rollback();
@@ -285,26 +285,26 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public void setWrapper(Objectify ofy) {
 		this.wrapper = ofy;
 	}
-	
+
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */
 	protected DatastoreServiceConfig createDatastoreServiceConfig() {
 		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(consistency));
-		
+
 		if (deadline != null)
 			cfg.deadline(deadline);
 
 		return cfg;
 	}
-	
+
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */
 	public AsyncDatastoreService createAsyncDatastoreService() {
 		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), cache);
 	}
-	
+
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
@@ -317,11 +317,11 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * <p>Translates the value of a filter clause into something the datastore understands.  Key<?> goes to native Key,
 	 * entities go to native Key, java.sql.Date goes to java.util.Date, etc.  It uses the same translation system
 	 * that is used for standard entity fields, but does no checking to see if the value is appropriate for the field.</p>
-	 * 
+	 *
 	 * <p>Unrecognized types are returned as-is.</p>
-	 * 
+	 *
 	 * <p>A future version of this method might check for type validity.</p>
-	 * 
+	 *
 	 * @return whatever can be put into a filter clause.
 	 */
 	public Object makeFilterable(Object value) {
@@ -345,31 +345,33 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			List<Object> asList = new ArrayList<Object>(len);
 			for (int i=0; i<len; i++)
 				asList.add(Array.get(value, i));
-			
+
 			value = asList;
 		}
-		
+
 		if (value instanceof Iterable) {
 			List<Object> result = new ArrayList<Object>(50);	// hard limit is 30, but wth
 			for (Object obj: (Iterable<?>)value)
 				result.add(makeFilterable(obj));
-			
+
 			return result;
 		} else {
+			// TODO: special case entity pojos that become keys
+
 			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));
 			Node node = translator.save(value, Path.root(), false, new SaveContext(this));
 			return getFilterableValue(node, value);
 		}
 	}
-	
+
 	/** Extracts a filterable value from the node, or throws an illegalstate exception */
 	private Object getFilterableValue(Node node, Object originalValue) {
 		if (!node.hasPropertyValue())
 			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
-		
+
 		return node.getPropertyValue();
 	}
-	
+
 	/**
 	 * Converts a datastore entity into a typed pojo object
 	 * @return an assembled pojo, or the Entity itself if the kind is not registered, or null if the input value was null
@@ -378,7 +380,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public <T> T load(Entity ent, LoadContext ctx) {
 		if (ent == null)
 			return null;
-		
+
 		EntityMetadata<T> meta = getFactory().getMetadata(ent.getKind());
 		if (meta == null)
 			return (T)ent;
@@ -400,7 +402,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			return meta.save(pojo, this);
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
 	 */
@@ -416,12 +418,12 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	public Objectify getWrapper() {
 		return this.wrapper;
 	}
-	
+
 	/** */
 	public Session getSession() {
 		return this.session;
 	}
-	
+
 	/** @return true if cache is enabled */
 	public boolean getCache() {
 		return cache;

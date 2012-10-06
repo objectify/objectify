@@ -9,6 +9,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
@@ -37,8 +38,8 @@ public class LoadAlsoLoadTests extends TestBase
 		@Id Long id;
 		String bar;
 
-		public void cruft(@Load @AlsoLoad("foo") Trivial triv) {
-			this.bar = triv.getSomeString();
+		public void cruft(@Load @AlsoLoad("foo") Ref<Trivial> triv) {
+			this.bar = triv.get().getSomeString();
 		}
 	}
 

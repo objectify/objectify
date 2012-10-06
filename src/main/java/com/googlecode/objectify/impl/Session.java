@@ -6,51 +6,53 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Result;
 
 /**
  * The basic session cache.  A lot easier than passing the generic arguments around!
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class Session
 {
 	/** */
 	private static final Logger log = Logger.getLogger(Session.class.getName());
-	
+
 	/** */
-	private Map<Key<?>, SessionValue> map = new HashMap<Key<?>, SessionValue>();
-	
+	private Map<Key<?>, Result<?>> map = new HashMap<Key<?>, Result<?>>();
+
 	/**
 	 * Add/overwrite a SE.
 	 */
-	public void add(SessionValue se) {
+	public void add(Key<?> key, Result<?> result) {
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Adding to session: " + se.getKey() + " -> " + se.getResult());
-		
-		map.put(se.getKey(), se);
+			log.finest("Adding to session: " + key + " -> " + result);
+
+		map.put(key, result);
 	}
-	
+
 	/** Add all entries in the other session to this one */
 	public void addAll(Session other) {
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Adding all values to session: " + other.map.keySet());
-		
+
 		map.putAll(other.map);
 	}
-	
+
 	/** */
-	public SessionValue get(Key<?> key) {
-		return map.get(key);
+	@SuppressWarnings("unchecked")
+	public <T> Result<T> get(Key<T> key) {
+		return (Result<T>)map.get(key);
 	}
-	
+
 	/** */
 	public void clear() {
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Clearing session");
-		
+
 		map.clear();
 	}
-	
+
 	/** Convenient for debugging */
 	@Override
 	public String toString() {

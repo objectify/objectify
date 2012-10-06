@@ -8,12 +8,9 @@ import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Loader;
-import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.engine.LoadEngine;
-import com.googlecode.objectify.util.ResultWrapper;
 
 /**
  * The context of a load or save operation to a single entity.
@@ -95,52 +92,6 @@ public class LoadContext
 		}
 
 		return ref;
-	}
-
-	/**
-	 * Create an entity reference object for the key.  If not loaded, the reference will be a simple partial (pojo
-	 * with only key fields populated).  If loaded, the return value will be a Result<?> that produces a loaded instance.
-	 *
-	 * @param property is the property which will hold the reference
-	 * @param clazz is the type of the reference to generate, or base class of the result (in either case it is the field type)
-	 * @return either a partial entity or a Result<Object> which provides a loaded entity
-	 */
-	public Object makeReference(Property property, final Class<?> clazz, final com.google.appengine.api.datastore.Key key) {
-		if (batch.shouldLoad(property)) {
-			// Back into the batch, magically enqueueing a pending!
-			Result<Object> base = batch.getResult(Key.create(key));
-
-			// Watch out for a special case - if the target entity doesn't exist, we need to produce
-			// a partial entity.  This is a weird and ambiguous situation but there's nothing we
-			// can do about it.  Users will simply have to figure out how to recognize partial keys.
-			return new ResultWrapper<Object, Object>(base) {
-				@Override
-				protected Object wrap(Object orig) {
-					if (orig == null) {
-						log.warning("Foreign key points to nonexistant entity; creating empty entity for " + key);
-						return makePartial(clazz, key);
-					} else {
-						return orig;
-					}
-				}
-			};
-		} else {
-			//return makePartial(clazz, key);
-			throw new UnsupportedOperationException("This should be impossible; concrete entity references are required to have @Load annotations");
-		}
-	}
-
-	/**
-	 * Create a partial entity as a reference
-	 */
-	private Object makePartial(Class<?> clazz, com.google.appengine.api.datastore.Key key) {
-		Object instance = loader.getObjectify().getFactory().construct(clazz);
-
-		@SuppressWarnings("unchecked")
-		EntityMetadata<Object> meta = (EntityMetadata<Object>)loader.getObjectify().getFactory().getMetadata(clazz);
-		meta.getKeyMetadata().setKey(instance, key, this);
-
-		return instance;
 	}
 
 	/**

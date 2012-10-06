@@ -7,6 +7,7 @@ import java.util.Map;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -137,10 +138,10 @@ public class MapifyTests extends TestBase
 	}
 
 	/** */
-	public static class TrivialMapper implements Mapper<Key<Trivial>, Trivial> {
+	public static class TrivialMapper implements Mapper<Key<Trivial>, Ref<Trivial>> {
 		@Override
-		public Key<Trivial> getKey(Trivial value) {
-			return Key.create(Trivial.class, value.getId());
+		public Key<Trivial> getKey(Ref<Trivial> value) {
+			return value.key();
 		}
 	}
 
@@ -150,7 +151,7 @@ public class MapifyTests extends TestBase
 
 		@Mapify(TrivialMapper.class)
 		@Load
-		Map<Key<Trivial>, Trivial> trivials = new HashMap<Key<Trivial>, Trivial>();
+		Map<Key<Trivial>, Ref<Trivial>> trivials = new HashMap<Key<Trivial>, Ref<Trivial>>();
 	}
 
 	/** Tests using mapify on entities */
@@ -164,10 +165,10 @@ public class MapifyTests extends TestBase
 		Key<Trivial> trivKey = ofy.save().entity(triv).now();
 
 		HasMapifyTrivial hasMap = new HasMapifyTrivial();
-		hasMap.trivials.put(trivKey, triv);
+		hasMap.trivials.put(trivKey, Ref.create(triv));
 
 		HasMapifyTrivial fetched = this.putClearGet(hasMap);
 
-		assert hasMap.trivials.get(trivKey).getSomeString().equals(fetched.trivials.get(trivKey).getSomeString());
+		assert hasMap.trivials.get(trivKey).get().getSomeString().equals(fetched.trivials.get(trivKey).get().getSomeString());
 	}
 }

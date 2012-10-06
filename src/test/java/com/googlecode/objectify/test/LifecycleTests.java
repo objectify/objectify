@@ -3,6 +3,7 @@ package com.googlecode.objectify.test;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
@@ -34,7 +35,7 @@ public class LifecycleTests extends TestBase
 		@OnSave void onSave(Objectify ofy) { this.onSavedWithObjectify = true; }
 		@OnLoad void onLoad() { this.onLoaded = true; }
 		@OnLoad void onLoad(Objectify ofy) { this.onLoadedWithObjectify = true; }
-		
+
 		@OnLoad void onLoad(LoadContext ctx) {
 			this.onLoadedWithLoadContext = true;
 			// Check to make sure that the correct wrapper made it through
@@ -52,10 +53,10 @@ public class LifecycleTests extends TestBase
 	{
 		this.fact.register(HasLifecycle.class);
 		this.fact.register(HasInheritedLifecycle.class);
-		
+
 		HasLifecycle life1 = new HasLifecycle();
 		HasLifecycle fetched = this.putClearGet(life1);
-		
+
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
 		assert fetched.onLoaded;	// would fail without session clear
@@ -63,13 +64,13 @@ public class LifecycleTests extends TestBase
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
 		fetched = this.putClearGet(life2);
-		
+
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
 		assert fetched.onLoaded;	// would fail without session clear
 		assert fetched.onLoadedWithObjectify;
 	}
-	
+
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasExceptionThrowingLifecycle
@@ -83,7 +84,7 @@ public class LifecycleTests extends TestBase
 	public void testExceptionInLifecycle() throws Exception
 	{
 		this.fact.register(HasExceptionThrowingLifecycle.class);
-		
+
 		try
 		{
 			this.putClearGet(new HasExceptionThrowingLifecycle());
@@ -108,23 +109,23 @@ public class LifecycleTests extends TestBase
 	}
 
 	/**
-	 * Make sure that lifecycle methods are called after @Load happens 
+	 * Make sure that lifecycle methods are called after @Load happens
 	 */
 	@Test
 	public void testLifecycleLoadTiming() throws Exception
 	{
 		fact.register(HasLoad.class);
 		fact.register(Trivial.class);
-		
+
 		TestObjectify ofy = fact.begin();
-		
+
 		Trivial triv = new Trivial("foo", 123);
 		ofy.put(triv);
-		
+
 		HasLoad hl = new HasLoad();
 		hl.triv = triv;
 		ofy.put(hl);
-		
+
 		ofy.load().entity(hl).get();
 	}
 
@@ -136,31 +137,31 @@ public class LifecycleTests extends TestBase
 		@Id Long id;
 		String foo;
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasParent
 	{
-		@Load @Parent ParentThing parent;
+		@Load @Parent Ref<ParentThing> parent;
 		@Id Long id;
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	public static class HasHasParent
 	{
 		@Id Long id;
-		@Load HasParent hasParent;
-		
+		@Load Ref<HasParent> hasParent;
+
 		@OnLoad void onLoad() {
-			assert hasParent.parent.foo.equals("fooValue");
+			assert hasParent.get().parent.get().foo.equals("fooValue");
 		}
 	}
 
 	/**
-	 * More complicated test of a more complicated structure 
+	 * More complicated test of a more complicated structure
 	 */
 	@Test
 	public void testComplicatedLifecycle() throws Exception
@@ -168,21 +169,21 @@ public class LifecycleTests extends TestBase
 		fact.register(ParentThing.class);
 		fact.register(HasParent.class);
 		fact.register(HasHasParent.class);
-		
+
 		TestObjectify ofy = fact.begin();
 
 		ParentThing pt = new ParentThing();
 		pt.foo = "fooValue";
 		ofy.put(pt);
-		
+
 		HasParent hp = new HasParent();
-		hp.parent = pt;
+		hp.parent = Ref.create(pt);
 		ofy.put(hp);
 
 		HasHasParent hhp = new HasHasParent();
-		hhp.hasParent = hp;
+		hhp.hasParent = Ref.create(hp);
 		ofy.put(hhp);
-		
+
 		ofy.load().entity(hhp).get();
 	}
 }

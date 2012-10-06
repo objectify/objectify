@@ -2,6 +2,7 @@ package com.googlecode.objectify.test;
 
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
@@ -21,50 +22,50 @@ public class LifecycleTests2 extends TestBase
 		@Id Long id;
 		String foo;
 	}
-	
+
 	/** */
 	@Entity
 	public static class Event {
-		@Load @Parent Org org;
+		@Load @Parent Ref<Org> org;
 		@Id Long id;
 	}
-	
+
 	/** */
 	@Entity
 	public static class Product {
-		@Load @Parent Event event;
+		@Load @Parent Ref<Event> event;
 		@Id Long id;
-		
+
 		@OnLoad void onLoad() {
-			assert event.org.foo.equals("fooValue");
+			assert event.get().org.get().foo.equals("fooValue");
 		}
 	}
 
 	/**
-	 * More complicated test of a more complicated structure 
+	 * More complicated test of a more complicated structure
 	 */
 	@Test
 	public void testCrazyComplicated() throws Exception {
 		fact.register(Org.class);
 		fact.register(Event.class);
 		fact.register(Product.class);
-		
+
 		TestObjectify ofy = fact.begin();
 
 		Org org = new Org();
 		org.foo = "fooValue";
 		ofy.put(org);
-		
+
 		Event event = new Event();
-		event.org = org;
+		event.org = Ref.create(org);
 		ofy.put(event);
 
 		Product prod = new Product();
-		prod.event = event;
+		prod.event = Ref.create(event);
 		ofy.put(prod);
 
 		ofy.clear();
 		Product fetched = ofy.load().entity(prod).get();
-		assert fetched.event.org.foo.equals("fooValue");
+		assert fetched.event.get().org.get().foo.equals("fooValue");
 	}
 }
