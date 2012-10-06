@@ -19,6 +19,7 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFilter;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Ref;
 
 /**
@@ -32,10 +33,10 @@ public class TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(TestBase.class.getName());
-	
+
 	/** */
 	protected TestObjectifyFactory fact;
-	
+
 	/** */
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
@@ -48,8 +49,8 @@ public class TestBase
 	public void setUp()
 	{
 		this.helper.setUp();
-		
-		this.fact = TestObjectifyService.factory();
+		this.fact = new TestObjectifyFactory();
+		ObjectifyService.setFactory(this.fact);	// just in case
 	}
 
 	/** */
@@ -58,15 +59,15 @@ public class TestBase
 	{
 		// This is normally done in ObjectifyFilter but that doesn't exist for tests
 		ObjectifyFilter.complete();
-		
+
 		this.helper.tearDown();
 	}
-	
+
 	/** Utility methods that puts, clears the session, and immediately gets an entity */
 	protected <T> T putClearGet(T saveMe)
 	{
 		Objectify ofy = this.fact.begin();
-		
+
 		Key<T> key = ofy.save().entity(saveMe).now();
 
 		try
@@ -75,12 +76,12 @@ public class TestBase
 			System.out.println(ent);
 		}
 		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
-		
+
 		ofy.clear();
 
 		return ofy.load().key(key).get();
 	}
-	
+
 	/** Get a DatastoreService */
 	protected DatastoreService ds()
 	{
@@ -94,5 +95,5 @@ public class TestBase
 			assert false;
 		} catch (IllegalStateException ex) {}
 	}
-	
+
 }

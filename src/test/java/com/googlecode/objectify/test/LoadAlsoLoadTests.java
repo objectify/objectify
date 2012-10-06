@@ -64,7 +64,7 @@ public class LoadAlsoLoadTests extends TestBase
 
 		com.google.appengine.api.datastore.Entity ent = new com.google.appengine.api.datastore.Entity(Key.getKind(HasConcrete.class));
 		ent.setProperty("foo", trivKey.getRaw());
-		ds().put(ent);
+		ds().put(null, ent);
 
 		Key<HasConcrete> key = Key.create(ent.getKey());
 		HasConcrete fetched = ofy.load().key(key).get();
