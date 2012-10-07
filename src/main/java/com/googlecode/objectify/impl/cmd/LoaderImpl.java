@@ -15,6 +15,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.impl.engine.QueryEngine;
 import com.googlecode.objectify.util.ResultProxy;
@@ -22,20 +23,20 @@ import com.googlecode.objectify.util.ResultProxy;
 
 /**
  * Implementation of the Loader interface.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class LoaderImpl extends Queryable<Object> implements Loader
 {
 	/** */
 	protected Loader wrapper = this;
-	
+
 	/** */
 	protected ObjectifyImpl ofy;
-	
+
 	/** */
 	protected Set<Class<?>> loadGroups;
-	
+
 	/** */
 	LoaderImpl(ObjectifyImpl ofy) {
 		super(null);
@@ -105,7 +106,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 		LoadEngine batch = createLoadEngine();
 		for (Ref<?> ref: refs)
 			batch.loadRef(ref);
-		
+
 		batch.execute();
 
 		// Now asynchronously translate into a normal-looking map
@@ -120,7 +121,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 				return result;
 			}
 		});
-		
+
 		return map;
 	}
 
@@ -138,7 +139,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <E> Ref<E> entity(E entity) {
-		return key(ofy.getFactory().<E>getKey(entity));
+		return key(Key.create(entity));
 	}
 
 	/* (non-Javadoc)
@@ -150,7 +151,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 		if (key instanceof Ref) {
 			return ref((Ref<E>)key);
 		} else {
-			return (Ref<E>)key(ofy.getFactory().getKey(key));
+			return (Ref<E>)key(Keys.toKey(key));
 		}
 	}
 
@@ -202,16 +203,16 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	@SuppressWarnings("unchecked")
 	public <E> Map<Key<E>, E> values(Iterable<?> values) {
 		final List<Ref<E>> refs = new ArrayList<Ref<E>>();
-		
+
 		for (Object keyish: values) {
 			if (keyish instanceof Ref) {
 				refs.add((Ref<E>)keyish);
 			} else {
-				Key<E> key = ofy.getFactory().getKey(keyish);
+				Key<E> key = Keys.toKey(keyish);
 				refs.add(Ref.create(key));
 			}
 		}
-		
+
 		return this.refs(refs);
 	}
 
@@ -239,7 +240,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	public void setWrapper(Loader loader) {
 		this.wrapper = loader;
 	}
-	
+
 	/** */
 	public ObjectifyImpl getObjectifyImpl() {
 		return this.ofy;

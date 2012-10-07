@@ -128,7 +128,7 @@ public class BasicTests extends TestBase
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
 		{
-			Trivial fetchedTriv = fetched.get(this.fact.getKey(triv));
+			Trivial fetchedTriv = fetched.get(Key.create(triv));
 			assert triv.getSomeNumber() == fetchedTriv.getSomeNumber();
 			assert triv.getSomeString().equals(fetchedTriv.getSomeString());
 		}
@@ -144,7 +144,7 @@ public class BasicTests extends TestBase
 		Employee fred = new Employee("fred");
 		ofy.save().entity(fred).now();
 
-		Key<Employee> fredKey = this.fact.getKey(fred);
+		Key<Employee> fredKey = Key.create(fred);
 
 		List<Employee> employees = new ArrayList<Employee>(100);
 		for (int i = 0; i < 100; i++)
@@ -182,21 +182,21 @@ public class BasicTests extends TestBase
 	public void testKeyToString() throws Exception
 	{
 		Key<Trivial> trivKey = Key.create(Trivial.class, 123);
-		
+
 		String stringified = trivKey.getString();
-		
+
 		Key<Trivial> andBack = Key.create(stringified);
-		
+
 		assert trivKey.equals(andBack);
 	}
-	
+
 	/**
 	 */
 	@Test
 	public void testPutNothing() throws Exception
 	{
 		TestObjectify ofy = this.fact.begin();
-		
+
 		ofy.save().entities(Collections.emptyList()).now();
 	}
 
@@ -236,11 +236,11 @@ public class BasicTests extends TestBase
 		Trivial triv2 = new Trivial("foo6", 6);
 
 		ofy.save().entities(triv1, triv2).now();
-		
+
 		assert ofy.load().entities(triv1, triv2).size() == 2;
-		
+
 		ofy.delete().entities(triv1, triv2).now();
-		
+
 		Map<Key<Trivial>, Trivial> result = ofy.load().entities(triv1, triv2);
 		System.out.println("Result is " + result);
 		assert result.size() == 0;

@@ -13,7 +13,8 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
@@ -60,6 +61,7 @@ public class LoadEngine
 
 				result = new ResultCache<T>() {
 					@Override
+					@SuppressWarnings("unchecked")
 					public T nowUncached() {
 						return (T)translated.now().get(key);
 					}
@@ -165,9 +167,9 @@ public class LoadEngine
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
-			EntityMetadata<?> meta = ofy.getFactory().getMetadata(key);
+			KeyMetadata<?> meta = Keys.getMetadata(key);
 			if (meta != null) {
-				if (meta.getKeyMetadata().shouldLoadParent(loader.getLoadGroups())) {
+				if (meta.shouldLoadParent(loader.getLoadGroups())) {
 					getResult(key.getParent());
 				}
 			}

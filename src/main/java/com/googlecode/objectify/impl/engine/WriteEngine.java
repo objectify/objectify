@@ -15,6 +15,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
@@ -84,7 +85,7 @@ public class WriteEngine
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
-						KeyMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj).getKeyMetadata();
+						KeyMetadata<E> metadata = Keys.getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
 							metadata.setLongId(obj, k.getId());
 					}

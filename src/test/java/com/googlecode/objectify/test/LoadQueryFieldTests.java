@@ -49,8 +49,8 @@ public class LoadQueryFieldTests extends TestBase
 		tNone0 = new Trivial(123L, "fooNone", 33);
 		tNone1 = new Trivial(456L, "barNone", 44);
 
-		kNone0 = fact.getKey(tNone0);
-		kNone1 = fact.getKey(tNone1);
+		kNone0 = Key.create(tNone0);
+		kNone1 = Key.create(tNone1);
 	}
 
 	/** */

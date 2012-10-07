@@ -64,7 +64,7 @@ public class ParentTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 
-		KeyChild fetched = ofy.get(fact.<KeyChild>getKey(ch));
+		KeyChild fetched = ofy.get(Key.create(ch));
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);
@@ -84,7 +84,7 @@ public class ParentTests extends TestBase
 		ch.bar = "bar";
 		ofy.put(ch);
 
-		RefChild fetched = ofy.get(fact.<RefChild>getKey(ch));
+		RefChild fetched = ofy.get(Key.create(ch));
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);

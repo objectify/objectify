@@ -77,7 +77,7 @@ public class LoadBidrectionalTests extends TestBase
 	/** */
 	@Embed
 	public static class BottomEmbed {
-		public @Load TopWithEmbed top;
+		public @Load Ref<TopWithEmbed> top;
 		public BottomEmbed() {}
 	}
 
@@ -91,14 +91,14 @@ public class LoadBidrectionalTests extends TestBase
 
 		TopWithEmbed top = new TopWithEmbed(123);
 		top.bottom = new BottomEmbed();
-		top.bottom.top = top;
+		top.bottom.top = Ref.create(top);
 
 		ofy.put(top);
 		ofy.clear();
 
 		TopWithEmbed topFetched = ofy.load().entity(top).get();
 
-		assert topFetched.bottom.top.id == top.id;
+		assert topFetched.bottom.top.get().id == top.id;
 	}
 
 }

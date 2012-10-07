@@ -15,6 +15,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
@@ -194,7 +195,7 @@ public class EmbedTests extends TestBase
 		t.members.names = new Name[]{new Name("Joe", "Smith"), new Name("Jane", "Foo")};
 		Key<TeamEntity> k = ofy.put(t);
 
-		System.out.println(ds().get(fact.getRawKey(k)));
+		System.out.println(ds().get(Keys.toRawKey(k)));
 
 		t = ofy.get(k);
 		assert t != null;

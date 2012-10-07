@@ -8,6 +8,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
@@ -25,7 +26,7 @@ public class ExampleDocoTests extends TestBase
 	public void testFirstExample() throws Exception
 	{
 		fact.register(Town.class);
-		
+
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 
@@ -46,12 +47,12 @@ public class ExampleDocoTests extends TestBase
 		assert e.getProperty("mayor.name.firstName").equals("Joe");
 		assert e.getProperty("mayor.name.lastName").equals("Quimby");
 		assert ((Number)e.getProperty("mayor.age")).intValue() == 53;	// might be Integer or Long
-		
+
 		List<Number> ages = (List<Number>)e.getProperty("folk.age");
 		assert ages.size() == 2;
 		assert ages.get(0).intValue() == 39;
 		assert ages.get(1).intValue() == 48;
-		
+
 		assert arrayPropertyEqual(e, "folk.name.firstName", "Homer", "Apu");
 		assert arrayPropertyEqual(e, "folk.name.lastName", "Simpson", "Nahasapeemapetilon");
 
@@ -84,7 +85,7 @@ public class ExampleDocoTests extends TestBase
 	public void testNullEmbedded2() throws Exception
 	{
 		fact.register(Town.class);
-		
+
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 
@@ -121,7 +122,7 @@ public class ExampleDocoTests extends TestBase
 	public void testNullEmbedded1() throws Exception
 	{
 		fact.register(Town.class);
-		
+
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
 
@@ -165,6 +166,6 @@ public class ExampleDocoTests extends TestBase
 	{
 		TestObjectify ofy = fact.begin();
 		Key<Town> k = ofy.put(town);
-		return ds().get(null, fact.getRawKey(k));
+		return ds().get(null, Keys.toRawKey(k));
 	}
 }

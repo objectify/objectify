@@ -7,27 +7,28 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteIds;
 import com.googlecode.objectify.cmd.DeleteType;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 
 /**
  * Implementation of the DeleteType and DeleteIds interfaces.  No need for separate implementations.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 class DeleteTypeImpl implements DeleteType
 {
 	/** */
 	DeleterImpl deleter;
-	
+
 	/** Translated from the type class */
 	Class<?> type;
-	
+
 	/** Possible parent */
 	Key<?> parent;
-	
+
 	/**
-	 * @param type must be a registered type 
+	 * @param type must be a registered type
 	 */
 	DeleteTypeImpl(DeleterImpl deleter, Class<?> type) {
 		this.deleter = deleter;
@@ -35,7 +36,7 @@ class DeleteTypeImpl implements DeleteType
 	}
 
 	/**
-	 * @param parent can be Key, Key<?>, or entity 
+	 * @param parent can be Key, Key<?>, or entity
 	 */
 	DeleteTypeImpl(DeleterImpl deleter, Class<?> type, Key<?> parent) {
 		this(deleter, type);
@@ -47,7 +48,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public DeleteIds parent(Object keyOrEntity) {
-		Key<?> parentKey = this.deleter.ofy.getFactory().getKey(keyOrEntity);
+		Key<?> parentKey = Keys.toKey(keyOrEntity);
 		return new DeleteTypeImpl(deleter, type, parentKey);
 	}
 

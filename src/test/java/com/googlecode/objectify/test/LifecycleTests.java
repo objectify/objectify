@@ -102,7 +102,7 @@ public class LifecycleTests extends TestBase
 	public static class HasLoad
 	{
 		@Id Long id;
-		@Load Trivial triv;
+		@Load Ref<Trivial> triv;
 		@OnLoad void onLoad() {
 			assert triv != null;
 		}
@@ -123,7 +123,7 @@ public class LifecycleTests extends TestBase
 		ofy.put(triv);
 
 		HasLoad hl = new HasLoad();
-		hl.triv = triv;
+		hl.triv = Ref.create(triv);
 		ofy.put(hl);
 
 		ofy.load().entity(hl).get();

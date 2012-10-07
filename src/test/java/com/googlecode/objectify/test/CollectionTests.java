@@ -23,6 +23,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
@@ -44,7 +45,7 @@ public class CollectionTests extends TestBase
 		private static final long serialVersionUID = 1L;
 		public int tenTimesSize() { return this.size() * 10; }
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -55,21 +56,21 @@ public class CollectionTests extends TestBase
 		public List<Integer> integerList;
 		public LinkedList<Integer> integerLinkedList;
 		public ArrayList<Integer> integerArrayList;
-		
+
 		public Set<Integer> integerSet;
 		public SortedSet<Integer> integerSortedSet;
 		public HashSet<Integer> integerHashSet;
 		public TreeSet<Integer> integerTreeSet;
 		public LinkedHashSet<Integer> integerLinkedHashSet;
-		
+
 		public List<Integer> initializedList = new LinkedList<Integer>();
-		
+
 		public CustomSet customSet;
-		
+
 		/** This should give the system a workout */
 		public Set<Key<Trivial>> typedKeySet;
 	}
-	
+
 	/** */
 	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass)
 	{
@@ -195,7 +196,7 @@ public class CollectionTests extends TestBase
 		assert hc.integerList.size() == 1;
 		assert hc.integerList.get(0) == null;
 
-		Entity e = ds().get(fact.getRawKey(key));
+		Entity e = ds().get(Keys.toRawKey(key));
 		assert e.hasProperty("integerList");
 		List<?> l = (List<?>) e.getProperty("integerList");
 		assert l != null;
@@ -222,7 +223,7 @@ public class CollectionTests extends TestBase
 		hc = ofy.load().key(key).get();
 		assert hc.integerList == null;	// not loaded
 
-		Entity e = ds().get(fact.getRawKey(key));
+		Entity e = ds().get(Keys.toRawKey(key));
 		// rule : never store a null collection
 		assert !e.hasProperty("integerList");
 	}
@@ -243,12 +244,12 @@ public class CollectionTests extends TestBase
 		ofy.clear();
 		hc = ofy.load().key(key).get();
 
-		System.out.println(ds().get(fact.getRawKey(hc)));
+		System.out.println(ds().get(Keys.toRawKey(hc)));
 
 		// This wouldn't be valid if we didn't clear the session
 		assert hc.integerList == null;
 
-		Entity e = ds().get(fact.getRawKey(key));
+		Entity e = ds().get(key.getRaw());
 		// rule : never store an empty collection
 		assert !e.hasProperty("integerList");
 
@@ -263,13 +264,13 @@ public class CollectionTests extends TestBase
 		public @Id Long id;
 		public List<String> initialized = new ArrayList<String>();
 		@Ignore public List<String> copyOf;
-		
+
 		public HasInitializedCollection()
 		{
 			this.copyOf = initialized;
 		}
 	}
-	
+
 	/**
 	 * Make sure that Objectify doesn't overwrite an already initialized concrete collection
 	 */
@@ -277,17 +278,17 @@ public class CollectionTests extends TestBase
 	public void testInitializedCollections() throws Exception
 	{
 		this.fact.register(HasInitializedCollection.class);
-		
+
 		HasInitializedCollection has = new HasInitializedCollection();
 		HasInitializedCollection fetched = this.putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
-		
+
 		has = new HasInitializedCollection();
 		has.initialized.add("blah");
 		fetched = this.putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 	}
-	
+
 	/**
 	 * Without the generic type
 	 */
@@ -298,18 +299,18 @@ public class CollectionTests extends TestBase
 		@Id Long id;
 		Set raw = new HashSet();
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testRawtypeSet()
 	{
 		this.fact.register(HasRawCollection.class);
-		
+
 		HasRawCollection hrc = new HasRawCollection();
 		hrc.raw.add("foo");
-		
+
 		HasRawCollection fetched = this.putClearGet(hrc);
-		
+
 		assert hrc.raw.equals(fetched.raw);
 	}
 }
