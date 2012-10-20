@@ -5,7 +5,7 @@ apply plugin: 'maven'
 
 group = 'com.googlecode.objectify'
 version = '4.0b1'
-description = 'Java API for the Google App Engine datastore' 
+description = 'Java API for the Google App Engine datastore'
 
 sourceCompatibility = 1.6
 targetCompatibility = 1.6
@@ -19,17 +19,17 @@ dependencies {
 		'com.google.appengine:appengine-api-1.0-sdk:1.7.2',
 		'com.google.appengine:appengine-api-labs:1.7.2',
 		'com.google.gwt:gwt-user:2.5.0-rc1',
-		
+
 		// some optional components at runtime
 		'joda-time:joda-time:2.1',
 		'org.joda:joda-money:0.6',
 		'com.fasterxml.jackson.core:jackson-core:2.0.6',
 		'com.fasterxml.jackson.core:jackson-databind:2.0.6'
-		
+
 		// It might be nice someday to use ecj for compile again
 		//'org.eclipse.jdt.core.compiler:ecj:3.7.2'	// conf="build->*" />
 	)
-	
+
 	testCompile (
 		'org.testng:testng:6.8',
 		'com.google.appengine:appengine-testing:1.7.2',
@@ -55,12 +55,12 @@ task sourcesJar(type: Jar, dependsOn:classes) {
 	classifier = 'sources'
 	from sourceSets.main.allSource
 }
- 
+
 task javadocJar(type: Jar, dependsOn:javadoc) {
 	classifier = 'javadoc'
 	from javadoc.destinationDir
 }
- 
+
 artifacts {
 	archives jar
 	archives sourcesJar
@@ -71,12 +71,12 @@ uploadArchives {
 	repositories {
 		mavenDeployer {
 			beforeDeployment { MavenDeployment deployment -> signPom(deployment) }
-			
+
 			name = "release"
 			repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
 				authentication(userName: nexusUsername, password: nexusPassword)
 			}
-			
+
 			pom.project {
 				packaging 'jar'
 				description project.description
@@ -84,7 +84,7 @@ uploadArchives {
 				scm {
 					url 'scm:git:https://code.google.com/p/objectify-appengine/'
 				}
- 				licenses {
+				licenses {
 					license {
 						name 'MIT License'
 						url 'http://www.opensource.org/licenses/mit-license.php'
@@ -97,7 +97,7 @@ uploadArchives {
 						email 'jeff@infohazard.org'
 					}
 				}
-			}			
+			}
 		}
 //		mavenDeployer {
 // 			name = "snapshot"
