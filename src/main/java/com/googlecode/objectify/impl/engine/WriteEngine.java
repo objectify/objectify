@@ -18,7 +18,9 @@ import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
+import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -59,13 +61,15 @@ public class WriteEngine
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
 
+		final SaveContext ctx = new SaveContext(ofy);
+
 		final List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
 			} else {
 				EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-				entityList.add(metadata.save(obj, ofy));
+				entityList.add(metadata.save(obj, ctx));
 			}
 		}
 
@@ -94,7 +98,7 @@ public class WriteEngine
 					result.put(key, obj);
 
 					// Also stuff this in the session
-					session.add(key, new ResultNow<Object>(obj));
+					session.add(key, new SessionValue<Object>(new ResultNow<Object>(obj), ctx.getUpgrades(obj)));
 				}
 
 				if (log.isLoggable(Level.FINEST))
@@ -120,7 +124,7 @@ public class WriteEngine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(Key.create(key), new ResultNow<Object>(null));
+					session.add(Key.create(key), new SessionValue<Object>(new ResultNow<Object>(null)));
 
 				return orig;
 			}

@@ -1,11 +1,9 @@
 package com.googlecode.objectify.impl;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.annotation.Load;
 
 /**
  * The information we maintain on behalf of an entity instance in the session cache.  Normally
@@ -14,11 +12,29 @@ import com.googlecode.objectify.annotation.Load;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SessionValue
+public class SessionValue<T>
 {
 	/** */
-	Result<?> result;
+	Result<T> result;
+	public Result<T> getResult() { return result; }
 
 	/** Any remaining references that might need upgrading */
-	Map<Key<?>, Load> upgrades = new HashMap<Key<?>, Load>();
+	final List<Upgrade> upgrades = new LinkedList<Upgrade>();
+	public List<Upgrade> getUpgrades() { return upgrades; }
+
+	/** */
+	public SessionValue(Result<T> result) {
+		this.result = result;
+	}
+
+	/** */
+	public SessionValue(Result<T> result, List<Upgrade> upgrades) {
+		this(result);
+		this.upgrades.addAll(upgrades);
+	}
+
+	/** */
+	public void addUpgrade(Upgrade upgrade) {
+		upgrades.add(upgrade);
+	}
 }

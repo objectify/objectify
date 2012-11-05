@@ -12,12 +12,12 @@ import java.util.Set;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.impl.engine.QueryEngine;
+import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;
 
 
@@ -110,9 +110,9 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 		batch.execute();
 
 		// Now asynchronously translate into a normal-looking map
-		Map<Key<E>, E> map = ResultProxy.create(Map.class, new Result<Map<Key<E>, E>>() {
+		Map<Key<E>, E> map = ResultProxy.create(Map.class, new ResultCache<Map<Key<E>, E>>() {
 			@Override
-			public Map<Key<E>, E> now() {
+			public Map<Key<E>, E> nowUncached() {
 				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>();
 				for (Ref<E> ref: refs)
 					if (ref.get() != null)

@@ -6,7 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
 
 /**
  * The basic session cache.  A lot easier than passing the generic arguments around!
@@ -19,16 +18,16 @@ public class Session
 	private static final Logger log = Logger.getLogger(Session.class.getName());
 
 	/** */
-	private Map<Key<?>, Result<?>> map = new HashMap<Key<?>, Result<?>>();
+	private Map<Key<?>, SessionValue<?>> map = new HashMap<Key<?>, SessionValue<?>>();
 
 	/**
 	 * Add/overwrite a SE.
 	 */
-	public void add(Key<?> key, Result<?> result) {
+	public void add(Key<?> key, SessionValue<?> value) {
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Adding to session: " + key + " -> " + result);
+			log.finest("Adding to session: " + key + " -> " + value.getResult());
 
-		map.put(key, result);
+		map.put(key, value);
 	}
 
 	/** Add all entries in the other session to this one */
@@ -41,8 +40,8 @@ public class Session
 
 	/** */
 	@SuppressWarnings("unchecked")
-	public <T> Result<T> get(Key<T> key) {
-		return (Result<T>)map.get(key);
+	public <T> SessionValue<T> get(Key<T> key) {
+		return (SessionValue<T>)map.get(key);
 	}
 
 	/** */

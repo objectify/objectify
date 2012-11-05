@@ -10,7 +10,7 @@ import com.googlecode.objectify.impl.Property;
 
 /**
  * Knows how to convert Ref<?> objects to datastore-native Key objects and vice-versa.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.google.appengine.api.datastore.Key>
@@ -28,9 +28,12 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx) {
 				return ctx.makeRef(property, Key.create(value));
 			}
-			
+
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, SaveContext ctx) {
+				if (value.getValue() == null)
+					ctx.registerUpgrade(property, value);
+
 				return value.key().getRaw();
 			}
 		};

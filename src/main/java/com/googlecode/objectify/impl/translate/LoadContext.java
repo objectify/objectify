@@ -13,7 +13,7 @@ import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 
 /**
- * The context of a load or save operation to a single entity.
+ * The context of a load operation, which may extend across several entities (for example, a batch).
  */
 public class LoadContext
 {
@@ -24,7 +24,7 @@ public class LoadContext
 	Loader loader;
 
 	/** */
-	LoadEngine batch;
+	LoadEngine engine;
 
 	/** Lazily created, but executed at the end of done() */
 	List<Runnable> deferredA;
@@ -38,7 +38,7 @@ public class LoadContext
 	/** */
 	public LoadContext(Loader loader, LoadEngine batch) {
 		this.loader = loader;
-		this.batch = batch;
+		this.engine = batch;
 	}
 
 	/** */
@@ -53,7 +53,7 @@ public class LoadContext
 	 * Call this when a load process completes.  Executes anything in the batch and then executes any delayed operations.
 	 */
 	public void done() {
-		batch.execute();
+		engine.execute();
 
 		while (deferredA != null) {
 			List<Runnable> runme = deferredA;
@@ -85,13 +85,7 @@ public class LoadContext
 	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
 	 */
 	public <T> Ref<T> makeRef(Property property, Key<T> key) {
-		final Ref<T> ref = Ref.create(key);
-
-		if (batch.shouldLoad(property)) {
-			batch.loadRef(ref);
-		}
-
-		return ref;
+		return engine.makeRef(currentRoot, property, key);
 	}
 
 	/**

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.engine;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -13,11 +14,14 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
+import com.googlecode.objectify.impl.SessionValue;
+import com.googlecode.objectify.impl.Upgrade;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -52,14 +56,14 @@ public class LoadEngine
 		 * Gets a result, using the session cache if possible.
 		 */
 		public <T> Result<T> get(final Key<T> key) {
-			Result<T> result = session.get(key);
-			if (result == null) {
+			SessionValue<T> sv = session.get(key);
+			if (sv == null) {
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Adding to round (session miss): " + key);
 
 				this.pending.add(key.getRaw());
 
-				result = new ResultCache<T>() {
+				Result<T> result = new ResultCache<T>() {
 					@Override
 					@SuppressWarnings("unchecked")
 					public T nowUncached() {
@@ -72,14 +76,27 @@ public class LoadEngine
 					}
 				};
 
-				session.add(key, result);
+				sv = new SessionValue<T>(result);
+				session.add(key, sv);
 
 			} else {
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Adding to round (session hit): " + key);
 			}
 
-			return result;
+			// Check for any upgrades
+			if (!sv.getUpgrades().isEmpty()) {
+				Iterator<Upgrade> it = sv.getUpgrades().iterator();
+				while (it.hasNext()) {
+					Upgrade up = it.next();
+					if (shouldLoad(up.getProperty())) {
+						it.remove();
+						loadRef(up.getRef());
+					}
+				}
+			}
+
+			return sv.getResult();
 		}
 
 		/** Turn this into a result set */
@@ -91,9 +108,9 @@ public class LoadEngine
 				final Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
 				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = ResultAdapter.create(fut);
 
-				translated = new Result<Map<Key<?>, Object>>() {
+				translated = new ResultCache<Map<Key<?>, Object>>() {
 					@Override
-					public Map<Key<?>, Object> now() {
+					public Map<Key<?>, Object> nowUncached() {
 						Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(fetched.now().size() * 2);
 
 						LoadContext ctx = new LoadContext(loader, LoadEngine.this);
@@ -185,6 +202,32 @@ public class LoadEngine
 		Round old = round;
 		round = new Round();
 		old.execute();
+	}
+
+	/**
+	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
+	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
+	 *
+	 * @param rootEntity is the entity key which holds this property (possibly thorugh some level of embedded objects)
+	 */
+	public <T> Ref<T> makeRef(Key<?> rootEntity, Property property, Key<T> key) {
+		Ref<T> ref = Ref.create(key);
+
+		if (shouldLoad(property)) {
+			loadRef(ref);
+		} else {
+			// Only if there is any potential for upgrade
+			Load load = property.getAnnotation(Load.class);
+			if (load != null) {
+				// add it to the possible list of upgrades
+				SessionValue<?> sv = session.get(rootEntity);
+				if (sv != null) {
+					sv.addUpgrade(new Upgrade(property, ref));
+				}
+			}
+		}
+
+		return ref;
 	}
 
 	/**

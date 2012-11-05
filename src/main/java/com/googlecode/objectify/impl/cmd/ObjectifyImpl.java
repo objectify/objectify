@@ -22,6 +22,8 @@ import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.NullProperty;
 import com.googlecode.objectify.impl.Path;
@@ -356,11 +358,16 @@ public class ObjectifyImpl implements Objectify, Cloneable
 
 			return result;
 		} else {
-			// TODO: special case entity pojos that become keys
-
-			Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));
-			Node node = translator.save(value, Path.root(), false, new SaveContext(this));
-			return getFilterableValue(node, value);
+			// Special case entity pojos that become keys
+			KeyMetadata<Object> meta = Keys.getMetadata(value);
+			if (meta != null) {
+				return meta.getRawKey(value);
+			} else {
+				// Run it through the translator
+				Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));
+				Node node = translator.save(value, Path.root(), false, new SaveContext(this));
+				return getFilterableValue(node, value);
+			}
 		}
 	}
 
@@ -399,7 +406,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		} else {
 			@SuppressWarnings("unchecked")
 			EntityMetadata<Object> meta = (EntityMetadata<Object>)getFactory().getMetadata(pojo.getClass());
-			return meta.save(pojo, this);
+			return meta.save(pojo, new SaveContext(this));
 		}
 	}
 
