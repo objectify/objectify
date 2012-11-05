@@ -29,10 +29,15 @@ abstract public class ResultCache<T> implements Result<T>, Serializable
 		if (!cached) {
 			value = nowUncached();
 			cached = true;
+
+			this.postExecuteHook();
 		}
 
 		return value;
 	}
+
+	/** Executed once after the cached value is assigned. */
+	protected void postExecuteHook() {}
 
 	/**
 	 * When this serializes, write out a simple version that doesn't hold complicated links to internal

@@ -109,11 +109,16 @@ public class LoadEngine
 				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = ResultAdapter.create(fut);
 
 				translated = new ResultCache<Map<Key<?>, Object>>() {
+
+					/** */
+					LoadContext ctx;
+
+					/** */
 					@Override
 					public Map<Key<?>, Object> nowUncached() {
 						Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(fetched.now().size() * 2);
 
-						LoadContext ctx = new LoadContext(loader, LoadEngine.this);
+						ctx = new LoadContext(loader, LoadEngine.this);
 
 						for (Entity ent: fetched.now().values()) {
 							Key<?> key = Key.create(ent.getKey());
@@ -121,9 +126,17 @@ public class LoadEngine
 							result.put(key, entity);
 						}
 
-						ctx.done();
-
 						return result;
+					}
+
+					/**
+					 * We need to execute the done() after the translated value has been set, otherwise we
+					 * can produce an infinite recursion problem.
+					 */
+					@Override
+					protected void postExecuteHook() {
+						ctx.done();
+						ctx = null;
 					}
 				};
 			}

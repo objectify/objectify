@@ -95,7 +95,7 @@ public class MapifyTests extends TestBase
 	/** */
 	@Embed
 	public static class Bottom {
-		public @Load Top top;
+		public @Load Ref<Top> top;
 		public String name;
 		public Bottom() {}
 	}
@@ -122,7 +122,7 @@ public class MapifyTests extends TestBase
 
 		Bottom bot = new Bottom();
 		bot.name = "foo";
-		bot.top = top;
+		bot.top = Ref.create(top);
 
 		top.bottoms.put(bot.name, bot);
 
@@ -133,7 +133,7 @@ public class MapifyTests extends TestBase
 		assert topFetched.bottoms.size() == 1;
 
 		Bottom bottomFetched = topFetched.bottoms.get(bot.name);
-		assert bottomFetched.top.id == top.id;
+		assert bottomFetched.top.get().id == top.id;
 		assert bottomFetched.name.equals(bot.name);
 	}
 
