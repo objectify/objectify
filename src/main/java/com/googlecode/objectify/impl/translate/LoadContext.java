@@ -27,10 +27,7 @@ public class LoadContext
 	LoadEngine engine;
 
 	/** Lazily created, but executed at the end of done() */
-	List<Runnable> deferredA;
-
-	/** Lazily created, but executed at the end of done() */
-	List<Runnable> deferredB;
+	List<Runnable> deferred;
 
 	/** The key of the current root entity; will change as multiple entities are loaded */
 	Key<?> currentRoot;
@@ -55,21 +52,9 @@ public class LoadContext
 	public void done() {
 		engine.execute();
 
-		while (deferredA != null) {
-			List<Runnable> runme = deferredA;
-			deferredA = null;	// reset this because it might get filled with more
-
-			for (Runnable run: runme) {
-				if (log.isLoggable(Level.FINEST))
-					log.finest("Executing " + run);
-
-				run.run();
-			}
-		}
-
-		while (deferredB != null) {
-			List<Runnable> runme = deferredB;
-			deferredB = null;	// reset this because it might get filled with more
+		while (deferred != null) {
+			List<Runnable> runme = deferred;
+			deferred = null;	// reset this because it might get filled with more
 
 			for (Runnable run: runme) {
 				if (log.isLoggable(Level.FINEST))
@@ -89,29 +74,16 @@ public class LoadContext
 	}
 
 	/**
-	 * Delays an operation until the context is done().  Executes before B.
+	 * Delays an operation until the context is done().  Typically this is for lifecycle methods.
 	 */
-	public void deferA(Runnable runnable) {
-		if (this.deferredA == null)
-			this.deferredA = new ArrayList<Runnable>();
+	public void defer(Runnable runnable) {
+		if (this.deferred == null)
+			this.deferred = new ArrayList<Runnable>();
 
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Deferring priority A: " + runnable);
+			log.finest("Deferring: " + runnable);
 
-		this.deferredA.add(runnable);
-	}
-
-	/**
-	 * Delays an operation until the context is done().  Executes after A.  This is for lifecycle methods.
-	 */
-	public void deferB(Runnable runnable) {
-		if (this.deferredB == null)
-			this.deferredB = new ArrayList<Runnable>();
-
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Deferring priority B: " + runnable);
-
-		this.deferredB.add(runnable);
+		this.deferred.add(runnable);
 	}
 
 	/**

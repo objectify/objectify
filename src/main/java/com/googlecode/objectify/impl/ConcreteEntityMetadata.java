@@ -121,7 +121,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		final T pojo = this.transmog.load(ent, ctx);
 
 		// If there are any @OnLoad methods, call them after everything else
-		ctx.deferB(new Runnable() {
+		ctx.defer(new Runnable() {
 			@Override
 			public void run() {
 				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getLoader().getObjectify(), ctx, null);

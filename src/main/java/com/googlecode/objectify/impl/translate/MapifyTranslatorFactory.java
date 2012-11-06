@@ -4,7 +4,6 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
@@ -76,24 +75,10 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 					for (Node child: node) {
 						try {
-							final Map<Object, Object> finalMap = map;
 							Object value = componentTranslator.load(child, ctx);
 
-							if (value instanceof Result) {
-								// We need to defer the add
-								final Result<?> result = ((Result<?>)value);
-
-								ctx.deferA(new Runnable() {
-									@Override
-									public void run() {
-										Object key = mapper.getKey(result.now());
-										finalMap.put(key, result.now());
-									}
-								});
-							} else {
-								Object key = mapper.getKey(value);
-								finalMap.put(key, value);
-							}
+							Object key = mapper.getKey(value);
+							map.put(key, value);
 						}
 						catch (SkipException ex) {
 							// No prob, just skip that one

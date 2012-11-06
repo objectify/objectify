@@ -71,6 +71,7 @@ public class LoadEngine
 					@Override
 					@SuppressWarnings("unchecked")
 					public T nowUncached() {
+						execute();	// just in case the round hasn't executed yet
 						return (T)translated.now().get(key);
 					}
 
@@ -103,12 +104,17 @@ public class LoadEngine
 			return sv.getResult();
 		}
 
+		/** @return true if this round needs execution */
+		public boolean needsExecution() {
+			return translated == null && !pending.isEmpty();
+		}
+
 		/** Turn this into a result set */
 		public void execute() {
-			if (log.isLoggable(Level.FINEST))
-				log.finest("Executing round: " + pending);
+			if (needsExecution()) {
+				if (log.isLoggable(Level.FINEST))
+					log.finest("Executing round: " + pending);
 
-			if (!pending.isEmpty()) {
 				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
 
 				translated = new ResultCache<Map<Key<?>, Object>>() {
@@ -246,9 +252,11 @@ public class LoadEngine
 	 * Starts asychronous fetching of the batch.
 	 */
 	public void execute() {
-		Round old = round;
-		round = new Round();
-		old.execute();
+		if (round.needsExecution()) {
+			Round old = round;
+			round = new Round();
+			old.execute();
+		}
 	}
 
 	/**
