@@ -140,8 +140,8 @@ public class QueryEngine
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Query found " + ent.getKey());
 
-//				if (!hybrid && !keysOnly)
-//					loadEngine.stuffSession(ent);
+				if (!hybrid && !keysOnly)
+					loadEngine.stuff(ent);
 
 				if (!keysOnly)
 					loadEngine.loadRef(ref);

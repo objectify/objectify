@@ -26,6 +26,7 @@ import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
+import com.googlecode.objectify.util.ResultNow;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
@@ -48,6 +49,9 @@ public class LoadEngine
 
 		/** The keys we will need to fetch; might not be any if everything came from the session */
 		Set<com.google.appengine.api.datastore.Key> pending = new HashSet<com.google.appengine.api.datastore.Key>();
+
+		/** Sometimes we get a bunch of Entity data from queries that eliminates our need to go to the backing datastore */
+		Map<com.google.appengine.api.datastore.Key, Entity> stuffed = new HashMap<com.google.appengine.api.datastore.Key, Entity>();
 
 		/** Entities that have been fetched and translated this round. There will be an entry for each pending. */
 		Result<Map<Key<?>, Object>> translated;
@@ -105,8 +109,7 @@ public class LoadEngine
 				log.finest("Executing round: " + pending);
 
 			if (!pending.isEmpty()) {
-				final Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
-				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = ResultAdapter.create(fut);
+				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
 
 				translated = new ResultCache<Map<Key<?>, Object>>() {
 
@@ -137,6 +140,37 @@ public class LoadEngine
 					protected void postExecuteHook() {
 						ctx.done();
 						ctx = null;
+					}
+				};
+			}
+		}
+
+		/** Possibly pulls some values from the stuffed collection */
+		private Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetchPending() {
+			// We don't need to fetch anything that has been stuffed
+
+			final Map<com.google.appengine.api.datastore.Key, Entity> combined = new HashMap<com.google.appengine.api.datastore.Key, Entity>();
+			Set<com.google.appengine.api.datastore.Key> fetch = new HashSet<com.google.appengine.api.datastore.Key>();
+
+			for (com.google.appengine.api.datastore.Key key: pending) {
+				Entity ent = stuffed.get(key);
+				if (ent == null)
+					fetch.add(key);
+				else
+					combined.put(key, ent);
+			}
+
+			if (fetch.isEmpty()) {
+				return new ResultNow<Map<com.google.appengine.api.datastore.Key, Entity>>(combined);
+			} else {
+				Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), fetch);
+				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = ResultAdapter.create(fut);
+
+				return new Result<Map<com.google.appengine.api.datastore.Key, Entity>>() {
+					@Override
+					public Map<com.google.appengine.api.datastore.Key, Entity> now() {
+						combined.putAll(fetched.now());
+						return combined;
 					}
 				};
 			}
@@ -250,14 +284,11 @@ public class LoadEngine
 		return property.shouldLoad(loader.getLoadGroups());
 	}
 
-//	/**
-//	 * Stuffs an Entity into the session.  Called by non-hybrid queries to add results and eliminate batch fetching.
-//	 * If the key is already in the session, this is ignored.
-//	 */
-//	public void stuffSession(Map<Key<?>, Object> stuffings) {
-//		Key<?> key = Key.create(ent.getKey());
-//		if (session.get(key) != null) {
-//			session.add(key, new ResultNow<Entity>(ent));
-//		}
-//	}
+	/**
+	 * Stuffs an Entity into a place where values in the round can be obtained instead of going to the datastore.
+	 * Called by non-hybrid queries to add results and eliminate batch fetching.
+	 */
+	public void stuff(Entity ent) {
+		round.stuffed.put(ent.getKey(), ent);
+	}
 }
