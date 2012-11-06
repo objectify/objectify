@@ -4,6 +4,7 @@
 package com.googlecode.objectify.test.entity;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -27,7 +28,7 @@ public class Employee
 	public Key<Employee> manager;
 
 	@Index @Load
-	public Employee manager2;
+	public Ref<Employee> manager2;
 
 	/** Default constructor must always exist */
 	public Employee() {}
@@ -49,7 +50,7 @@ public class Employee
 	public Employee(String name, Employee manager2)
 	{
 		this.name = name;
-		this.manager2 = manager2;
+		this.manager2 = Ref.create(manager2);
 	}
 
 	/** */

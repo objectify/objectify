@@ -22,7 +22,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests the fetching system for simple parent values.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class LoadFieldRefTestsUsingSession extends TestBase
@@ -35,24 +35,24 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 	Key<Trivial> k2;
 	Key<Trivial> kNone1;
 	Key<Trivial> kNone2;
-	
+
 	/** */
 	@BeforeMethod
 	public void createTwo() {
 		fact.register(Trivial.class);
 		TestObjectify ofy = fact.begin();
-		
+
 		t1 = new Trivial("foo", 11);
 		k1 = ofy.put(t1);
-		
+
 		t2 = new Trivial("bar", 22);
 		k2 = ofy.put(t2);
-		
+
 		tNone1 = new Trivial(123L, "fooNone", 33);
 		tNone2 = new Trivial(456L, "barNone", 44);
-		
-		kNone1 = fact.getKey(tNone1);
-		kNone2 = fact.getKey(tNone2);
+
+		kNone1 = Key.create(tNone1);
+		kNone2 = Key.create(tNone2);
 	}
 
 	/** */
@@ -65,30 +65,30 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		public @Load(Single.class) Ref<Trivial> single;
 		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
 	}
-	
+
 	/** */
 	@Test
 	public void testGrouping() throws Exception
 	{
 		fact.register(HasEntitiesWithGroups.class);
-		
+
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
 		HasEntitiesWithGroups fetched = this.putClearGet(he);
-		
-		Key<HasEntitiesWithGroups> hekey = fact.getKey(he);
-		
+
+		Key<HasEntitiesWithGroups> hekey = Key.create(he);
+
 		assert fetched.single.key().equals(k1);
 		assertRefUninitialzied(fetched.single);
 
 		assert fetched.multi.get(0).equals(fetched.single);
 		for (Ref<Trivial> ref: fetched.multi)
 			assertRefUninitialzied(ref);
-		
+
 		TestObjectify ofy = fact.begin();
-		
+
 		fetched = ofy.load().group(Single.class).key(hekey).get();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
@@ -103,8 +103,11 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 		// Not valid anymore, everything is done separately
 		//assert fetched.single.get() == fetched.multi.get(0).get();
-		assertRefUninitialzied(fetched.single);
-		
+
+		// This is an interesting question - do we "downgrade" refs which are no longer included in the subsequent load?
+		// Seems the answer should be no, but not sure.
+		//assertRefUninitialzied(fetched.single);
+
 		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());

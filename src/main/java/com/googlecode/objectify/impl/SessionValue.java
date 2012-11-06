@@ -1,60 +1,40 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Key;
+import java.util.LinkedList;
+import java.util.List;
+
 import com.googlecode.objectify.Result;
 
-
 /**
- * The data we maintain in the session on behalf of an entity.
- * 
+ * The information we maintain on behalf of an entity instance in the session cache.  Normally
+ * this would just be a Result<?>, but we also need a list of upgrades so that future loads
+ * with groups will patch up further references.
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SessionValue
+public class SessionValue<T>
 {
-	/**
-	 * Key associated with the result.  Mostly here for debugging purposes.
-	 */
-	Key<?> key;
-	
-	/**
-	 * The entity value wrapped in some number of layers of async.
-	 */
-	Result<Entity> result;
-	
-	/**
-	 */
-	public SessionValue(Key<?> key, Result<Entity> result) {
-		this.key = key;
+	/** */
+	Result<T> result;
+	public Result<T> getResult() { return result; }
+
+	/** Any remaining references that might need upgrading */
+	final List<Upgrade> upgrades = new LinkedList<Upgrade>();
+	public List<Upgrade> getUpgrades() { return upgrades; }
+
+	/** */
+	public SessionValue(Result<T> result) {
 		this.result = result;
 	}
-	
-	/**
-	 * Get the key permanently associated with this sessionentity
-	 */
-	public Key<?> getKey () {
-		return this.key;
+
+	/** */
+	public SessionValue(Result<T> result, List<Upgrade> upgrades) {
+		this(result);
+		this.upgrades.addAll(upgrades);
 	}
-	
-	/**
-	 * Get the stored result
-	 */
-	public Result<Entity> getResult() {
-		return this.result;
-	}
-	
-	/**
-	 * Set the stored result
-	 */
-	public void setResult(Result<Entity> value) {
-		this.result = value;
-	}
-	
-	/**
-	 * Our best effort at making a meaningful string for debugging.
-	 */
-	@Override
-	public String toString() {
-		return this.getClass().getSimpleName() + "(" + key + " -> " + result + ")";
+
+	/** */
+	public void addUpgrade(Upgrade upgrade) {
+		upgrades.add(upgrade);
 	}
 }

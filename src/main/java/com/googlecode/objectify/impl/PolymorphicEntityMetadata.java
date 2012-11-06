@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 
 
 /**
@@ -21,22 +21,22 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 {
 	/** Name of the out-of-band discriminator property in a raw Entity */
 	public static final String DISCRIMINATOR_PROPERTY = "^d";
-	
+
 	/** Name of the list property which will hold all indexed discriminator values */
 	public static final String DISCRIMINATOR_INDEX_PROPERTY = "^i";
-	
+
 	/** For every subclass, we maintain this info */
 	static class SubclassInfo<V>
 	{
 		/** */
 		public ConcreteEntityMetadata<V> metadata;
 
-		/** 
+		/**
 		 * The discriminator for this subclass, or null for the base class.
 		 */
 		public String discriminator;
 
-		/** 
+		/**
 		 * The discriminators that will be indexed for this subclass.  Empty for the base class or any
 		 * subclasses for which all discriminators are unindexed.
 		 */
@@ -60,7 +60,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 				return;
 
 			this.addIndexedDiscriminators(clazz.getSuperclass());
-			
+
 			EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 			if (sub != null && sub.index())
 			{
@@ -69,16 +69,16 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 			}
 		}
 	}
-	
+
 	/** The metadata for the base @Entity, which has no discriminator */
 	SubclassInfo<T> base;
-	
+
 	/** Keyed by discriminator value; doesn't include the base metdata */
 	Map<String, ConcreteEntityMetadata<? extends T>> byDiscriminator = new HashMap<String, ConcreteEntityMetadata<? extends T>>();
-	
+
 	/** Keyed by Class, includes the base class */
 	Map<Class<? extends T>, SubclassInfo<? extends T>> byClass = new HashMap<Class<? extends T>, SubclassInfo<? extends T>>();
-	
+
 	/**
 	 * Initializes this metadata structure with the specified class.
 	 * @param baseMetadata is the metadata for the @Entity class that defines the kind of the hierarchy
@@ -86,37 +86,37 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	public PolymorphicEntityMetadata(Class<T> clazz, ConcreteEntityMetadata<T> baseMetadata)
 	{
 		this.base = new SubclassInfo<T>(baseMetadata, null);
-		
+
 		this.byClass.put(clazz, this.base);
 	}
-	
+
 	/**
 	 * Registers an @EntitySubclass in a polymorphic hierarchy.
-	 * 
+	 *
 	 * @param clazz must have the @EntitySubclass annotation
 	 */
 	public <S extends T> void addSubclass(Class<S> clazz, ConcreteEntityMetadata<S> subclassMeta)
 	{
 		EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
 		assert sub != null;
-		
+
 		String discriminator = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
-		
+
 		SubclassInfo<S> info = new SubclassInfo<S>(subclassMeta, discriminator);
 		info.addIndexedDiscriminators(clazz);
-		
+
 		this.byClass.put(clazz, info);
-		
+
 		this.byDiscriminator.put(discriminator, subclassMeta);
 		for (String alsoLoad: sub.alsoLoad())
 			this.byDiscriminator.put(alsoLoad, subclassMeta);
 	}
-	
+
 	/**
 	 * If the entity is null, return the metadata for the root entity of the polymorphic hierarchy.
 	 * This will have the effect of making cache misses use the @Cached annotation of the @Entity.
-	 *  
-	 * @return the concrete entity metadata given the discriminator info 
+	 *
+	 * @return the concrete entity metadata given the discriminator info
 	 */
 	private EntityMetadata<? extends T> getConcrete(Entity ent)
 	{
@@ -124,7 +124,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 			return this.base.metadata;
 
 		String discriminator = (String)ent.getProperty(DISCRIMINATOR_PROPERTY);
-		
+
 		if (discriminator == null)
 			return this.base.metadata;
 
@@ -134,7 +134,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		else
 			return sub;
 	}
-	
+
 	/** @return the concrete entity metadata given the specific pojo */
 	private <S extends T> SubclassInfo<S> getConcrete(S pojo)
 	{
@@ -145,7 +145,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 		else
 			throw new IllegalStateException("The class '" + pojo.getClass().getName() + "' was not registered");
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.EntityMetadata#getCacheExpirySeconds()
 	 */
@@ -154,7 +154,7 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	{
 		return this.base.metadata.getCacheExpirySeconds();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.EntityMetadata#load(com.google.appengine.api.datastore.Entity, com.googlecode.objectify.Objectify)
 	 */
@@ -165,22 +165,22 @@ public class PolymorphicEntityMetadata<T> implements EntityMetadata<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#save(java.lang.Object, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#save(java.lang.Object, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	public Entity save(T pojo, Objectify ofy)
+	public Entity save(T pojo, SaveContext ctx)
 	{
 		SubclassInfo<T> info = this.getConcrete(pojo);
 
-		Entity ent = info.metadata.save(pojo, ofy);
-		
+		Entity ent = info.metadata.save(pojo, ctx);
+
 		// Now put the discriminator value in entity
 		if (info.discriminator != null)
 			ent.setUnindexedProperty(DISCRIMINATOR_PROPERTY, info.discriminator);
-		
+
 		if (!info.indexedDiscriminators.isEmpty())
 			ent.setProperty(DISCRIMINATOR_INDEX_PROPERTY, info.indexedDiscriminators);
-		
+
 		return ent;
 	}
 

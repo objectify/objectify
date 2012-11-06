@@ -15,10 +15,12 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
 
@@ -26,23 +28,23 @@ import com.googlecode.objectify.util.ResultWrapper;
  * This is the master logic for loading, saving, and deleting entities from the datastore.  It provides the
  * fundamental operations that enable the rest of the API.  One of these engines is created for every operation;
  * upon completion, it is thrown away.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class WriteEngine
 {
 	/** */
 	private static final Logger log = Logger.getLogger(WriteEngine.class.getName());
-	
+
 	/** */
 	protected ObjectifyImpl ofy;
-	
+
 	/** */
 	protected AsyncDatastoreService ads;
-	
+
 	/** */
 	protected Session session;
-	
+
 	/**
 	 */
 	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
@@ -50,22 +52,24 @@ public class WriteEngine
 		this.ads = ads;
 		this.session = session;
 	}
-	
+
 	/**
 	 * The fundamental put() operation.
 	 */
 	public <E> Result<Map<Key<E>, E>> save(final Iterable<? extends E> entities) {
-		
+
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
-		
+
+		final SaveContext ctx = new SaveContext(ofy);
+
 		final List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
 			} else {
 				EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
-				entityList.add(metadata.save(obj, ofy));
+				entityList.add(metadata.save(obj, ctx));
 			}
 		}
 
@@ -85,31 +89,28 @@ public class WriteEngine
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
-						KeyMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj).getKeyMetadata();
+						KeyMetadata<E> metadata = Keys.getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
 							metadata.setLongId(obj, k.getId());
 					}
-					
+
 					Key<E> key = Key.create(k);
 					result.put(key, obj);
+
+					// Also stuff this in the session
+					session.add(key, new SessionValue<Object>(new ResultNow<Object>(obj), ctx.getUpgrades(obj)));
 				}
 
-				// One pass through the entity list to update session cache values
-				for (Entity ent: entityList) {
-					SessionValue sv = new SessionValue(Key.create(ent.getKey()), new ResultNow<Entity>(ent)); 
-					session.add(sv);
-				}
-				
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Saved " + base);
-				
+
 				return result;
 			}
 		};
-		
+
 		if (ofy.getTxn() != null)
 			ofy.getTxn().enlist(result);
-		
+
 		return result;
 	}
 
@@ -123,15 +124,15 @@ public class WriteEngine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(new SessionValue(Key.create(key), new ResultNow<Entity>(null)));
-				
+					session.add(Key.create(key), new SessionValue<Object>(new ResultNow<Object>(null)));
+
 				return orig;
 			}
 		};
-		
+
 		if (ofy.getTxn() != null)
 			ofy.getTxn().enlist(result);
-		
+
 		return result;
 	}
 }

@@ -25,7 +25,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 {
 	/** */
 	protected ObjectifyFactory fact;
-	
+
 	/** */
 	protected Class<T> entityClass;
 
@@ -37,7 +37,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 
 	/** For translating between pojos and entities */
 	protected Transmog<T> transmog;
-	
+
 	/** The cached annotation, or null if entity should not be cached */
 	protected Cache cached;
 
@@ -50,10 +50,10 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 		this.fact = fact;
 		this.entityClass = clazz;
 		this.cached = clazz.getAnnotation(Cache.class);
-		
+
 		// Walk up the inheritance chain looking for @OnSave and @OnLoad
 		this.processLifecycleCallbacks(clazz);
-		
+
 		// Now figure out how to handle normal properties
 		this.transmog = new Transmog<T>(fact, clazz);
 	}
@@ -66,7 +66,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	{
 		return this.cached == null ? null : this.cached.expirationSeconds();
 	}
-	
+
 	/**
 	 * Recursive function which walks up the superclass hierarchy looking
 	 * for lifecycle-related methods (@OnSave and @OnLoad).
@@ -85,30 +85,30 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 			if (method.isAnnotationPresent(OnSave.class) || method.isAnnotationPresent(OnLoad.class))
 			{
 				method.setAccessible(true);
-				
+
 				Class<?>[] ptypes = method.getParameterTypes();
-				
+
 				for (int i=0; i<ptypes.length; i++)
 					if (ptypes[i] != Objectify.class && ptypes[i] != LoadContext.class && ptypes[i] != SaveContext.class)
 						throw new IllegalStateException("@OnSave and @OnLoad methods can only have parameters of type Objectify, LoadContext, or SaveContext");
-				
+
 				if (method.isAnnotationPresent(OnSave.class))
 				{
 					if (this.onSaveMethods == null)
 						this.onSaveMethods = new ArrayList<Method>();
-					
+
 					this.onSaveMethods.add(method);
 				}
-				
+
 				if (method.isAnnotationPresent(OnLoad.class))
 				{
 					if (this.onLoadMethods == null)
 						this.onLoadMethods = new ArrayList<Method>();
-					
+
 					this.onLoadMethods.add(method);
 				}
 			}
-			
+
 		}
 	}
 
@@ -119,14 +119,14 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	public T load(Entity ent, final LoadContext ctx)
 	{
 		final T pojo = this.transmog.load(ent, ctx);
-		
+
 		// If there are any @OnLoad methods, call them after everything else
 		ctx.deferB(new Runnable() {
 			@Override
 			public void run() {
 				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getLoader().getObjectify(), ctx, null);
 			}
-			
+
 			@Override
 			public String toString() {
 				return "(deferred invoke lifecycle callbacks on " + pojo + ")";
@@ -137,24 +137,22 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.EntityMetadata#toEntity(java.lang.Object, com.googlecode.objectify.Objectify)
+	 * @see com.googlecode.objectify.impl.EntityMetadata#save(java.lang.Object, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	public Entity save(T pojo, Objectify ofy)
+	public Entity save(T pojo, SaveContext ctx)
 	{
-		SaveContext ctx = new SaveContext(ofy);
-		
 		// If there are any @OnSave methods, call them
-		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ofy, null, ctx);
-		
+		this.invokeLifecycleCallbacks(this.onSaveMethods, pojo, ctx.getObjectify(), null, ctx);
+
 		Entity ent = this.transmog.save(pojo, ctx);
-		
+
 		return ent;
 	}
-	
+
 	/**
 	 * Invoke a set of @OnLoad/@OnSave lifecycle callbacks on the pojo.
-	 * 
+	 *
 	 * @param callbacks can be null if there are no callbacks
 	 * @param lctx is the load context if this is a load operation
 	 * @param sctx is the save context if this is a save operation
@@ -182,7 +180,7 @@ public class ConcreteEntityMetadata<T> implements EntityMetadata<T>
 							else
 								throw new IllegalStateException("Lifecycle callback cannot have parameter type " + ptype);
 						}
-						
+
 						method.invoke(pojo, params);
 					}
 		}

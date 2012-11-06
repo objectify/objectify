@@ -12,22 +12,15 @@ import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
- * This is just getting wacky, but there's a bug in there somewhere
+ * Trying to narrow down a specific problem.
  */
-public class LifecycleTests2 extends TestBase
+public class LifecycleTests3 extends TestBase
 {
 	/** */
 	@Entity
-	public static class Org {
+	public static class Event {
 		@Id Long id;
 		String foo;
-	}
-
-	/** */
-	@Entity
-	public static class Event {
-		@Load @Parent Ref<Org> org;
-		@Id Long id;
 	}
 
 	/** */
@@ -37,7 +30,7 @@ public class LifecycleTests2 extends TestBase
 		@Id Long id;
 
 		@OnLoad void onLoad() {
-			assert event.get().org.get().foo.equals("fooValue");
+			assert event.get().foo.equals("fooValue");
 		}
 	}
 
@@ -45,19 +38,14 @@ public class LifecycleTests2 extends TestBase
 	 * More complicated test of a more complicated structure
 	 */
 	@Test
-	public void testCrazyComplicated() throws Exception {
-		fact.register(Org.class);
+	public void loadingRefInOnLoad() throws Exception {
 		fact.register(Event.class);
 		fact.register(Product.class);
 
 		TestObjectify ofy = fact.begin();
 
-		Org org = new Org();
-		org.foo = "fooValue";
-		ofy.put(org);
-
 		Event event = new Event();
-		event.org = Ref.create(org);
+		event.foo = "fooValue";
 		ofy.put(event);
 
 		Product prod = new Product();
@@ -66,6 +54,6 @@ public class LifecycleTests2 extends TestBase
 
 		ofy.clear();
 		Product fetched = ofy.load().entity(prod).get();
-		assert fetched.event.get().org.get().foo.equals("fooValue");
+		assert fetched.event.get().foo.equals("fooValue");
 	}
 }

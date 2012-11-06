@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.engine;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -13,145 +14,184 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
+import com.googlecode.objectify.impl.Upgrade;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNow;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
  * right away, some work is done on the first get().  There might be multiple rounds of execution to process
  * all the @Load groups, but that is invisible outside this class.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class LoadEngine
 {
 	/** */
 	private static final Logger log = Logger.getLogger(LoadEngine.class.getName());
-	
-	/** 
+
+	/**
 	 * Each round in the series of fetches required to complete a batch.  A round executes when
 	 * the value is obtained (via now()) for a Result that was created as part of this round.
-	 * When a round executes, a new round is created. 
+	 * When a round executes, a new round is created.
 	 */
 	class Round {
-		/** When the round is complete (executed and lazily translated), this will hold all the data. */
-		Map<Key<?>, Object> translated;
-		
-		/** Entities that have been enlisted in this round. Might come from session, might need to be fetched. */
-		Map<Key<?>, Result<Entity>> enlisted = new HashMap<Key<?>, Result<Entity>>();
-		
+
 		/** The keys we will need to fetch; might not be any if everything came from the session */
 		Set<com.google.appengine.api.datastore.Key> pending = new HashSet<com.google.appengine.api.datastore.Key>();
 
-		/** If there were any pending, we will have fetched entities after execution */
-		Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched;
-		
-		/** 
+		/** Sometimes we get a bunch of Entity data from queries that eliminates our need to go to the backing datastore */
+		Map<com.google.appengine.api.datastore.Key, Entity> stuffed = new HashMap<com.google.appengine.api.datastore.Key, Entity>();
+
+		/** Entities that have been fetched and translated this round. There will be an entry for each pending. */
+		Result<Map<Key<?>, Object>> translated;
+
+		/**
 		 * Gets a result, using the session cache if possible.
 		 */
 		public <T> Result<T> get(final Key<T> key) {
-			SessionValue sv = session.get(key);
+			SessionValue<T> sv = session.get(key);
 			if (sv == null) {
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Adding to round (session miss): " + key);
-				
+
 				this.pending.add(key.getRaw());
-				
-				sv = new SessionValue(key, new Result<Entity>() {
+
+				Result<T> result = new ResultCache<T>() {
 					@Override
-					public Entity now() {
-						return fetched.now().get(key.getRaw());
+					@SuppressWarnings("unchecked")
+					public T nowUncached() {
+						return (T)translated.now().get(key);
 					}
-					
+
 					@Override
 					public String toString() {
 						return "(Fetch result for " + key + ")";
 					}
-				});
-				session.add(sv);
+				};
+
+				sv = new SessionValue<T>(result);
+				session.add(key, sv);
+
 			} else {
 				if (log.isLoggable(Level.FINEST))
 					log.finest("Adding to round (session hit): " + key);
 			}
-			
-			enlisted.put(key, sv.getResult());
-			
-			return new Result<T>() {
-				@Override
-				@SuppressWarnings("unchecked")
-				public T now() {
-					if (translated == null) {
-						if (log.isLoggable(Level.FINEST))
-							log.finest("Translating " + enlisted.keySet());
-						
-						translated = new HashMap<Key<?>, Object>(enlisted.values().size() * 2);
-						
-						LoadContext ctx = new LoadContext(loader, LoadEngine.this);
-						
-						for (Result<Entity> rent: enlisted.values()) {
-							Entity ent = rent.now();
-							if (ent != null) {
-								Key<?> key = Key.create(ent.getKey());
-								Object entity = ofy.load(ent, ctx);
-								translated.put(key, entity);
-							}
-						}
-						
-						ctx.done();
-					}
-					
-					return (T)translated.get(key);
-				}
 
-				@Override
-				public String toString() {
-					return "(Round result of " + key + ")";
+			// Check for any upgrades
+			if (!sv.getUpgrades().isEmpty()) {
+				Iterator<Upgrade> it = sv.getUpgrades().iterator();
+				while (it.hasNext()) {
+					Upgrade up = it.next();
+					if (shouldLoad(up.getProperty())) {
+						it.remove();
+						loadRef(up.getRef());
+					}
 				}
-			};
+			}
+
+			return sv.getResult();
 		}
-		
-		/** */
-		public boolean hasPending() {
-			return !pending.isEmpty();
-		}
-		
+
 		/** Turn this into a result set */
 		public void execute() {
 			if (log.isLoggable(Level.FINEST))
 				log.finest("Executing round: " + pending);
-			
+
 			if (!pending.isEmpty()) {
-				Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), pending);
-				fetched = new ResultAdapter<Map<com.google.appengine.api.datastore.Key, Entity>>(fut);
+				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
+
+				translated = new ResultCache<Map<Key<?>, Object>>() {
+
+					/** */
+					LoadContext ctx;
+
+					/** */
+					@Override
+					public Map<Key<?>, Object> nowUncached() {
+						Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(fetched.now().size() * 2);
+
+						ctx = new LoadContext(loader, LoadEngine.this);
+
+						for (Entity ent: fetched.now().values()) {
+							Key<?> key = Key.create(ent.getKey());
+							Object entity = ofy.load(ent, ctx);
+							result.put(key, entity);
+						}
+
+						return result;
+					}
+
+					/**
+					 * We need to execute the done() after the translated value has been set, otherwise we
+					 * can produce an infinite recursion problem.
+					 */
+					@Override
+					protected void postExecuteHook() {
+						ctx.done();
+						ctx = null;
+					}
+				};
 			}
 		}
-		
+
+		/** Possibly pulls some values from the stuffed collection */
+		private Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetchPending() {
+			// We don't need to fetch anything that has been stuffed
+
+			final Map<com.google.appengine.api.datastore.Key, Entity> combined = new HashMap<com.google.appengine.api.datastore.Key, Entity>();
+			Set<com.google.appengine.api.datastore.Key> fetch = new HashSet<com.google.appengine.api.datastore.Key>();
+
+			for (com.google.appengine.api.datastore.Key key: pending) {
+				Entity ent = stuffed.get(key);
+				if (ent == null)
+					fetch.add(key);
+				else
+					combined.put(key, ent);
+			}
+
+			if (fetch.isEmpty()) {
+				return new ResultNow<Map<com.google.appengine.api.datastore.Key, Entity>>(combined);
+			} else {
+				Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), fetch);
+				final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = ResultAdapter.create(fut);
+
+				return new Result<Map<com.google.appengine.api.datastore.Key, Entity>>() {
+					@Override
+					public Map<com.google.appengine.api.datastore.Key, Entity> now() {
+						combined.putAll(fetched.now());
+						return combined;
+					}
+				};
+			}
+		}
+
 		/** */
 		@Override
 		public String toString() {
 			return (translated == null ? "pending:" : "executed:") + pending.toString();
 		}
 	}
-	
+
 	/** */
 	LoaderImpl loader;
 	ObjectifyImpl ofy;
 	AsyncDatastoreService ads;
 	Session session;
-	
-	/** We recycle instances during each batch, across rounds */
-	Map<Key<?>, Result<?>> instanceCache = new HashMap<Key<?>, Result<?>>();
-	
+
 	/** The current round, replaced whenever the round executes */
 	Round round = new Round();
-	
+
 	/**
 	 */
 	public LoadEngine(LoaderImpl loader) {
@@ -159,11 +199,11 @@ public class LoadEngine
 		this.ofy = loader.getObjectifyImpl();
 		this.session = loader.getObjectifyImpl().getSession();
 		this.ads = loader.getObjectifyImpl().createAsyncDatastoreService();
-		
+
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Starting load engine with groups " + loader.getLoadGroups());
 	}
-	
+
 	/**
 	 * The fundamental ref() operation.
 	 */
@@ -172,7 +212,7 @@ public class LoadEngine
 		Result<Object> result = (Result<Object>)this.getResult(ref.key());
 		((Ref<Object>)ref).set(result);
 	}
-	
+
 	/**
 	 * Convenience method that creates a new ref and loads it
 	 */
@@ -181,24 +221,19 @@ public class LoadEngine
 		loadRef(ref);
 		return ref;
 	}
-	
+
 	/**
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
-	 * Also will recursively populate the instanceCache with @Load parents as appropriate.
+	 * Also will recursively prepare the session with @Load parents as appropriate.
 	 */
 	public <T> Result<T> getResult(Key<T> key) {
-		@SuppressWarnings("unchecked")
-		Result<T> result = (Result<T>)instanceCache.get(key);
-		if (result == null) {
-			result = round.get(key);
-			instanceCache.put(key, result);
-		}
-		
-		// Now check to see if we need to recurse and add our parent to the round
+		Result<T> result = round.get(key);
+
+		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
-			EntityMetadata<?> meta = ofy.getFactory().getMetadata(key);
+			KeyMetadata<?> meta = Keys.getMetadata(key);
 			if (meta != null) {
-				if (meta.getKeyMetadata().shouldLoadParent(loader.getLoadGroups())) {
+				if (meta.shouldLoadParent(loader.getLoadGroups())) {
 					getResult(key.getParent());
 				}
 			}
@@ -206,7 +241,7 @@ public class LoadEngine
 
 		return result;
 	}
-	
+
 	/**
 	 * Starts asychronous fetching of the batch.
 	 */
@@ -215,7 +250,33 @@ public class LoadEngine
 		round = new Round();
 		old.execute();
 	}
-	
+
+	/**
+	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
+	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
+	 *
+	 * @param rootEntity is the entity key which holds this property (possibly thorugh some level of embedded objects)
+	 */
+	public <T> Ref<T> makeRef(Key<?> rootEntity, Property property, Key<T> key) {
+		Ref<T> ref = Ref.create(key);
+
+		if (shouldLoad(property)) {
+			loadRef(ref);
+		} else {
+			// Only if there is any potential for upgrade
+			Load load = property.getAnnotation(Load.class);
+			if (load != null) {
+				// add it to the possible list of upgrades
+				SessionValue<?> sv = session.get(rootEntity);
+				if (sv != null) {
+					sv.addUpgrade(new Upgrade(property, ref));
+				}
+			}
+		}
+
+		return ref;
+	}
+
 	/**
 	 * @return true if the specified property should be loaded in this batch
 	 */
@@ -224,9 +285,10 @@ public class LoadEngine
 	}
 
 	/**
-	 * Stuffs an Entity into the session.  Called by non-hybrid queries to add results and eliminate batch fetching.
+	 * Stuffs an Entity into a place where values in the round can be obtained instead of going to the datastore.
+	 * Called by non-hybrid queries to add results and eliminate batch fetching.
 	 */
-	public void stuffSession(Entity ent) {
-		session.add(new SessionValue(Key.create(ent.getKey()), new ResultNow<Entity>(ent)));
+	public void stuff(Entity ent) {
+		round.stuffed.put(ent.getKey(), ent);
 	}
 }

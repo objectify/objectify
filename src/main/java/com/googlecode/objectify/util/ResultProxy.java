@@ -16,7 +16,7 @@ import com.googlecode.objectify.Result;
 public class ResultProxy<T> implements InvocationHandler
 {
 	/**
-	 * Converts an Iterable into a list asynchronously, using the ResultProxy. 
+	 * Converts an Iterable into a list asynchronously, using the ResultProxy.
 	 */
 	public static <S> List<S> makeAsyncList(Iterable<S> it) {
 		Result<List<S>> result = new ResultTranslator<Iterable<S>, List<S>>(it) {
@@ -25,11 +25,11 @@ public class ResultProxy<T> implements InvocationHandler
 				List<S> list = new ArrayList<S>();
 				for (S s: from)
 					list.add(s);
-				
+
 				return list;
 			}
 		};
-		
+
 		return create(List.class, result);
 	}
 
@@ -40,9 +40,9 @@ public class ResultProxy<T> implements InvocationHandler
 	public static <S> S create(Class<? super S> interf, Result<S> result) {
 		return (S)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<S>(result));
 	}
-	
+
 	Result<T> result;
-	
+
 	private ResultProxy(Result<T> result) {
 		this.result = result;
 	}

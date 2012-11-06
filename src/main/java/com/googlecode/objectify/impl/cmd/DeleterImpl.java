@@ -8,18 +8,19 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.impl.Keys;
 
 
 /**
  * Implementation of the Delete command.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 class DeleterImpl implements Deleter
 {
 	/** */
 	ObjectifyImpl ofy;
-	
+
 	/** */
 	DeleterImpl(ObjectifyImpl ofy) {
 		this.ofy = ofy;
@@ -48,7 +49,7 @@ class DeleterImpl implements Deleter
 	public Result<Void> keys(Key<?>... keys) {
 		return this.keys(Arrays.asList(keys));
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Iterable)
 	 */
@@ -76,7 +77,7 @@ class DeleterImpl implements Deleter
 	public Result<Void> entities(Iterable<?> entities) {
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Object obj: entities)
-			keys.add(ofy.getFactory().getRawKey(obj));
+			keys.add(Keys.toRawKey(obj));
 
 		return ofy.createWriteEngine().delete(keys);
 	}
