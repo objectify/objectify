@@ -152,11 +152,13 @@ public class ObjectifyFactory
 	 *
 	 * <ul>
 	 * <li>Do NOT begin a transaction.</li>
-	 * <li>Do NOT use a session cache.</li>
 	 * <li>DO use a global cache.</li>
 	 * <li>Use STRONG consistency.</li>
 	 * <li>Apply no deadline to calls.</li>
 	 * </ul>
+	 *
+	 * <p>Note that when using Objectify you will almost never directly call this method.  Instead you
+	 * should call the static ofy() method on ObjectifyService.</p>
 	 *
 	 * @return a new Objectify instance
 	 */
