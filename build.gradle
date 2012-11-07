@@ -78,6 +78,7 @@ uploadArchives {
 			}
 
 			pom.project {
+				name 'Objectify App Engine'
 				packaging 'jar'
 				description project.description
 				url 'http://code.google.com/p/objectify-appengine/'
