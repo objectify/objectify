@@ -245,4 +245,22 @@ public class BasicTests extends TestBase
 		System.out.println("Result is " + result);
 		assert result.size() == 0;
 	}
+
+	/** */
+	@Test
+	public void simpleFetchById() throws Exception
+	{
+		fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		Trivial triv1 = new Trivial("foo5", 5);
+
+		ofy.save().entity(triv1).now();
+
+		ofy.clear();
+
+		Trivial fetched = ofy.load().type(Trivial.class).id(triv1.getId()).get();
+
+		assert fetched.getSomeString().equals(triv1.getSomeString());
+	}
 }
