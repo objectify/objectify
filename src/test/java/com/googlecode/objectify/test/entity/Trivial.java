@@ -5,6 +5,8 @@
 
 package com.googlecode.objectify.test.entity;
 
+import java.io.Serializable;
+
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -13,22 +15,24 @@ import com.googlecode.objectify.annotation.Unindex;
 
 /**
  * A trivial entity with some basic data.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Entity
 @Index
 @Cache
-public class Trivial
+public class Trivial implements Serializable
 {
+	private static final long serialVersionUID = 1L;
+
 	@Id Long id;
 	public Long getId() { return this.id; }
 	public void setId(Long value) { this.id = value; }
-	
+
 	String someString;
 	public String getSomeString() { return this.someString; }
 	public void setSomeString(String value) { this.someString = value; }
-	
+
 	@Unindex
 	long someNumber;
 	public long getSomeNumber() { return this.someNumber; }
@@ -36,7 +40,7 @@ public class Trivial
 
 	/** Default constructor must always exist */
 	public Trivial() {}
-	
+
 	/** Constructor to use when autogenerating an id */
 	public Trivial(String someString, long someNumber)
 	{
@@ -50,7 +54,7 @@ public class Trivial
 		this.someNumber = someNumber;
 		this.someString = someString;
 	}
-	
+
 	@Override
 	public String toString()
 	{
