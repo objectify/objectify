@@ -5,3 +5,4 @@ test-output
 .svn
 .gwt
 .gradle
+.DS_Store
