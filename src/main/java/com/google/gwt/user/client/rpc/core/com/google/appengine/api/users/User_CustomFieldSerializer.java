@@ -1,5 +1,6 @@
-package com.google.appengine.api.users;
+package com.google.gwt.user.client.rpc.core.com.google.appengine.api.users;
 
+import com.google.appengine.api.users.User;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.client.rpc.SerializationStreamReader;
 import com.google.gwt.user.client.rpc.SerializationStreamWriter;

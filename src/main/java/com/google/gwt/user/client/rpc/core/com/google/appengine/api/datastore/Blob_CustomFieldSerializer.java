@@ -1,21 +1,22 @@
-package com.google.appengine.api.datastore;
+package com.google.gwt.user.client.rpc.core.com.google.appengine.api.datastore;
 
+import com.google.appengine.api.datastore.Blob;
 import com.google.gwt.user.client.rpc.SerializationException;
 import com.google.gwt.user.client.rpc.SerializationStreamReader;
 import com.google.gwt.user.client.rpc.SerializationStreamWriter;
 
 /**
- * Custom field serializer for the datastore ShortBlob class
+ * Custom field serializer for the datastore Blob class
  */
-public class ShortBlob_CustomFieldSerializer
+public class Blob_CustomFieldSerializer
 {
-	public static void deserialize(SerializationStreamReader streamReader, ShortBlob instance)
+	public static void deserialize(SerializationStreamReader streamReader, Blob instance)
 			throws SerializationException
 	{
 		// already handled in instantiate
 	}
 
-	public static ShortBlob instantiate(SerializationStreamReader streamReader)
+	public static Blob instantiate(SerializationStreamReader streamReader)
 			throws SerializationException
 	{
 		byte[] bytes;
@@ -28,10 +29,10 @@ public class ShortBlob_CustomFieldSerializer
 				bytes[i] = streamReader.readByte();
 			}
 		}
-		return new ShortBlob(bytes);
+		return new Blob(bytes);
 	}
 
-	public static void serialize(SerializationStreamWriter streamWriter, ShortBlob instance)
+	public static void serialize(SerializationStreamWriter streamWriter, Blob instance)
 			throws SerializationException
 	{
 		byte[] bytes = instance.getBytes();
