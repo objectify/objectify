@@ -12,6 +12,7 @@ import com.google.gwt.user.server.rpc.impl.ServerSerializationStreamReader;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.ref.StdRef;
 
+@SuppressWarnings("rawtypes")
 public class StdRef_ServerCustomFieldSerializer extends ServerCustomFieldSerializer<StdRef>
 {
 
@@ -40,4 +41,5 @@ public class StdRef_ServerCustomFieldSerializer extends ServerCustomFieldSeriali
         streamWriter.writeObject(instance.getKey());
         streamWriter.writeObject(instance.getValue());
     }
+    
 }

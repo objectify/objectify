@@ -7,6 +7,7 @@ import com.google.gwt.user.client.rpc.SerializationStreamWriter;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.ref.StdRef;
 
+@SuppressWarnings("rawtypes")
 public class StdRef_CustomFieldSerializer extends CustomFieldSerializer<StdRef>
 {
 
