@@ -18,7 +18,7 @@ dependencies {
 	compile (
 		'com.google.appengine:appengine-api-1.0-sdk:1.7.2',
 		'com.google.appengine:appengine-api-labs:1.7.2',
-		'com.google.gwt:gwt-user:2.5.0-rc1',
+		'com.google.gwt:gwt-user:2.5.0',
 
 		// some optional components at runtime
 		'joda-time:joda-time:2.1',
