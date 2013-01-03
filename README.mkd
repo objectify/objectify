@@ -4,7 +4,7 @@ This is the Objectify opensource project.
 * https://objectify-appengine.googlecode.com/ - The official project documentation
 and repository are here.
 
-##Forum
+##Discussion
 * [Objectify App Engine User Group](https://groups.google.com/forum/?fromgroups#!forum/objectify-appengine) 
 
 ##Git
@@ -13,27 +13,29 @@ submit pull requests) is available here:
 
 * https://github.com/stickfigure/objectify
 
-##BUILDING:
-
-* This project builds with Gradle.  
+##BUILDING
+This project is built with Gradle.
+  
 * Install Gradle and then run "gradle build".
 * Don't be confused by the vestigial ant/ivy files which will someday be removed.
 
 ##DEVELOPMENT:
-Install the Gradle IDE in Eclipse.
+Install the Gradle Eclipse plugin.
 
 * [Juno Installation Instructions](http://blog.springsource.org/2012/03/14/early-access-springsource-tool-suite-for-eclipse-juno-4-2/)
-
-##GWT
-Add this to your GWT project module which looks something like myproject.gwt.xml
-
-```
-<inherits name="com.googlecode.objectify.Objectify"/>
-```
 
 ##Development Sandbox
 Setting up the source for a development sandbox with Eclipse. 
 
 1. Link Objectify src. It might look something like this sandboxproject/src_objectify = git/objectify/src/main/java
-2. Link Objectify resources. It might look something like this  sandboxproject/src_objectify_resources = git/objectify/src/main/resources
+2. If your using GWT, Link Objectify resources. It might look something like this  sandboxproject/src_objectify_resources = git/objectify/src/main/resources
+ - Note the supersource will look like it has errors because of the re-rooted classes.  
 3. Add the needed dependencies in the sandbox project via maven or gradle. 
+
+
+##GWT
+Add this to your GWT project module.
+
+    ```
+    <inherits name="com.googlecode.objectify.Objectify"/>
+    ```
