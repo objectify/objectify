@@ -2,7 +2,7 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
-import com.googlecode.objectify.Ref;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.Keys;
 
@@ -18,75 +18,71 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 {
     private static final long serialVersionUID = 2L;
 
-//    /** Key.create(key) is easier to type than new Key<Blah>(key) */
-//    public static <T> Key<T> create(com.google.appengine.api.datastore.Key raw)
+    /** Key.create(key) is easier to type than new Key<Blah>(key) */
+    public static <T> Key<T> create(com.google.appengine.api.datastore.Key raw)
+    {
+        if (raw == null)
+            throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
+
+        return new Key<T>(raw);
+    }
+
+//    /**
+//     * Key.create(Blah.class, id) is easier to type than new
+//     * Key<Blah>(Blah.class, id)
+//     */
+//    public static <T> Key<T> create(Class<? extends T> kindClass, long id)
 //    {
-//        if (raw == null)
-//            throw new NullPointerException(
-//                    "Cannot create a Key<?> from a null datastore Key");
-//
-//        return new Key<T>(raw);
+//        return new Key<T>(kindClass, id);
 //    }
 
-    /**
-     * Key.create(Blah.class, id) is easier to type than new
-     * Key<Blah>(Blah.class, id)
-     */
-    public static <T> Key<T> create(Class<? extends T> kindClass, long id)
-    {
-        return new Key<T>(kindClass, id);
-    }
+//    /**
+//     * Key.create(Blah.class, name) is easier to type than new
+//     * Key<Blah>(Blah.class, name)
+//     */
+//    public static <T> Key<T> create(Class<? extends T> kindClass, String name)
+//    {
+//        return new Key<T>(kindClass, name);
+//    }
 
-    /**
-     * Key.create(Blah.class, name) is easier to type than new
-     * Key<Blah>(Blah.class, name)
-     */
-    public static <T> Key<T> create(Class<? extends T> kindClass, String name)
-    {
-        return new Key<T>(kindClass, name);
-    }
+//    /**
+//     * Key.create(parent, Blah.class, id) is easier to type than new
+//     * Key<Blah>(parent, Blah.class, id)
+//     */
+//    public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, long id)
+//    {
+//        return new Key<T>(parent, kindClass, id);
+//    }
 
-    /**
-     * Key.create(parent, Blah.class, id) is easier to type than new
-     * Key<Blah>(parent, Blah.class, id)
-     */
-    public static <T> Key<T> create(Key<?> parent,
-            Class<? extends T> kindClass, long id)
-    {
-        return new Key<T>(parent, kindClass, id);
-    }
+//    /**
+//     * Key.create(parent, Blah.class, name) is easier to type than new
+//     * Key<Blah>(parent, Blah.class, name)
+//     */
+//    public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, String name)
+//    {
+//        return new Key<T>(parent, kindClass, name);
+//    }
 
-    /**
-     * Key.create(parent, Blah.class, name) is easier to type than new
-     * Key<Blah>(parent, Blah.class, name)
-     */
-    public static <T> Key<T> create(Key<?> parent,
-            Class<? extends T> kindClass, String name)
-    {
-        return new Key<T>(parent, kindClass, name);
-    }
+//    /**
+//     * Key.create(webSafeString) is easier to type than new
+//     * Key<Blah>(webSafeString)
+//     */
+//    public static <T> Key<T> create(String webSafeString)
+//    {
+//        if (webSafeString == null)
+//            throw new NullPointerException("Cannot create a Key<?> from a null String");
+//
+//        return new Key<T>(webSafeString);
+//    }
 
-    /**
-     * Key.create(webSafeString) is easier to type than new
-     * Key<Blah>(webSafeString)
-     */
-    public static <T> Key<T> create(String webSafeString)
-    {
-        if (webSafeString == null)
-            throw new NullPointerException(
-                    "Cannot create a Key<?> from a null String");
-
-        return new Key<T>(webSafeString);
-    }
-
-    /**
-     * This is an alias for Key.create(String) which exists for JAX-RS
-     * compliance.
-     */
-    public static <T> Key<T> valueOf(String webSafeString)
-    {
-        return Key.create(webSafeString);
-    }
+//    /**
+//     * This is an alias for Key.create(String) which exists for JAX-RS
+//     * compliance.
+//     */
+//    public static <T> Key<T> valueOf(String webSafeString)
+//    {
+//        return Key.create(webSafeString);
+//    }
 
 //    /** Create a key from a registered POJO entity. */
 //    public static <T> Key<T> create(T pojo)
@@ -111,17 +107,17 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
         this.raw = raw;
     }
 
-    /** Create a key with a long id */
-    private Key(Class<? extends T> kindClass, long id)
-    {
-        this(null, kindClass, id);
-    }
+//    /** Create a key with a long id */
+//    private Key(Class<? extends T> kindClass, long id)
+//    {
+//        this(null, kindClass, id);
+//    }
 
-    /** Create a key with a String name */
-    private Key(Class<? extends T> kindClass, String name)
-    {
-        this(null, kindClass, name);
-    }
+//    /** Create a key with a String name */
+//    private Key(Class<? extends T> kindClass, String name)
+//    {
+//        this(null, kindClass, name);
+//    }
 
 //    /** Create a key with a parent and a long id */
 //    private Key(Key<?> parent, Class<? extends T> kindClass, long id)
@@ -296,15 +292,13 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 //     * </p>
 //     * 
 //     * @throws IllegalArgumentException
-//     *             if a kind cannot be determined (ie no
-//     * @Entity in hierarchy).
+//     *             if a kind cannot be determined (ie no @Entity in hierarchy).
 //     */
 //    public static String getKind(Class<?> clazz)
 //    {
 //        String kind = getKindRecursive(clazz);
 //        if (kind == null)
-//            throw new IllegalArgumentException("Class hierarchy for " + clazz
-//                    + " has no @Entity annotation");
+//            throw new IllegalArgumentException("Class hierarchy for " + clazz + " has no @Entity annotation");
 //        else
 //            return kind;
 //    }
