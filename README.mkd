@@ -23,3 +23,17 @@ submit pull requests) is available here:
 Install the Gradle IDE in Eclipse.
 
 * [Juno Installation Instructions](http://blog.springsource.org/2012/03/14/early-access-springsource-tool-suite-for-eclipse-juno-4-2/)
+
+##GWT
+Add this to your GWT project module which looks something like myproject.gwt.xml
+
+```
+<inherits name="com.googlecode.objectify.Objectify"/>
+```
+
+##Development Sandbox
+Setting up the source for a development sandbox with Eclipse. 
+
+1. Link Objectify src. It might look something like this sandboxproject/src_objectify = git/objectify/src/main/java
+2. Link Objectify resources. It might look something like this  sandboxproject/src_objectify_resources = git/objectify/src/main/resources
+3. Add the needed dependencies in the sandbox project via maven or gradle. 
