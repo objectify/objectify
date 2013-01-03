@@ -16,6 +16,7 @@ import com.googlecode.objectify.impl.Keys;
  */
 public class Key<T> implements Serializable, Comparable<Key<?>>
 {
+    
     private static final long serialVersionUID = 2L;
 
     /** Key.create(key) is easier to type than new Key<Blah>(key) */
@@ -337,4 +338,5 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 //
 //        return null;
 //    }
+    
 }

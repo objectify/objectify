@@ -14,6 +14,7 @@ package com.googlecode.objectify;
  */
 public interface Result<T>
 {
+    
     /**
      * Waits if necessary for the computation to complete, and then retrieves
      * its result. If the computation produced an exception, it will be thrown
@@ -22,4 +23,5 @@ public interface Result<T>
      * @return the computed result
      */
     T now();
+    
 }

@@ -7,6 +7,7 @@ import java.io.Serializable;
  */
 public class User implements Serializable, Comparable<User>
 {
+    
 	static final long serialVersionUID = 8691571286358652288L;
 	
 	private String email;

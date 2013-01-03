@@ -14,6 +14,7 @@ import com.googlecode.objectify.util.ResultNow;
  */
 public class StdRef<T> extends Ref<T>
 {
+
     private static final long serialVersionUID = 1L;
 
     /** The key associated with this ref */
@@ -63,8 +64,7 @@ public class StdRef<T> extends Ref<T>
     public T get()
     {
         if (this.result == null)
-            throw new IllegalStateException(
-                    "Ref<?> value has not been initialized");
+            throw new IllegalStateException("Ref<?> value has not been initialized");
         else
             return this.result.now();
     }
@@ -92,4 +92,5 @@ public class StdRef<T> extends Ref<T>
     {
         this.result = result;
     }
+
 }

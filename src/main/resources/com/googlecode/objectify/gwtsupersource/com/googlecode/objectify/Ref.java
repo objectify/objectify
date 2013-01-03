@@ -23,6 +23,7 @@ import com.googlecode.objectify.Result;
  */
 public class Ref<T> implements Serializable, Comparable<Ref<T>>
 {
+    
     private static final long serialVersionUID = 1L;
 
     /** The key associated with this ref */
@@ -57,8 +58,7 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
     public static <T> Ref<T> create(Key<T> key)
     {
         if (key == null)
-            throw new NullPointerException(
-                    "Cannot create a Ref from a null key");
+            throw new NullPointerException("Cannot create a Ref from a null key");
 
         return new Ref<T>(key);
     }
@@ -71,11 +71,12 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
         return ref;
     }
 
-    // /** Creates a Ref from a registered pojo entity */
-    // public static <T> Ref<T> create(T value) {
-    // Key<T> key = Key.create(value);
-    // return null; // create(key, value);
-    // }
+//    /** Creates a Ref from a registered pojo entity */
+//    public static <T> Ref<T> create(T value)
+//    {
+//        Key<T> key = Key.create(value);
+//        return null; // create(key, value);
+//    }
 
     /**
      * @return the key associated with this Ref
@@ -95,8 +96,7 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
     public T get()
     {
         if (this.result == null)
-            throw new IllegalStateException(
-                    "Ref<?> value has not been initialized");
+            throw new IllegalStateException("Ref<?> value has not been initialized");
         else
             return this.result.now();
     }
@@ -154,25 +154,25 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
             return k;
     }
 
-    /**
-     * Obtain the entity value if it has been initialized, throwing an exception
-     * if the entity was not found.
-     * 
-     * @return the entity referenced
-     * @throws NotFoundException
-     *             if the specified entity was not found
-     * @throws IllegalStateException
-     *             if the value has not been initialized (say, through a
-     *             database fetch)
-     */
-    final public T safeGet()
-    {
-        T t = this.get();
-        // if (t == null)
-        // throw new NotFoundException(key());
-        // else
-        return t;
-    }
+//    /**
+//     * Obtain the entity value if it has been initialized, throwing an exception
+//     * if the entity was not found.
+//     * 
+//     * @return the entity referenced
+//     * @throws NotFoundException
+//     *             if the specified entity was not found
+//     * @throws IllegalStateException
+//     *             if the value has not been initialized (say, through a
+//     *             database fetch)
+//     */
+//    final public T safeGet()
+//    {
+//        T t = this.get();
+//        // if (t == null)
+//        // throw new NotFoundException(key());
+//        // else
+//        return t;
+//    }
 
     /** Comparison is based on key */
     @Override
@@ -185,8 +185,7 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
     @Override
     public boolean equals(Object obj)
     {
-        return obj != null && obj instanceof Ref
-                && key().equals(((Ref<?>) obj).key());
+        return obj != null && obj instanceof Ref && key().equals(((Ref<?>) obj).key());
     }
 
     /** Type-safe comparison for key equivalence */
@@ -214,4 +213,5 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
     {
         return this.getClass().getName() + "(" + key() + ")";
     }
+    
 }
