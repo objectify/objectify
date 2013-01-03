@@ -25,7 +25,7 @@ Install the Gradle Eclipse plugin.
 * [Juno Installation Instructions](http://blog.springsource.org/2012/03/14/early-access-springsource-tool-suite-for-eclipse-juno-4-2/)
 
 ##Development Sandbox
-Setting up the source for a development sandbox with Eclipse. 
+Setting up the source for a development sandbox with Eclipse. This will allow Objectify testing with out building a jar.
 
 1. Link Objectify src. It might look something like this sandboxproject/src_objectify = git/objectify/src/main/java
 2. If your using GWT, Link Objectify resources. It might look something like this  sandboxproject/src_objectify_resources = git/objectify/src/main/resources
