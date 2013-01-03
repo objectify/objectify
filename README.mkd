@@ -20,9 +20,10 @@ This project is built with Gradle.
 * Don't be confused by the vestigial ant/ivy files which will someday be removed.
 
 ##DEVELOPMENT:
-Install the Gradle Eclipse plugin.
+Install the Gradle Eclipse plugin. Read the contributing to objectify wiki. 
 
-* [Juno Installation Instructions](http://blog.springsource.org/2012/03/14/early-access-springsource-tool-suite-for-eclipse-juno-4-2/)
+* [Gradle Plugin Juno Installation Instructions](http://blog.springsource.org/2012/03/14/early-access-springsource-tool-suite-for-eclipse-juno-4-2/)
+* [Contributing to Objectify](https://code.google.com/p/objectify-appengine/wiki/ContributingToObjectify)
 
 ##Development Sandbox
 Setting up the source for a development sandbox with Eclipse. This will allow Objectify testing with out building a jar.
