@@ -16,8 +16,8 @@ repositories {
 
 dependencies {
 	compile (
-		'com.google.appengine:appengine-api-1.0-sdk:1.7.2',
-		'com.google.appengine:appengine-api-labs:1.7.2',
+		'com.google.appengine:appengine-api-1.0-sdk:1.7.4',
+		'com.google.appengine:appengine-api-labs:1.7.4',
 		'com.google.gwt:gwt-user:2.5.0-rc1',
 
 		// some optional components at runtime
@@ -32,8 +32,8 @@ dependencies {
 
 	testCompile (
 		'org.testng:testng:6.8',
-		'com.google.appengine:appengine-testing:1.7.2',
-		'com.google.appengine:appengine-api-stubs:1.7.2'
+		'com.google.appengine:appengine-testing:1.7.4',
+		'com.google.appengine:appengine-api-stubs:1.7.4'
 	)
 }
 
