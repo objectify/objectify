@@ -19,7 +19,6 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFilter;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Ref;
 
 /**
@@ -41,7 +40,7 @@ public class TestBase
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
 					// Our tests assume strong consistency
-					new LocalDatastoreServiceTestConfig(),//.setDefaultHighRepJobPolicyUnappliedJobPercentage(100),
+					new LocalDatastoreServiceTestConfig().setAlternateHighRepJobPolicyClass(AlwaysApplyJobPolicy.class),
 					new LocalMemcacheServiceTestConfig(),
 					new LocalTaskQueueTestConfig());
 	/** */
@@ -49,8 +48,7 @@ public class TestBase
 	public void setUp()
 	{
 		this.helper.setUp();
-		this.fact = new TestObjectifyFactory();
-		ObjectifyService.setFactory(this.fact);	// just in case
+		this.fact = TestObjectifyService.factory();
 	}
 
 	/** */
