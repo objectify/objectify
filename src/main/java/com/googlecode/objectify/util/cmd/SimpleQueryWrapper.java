@@ -11,7 +11,7 @@ import com.googlecode.objectify.cmd.SimpleQuery;
 
 /**
  * Simple wrapper/decorator for a SimpleQuery.  Use it like this:
- * {@code class MySimpleQuery<T> extends SimpleQueryWrapper<MyQuery<T>, T>} 
+ * {@code class MySimpleQuery<T> extends SimpleQueryWrapper<MyQuery<T>, T>}
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -19,13 +19,13 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 {
 	/** */
 	SimpleQuery<T> base;
-	
+
 	/** */
-	public SimpleQueryWrapper(SimpleQuery<T> base) 
+	public SimpleQueryWrapper(SimpleQuery<T> base)
 	{
 		this.base = base;
 	}
-	
+
 	@Override
 	public H filterKey(String condition, Object value)
 	{
@@ -33,7 +33,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.filterKey(condition, value);
 		return next;
 	}
-	
+
 	@Override
 	public SimpleQuery<T> filterKey(Object value)
 	{
@@ -41,7 +41,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.filterKey(value);
 		return next;
 	}
-	
+
 	@Override
 	public H ancestor(Object keyOrEntity)
 	{
@@ -49,7 +49,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.ancestor(keyOrEntity);
 		return next;
 	}
-	
+
 	@Override
 	public H limit(int value)
 	{
@@ -57,7 +57,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.limit(value);
 		return next;
 	}
-	
+
 	@Override
 	public H offset(int value)
 	{
@@ -127,7 +127,15 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 		next.base = base.chunkAll();
 		return next;
 	}
-	
+
+	@Override
+	public H distinct(boolean value)
+	{
+		H next = this.clone();
+		next.base = base.distinct(value);
+		return next;
+	}
+
 	@Override
 	public H hybrid(boolean force)
 	{
@@ -141,7 +149,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 	{
 		return base.iterator();
 	}
-	
+
 	@Override
 	public QueryKeys<T> keys()
 	{

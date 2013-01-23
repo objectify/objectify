@@ -271,6 +271,11 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		this.actual.setKeysOnly();
 	}
 
+	/** Modifies the instance */
+	void setDistinct(boolean value) {
+		this.actual.setDistinct(value);
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
@@ -347,6 +352,9 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 
 		if (this.endAt != null)
 			bld.append(",endAt=").append(this.endAt.toWebSafeString());
+
+		if (this.actual.getDistinct())
+			bld.append(",distinct=true");
 
 		bld.append('}');
 

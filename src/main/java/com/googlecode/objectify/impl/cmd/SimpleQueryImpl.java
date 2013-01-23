@@ -9,21 +9,21 @@ import com.googlecode.objectify.cmd.SimpleQuery;
 /**
  * Base for command classes that include methods for defining a query (filter, order, limit, etc).
  * Does not include the methods for executing a query.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
 	protected LoaderImpl loader;
-	
+
 	/**
 	 * There is a special case - if loader is null, use 'this' as the LoaderImpl
 	 */
 	SimpleQueryImpl(LoaderImpl loader) {
 		this.loader = loader == null ? (LoaderImpl)this : loader;
 	}
-	
+
 	/**
 	 * Create an initial query object; for a real FindType this will have a class, otherwise it will be generic.
 	 * For the real QueryImpl itself this is a clone() operation.
@@ -40,7 +40,7 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition, value);
 		return q;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#filterKey(java.lang.Object)
 	 */
@@ -49,7 +49,7 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	{
 		return filterKey("=", value);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Query#ancestor(java.lang.Object)
 	 */
@@ -115,7 +115,18 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		q.setChunk(value);
 		return q;
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#distinct(boolean)
+	 */
+	@Override
+	public QueryImpl<T> distinct(boolean value)
+	{
+		QueryImpl<T> q = createQuery();
+		q.setDistinct(value);
+		return q;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#hybrid(boolean)
 	 */
