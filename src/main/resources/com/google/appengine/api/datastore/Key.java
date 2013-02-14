@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+import com.google.appengine.api.datastore.AppIdNamespace;
+
 /**
  * GWT emulation class. Will not have the same hashCode() value as the non-emulated version.
  * This class does not transmit the appId, and when deserializing on the server side, it just uses
@@ -14,11 +16,13 @@ import java.util.LinkedList;
 public final class Key implements Serializable, Comparable<Key>
 {
 	static final long serialVersionUID = -448150158203091507L;
-	
+
 	private Key parentKey;
 	private String kind;
+	//private String appId;
 	private long id;
 	private String name;
+	//private transient AppIdNamespace appIdNamespace;
 
 	@SuppressWarnings("unused")
 	private Key()

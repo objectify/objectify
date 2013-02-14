@@ -4,8 +4,9 @@ import java.io.Serializable;
 import java.lang.String;
 
 /**
- * GWT emulation class. Will not have the same hashCode() value as the non-emulated version.
- * This class will not have the same toString() value as the non-emulated version.
+ * GWT emulation class, much different from the official source code because it only wraps the websafestring.
+ * Will not have the same hashCode() value as the non-emulated version. This class will not have the same
+ * toString() value as the non-emulated version.
  */
 @SuppressWarnings("serial")
 public final class Cursor implements Serializable

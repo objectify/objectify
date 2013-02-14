@@ -4,7 +4,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 
 /**
- * GWT emulation class.
+ * GWT emulation class, leaves off some references to not-gwt-safe code. In particular, the Comparable
+ * interface implementation.
  */
 @SuppressWarnings("serial")
 public class ShortBlob implements Serializable
