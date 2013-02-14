@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import com.google.appengine.api.datastore.AppIdNamespace;
-
 /**
  * GWT emulation class. Will not have the same hashCode() value as the non-emulated version.
  * This class does not transmit the appId, and when deserializing on the server side, it just uses

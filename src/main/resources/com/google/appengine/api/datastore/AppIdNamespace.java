@@ -2,9 +2,9 @@
 
 package com.google.appengine.api.datastore;
 
-import com.google.apphosting.api.NamespaceResources;
-
 import java.io.Serializable;
+
+import com.google.apphosting.api.NamespaceResources;
 
 /**
  * Abstraction for a "mangled" AppId.  A mangled AppId is a combination

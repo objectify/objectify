@@ -2,7 +2,6 @@
 package com.google.appengine.api.datastore;
 
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.net.URL;
 
 /**

@@ -1,7 +1,6 @@
 package com.google.appengine.api.datastore;
 
 import java.io.Serializable;
-import java.lang.String;
 
 /**
  * GWT emulation class, much different from the official source code because it only wraps the websafestring.

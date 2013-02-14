@@ -2,8 +2,6 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
-import com.googlecode.objectify.Key;
-
 /**
  * <p>We need to provide an alternate, stripped-down version of this so that we
  * can exclude the constructors that tie into non-GWT-safe code (the factories).</p>

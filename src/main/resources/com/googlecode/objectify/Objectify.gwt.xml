@@ -5,8 +5,9 @@
 	<inherits name="com.google.AppEngine"/>
 
 	<source path="">
-		<!-- Note that the java file included in the jar is a different resource than the normal Key -->
+		<!-- Note that the Key/Ref files are not the normal java files -->
 		<include name="Key.java" />
+		<include name="Ref.java" />
 		<include name="NotFoundException.java" />
 	</source>
 	<source path="condition">
