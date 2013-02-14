@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Link implements Serializable, Comparable<Link>
 {
-	private final String value;
+	private String value;
 
 	@SuppressWarnings("unused")
 	private Link()

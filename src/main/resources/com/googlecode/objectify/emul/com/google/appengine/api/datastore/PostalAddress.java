@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class PostalAddress implements Serializable, Comparable<PostalAddress>
 {
-	private final String address;
+	private String address;
 
 	public PostalAddress(String address)
 	{

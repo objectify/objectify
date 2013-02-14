@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Text implements Serializable
 {
-	private final String value;
+	private String value;
 
 	public Text(String value)
 	{

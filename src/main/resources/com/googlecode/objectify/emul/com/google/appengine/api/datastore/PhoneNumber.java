@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class PhoneNumber implements Serializable, Comparable<PhoneNumber>
 {
-	private final String number;
+	private String number;
 
 	public PhoneNumber(String number)
 	{

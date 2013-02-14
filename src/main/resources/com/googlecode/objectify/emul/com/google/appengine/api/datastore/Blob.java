@@ -9,7 +9,7 @@ import java.util.Arrays;
 @SuppressWarnings("serial")
 public class Blob implements Serializable
 {
-	private final byte bytes[];
+	private byte bytes[];
 
 	public Blob(byte bytes[])
 	{

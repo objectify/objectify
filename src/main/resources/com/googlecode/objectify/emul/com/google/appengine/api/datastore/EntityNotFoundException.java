@@ -7,15 +7,15 @@ package com.google.appengine.api.datastore;
 @SuppressWarnings("serial")
 public class EntityNotFoundException extends Exception
 {
-	private final Key key;
+	private Key key;
 
 	public EntityNotFoundException(Key key)
 	{
 		super("No entity was found matching the key: " + key);
-		
+
 		this.key = key;
 	}
-	
+
 	public Key getKey()
 	{
 		return this.key;

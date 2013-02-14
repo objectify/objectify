@@ -10,7 +10,7 @@ import java.lang.String;
 @SuppressWarnings("serial")
 public final class Cursor implements Serializable
 {
-	private final String webString;
+	private String webString;
 
 	public Cursor(String webString)
 	{

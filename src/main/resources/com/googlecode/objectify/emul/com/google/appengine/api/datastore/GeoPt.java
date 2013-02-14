@@ -8,8 +8,8 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class GeoPt implements Serializable, Comparable<GeoPt>
 {
-	private final float latitude;
-	private final float longitude;
+	private float latitude;
+	private float longitude;
 
 	public GeoPt(float latitude, float longitude)
 	{

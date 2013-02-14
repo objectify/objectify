@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Email implements Serializable, Comparable<Email>
 {
-	private final String email;
+	private String email;
 
 	@SuppressWarnings("unused")
 	private Email()

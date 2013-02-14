@@ -10,7 +10,7 @@ public class Rating implements Serializable, Comparable<Rating>
 {
 	public static final int MIN_VALUE = 0;
 	public static final int MAX_VALUE = 100;
-	private final int rating;
+	private int rating;
 
 	public Rating(int rating)
 	{

@@ -13,8 +13,8 @@ public class IMHandle implements Serializable, Comparable<IMHandle>
 		sip, unknown, xmpp
 	}
 
-	private final String protocol;
-	private final String address;
+	private String protocol;
+	private String address;
 
 	public IMHandle(Scheme scheme, String address)
 	{

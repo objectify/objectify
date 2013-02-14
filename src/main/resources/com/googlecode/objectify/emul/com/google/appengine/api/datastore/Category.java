@@ -8,7 +8,7 @@ import java.io.Serializable;
 @SuppressWarnings("serial")
 public class Category implements Serializable, Comparable<Category>
 {
-	private final String category;
+	private String category;
 
 	public Category(String category)
 	{

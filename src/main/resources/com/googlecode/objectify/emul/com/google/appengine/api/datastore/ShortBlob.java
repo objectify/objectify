@@ -9,7 +9,7 @@ import java.util.Arrays;
 @SuppressWarnings("serial")
 public class ShortBlob implements Serializable
 {
-	private final byte bytes[];
+	private byte bytes[];
 
 	@SuppressWarnings("unused")
 	private ShortBlob()
