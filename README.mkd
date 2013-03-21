@@ -10,9 +10,8 @@ https://github.com/stickfigure/objectify
 
 BUILDING:
 
-This project builds with Gradle.  Install Gradle and then run "gradle build".
-Don't be confused by the vestigial ant/ivy files which will someday be removed.
+This project builds with Maven. The gradle and ant build systems will be removed soon.
 
 DEVELOPMENT:
 
-Install the Gradle IDE in Eclipse. 
+Install the Gradle IDE in Eclipse.

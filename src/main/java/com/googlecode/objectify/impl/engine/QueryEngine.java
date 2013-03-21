@@ -171,10 +171,16 @@ public class QueryEngine
 		 */
 		@Override
 		public Cursor getCursor() {
-			if (offsetIntoBatch == 0)
+			if (offsetIntoBatch == 0) {
 				return source.getCursor();
-			else
-				return pq.asQueryResultIterator(FetchOptions.Builder.withStartCursor(baseCursor).offset(offsetIntoBatch).limit(0)).getCursor();
+			} else {
+				// There may not be a baseCursor if we haven't iterated yet
+				FetchOptions opts = FetchOptions.Builder.withDefaults();
+				if (baseCursor != null)
+					opts = opts.startCursor(baseCursor);
+
+				return pq.asQueryResultIterator(opts.offset(offsetIntoBatch).limit(0)).getCursor();
+			}
 		}
 
 		@Override
