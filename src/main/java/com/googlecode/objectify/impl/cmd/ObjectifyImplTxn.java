@@ -22,7 +22,7 @@ import com.googlecode.objectify.util.cmd.TransactionWrapper;
 /**
  * Implementation for when we start a transaction.  Maintains a separate session, but then copies all
  * data into the original session on successful commit.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ObjectifyImplTxn extends ObjectifyImpl
@@ -35,30 +35,37 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		 * before it is propagated to the parent session.
 		 */
 		List<Result<?>> enlisted = new ArrayList<Result<?>>();
-		
+
 		/** */
 		public TransactionImpl(Transaction raw) {
 			super(raw);
 		}
-		
+
 		/**
 		 * Enlist any operations that modify the session.
 		 */
 		public void enlist(Result<?> result) {
 			enlisted.add(result);
 		}
-		
+
 		@Override
 		public void commit() {
 			FutureHelper.quietGet(commitAsync());
 		}
-		
+
 		@Override
 		public Future<Void> commitAsync() {
-			// Complete any enlisted operations so that the session becomes consistent
-			for (Result<?> result: enlisted)
-				result.now();
-			
+			// Complete any enlisted operations so that the session becomes consistent. Note that some of the
+			// enlisted load operations might result in further enlistment... so we have to do this in a loop
+			// that protects against concurrent modification exceptions
+			while (!enlisted.isEmpty()) {
+				List<Result<?>> last = enlisted;
+				enlisted = new ArrayList<Result<?>>();
+
+				for (Result<?> result: last)
+					result.now();
+			}
+
 			return new SimpleFutureWrapper<Void, Void>(super.commitAsync()) {
 				@Override
 				protected Void wrap(Void nothing) throws Exception {
@@ -68,10 +75,10 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 			};
 		}
 	}
-	
+
 	/** The transaction to use.  If null, do not use transactions. */
 	protected Result<TransactionImpl> txn;
-	
+
 	/** The session is a simple hashmap */
 	protected Session parentSession;
 
@@ -79,7 +86,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	 */
 	public ObjectifyImplTxn(ObjectifyImpl parent) {
 		super(parent);
-		
+
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
 		Future<Transaction> fut = createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
@@ -89,12 +96,12 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 				return new TransactionImpl(raw);
 			}
 		};
-		
+
 		// Transactions get a new session, but are still linked to the old one
 		parentSession = session;
 		session = new Session();
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
@@ -111,7 +118,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 	public Objectify transaction() {
 		return transactionless().transaction();
 	}
-	
+
 	/**
 	 * This version goes back to life without a transaction, but preserves current state
 	 */
@@ -121,7 +128,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		impl.session = parentSession;
 		return impl;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.cmd.ObjectifyImpl#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
@@ -132,7 +139,7 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 			case REQUIRED:
 			case SUPPORTS:
 				return work.run();
-			
+
 			case NOT_SUPPORTED:
 				try {
 					Objectify ofy = ((ObjectifyImpl)transactionless()).getWrapper();
@@ -141,17 +148,17 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 				} finally {
 					ObjectifyService.pop();
 				}
-				
+
 			case NEVER:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
-				 
+
 			case REQUIRES_NEW:
 				return transact(work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
 		}
-		
+
 	}
 
 	/* (non-Javadoc)

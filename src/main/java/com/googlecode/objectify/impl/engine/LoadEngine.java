@@ -68,6 +68,11 @@ public class LoadEngine
 	public void loadRef(Ref<?> ref) {
 		Result<Object> result = (Result<Object>)this.getResult(ref.key());
 		((Ref<Object>)ref).set(result);
+
+		// If we are running a transaction, enlist the result so that it gets processed on commit even
+		// if the client never materializes the result.
+		if (ofy.getTxn() != null)
+			ofy.getTxn().enlist(result);
 	}
 
 	/**
