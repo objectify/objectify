@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
-import java.util.zip.ZipException;
 
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.annotation.Embed;
@@ -59,7 +58,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object>
 					boolean unzip = serializeAnno.zip();
 					try {
 						return readObject(bais, unzip);
-					} catch (ZipException ex) {
+					} catch (IOException ex) {	// will be one of ZipException or StreamCorruptedException
 						if (log.isLoggable(Level.INFO))
 							log.log(Level.INFO, "Error trying to deserialize object using unzip=" + unzip + ", retrying with " + !unzip, ex);
 
