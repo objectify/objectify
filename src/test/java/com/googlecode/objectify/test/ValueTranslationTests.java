@@ -19,6 +19,8 @@ import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
@@ -33,7 +35,7 @@ import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
  * Tests of type conversions.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ValueTranslationTests extends TestBase
@@ -41,7 +43,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(ValueTranslationTests.class.getName());
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -49,6 +51,16 @@ public class ValueTranslationTests extends TestBase
 	{
 		public @Id Long id;
 		public String string;
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	@Index
+	public static class HasStringIndexInversion
+	{
+		public @Id Long id;
+		@Unindex public String string;
 	}
 
 	/** */
@@ -68,7 +80,7 @@ public class ValueTranslationTests extends TestBase
 		public @Id Long id;
 		public String[] strings;
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -77,17 +89,17 @@ public class ValueTranslationTests extends TestBase
 		public @Id Long id;
 		public @Embed Name[] names;
 	}
-	
+
 	/** */
 	public final static String BIG_STRING;
 	static {
 		StringBuilder bld = new StringBuilder(501);
 		for (int i=0; i<501; i++)
 			bld.append('z');
-		
+
 		BIG_STRING = bld.toString();
 	}
-	
+
 	/**
 	 * Anything can be converted to a String
 	 */
@@ -95,20 +107,20 @@ public class ValueTranslationTests extends TestBase
 	public void numberToString() throws Exception
 	{
 		fact.register(HasString.class);
-		
+
 		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
-		
+
 		Entity ent = new Entity(Key.getKind(HasString.class));
 		ent.setProperty("string", 2);	// setting a number
 		ds.put(null, ent);
-		
+
 		Key<HasString> key = Key.create(ent.getKey());
 		HasString fetched = ofy.load().key(key).get();
-		
+
 		assert fetched.string.equals("2");	// should be a string
 	}
-	
+
 	/**
 	 * Strings can be converted to numbers
 	 */
@@ -116,20 +128,20 @@ public class ValueTranslationTests extends TestBase
 	public void stringToNumber() throws Exception
 	{
 		fact.register(HasNumber.class);
-		
+
 		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
-		
+
 		Entity ent = new Entity(Key.getKind(HasNumber.class));
 		ent.setProperty("number", "2");	// setting a string
 		ds.put(null, ent);
-		
+
 		Key<HasNumber> key = Key.create(ent.getKey());
 		HasNumber fetched = ofy.load().key(key).get();
-		
+
 		assert fetched.number == 2;	// should be a number
 	}
-	
+
 	/**
 	 * Strings greater than 500 chars get converted to Text and back.  This has
 	 * some potentially odd effects.
@@ -138,11 +150,11 @@ public class ValueTranslationTests extends TestBase
 	public void testBigStrings() throws Exception
 	{
 		this.fact.register(HasString.class);
-		
+
 		HasString has = new HasString();
 		has.string = BIG_STRING;
 		HasString fetched = this.putClearGet(has);
-		
+
 		assert fetched.string.equals(BIG_STRING);
 	}
 
@@ -157,7 +169,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasStringArray has = new HasStringArray();
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
-		
+
 		@SuppressWarnings("unused")
 		HasStringArray fetched = this.putClearGet(has);
 
@@ -174,20 +186,36 @@ public class ValueTranslationTests extends TestBase
 	public void testBigStringsInEmbeddedCollections() throws Exception
 	{
 		fact.register(HasNames.class);
-		
+
 		HasNames has = new HasNames();
 		has.names = new Name[] { new Name("Bob", BIG_STRING) };
-		
+
 		TestObjectify ofy = this.fact.begin();
 		try {
 			ofy.save().entity(has).now();
-			assert false : "You should not be able to put() embedded collections with big strings"; 
+			assert false : "You should not be able to put() embedded collections with big strings";
 		}
 		catch (SaveException ex) {
 			// Correct
 		}
 	}
-	
+
+	/**
+	 * Strings greater than 500 chars get converted to Text and back.  This has
+	 * some potentially odd effects.
+	 */
+	@Test
+	public void testBigStringsWithIndexInversion() throws Exception
+	{
+		this.fact.register(HasStringIndexInversion.class);
+
+		HasStringIndexInversion has = new HasStringIndexInversion();
+		has.string = BIG_STRING;
+		HasStringIndexInversion fetched = this.putClearGet(has);
+
+		assert fetched.string.equals(BIG_STRING);
+	}
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -196,7 +224,7 @@ public class ValueTranslationTests extends TestBase
 		public @Id Long id;
 		public byte[] stuff;
 	}
-	
+
 	/** */
 	@Test
 	public void testBlobConversion() throws Exception
@@ -205,12 +233,12 @@ public class ValueTranslationTests extends TestBase
 
 		Blobby b = new Blobby();
 		b.stuff = new byte[] { 1, 2, 3 };
-		
+
 		Blobby c = this.putClearGet(b);
-		
+
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
-	
+
 	/** For testSqlDateConversion() */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -219,7 +247,7 @@ public class ValueTranslationTests extends TestBase
 		public @Id Long id;
 		public java.sql.Date when;
 	}
-	
+
 	/** */
 	@Test
 	public void testSqlDateConversion() throws Exception
@@ -228,9 +256,9 @@ public class ValueTranslationTests extends TestBase
 
 		HasSqlDate hasDate = new HasSqlDate();
 		hasDate.when = new java.sql.Date(System.currentTimeMillis());
-		
+
 		HasSqlDate fetched = this.putClearGet(hasDate);
-		
+
 		assert hasDate.when.equals(fetched.when);
 	}
 
@@ -242,7 +270,7 @@ public class ValueTranslationTests extends TestBase
 		public @Id Long id;
 		public BigDecimal data;
 	}
-	
+
 	/** Make sure we can't execute without converter registration */
 	@Test
 	public void testAddedConversion1() throws Exception
@@ -251,7 +279,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
-		
+
 		try
 		{
 			this.putClearGet(hbd);
@@ -280,12 +308,12 @@ public class ValueTranslationTests extends TestBase
 				};
 			}
 		});
-		
+
 		this.fact.register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
-		
+
 		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
@@ -299,11 +327,11 @@ public class ValueTranslationTests extends TestBase
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
-		
+
 		HasBigDecimal fetched = this.putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasTimeZone
