@@ -3,13 +3,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<properties>
-		<gae.version>1.7.4</gae.version>
+		<gae.version>1.7.6</gae.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<groupId>com.googlecode.objectify</groupId>
 	<artifactId>objectify</artifactId>
-	<version>4.0b1</version>
+	<version>4.0b2</version>
 
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
@@ -48,24 +48,28 @@
 			<artifactId>joda-time</artifactId>
 			<version>2.1</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.joda</groupId>
 			<artifactId>joda-money</artifactId>
 			<version>0.6</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
 			<version>2.1.2</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
 			<version>2.1.2</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<!--  Not using this for compile currently
@@ -83,6 +87,7 @@
 			<artifactId>gwt-user</artifactId>
 			<version>2.5.0</version>
 			<scope>compile</scope>
+			<optional>true</optional>
 		</dependency>
 
 		<!-- Google App Engine -->
