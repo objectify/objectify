@@ -194,29 +194,28 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) throws IllegalArgumentException {
-		EntityMetadata<T> metadata = this.registrar.getMetadata(clazz);
-		if (metadata == null)
-			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
-		else
-			return metadata;
+		return this.registrar.getMetadataSafe(clazz);
 	}
 
 	/**
-	 * @return the metadata for a kind of entity based on its key, or null if the kind was not registered
+	 * @return the metadata for a kind of entity based on its key
+	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) {
-		return this.getMetadata(key.getKind());
+	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) throws IllegalArgumentException {
+		return this.registrar.getMetadataSafe(key.getKind());
 	}
 
 	/**
-	 * @return the metadata for a kind of entity based on its key, or null if the kind was not registered
+	 * @return the metadata for a kind of entity based on its key
+	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Key<T> key) {
-		return this.getMetadata(key.getKind());
+	public <T> EntityMetadata<T> getMetadata(Key<T> key) throws IllegalArgumentException {
+		return this.registrar.getMetadataSafe(key.getKind());
 	}
 
 	/**
-	 * Gets metadata for the specified kind, returning null if nothing registered
+	 * Gets metadata for the specified kind, returning null if nothing registered. This method is not like
+	 * the others because it returns null instead of throwing an exception if the kind is not found.
 	 * @return null if the kind is not registered.
 	 */
 	public <T> EntityMetadata<T> getMetadata(String kind) {
@@ -229,7 +228,7 @@ public class ObjectifyFactory
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadataForEntity(T obj) {
+	public <T> EntityMetadata<T> getMetadataForEntity(T obj) throws IllegalArgumentException {
 		// Type erasure sucks ass
 		return (EntityMetadata<T>)this.getMetadata(obj.getClass());
 	}

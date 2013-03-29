@@ -151,8 +151,7 @@ public class Registrar
 	 * @return the metadata for the specified kind, or null if there was nothing appropriate registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadata(String kind)
-	{
+	public <T> EntityMetadata<T> getMetadata(String kind) {
 		return (EntityMetadata<T>)this.byKind.get(kind);
 	}
 
@@ -160,8 +159,32 @@ public class Registrar
 	 * @return the metadata for the specified class, or null if there was nothing appropriate registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadata(Class<T> clazz)
-	{
+	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) {
 		return (EntityMetadata<T>)this.byClass.get(clazz);
 	}
+
+	/**
+	 * Gets metadata for the specified kind
+	 * @throws IllegalArgumentException if the kind has not been registered
+	 */
+	public <T> EntityMetadata<T> getMetadataSafe(String kind) throws IllegalArgumentException {
+		EntityMetadata<T> metadata = this.getMetadata(kind);
+		if (metadata == null)
+			throw new IllegalArgumentException("No class has been registered which matches kind '" + kind + "'");
+		else
+			return metadata;
+	}
+
+	/**
+	 * @return the metadata for a kind of typed object
+	 * @throws IllegalArgumentException if the kind has not been registered
+	 */
+	public <T> EntityMetadata<T> getMetadataSafe(Class<T> clazz) throws IllegalArgumentException {
+		EntityMetadata<T> metadata = this.getMetadata(clazz);
+		if (metadata == null)
+			throw new IllegalArgumentException("No class '" + clazz.getName() + "' was registered");
+		else
+			return metadata;
+	}
+
 }
