@@ -31,8 +31,10 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, SaveContext ctx) {
-				if (value.getValue() == null)
-					ctx.registerUpgrade(property, value);
+				// This used to skip registering upgrade if the ref value already had a value. The problem
+				// is that during load operations with additional load groups, transitive load operations
+				// in refs from *that* value would not be processed. We must always register the upgrades.
+				ctx.registerUpgrade(property, value);
 
 				return value.key().getRaw();
 			}
