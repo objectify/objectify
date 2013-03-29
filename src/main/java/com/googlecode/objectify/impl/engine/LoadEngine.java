@@ -130,9 +130,9 @@ public class LoadEngine
 			// Only if there is any potential for upgrade
 			Load load = property.getAnnotation(Load.class);
 			if (load != null) {
-				// add it to the possible list of upgrades
+				// add it to the list of upgrades
 				SessionValue<?> sv = session.get(rootEntity);
-				if (sv != null) {
+				if (sv != null) {	// can this ever be null?
 					sv.addUpgrade(new Upgrade(property, ref));
 				}
 			}
@@ -165,7 +165,7 @@ public class LoadEngine
 			while (it.hasNext()) {
 				Upgrade up = it.next();
 				if (shouldLoad(up.getProperty())) {
-					it.remove();
+					//it.remove();	// Do not remove upgrades! We need to preserve these or transitive loading of refs won't work.
 					loadRef(up.getRef());
 				}
 			}
