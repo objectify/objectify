@@ -1,3 +1,5 @@
+com.google.appengine.api.datastore
+com.google.appengine.api.users
 com.googlecode.objectify
 com.googlecode.objectify.annotation
 com.googlecode.objectify.cache
