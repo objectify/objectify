@@ -10,8 +10,8 @@ https://github.com/stickfigure/objectify
 
 BUILDING:
 
-This project builds with Maven. The gradle and ant build systems will be removed soon.
+This project builds with Maven.
 
 DEVELOPMENT:
 
-Install the Gradle IDE in Eclipse.
+Install the Maven plugin in Eclipse. To run tests, install the TestNG plugin.
