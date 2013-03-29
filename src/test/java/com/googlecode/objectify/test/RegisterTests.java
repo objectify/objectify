@@ -89,6 +89,12 @@ public class RegisterTests extends TestBase {
 	@Test
 	public void makeKeyWithoutRegstering() throws Exception {
 		Objectify ofy = this.fact.begin();
-		ofy.load().key(Key.create(Normal.class, 123L)).get();
+		Key<Normal> k = Key.create(Normal.class, 123L);
+		try {
+			ofy.load().key(k).get();
+			assert false;
+		} catch (IllegalArgumentException ex) {
+			// correct
+		}
 	}
 }
