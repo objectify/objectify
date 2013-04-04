@@ -91,7 +91,7 @@ public class WriteEngine
 					if (!(obj instanceof Entity)) {
 						KeyMetadata<E> metadata = Keys.getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
-							metadata.setLongId(obj, k.getId());
+							metadata.setGeneratedId(obj, k);
 					}
 
 					Key<E> key = Key.create(k);

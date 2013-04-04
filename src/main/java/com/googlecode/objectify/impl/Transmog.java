@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -144,8 +145,11 @@ public class Transmog<T>
 		if (root.containsKey(idName))
 			throw new IllegalStateException("Datastore Entity has a property whose name overlaps with the @Id field: " + fromEntity);
 
-		if (fromEntity.getKey().isComplete()) {
-			Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
+		com.google.appengine.api.datastore.Key key = fromEntity.getKey();
+		if (key != null && key.isComplete()) {
+			Object idValue = getKeyMetadata().getRawIdValue(fromEntity);
+			//Object idValue = (fromEntity.getKey().getName() != null) ? fromEntity.getKey().getName() : fromEntity.getKey().getId();
+			
 			root.path(idName).setPropertyValue(idValue);
 		}
 
@@ -355,6 +359,19 @@ public class Transmog<T>
 
 		Node idNode = (Node)root.remove(getKeyMetadata().getIdFieldName());
 		Object id = idNode == null ? null : idNode.getPropertyValue();
+		
+		if (id instanceof com.google.appengine.api.datastore.Key && parent != null) {
+			com.google.appengine.api.datastore.Key key = (com.google.appengine.api.datastore.Key)id;
+			if (key.getParent() == null) {
+				// if we're here, then the user didn't specify a parent on the Key instance, so we need to do that for them:
+				// (by extracting the meaningful portion of the Id and constructing a new key with it, placed under the specified parent)
+				id = key.getName() == null ? key.getId() : key.getName();
+			}
+			else if (!parent.equals(key.getParent())) {
+				// if we're here, then the user is trying to use a key with parent A, but a parent field with parent B:
+				throw new IllegalStateException("Invalid Parent/Id relationship. @Parent does not match @Id.parent on type " + getKeyMetadata().getKind() + " found id: " + key + " but found parent: " + parent);
+			}
+		}
 
 		Entity ent = (id == null)
 				? new Entity(getKeyMetadata().getKind(), parent)

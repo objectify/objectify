@@ -47,6 +47,8 @@ public interface KeyMetadata<T>
 	/** @return the name of the id field */
 	public String getIdFieldName();
 	
+	public Object getRawIdValue(Entity entity);
+	
 	/**
 	 * @return true if the entity has a parent field
 	 */
@@ -61,9 +63,19 @@ public interface KeyMetadata<T>
 	 * @return true if the id field is uppercase-Long, which can be genearted.
 	 */
 	public boolean isIdGeneratable();
-
+	
 	/**
-	 * Sets the numeric id field
+	 * @return true if the id field is a com.google.appengine.api.datastore.Key or Key<?> instance
 	 */
-	public void setLongId(T pojo, Long id);
+	public boolean isIdKey();
+
+//	/**
+//	 * Sets the numeric id field
+//	 */
+//	public void setLongId(T pojo, Long id);
+	
+	/**
+	 * Sets the Key id field
+	 */
+	public void setGeneratedId(T pojo, com.google.appengine.api.datastore.Key id);
 }
