@@ -2,6 +2,9 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+
 /**
  * <p>We need to provide an alternate, stripped-down version of this so that we
  * can exclude the constructors that tie into non-GWT-safe code (the factories).</p>
@@ -86,6 +89,16 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 			return (Key<V>)this;
 		else
 			return this.getParent().getRoot();
+	}
+
+	/** A type-safe equivalence comparison */
+	public boolean equivalent(Key<T> other) {
+		return equals(other);
+	}
+
+	/** A type-safe equivalence comparison */
+	public boolean equivalent(Ref<T> other) {
+		return (other == null) ? false : equals(other.key());
 	}
 
 	/**

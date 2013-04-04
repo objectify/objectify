@@ -34,6 +34,9 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		return new Ref<T>(value);
 	}
 
+	/** For GWT */
+	private Ref() {}
+
 	/** */
 	public Ref(Key<T> key) {
 		this.key = key;
@@ -128,6 +131,6 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	/** Renders some info about the key */
 	@Override
 	public String toString() {
-		return this.getClass().getSimpleName() + "(" + key() + ")";
+		return "Ref<?>(" + key() + ")";
 	}
 }

@@ -6,7 +6,7 @@ import java.util.List;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.Upgrade;
+import com.googlecode.objectify.impl.Reference;
 import com.googlecode.objectify.util.IdentityMultimapList;
 
 /**
@@ -26,7 +26,7 @@ public class SaveContext
 	 * Potential upgrades found during the save process; key is the pojo entity itself (its identity).
 	 * The problem is that when saving, the id may not be set yet, so we can't track keys.
 	 */
-	IdentityMultimapList<Object, Upgrade> upgrades = new IdentityMultimapList<Object, Upgrade>();
+	IdentityMultimapList<Object, Reference> references = new IdentityMultimapList<Object, Reference>();
 
 	/** */
 	public SaveContext(Objectify ofy) {
@@ -42,13 +42,13 @@ public class SaveContext
 	}
 
 	/** */
-	public void registerUpgrade(Property prop, Ref<?> ref) {
-		upgrades.add(currentRoot, new Upgrade(prop, ref));
+	public void registerReference(Property prop, Ref<?> ref) {
+		references.add(currentRoot, new Reference(prop, ref));
 	}
 
 	/** @return an empty list if no upgrades found */
-	public List<Upgrade> getUpgrades(Object pojo) {
-		List<Upgrade> list = upgrades.get(pojo);
+	public List<Reference> getReferences(Object pojo) {
+		List<Reference> list = references.get(pojo);
 		if (list == null)
 			return Collections.emptyList();
 		else

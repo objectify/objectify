@@ -34,7 +34,7 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 				// This used to skip registering upgrade if the ref value already had a value. The problem
 				// is that during load operations with additional load groups, transitive load operations
 				// in refs from *that* value would not be processed. We must always register the upgrades.
-				ctx.registerUpgrade(property, value);
+				ctx.registerReference(property, value);
 
 				return value.key().getRaw();
 			}

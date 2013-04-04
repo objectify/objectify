@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl.engine;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
@@ -17,10 +16,10 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.Reference;
 import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
-import com.googlecode.objectify.impl.Upgrade;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -133,7 +132,7 @@ public class LoadEngine
 				// add it to the list of upgrades
 				SessionValue<?> sv = session.get(rootEntity);
 				if (sv != null) {	// can this ever be null?
-					sv.addUpgrade(new Upgrade(property, ref));
+					sv.addReference(new Reference(property, ref));
 				}
 			}
 		}
@@ -157,16 +156,21 @@ public class LoadEngine
 	}
 
 	/**
-	 * Check to see if any of the upgrades for a sessionvalue should be loaded.
+	 * Check to see if any of the references for a sessionvalue should be loaded based on current load
+	 * groups. Keeps track of load groups that have been seen so that we don't dup work or create cycles.
 	 */
-	public void checkForUpgrades(SessionValue<?> sv) {
-		if (!sv.getUpgrades().isEmpty()) {
-			Iterator<Upgrade> it = sv.getUpgrades().iterator();
-			while (it.hasNext()) {
-				Upgrade up = it.next();
-				if (shouldLoad(up.getProperty())) {
-					//it.remove();	// Do not remove upgrades! We need to preserve these or transitive loading of refs won't work.
-					loadRef(up.getRef());
+	public void checkReferences(SessionValue<?> sv) {
+		// First check if there is anything to do. There is only something to do if there are any load groups
+		// we haven't yet seen.
+		boolean check = false;
+		for (Class<?> loadGroup: loader.getLoadGroups()) {
+			check = check || sv.addLoadGroup(loadGroup);
+		}
+
+		if (check) {
+			for (Reference reference: sv.getReferences()) {
+				if (shouldLoad(reference.getProperty())) {
+					loadRef(reference.getRef());
 				}
 			}
 		}

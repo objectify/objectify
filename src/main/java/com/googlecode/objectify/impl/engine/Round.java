@@ -68,7 +68,10 @@ class Round {
 				@Override
 				@SuppressWarnings("unchecked")
 				public T nowUncached() {
-					execute();	// just in case the round hasn't executed yet
+					// Because clients could conceivably get() in the middle of our operations (see LoadCollectionRefsTest.specialListWorks()),
+					// we need to check for early execution. This will perform poorly, but at least it will work.
+					//assert Round.this.isExecuted();
+					loadEngine.execute();
 					return (T)translated.now().get(key);
 				}
 
@@ -86,8 +89,8 @@ class Round {
 				log.finest("Adding to round (session hit): " + key);
 		}
 
-		// Check for any upgrades
-		loadEngine.checkForUpgrades(sv);
+		// Check to see if we need to load any further references
+		loadEngine.checkReferences(sv);
 
 		return sv.getResult();
 	}
@@ -141,7 +144,7 @@ class Round {
 	/** */
 	@Override
 	public String toString() {
-		return (isExecuted() ? "pending:" : "executed:") + pending.toString();
+		return (isExecuted() ? "pending" : "executed") + ", depth=" + depth + ", pending="+ pending.toString();
 	}
 
 	/**

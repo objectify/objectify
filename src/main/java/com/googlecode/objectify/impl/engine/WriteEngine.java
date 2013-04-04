@@ -98,7 +98,7 @@ public class WriteEngine
 					result.put(key, obj);
 
 					// Also stuff this in the session
-					session.add(key, new SessionValue<Object>(new ResultNow<Object>(obj), ctx.getUpgrades(obj)));
+					session.add(key, new SessionValue<Object>(new ResultNow<Object>(obj), ctx.getReferences(obj)));
 				}
 
 				if (log.isLoggable(Level.FINEST))
