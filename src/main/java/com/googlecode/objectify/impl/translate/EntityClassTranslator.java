@@ -30,8 +30,9 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	/** */
 	private static final Logger log = Logger.getLogger(EntityClassTranslator.class.getName());
 
-	/** The @Id field on the pojo - it will be Long, long, or String */
+	/** The @Id field on the pojo - it will be Long, long, String, Key or com.google.appengine.api.datastore.Key */
 	TranslatableProperty<Object> idMeta;
+	Class<?> erasedIdType;
 
 	/** The @Parent field on the pojo, or null if there is no parent */
 	TranslatableProperty<Object> parentMeta;
@@ -50,7 +51,7 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 
 		// There must be some field marked with @Id
 		if (this.idMeta == null)
-			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + clazz.getName());
+			throw new IllegalStateException("There must be an @Id field (String, Long, long, Key or com.google.appengine.api.datastore.Key) for " + clazz.getName());
 
 		this.kind = Key.getKind(clazz);
 	}
@@ -67,10 +68,22 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 			if (this.idMeta != null)
 				throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + clazz.getName());
 
-			if ((prop.getType() != Long.class) && (prop.getType() != long.class) && (prop.getType() != String.class))
-				throw new IllegalStateException("@Id field '" + prop.getName() + "' in " + clazz.getName() + " must be of type Long, long, or String");
-
-			this.idMeta = tprop;
+			if (isPrimativeOrString(prop.getType()) ) {
+				idMeta = tprop;
+				erasedIdType = (Class<?>) prop.getType();
+			}
+			else if (isValidKeyIdType(prop.getType())) {
+				idMeta = tprop;
+				erasedIdType = GenericTypeReflector.erase(prop.getType());
+			}
+			else {
+				throw new IllegalStateException("@Id field '" + prop.getName() + "' in " + clazz.getName() + " must be of type Long, long, String, Key or com.google.appengine.api.datastore.Key");
+			}
+			
+//			if ((prop.getType() != Long.class) && (prop.getType() != long.class) && (prop.getType() != String.class))
+//				throw new IllegalStateException("@Id field '" + prop.getName() + "' in " + clazz.getName() + " must be of type Long, long, String, Key or com.google.appengine.api.datastore.Key");
+//
+//			this.idMeta = tprop;
 		}
 		else if (prop.getAnnotation(Parent.class) != null) {
 			if (this.parentMeta != null)
@@ -81,6 +94,20 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 
 			this.parentMeta = tprop;
 		}
+	}
+	
+	private boolean isPrimativeOrString(Type type) {
+		return type == Long.class || type == long.class || type == String.class;
+	}
+	
+	private boolean isValidKeyIdType(Type type) {
+		Class<?> erased = GenericTypeReflector.erase(type);
+		return isValidKeyIdType(erased);
+	}
+	
+	private boolean isValidKeyIdType(Class<?> erased) {
+		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(erased)
+				|| Key.class.isAssignableFrom(erased);
 	}
 
 	/** @return true if the type is an allowed parent type */
@@ -109,13 +136,15 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
-		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx);
+		// get the target Long, long or String, or use the Key it's self:
+		Object idValue = isIdKey() ? key : DatastoreUtils.getId(key);
+		idMeta.setValue(pojo, idValue, ctx);
 
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
 			if (this.parentMeta == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + clazz.getName() + " has no @Parent");
-
+			
 			parentMeta.setValue(pojo, parentKey, ctx);
 		}
 	}
@@ -127,21 +156,26 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	public com.google.appengine.api.datastore.Entity initEntity(T pojo)
 	{
 		Object id = getId(pojo);
-		if (id == null)
-			if (isIdNumeric()) {
-				if (log.isLoggable(Level.FINEST))
+		if (id == null) {
+			if (isIdNumeric() || isIdKey()) {
+				if (log.isLoggable(Level.FINEST)) {
 					log.finest("Getting parent key from " + pojo);
-
+				}
+				
 				return new com.google.appengine.api.datastore.Entity(this.kind, getParentRaw(pojo));
-			} else
+			} else {
 				throw new IllegalStateException("Cannot save an entity with a null String @Id: " + pojo);
-		else
+			}
+		}
+		else {
 			return new com.google.appengine.api.datastore.Entity(getRawKey(pojo));
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.KeyMetadata#getRawKey(java.lang.Object)
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public com.google.appengine.api.datastore.Key getRawKey(T pojo) {
 
@@ -156,8 +190,29 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 
 		if (id == null)
 			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
+		
+		com.google.appengine.api.datastore.Key key = null;
+		if (isIdKey()) {
+			if (com.google.appengine.api.datastore.Key.class.isAssignableFrom(id.getClass())) {
+				key = (com.google.appengine.api.datastore.Key) id;
+			}
+			else if (Key.class.isAssignableFrom(id.getClass())) {
+				key = ((Key<T>)id).getRaw();
+			}
+			else {
+				throw new IllegalArgumentException("Invalid @Id of type Key, expected Key<?> or com.google.appengine.api.datastore.Key, found: " + id + " Object was " + pojo);
+			}
+			
+		}
+		else {
+			key = DatastoreUtils.createKey(parent, kind, id);
+		}
+		
+		if (parent != null && key != null && !parent.equals(key.getParent())) {
+			throw new IllegalStateException("@Id parent does not match @Parent id value on " + pojo + " with id: " + key + " parentId: " + parent);
+		}
 
-		return DatastoreUtils.createKey(parent, kind, id);
+		return key;
 	}
 
 	/**
@@ -173,10 +228,26 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 
 	/**
 	 * Get whatever is in the @Id field of the pojo doing no type checking or conversion
-	 * @return Long or String or null
+	 * @return Long or String, Key com.google.appengine.api.datastore.Key or null
 	 */
 	private Object getId(T pojo) {
 		return idMeta.getProperty().get(pojo);
+	}
+	
+	public Object getRawIdValue(com.google.appengine.api.datastore.Entity entity) {
+		Object value = null;
+		com.google.appengine.api.datastore.Key key = entity.getKey();
+		
+		if (key != null && key.isComplete()) {
+			if (isIdKey()) {
+				value = key;
+			}
+			else {
+				value = key.getName() == null ? key.getId() : key.getName();
+			}
+		}
+		
+		return value;
 	}
 
 	/* (non-Javadoc)
@@ -198,8 +269,12 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	/**
 	 * @return true if the id field is numeric, false if it is String
 	 */
+	public boolean isIdKey() {
+		return isValidKeyIdType(erasedIdType);
+	}
+	
 	private boolean isIdNumeric() {
-		return !(this.idMeta.getProperty().getType() == String.class);
+		return !(this.idMeta.getProperty().getType() == String.class) && !isIdKey();
 	}
 
 	/* (non-Javadoc)
@@ -226,17 +301,33 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 	 */
 	@Override
 	public boolean isIdGeneratable() {
-		return this.idMeta.getProperty().getType() == Long.class;
+		return this.idMeta.getProperty().getType() == Long.class || this.isIdKey();
 	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.KeyMetadata#setLongId(java.lang.Object, java.lang.Long)
-	 */
-	@Override
-	public void setLongId(T pojo, Long id) {
-		if (!clazz.isAssignableFrom(pojo.getClass()))
+	
+	public void setGeneratedId(T pojo, com.google.appengine.api.datastore.Key key) {
+		if (!clazz.isAssignableFrom(pojo.getClass())) {
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
-
-		this.idMeta.getProperty().set(pojo, id);
+		}
+		
+		Object idValue = null;
+		if (isIdKey()) {
+			if (Key.class.isAssignableFrom(this.erasedIdType)) {
+				// if we're here, we have a Key<?> instance:
+				idValue = Key.create(key);
+			}
+			else if (com.google.appengine.api.datastore.Key.class.isAssignableFrom(erasedIdType)) {
+				// if we're here, it's pretty simple:
+				idValue = key;
+			}
+		}
+		else if (isIdNumeric()) {
+			idValue = key.getId();
+		}
+		else {
+			// if we're here, then someone messed something up:
+			throw new IllegalStateException("Can not set a generated id (" + key + ") on a String id field for type: " + clazz.getName());
+		}
+		
+		this.idMeta.getProperty().set(pojo, idValue);
 	}
 }

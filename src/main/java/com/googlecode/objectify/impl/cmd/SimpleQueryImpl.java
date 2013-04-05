@@ -2,8 +2,10 @@ package com.googlecode.objectify.impl.cmd;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.cmd.SimpleQuery;
+import com.googlecode.objectify.impl.Keys;
 
 
 /**
@@ -37,6 +39,17 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	public QueryImpl<T> filterKey(String condition, Object value)
 	{
 		QueryImpl<T> q = createQuery();
+		
+		if (q.actual != null && q.actual.getAncestor() != null) {
+			// if we have an ancestor, we need to check if we have keys:
+			if (value instanceof Key<?> || value instanceof com.google.appengine.api.datastore.Key) {
+				com.google.appengine.api.datastore.Key raw = Keys.toRawKey(value);
+				if (raw.getParent() != null && !raw.getParent().equals(q.actual.getAncestor())) {
+					throw new IllegalArgumentException("Parent/Id mismatch, detected attempt to filter on ancestor: " + q.actual.getAncestor() + " but specifying key: " + raw);
+				}
+			}
+		}
+		
 		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition, value);
 		return q;
 	}

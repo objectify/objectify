@@ -68,6 +68,11 @@ public class KeyFactory
 		else
 			return new Key(kind, parent, name);
 	}
+	
+	public static String keyToString(Key key)
+	{
+		return key == null ? null : key.encodedValue;
+	}
 
 	private KeyFactory()
 	{

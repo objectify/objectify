@@ -49,25 +49,57 @@ public class DatastoreUtils
 	 * @param id must be either Long or String
 	 */
 	public static <T> Key<T> createKey(Key<?> parent, Class<T> kind, Object id) {
-		if (id instanceof String)
-			return Key.create(parent, kind, (String)id);
-		else if (id instanceof Long)
-			return Key.create(parent, kind, (Long)id);
-		else
-			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
+		Key<T> key = null;
+		if (id instanceof String) {
+			key = Key.create(parent, kind, (String)id);
+		}
+		else if (id instanceof Long) {
+			key = Key.create(parent, kind, (Long)id);
+		}
+		else if (id instanceof com.google.appengine.api.datastore.Key) {
+			key = Key.create((com.google.appengine.api.datastore.Key) id);
+		}
+		else if (id instanceof Key) {
+			key = (Key<T>) id;
+		}
+		else {
+			throw new IllegalArgumentException("id '" + id + "' must be String, Long, Key<?> or com.google.appengine.api.datastore.Key");
+		}
+		
+		if (parent != null && key != null && key.getParent() != null && !parent.equals(key.getParent())) {
+			throw new IllegalArgumentException("Parent/Id mismatch.  Attempt to place id: " + key + " under parent: " + parent);
+		}
+		
+		return key;
 	}
 
 	/**
-	 * Construct a Key from a Long or String id
+	 * Construct a Key from a Long, String, com.google.appengine.api.datastore.Key or Key
 	 * @param id must be either Long or String
 	 */
 	public static com.google.appengine.api.datastore.Key createKey(com.google.appengine.api.datastore.Key parent, String kind, Object id) {
-		if (id instanceof String)
-			return KeyFactory.createKey(parent, kind, (String)id);
-		else if (id instanceof Long)
-			return KeyFactory.createKey(parent, kind, (Long)id);
-		else
-			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
+		com.google.appengine.api.datastore.Key key = null;
+		if (id instanceof String) {
+			key = KeyFactory.createKey(parent, kind, (String)id);
+		}
+		else if (id instanceof Long) {
+			key = KeyFactory.createKey(parent, kind, (Long)id);
+		}
+		else if (id instanceof com.google.appengine.api.datastore.Key) {
+			key = (com.google.appengine.api.datastore.Key) id;
+		}
+		else if (id instanceof Key) {
+			key = ((Key<?>) id).getRaw();
+		}
+		else {
+			throw new IllegalArgumentException("id '" + id + "' must be String, Long, Key<?> or com.google.appengine.api.datastore.Key");
+		}
+		
+		if (parent != null && key != null && key.getParent() != null && !parent.equals(key.getParent())) {
+			throw new IllegalArgumentException("Parent/Id mismatch.  Attempt to place id: " + key + " under parent: " + parent);
+		}
+		
+		return key;
 	}
 
 	/**

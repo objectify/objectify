@@ -86,6 +86,26 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 		return refOf(Key.create(parent, type, id));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.LoadIds#id(Key<T> id)
+	 */
+	@Override
+	public Ref<T> id(Key<T> id) {
+		if (parent != null && id.getParent() != null && !parent.equals(id.getParent())) {
+			throw new IllegalStateException("Parent/Id mismatch, attempt to read id: " + id + " but specified parent: " + parent);
+		}
+		
+		return refOf(id);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.LoadIds#id(Key<T> id)
+	 */
+	@Override
+	public Ref<T> id(com.google.appengine.api.datastore.Key id) {
+		return id(Key.<T>create(id));
+	}
+	
 	/** Utility method */
 	private Ref<T> refOf(Key<T> key) {
 		Ref<T> ref = Ref.create(key);
@@ -109,6 +129,22 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 		return ids(Arrays.asList(ids));
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.LoadIds#ids(Key<T>[])
+	 */
+	@Override
+	public Map<Key<T>, T> ids(Key<T>... ids) {
+		return ids(Arrays.asList(ids));
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.LoadIds#ids(Key<T>[])
+	 */
+	@Override
+	public Map<com.google.appengine.api.datastore.Key, T> ids(com.google.appengine.api.datastore.Key... ids) {
+		return ids(Arrays.asList(ids));
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(java.lang.Iterable)
 	 */
