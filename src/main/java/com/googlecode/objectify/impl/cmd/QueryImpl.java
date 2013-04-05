@@ -151,12 +151,25 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 				} else if (value instanceof com.google.appengine.api.datastore.Key) {
 					// just here to be verbose:
 					value = (com.google.appengine.api.datastore.Key) value;
+				} else if (value instanceof Key<?>) {
+					// just here to be verbose:
+					value = ((Key<?>) value).getRaw();
 				} else {
 					throw new IllegalArgumentException("Id filter values must be Long, String, com.google.appengine.api.datastore.Key or Key<?>");
 				}
 				
 				prop = "__key__";
 			}
+			
+			
+			if (value instanceof com.google.appengine.api.datastore.Key) {
+				com.google.appengine.api.datastore.Key keyValue = (com.google.appengine.api.datastore.Key) value;
+				if (this.actual.getAncestor() != null && keyValue.getParent() != null && keyValue.getParent().equals(this.actual.getAncestor())) {
+					throw new IllegalArgumentException("Parent/Id mismatch.  Attempt to filter on id: " + keyValue + " but have already specified ancestor: " + this.actual.getAncestor());
+				}
+			}
+			
+			
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys

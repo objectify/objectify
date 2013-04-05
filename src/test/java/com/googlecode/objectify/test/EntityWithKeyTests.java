@@ -17,6 +17,7 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
+import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
  * Tests of basic entity manipulation variation (this test uses Key<?> and com.google.appengine.api.datastore.Key instances as Ids.
@@ -310,17 +311,63 @@ public class EntityWithKeyTests extends TestBase
 		wrongParent.id = wrongGeneratedParentId;
 		Key<ParentThing> wrongParentId = ofy.put(wrongParent);
 		
+		wrongParent = ofy.load().type(ParentThing.class).id(wrongParentId).getValue();
+		
 		Child child = new Child(parentId, "the child");
 		Key<Child> generatedChildId = Key.create(wrongParentId, Child.class, 12);
 		child.id = generatedChildId;
 		
 		Key<Child> childId = ofy.put(child);
 		
+		child = ofy.get(childId);
+		
 		assert childId.getParent() != null : "Child id did not get linked to the Parent";
 		assert childId.getRaw().getParent() != null : "Raw Child id did not get linked to the raw Parent";
 		assert !childId.getParent().equals(wrongParentId) : "Child id got linked to the wrong Parent";
 		assert !childId.getRaw().getParent().equals(wrongParentId.getRaw()) : "Raw Child id got linked to the wrong raw Parent";
 	}
+	
+	
+	@Test
+	public void testLoadWithAncestor()
+	{
+		fact.register(ParentThing.class);
+		fact.register(Child.class);
+		
+		TestObjectify ofy = this.fact.begin();
+		ParentThing parent = new ParentThing("the parent");
+		Key<ParentThing> generatedParentId = Key.create(ParentThing.class, "parentId");
+		parent.id = generatedParentId;
+		Key<ParentThing> parentId = ofy.put(parent);
+		
+		Child child = new Child(parentId, "the child");
+		Key<Child> generatedChildId = Key.create(Child.class, 12);
+		child.id = generatedChildId;
+		
+		Key<Child> childId = ofy.put(child);
+		
+		Child loadedChild = fact.begin().load().type(Child.class).ancestor(parent).filterKey(childId).first().getValue();
+		
+		assert loadedChild != null : "Child id did not saved";
+		assert loadedChild.id.equals(childId) : "Child did not get the right key attached";
+	
+	}
+	
+	@Test(expectedExceptions={IllegalArgumentException.class})
+	public void testLoadWithWrongAncestor()
+	{
+		fact.register(ParentThing.class);
+		fact.register(Child.class);
+		
+		Key<ParentThing> parentId = Key.create(ParentThing.class, "parentId");
+		Key<ParentThing> wrongParentId = Key.create(ParentThing.class, "otherParentId");
+		Key<Child> childId = Key.create(parentId, Child.class, 12);
+		
+		fact.begin().load().type(Child.class).ancestor(wrongParentId).filterKey(childId).first().getValue();
+		
+		assert false : "if I get here, there was a problem";
+	}
+	
 	/**
 	 * A holder of a <T>hing.
 	 * 
@@ -484,5 +531,66 @@ public class EntityWithKeyTests extends TestBase
 		assert converted.getSomeString().equals(triv.getSomeString());
 		assert converted.getSomeNumber() == triv.getSomeNumber();
 	}
-
+	
+	
+	@Test
+	public void testCreateSimpleKey()
+	{
+		com.google.appengine.api.datastore.Key parent = KeyFactory.createKey("Parent", 123);
+		com.google.appengine.api.datastore.Key child = KeyFactory.createKey(parent, "Child", 321);
+		com.google.appengine.api.datastore.Key generated = DatastoreUtils.createKey(parent, "Child", child);
+		
+		assert generated.equals(child);
+		
+		parent = KeyFactory.createKey("Parent", "theParent");
+		child = KeyFactory.createKey("Child", "theChild");
+		generated = DatastoreUtils.createKey(parent, "Child", "theChild");
+		
+		assert generated.getId() == child.getId();
+		assert generated.getParent().equals(parent);
+		
+		generated = DatastoreUtils.createKey(parent, "Child", child);
+		assert generated.equals(child);
+	}
+	
+	@Test
+	public void testCreateSimpleGenericKey()
+	{
+		Key<ParentThing> parent = Key.create(ParentThing.class, 123);
+		Key<Child> child = Key.create(parent, Child.class, 321);
+		Key<Child> generated = DatastoreUtils.createKey(parent, Child.class, child);
+		
+		assert generated.equals(child) : "Parent not linked to child key 1";
+		
+		parent = Key.create(ParentThing.class, "theParent");
+		child = Key.create(Child.class, "theChild");
+		generated = DatastoreUtils.createKey(parent, Child.class, "theChild");
+		
+		assert generated.getName().equals(child.getName()) : "Key name not applied correctly";
+		assert generated.getParent().equals(parent) : "Key not linked to parent 2";
+		
+		generated = DatastoreUtils.createKey(parent, Child.class, child);
+		assert generated.equals(child) : "Parent not linked to child key 3";
+	}
+	
+	@Test(expectedExceptions={IllegalArgumentException.class})
+	public void testInvalidParentKey()
+	{
+		Key<ParentThing> parent = Key.create(ParentThing.class, 123);
+		Key<ParentThing> otherParent = Key.create(ParentThing.class, 111);
+		Key<Child> child = Key.create(otherParent, Child.class, 321);
+		DatastoreUtils.createKey(parent, Child.class, child);
+	}
+	
+	
+	@Test(expectedExceptions={IllegalArgumentException.class})
+	public void testInvalidParentRawKey()
+	{
+		com.google.appengine.api.datastore.Key parent = KeyFactory.createKey("Parent", 123);
+		com.google.appengine.api.datastore.Key otherParent = KeyFactory.createKey("Parent", 111);
+		com.google.appengine.api.datastore.Key child = KeyFactory.createKey(otherParent, "Child", 321);
+		DatastoreUtils.createKey(parent, "Child", child);
+	}
+	
+	
 }

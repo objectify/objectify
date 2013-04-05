@@ -2,6 +2,7 @@ package com.googlecode.objectify.cmd;
 
 import java.util.Map;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
 
@@ -32,6 +33,22 @@ public interface LoadIds<T>
 	Ref<T> id(String id);
 
 	/**
+	 * <p>Specify the Key of an entity and start asynchronous fetch.</p>
+	 * 
+	 * @param id - the id of the entity to fetch.  
+	 * @return a Ref that wraps the asynchronous Result of the fetch.
+	 */
+	Ref<T> id(Key<T> id);
+	
+	/**
+	 * <p>Specify the raw id of an entity and start asynchronous fetch.</p>
+	 * 
+	 * @param id - the id of the entity to fetch.  
+	 * @return a Ref that wraps the asynchronous Result of the fetch.
+	 */
+	Ref<T> id(com.google.appengine.api.datastore.Key id);
+	
+	/**
 	 * <p>Specify the numeric ids of multiple entities and start asynchronous fetch.</p>
 	 * 
 	 * @param ids - the ids of the entity to fetch.  Note that numeric ids and String ids are not equivalent; 123 and "123" are different ids.  
@@ -46,7 +63,23 @@ public interface LoadIds<T>
 	 * @return a Map of the asynchronous result.  The first method call on the Map will synchronously finish the call.
 	 */
 	Map<String, T> ids(String... ids);
+	/**
+	 * <p>Specify the Keys of multiple entities and start asynchronous fetch.</p>
+	 * 
+	 * @param ids - the ids of the entity to fetch.
+	 * @return a Map of the asynchronous result.  The first method call on the Map will synchronously finish the call.
+	 */
 
+	Map<Key<T>, T> ids(Key<T>... ids);
+	
+	/**
+	 * <p>Specify the raw ids of multiple entities and start asynchronous fetch.</p>
+	 * 
+	 * @param ids - the ids of the entity to fetch.
+	 * @return a Map of the asynchronous result.  The first method call on the Map will synchronously finish the call.
+	 */
+	Map<com.google.appengine.api.datastore.Key, T> ids(com.google.appengine.api.datastore.Key... ids);
+	
 	/**
 	 * <p>Specify the ids of multiple entities and start asynchronous fetch.</p>
 	 * 

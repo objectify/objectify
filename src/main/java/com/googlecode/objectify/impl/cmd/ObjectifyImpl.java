@@ -362,6 +362,8 @@ public class ObjectifyImpl implements Objectify, Cloneable
 			KeyMetadata<Object> meta = Keys.getMetadata(value);
 			if (meta != null) {
 				return meta.getRawKey(value);
+			} else if (value instanceof com.google.appengine.api.datastore.Key) {
+				return value;
 			} else {
 				// Run it through the translator
 				Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));

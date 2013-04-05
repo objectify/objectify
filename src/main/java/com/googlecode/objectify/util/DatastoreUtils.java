@@ -59,8 +59,15 @@ public class DatastoreUtils
 		else if (id instanceof com.google.appengine.api.datastore.Key) {
 			key = Key.create((com.google.appengine.api.datastore.Key) id);
 		}
+		else if (id instanceof Key) {
+			key = (Key<T>) id;
+		}
 		else {
-			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
+			throw new IllegalArgumentException("id '" + id + "' must be String, Long, Key<?> or com.google.appengine.api.datastore.Key");
+		}
+		
+		if (parent != null && key != null && key.getParent() != null && !parent.equals(key.getParent())) {
+			throw new IllegalArgumentException("Parent/Id mismatch.  Attempt to place id: " + key + " under parent: " + parent);
 		}
 		
 		return key;
@@ -85,7 +92,11 @@ public class DatastoreUtils
 			key = ((Key<?>) id).getRaw();
 		}
 		else {
-			throw new IllegalArgumentException("id '" + id + "' must be String or Long");
+			throw new IllegalArgumentException("id '" + id + "' must be String, Long, Key<?> or com.google.appengine.api.datastore.Key");
+		}
+		
+		if (parent != null && key != null && key.getParent() != null && !parent.equals(key.getParent())) {
+			throw new IllegalArgumentException("Parent/Id mismatch.  Attempt to place id: " + key + " under parent: " + parent);
 		}
 		
 		return key;
