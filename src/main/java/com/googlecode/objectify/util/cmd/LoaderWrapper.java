@@ -11,7 +11,7 @@ import com.googlecode.objectify.cmd.Loader;
 
 /**
  * Simple wrapper/decorator for a Loader.  Use it like this:
- * {@code class MyLoader extends LoaderWrapper<MyLoader>} 
+ * {@code class MyLoader extends LoaderWrapper<MyLoader>}
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -19,7 +19,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 {
 	/** */
 	Loader base;
-	
+
 	/** */
 	public LoaderWrapper(Loader base) {
 		super(base);
@@ -100,6 +100,11 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
+	public <E> E now(Key<E> key) {
+		return base.now(key);
+	}
+
+	@Override
 	public Objectify getObjectify() {
 		return base.getObjectify();
 	}
@@ -113,5 +118,5 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	public void setWrapper(Loader loader) {
 		base.setWrapper(loader);
 	}
-	
+
 }

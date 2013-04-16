@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -32,8 +33,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testGenerateId() throws Exception
-	{
+	public void testGenerateId() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -56,8 +56,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testOverwriteId() throws Exception
-	{
+	public void testOverwriteId() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -78,8 +77,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testNames() throws Exception
-	{
+	public void testNames() throws Exception {
 		fact.register(NamedTrivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -100,8 +98,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testBatchOperations() throws Exception
-	{
+	public void testBatchOperations() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -136,8 +133,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testManyToOne() throws Exception
-	{
+	public void testManyToOne() throws Exception {
 		fact.register(Employee.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -168,8 +164,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testConsistencySetting() throws Exception
-	{
+	public void testConsistencySetting() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin().consistency(Consistency.EVENTUAL);
 
@@ -179,8 +174,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testKeyToString() throws Exception
-	{
+	public void testKeyToString() throws Exception {
 		Key<Trivial> trivKey = Key.create(Trivial.class, 123);
 
 		String stringified = trivKey.getString();
@@ -193,8 +187,7 @@ public class BasicTests extends TestBase
 	/**
 	 */
 	@Test
-	public void testPutNothing() throws Exception
-	{
+	public void testPutNothing() throws Exception {
 		TestObjectify ofy = this.fact.begin();
 
 		ofy.save().entities(Collections.emptyList()).now();
@@ -202,8 +195,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testChunking() throws Exception
-	{
+	public void testChunking() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -227,8 +219,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void deleteBatch() throws Exception
-	{
+	public void deleteBatch() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 
@@ -247,9 +238,59 @@ public class BasicTests extends TestBase
 	}
 
 	/** */
+	@SuppressWarnings("unchecked")
 	@Test
-	public void simpleFetchById() throws Exception
-	{
+	public void loadNonexistant() throws Exception {
+		fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		Trivial triv1 = new Trivial("foo5", 5);
+		ofy.save().entity(triv1).now();
+
+		Key<Trivial> triv1Key = Key.create(triv1);
+		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
+		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
+
+		Ref<Trivial> ref = ofy.load().key(triv2Key);
+		assert ref.get() == null;
+
+		Map<Key<Trivial>, Trivial> result = ofy.load().keys(triv2Key, triv3Key);
+		assert result.size() == 0;
+
+		Map<Key<Trivial>, Trivial> result2 = ofy.load().keys(triv1Key, triv2Key);
+		assert result2.size() == 1;
+	}
+
+	/** */
+	@SuppressWarnings("unchecked")
+	@Test
+	public void loadNonexistantWithoutSession() throws Exception {
+		fact.register(Trivial.class);
+		TestObjectify ofy = this.fact.begin();
+
+		Trivial triv1 = new Trivial("foo5", 5);
+		ofy.save().entity(triv1).now();
+
+		Key<Trivial> triv1Key = Key.create(triv1);
+		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
+		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
+
+		ofy.clear();
+		Ref<Trivial> ref = ofy.load().key(triv2Key);
+		assert ref.get() == null;
+
+		ofy.clear();
+		Map<Key<Trivial>, Trivial> result = ofy.load().keys(triv2Key, triv3Key);
+		assert result.size() == 0;
+
+		ofy.clear();
+		Map<Key<Trivial>, Trivial> result2 = ofy.load().keys(triv1Key, triv2Key);
+		assert result2.size() == 1;
+	}
+
+	/** */
+	@Test
+	public void simpleFetchById() throws Exception {
 		fact.register(Trivial.class);
 		TestObjectify ofy = this.fact.begin();
 

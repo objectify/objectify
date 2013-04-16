@@ -78,7 +78,7 @@ public class LoadUpgradeTests extends TestBase
 		//Key<HasMulti> hmkey = fact.getKey(hm);
 
 		for (Ref<Other> ref: fetched.multi)
-			assertRefUninitialzied(ref);
+			assert !ref.isLoaded();
 	}
 
 	/** */

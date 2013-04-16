@@ -10,10 +10,9 @@ import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.util.DatastoreUtils;
+import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;
-import com.googlecode.objectify.util.ResultTranslator;
 
 
 /**
@@ -75,7 +74,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public Ref<T> id(long id) {
-		return refOf(Key.create(parent, type, id));
+		return loader.key(Key.create(parent, type, id));
 	}
 
 	/* (non-Javadoc)
@@ -83,14 +82,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public Ref<T> id(String id) {
-		return refOf(Key.create(parent, type, id));
-	}
-
-	/** Utility method */
-	private Ref<T> refOf(Key<T> key) {
-		Ref<T> ref = Ref.create(key);
-		loader.ref(ref);
-		return ref;
+		return loader.key(Key.create(parent, type, id));
 	}
 
 	/* (non-Javadoc)
@@ -114,25 +106,20 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public <S> Map<S, T> ids(Iterable<S> ids) {
-		Map<S, Ref<T>> refs = new LinkedHashMap<S, Ref<T>>();
 
-		LoadEngine batch = loader.createLoadEngine();
+		final Map<Key<T>, S> keymap = new LinkedHashMap<Key<T>, S>();
+		for (S id: ids)
+			keymap.put(DatastoreUtils.createKey(parent, type, id), id);
 
-		for (S id: ids) {
-			Key<T> key = DatastoreUtils.createKey(parent, type, id);
-			refs.put(id, batch.getRef(key));
-		}
+		final Map<Key<T>, T> loaded = loader.keys(keymap.keySet());
 
-		batch.execute();
-
-		return ResultProxy.create(Map.class, new ResultTranslator<Map<S, Ref<T>>, Map<S, T>>(refs) {
+		return ResultProxy.create(Map.class, new ResultCache<Map<S, T>>() {
 			@Override
-			protected Map<S, T> translate(Map<S, Ref<T>> from) {
-				Map<S, T> proper = new LinkedHashMap<S, T>(from.size() * 2);
+			protected Map<S, T> nowUncached() {
+				Map<S, T> proper = new LinkedHashMap<S, T>(loaded.size() * 2);
 
-				for (Map.Entry<S, Ref<T>> entry: from.entrySet())
-					if (entry.getValue().get() != null)
-						proper.put(entry.getKey(), entry.getValue().get());
+				for (Map.Entry<Key<T>, T> entry: loaded.entrySet())
+					proper.put(keymap.get(entry.getKey()), entry.getValue());
 
 				return proper;
 			}

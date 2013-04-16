@@ -9,15 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Predicates;
+import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.impl.engine.QueryEngine;
 import com.googlecode.objectify.util.ResultCache;
+import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
 
 
@@ -83,10 +87,8 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#ref(com.googlecode.objectify.Ref)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <E> Ref<E> ref(Ref<E> ref) {
-		refs(ref);
-		return ref;
+		return key(ref.key());
 	}
 
 	/* (non-Javadoc)
@@ -103,26 +105,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <E> Map<Key<E>, E> refs(final Iterable<Ref<E>> refs) {
-		LoadEngine batch = createLoadEngine();
-		for (Ref<?> ref: refs)
-			batch.loadRef(ref);
-
-		batch.execute();
-
-		// Now asynchronously translate into a normal-looking map
-		Map<Key<E>, E> map = ResultProxy.create(Map.class, new ResultCache<Map<Key<E>, E>>() {
-			@Override
-			public Map<Key<E>, E> nowUncached() {
-				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>();
-				for (Ref<E> ref: refs)
-					if (ref.get() != null)
-						result.put(ref.key(), ref.get());
-
-				return result;
-			}
-		});
-
-		return map;
+		return values(refs);
 	}
 
 	/* (non-Javadoc)
@@ -130,8 +113,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <E> Ref<E> key(Key<E> key) {
-		Ref<E> ref = Ref.create(key);
-		return ref(ref);
+		return createLoadEngine().getRef(key);
 	}
 
 	/* (non-Javadoc)
@@ -148,11 +130,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> Ref<E> value(Object key) {
-		if (key instanceof Ref) {
-			return ref((Ref<E>)key);
-		} else {
-			return (Ref<E>)key(Keys.toKey(key));
-		}
+		return (Ref<E>)key(Keys.toKey(key));
 	}
 
 	/* (non-Javadoc)
@@ -202,18 +180,33 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> Map<Key<E>, E> values(Iterable<?> values) {
-		final List<Ref<E>> refs = new ArrayList<Ref<E>>();
 
-		for (Object keyish: values) {
-			if (keyish instanceof Ref) {
-				refs.add((Ref<E>)keyish);
-			} else {
-				Key<E> key = Keys.toKey(keyish);
-				refs.add(Ref.create(key));
+		// Do this in a separate pass so any errors converting keys will show up before we try loading something
+		List<Key<E>> keys = new ArrayList<Key<E>>();
+		for (Object keyish: values)
+			keys.add((Key<E>)Keys.toKey(keyish));
+
+		LoadEngine engine = createLoadEngine();
+
+		final Map<Key<E>, Result<E>> results = new LinkedHashMap<Key<E>, Result<E>>();
+		for (Key<E> key: keys)
+			results.put(key, engine.load(key));
+
+		engine.execute();
+
+		// Now asynchronously translate into a normal-looking map. We must be careful to exclude results with
+		// null (missing) values because that is the contract established by DatastoreService.get().
+		// We use the ResultProxy and create a new map because the performance of filtered views is questionable.
+		return ResultProxy.create(Map.class, new ResultCache<Map<Key<E>, E>>() {
+			@Override
+			public Map<Key<E>, E> nowUncached() {
+				return
+					Maps.newLinkedHashMap(
+						Maps.filterValues(
+							Maps.transformValues(results, ResultNowFunction.<E>instance()),
+							Predicates.notNull()));
 			}
-		}
-
-		return this.refs(refs);
+		});
 	}
 
 	/* (non-Javadoc)
@@ -260,6 +253,14 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	public QueryEngine createQueryEngine() {
 		return new QueryEngine(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Loader#now(com.googlecode.objectify.Key)
+	 */
+	@Override
+	public <E> E now(Key<E> key) {
+		return createLoadEngine().load(key).now();
 	}
 
 }

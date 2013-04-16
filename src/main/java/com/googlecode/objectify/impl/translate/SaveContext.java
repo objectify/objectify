@@ -43,7 +43,7 @@ public class SaveContext
 
 	/** */
 	public void registerReference(Property prop, Ref<?> ref) {
-		references.add(currentRoot, new Reference(prop, ref));
+		references.add(currentRoot, new Reference(prop, ref.key()));
 	}
 
 	/** @return an empty list if no upgrades found */

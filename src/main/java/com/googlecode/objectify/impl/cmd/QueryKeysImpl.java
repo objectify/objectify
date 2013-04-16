@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.cmd;
 
+import java.util.Iterator;
 import java.util.List;
 
 import com.google.appengine.api.datastore.QueryResultIterable;
@@ -8,7 +9,9 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.QueryExecute;
 import com.googlecode.objectify.cmd.QueryKeys;
-import com.googlecode.objectify.util.ResultProxy;
+import com.googlecode.objectify.impl.ref.QueryRef;
+import com.googlecode.objectify.util.AsyncList;
+import com.googlecode.objectify.util.IteratorFirstResult;
 
 /**
  * Implementation of QueryKeys.
@@ -18,7 +21,7 @@ import com.googlecode.objectify.util.ResultProxy;
 class QueryKeysImpl<T> implements QueryKeys<T>
 {
 	QueryImpl<T> impl;
-	
+
 	/** */
 	QueryKeysImpl(QueryImpl<T> query) {
 		assert query.actual.isKeysOnly();
@@ -28,7 +31,9 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 	@Override
 	public Ref<T> first() {
 		// We are already keysonly
-		return impl.first();
+		Iterator<Key<T>> it = impl.limit(1).keysIterable().iterator();
+
+		return new QueryRef<T>(new IteratorFirstResult<Key<T>>(it));
 	}
 
 	@Override
@@ -38,7 +43,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public List<Key<T>> list() {
-		return ResultProxy.makeAsyncList(impl.chunk(Integer.MAX_VALUE).keysIterable());
+		return new AsyncList<Key<T>>(impl.chunk(Integer.MAX_VALUE).keysIterable());
 	}
 
 	@Override
@@ -51,5 +56,5 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 		// Since we are already keys-only, the original query should spit out partials
 		return impl;
 	}
-	
+
 }

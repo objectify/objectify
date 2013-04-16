@@ -6,6 +6,7 @@ package com.googlecode.objectify.util.cmd;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
@@ -17,24 +18,24 @@ import com.googlecode.objectify.cmd.Saver;
 
 /**
  * <p>Simple wrapper/decorator for an Objectify interface.</p>
- * 
+ *
  * <p>Use by subclassing like this: {@code class MyObjectify extends ObjectifyWrapper<MyObjectify, MyFactory>}</p>
- * 
+ *
  * <p>Be aware that chained settings require the wrapper to be cloned.</p>
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends ObjectifyFactory> implements Objectify, Cloneable
 {
 	/** */
 	Objectify base;
-	
+
 	/** Wraps the base objectify */
 	public ObjectifyWrapper(Objectify ofy) {
 		this.base = ofy;
 		this.base.setWrapper(this);
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#load()
 	 */
@@ -203,6 +204,14 @@ public class ObjectifyWrapper<W extends ObjectifyWrapper<W, F>, F extends Object
 	@Override
 	public <T> T toPojo(Entity entity) {
 		return base.toPojo(entity);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#isLoaded(com.googlecode.objectify.Key)
+	 */
+	@Override
+	public boolean isLoaded(Key<?> key) {
+		return base.isLoaded(key);
 	}
 
 }
