@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Key;
 
 /**
  * Information we track internally about a Ref<?> on a cached entity.
@@ -14,12 +14,12 @@ public class Reference
 	public Property getProperty() { return property; }
 
 	/** */
-	final Ref<?> ref;
-	public Ref<?> getRef() { return ref; }
+	final Key<?> key;
+	public Key<?> getKey() { return key; }
 
 	/** */
-	public Reference(Property property, Ref<?> ref) {
+	public Reference(Property property, Key<?> key) {
 		this.property = property;
-		this.ref = ref;
+		this.key = key;
 	}
 }

@@ -171,18 +171,23 @@ public class LoadParentRefTests extends TestBase
 
 		// This should get an empty ref
 		ofy.clear();
-		Ref<ChildWithGroup> ref = ofy.load().key(kch);
-		ChildWithGroup fetched = ref.get();
+		ChildWithGroup fetched = ofy.load().key(kch).get();
 		assert fetched.father.key().getId() == f.id;
-		try {
-			fetched.father.get();
-			assert false;
-		} catch (IllegalStateException ex) {}	// ref should not be initialized
+		assert !fetched.father.isLoaded();
 
-		// This should get a filled in ref
-		ofy.clear();
+		// Upgrade in the same session
 		ChildWithGroup fetched2 = ofy.load().group(Group.class).key(kch).get();
+		assert fetched2 == fetched;
+		assert fetched2.father.isLoaded();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
+
+		// Also should work after session is cleared, but objects will not be same
+		ofy.clear();
+		ChildWithGroup fetched3 = ofy.load().group(Group.class).key(kch).get();
+		assert fetched3 != fetched2;
+		assert fetched3.father.isLoaded();
+		assert fetched3.father.get().id.equals(f.id);
+		assert fetched3.father.get().foo.equals(f.foo);
 	}
 }

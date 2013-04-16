@@ -21,7 +21,7 @@ public class Session
 	private Map<Key<?>, SessionValue<?>> map = new HashMap<Key<?>, SessionValue<?>>();
 
 	/**
-	 * Add/overwrite a SE.
+	 * Add/overwrite a SV.
 	 */
 	public void add(Key<?> key, SessionValue<?> value) {
 		if (log.isLoggable(Level.FINEST))
@@ -42,6 +42,11 @@ public class Session
 	@SuppressWarnings("unchecked")
 	public <T> SessionValue<T> get(Key<T> key) {
 		return (SessionValue<T>)map.get(key);
+	}
+
+	/** */
+	public boolean contains(Key<?> key) {
+		return map.containsKey(key);
 	}
 
 	/** */

@@ -3,15 +3,14 @@ package com.googlecode.objectify;
 import java.io.Serializable;
 
 import com.googlecode.objectify.impl.ref.StdRef;
-import com.googlecode.objectify.util.ResultNow;
 
 
 /**
- * <p>Ref associates a Key<?> with an entity value.</p>
+ * <p>Ref<?> is a Key<?> which allows the entity value to be fetched directly.</p>
  *
  * <p>Note that the methods might or might not throw runtime exceptions related to datastore operations;
  * ConcurrentModificationException, DatastoreTimeoutException, DatastoreFailureException, and DatastoreNeedIndexException.
- * Some Refs hide asynchronous operations that could throw these exceptions.</p>
+ * Some Refs hide datastore operations that could throw these exceptions.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -27,17 +26,10 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		return new StdRef<T>(key);
 	}
 
-	/** Creates a Ref that starts out with a value too */
-	public static <T> Ref<T> create(Key<T> key, T value) {
-		Ref<T> ref = create(key);
-		ref.set(new ResultNow<T>(value));
-		return ref;
-	}
-
 	/** Creates a Ref from a registered pojo entity */
 	public static <T> Ref<T> create(T value) {
 		Key<T> key = Key.create(value);
-		return create(key, value);
+		return create(key);
 	}
 
 	/**
@@ -46,26 +38,32 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	abstract public Key<T> key();
 
 	/**
-	 * Obtain the entity value associated with the key.
+	 * Obtain the entity value associated with the key. Will pull from session if present, otherwise will
+	 * fetch from the datastore.
 	 *
 	 * @return the entity referenced, or null if the entity was not found
-	 * @throws IllegalStateException if the value has not been initialized
 	 */
 	abstract public T get();
 
 	/**
-	 * Nearly identical to get() but conforms to JavaBean conventions and returns null instead of
-	 * throwing IllegalStateException if uninitialized.  This is convenient for use in a JSON
-	 * converter or an expression language.
+	 * If an entity has been loaded into the session or is otherwise available, this will return true.
+	 * Calls to get() will not require a trip to backing store.
+	 * Note that even when loaded, get() can still return null if there is no entity which corresponds to the key.
 	 *
-	 * @return the entity referenced, or null if either the entity was not found or this Ref is uninitialized
+	 * @return true if the value is in the session or otherwise immediately available; false if get() will
+	 * require a trip to the datastore or memcache.
 	 */
-	abstract public T getValue();
+	abstract public boolean isLoaded();
 
 	/**
-	 * Explicitly sets (or resets) the value of this Ref.
+	 * This method exists to facilitate serialization via javabeans conventions. Unlike get(),
+	 * it will return null if isLoaded() is false.
+	 *
+	 * @return the entity referenced, or null if either the entity was not found or isLoaded() is false.
 	 */
-	abstract public void set(Result<T> value);
+	final public T getValue() {
+		return isLoaded() ? get() : null;
+	}
 
 	/**
 	 * Same as key() but conforms to JavaBeans conventions in case this is being processed by a JSON
@@ -76,11 +74,11 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	}
 
 	/**
-	 * Obtain the key if it has been found, throwing an exception if no value was found.
+	 * Obtain the key if it has been found, throwing an exception if no value was found. The exception is
+	 * only possible for Ref<?>s that are returned by Query.first().
 	 *
 	 * @return the key referenced
 	 * @throws NotFoundException if the specified entity was not found
-	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
 	final public Key<T> safeKey() {
 		Key<T> k = this.key();
@@ -91,11 +89,10 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	}
 
 	/**
-	 * Obtain the entity value if it has been initialized, throwing an exception if the entity was not found.
+	 * Obtain the entity value, throwing an exception if the entity was not found.
 	 *
-	 * @return the entity referenced
+	 * @return the entity referenced. Never returns null.
 	 * @throws NotFoundException if the specified entity was not found
-	 * @throws IllegalStateException if the value has not been initialized (say, through a database fetch)
 	 */
 	final public T safeGet() {
 		T t = this.get();

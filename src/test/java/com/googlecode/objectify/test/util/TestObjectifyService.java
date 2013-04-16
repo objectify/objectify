@@ -6,16 +6,16 @@ package com.googlecode.objectify.test.util;
 import com.googlecode.objectify.ObjectifyService;
 
 /**
- * Gives us our custom version rather than the standard Objectify one. 
- * 
+ * Gives us our custom version rather than the standard Objectify one.
+ *
  * @author Jeff Schnitzer
  */
 public class TestObjectifyService
 {
-	static {
+	public static void initialize() {
 		ObjectifyService.setFactory(new TestObjectifyFactory());
 	}
-	
+
 	/**
 	 * @return our extension to Objectify
 	 */

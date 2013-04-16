@@ -48,35 +48,40 @@ public class LoadUnlessTests extends TestBase
 
 		TestObjectify ofy = fact.begin();
 
-		Two two = new Two();
-		two.id = 456;
-		Key<Two> twoKey = ofy.put(two);
-		Ref<Two> twoRef = Ref.create(twoKey);
+		Two twoAlways = new Two();
+		twoAlways.id = 456;
+		Key<Two> twoAlwaysKey = ofy.put(twoAlways);
+		Ref<Two> twoAlwaysRef = Ref.create(twoAlwaysKey);
+
+		Two twoSometimes = new Two();
+		twoSometimes.id = 789;
+		Key<Two> twoSometimesKey = ofy.put(twoSometimes);
+		Ref<Two> twoSometimesRef = Ref.create(twoSometimesKey);
 
 		One one = new One();
 		one.id = 123;
-		one.always = twoRef;
-		one.sometimes = twoRef;
+		one.always = twoAlwaysRef;
+		one.sometimes = twoSometimesRef;
 		ofy.put(one);
 
 		ofy.clear();
 		One fetchedDefault = ofy.load().entity(one).get();
-		assert fetchedDefault.always.getValue() != null;
-		assert fetchedDefault.sometimes.getValue() == null;
+		assert fetchedDefault.always.isLoaded();
+		assert !fetchedDefault.sometimes.isLoaded();
 
 		ofy.clear();
 		One fetchedYes = ofy.load().group(Yes.class).entity(one).get();
-		assert fetchedYes.always.getValue() != null;
-		assert fetchedYes.sometimes.getValue() != null;
+		assert fetchedYes.always.isLoaded();
+		assert fetchedYes.sometimes.isLoaded();
 
 		ofy.clear();
 		One fetchedNo = ofy.load().group(No.class).entity(one).get();
-		assert fetchedNo.always.getValue() == null;
-		assert fetchedNo.sometimes.getValue() == null;
+		assert !fetchedNo.always.isLoaded();
+		assert !fetchedNo.sometimes.isLoaded();
 
 		ofy.clear();
 		One fetchedYesNo = ofy.load().group(Yes.class, No.class).entity(one).get();
-		assert fetchedYesNo.always.getValue() == null;
-		assert fetchedYesNo.sometimes.getValue() == null;
+		assert !fetchedYesNo.always.isLoaded();
+		assert !fetchedYesNo.sometimes.isLoaded();
 	}
 }

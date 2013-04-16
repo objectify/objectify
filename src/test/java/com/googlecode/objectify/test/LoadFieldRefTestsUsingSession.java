@@ -80,39 +80,49 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 
-		assert fetched.single.key().equals(k1);
-		assertRefUninitialzied(fetched.single);
+		assert !fetched.single.isLoaded();
+		assert !fetched.multi.get(0).isLoaded();
+		assert !fetched.multi.get(1).isLoaded();
 
-		assert fetched.multi.get(0).equals(fetched.single);
-		for (Ref<Trivial> ref: fetched.multi)
-			assertRefUninitialzied(ref);
+		assert fetched.single.equivalent(k1);
+		assert fetched.single.equivalent(fetched.multi.get(0));
 
 		TestObjectify ofy = fact.begin();
 
 		fetched = ofy.load().group(Single.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert !fetched.multi.get(1).isLoaded();
+
+		assert fetched.single.get() == fetched.multi.get(0).get();
+
+		assert fetched.single.equivalent(fetched.multi.get(0));
+		assert fetched.single.equivalent(k1);
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(0).equals(fetched.single);
-		for (Ref<Trivial> ref: fetched.multi)
-			assertRefUninitialzied(ref);
 
 		fetched = ofy.load().group(Multi.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert fetched.multi.get(1).isLoaded();
+
+		assert fetched.single.get() == fetched.multi.get(0).get();
+
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		// Not valid anymore, everything is done separately
-		//assert fetched.single.get() == fetched.multi.get(0).get();
-
-		// This is an interesting question - do we "downgrade" refs which are no longer included in the subsequent load?
-		// Seems the answer should be no, but not sure.
-		//assertRefUninitialzied(fetched.single);
 
 		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert fetched.multi.get(1).isLoaded();
+
+		assert fetched.single.get() == fetched.multi.get(0).get();
+
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get() == fetched.multi.get(0).get();
 	}
 }

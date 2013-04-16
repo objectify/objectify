@@ -96,7 +96,14 @@
 	</build>
 
 	<dependencies>
-		<!-- Objectify -->
+		<!-- Mandatory -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0.1</version>
+		</dependency>
+
+		<!-- Optional -->
 		<dependency>
 			<groupId>joda-time</groupId>
 			<artifactId>joda-time</artifactId>

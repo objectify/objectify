@@ -19,7 +19,6 @@ import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFilter;
-import com.googlecode.objectify.Ref;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -48,6 +47,11 @@ public class TestBase
 	public void setUp()
 	{
 		this.helper.setUp();
+
+		// Initialize a new factory each time.
+		TestObjectifyService.initialize();
+
+		// We should get rid of this, but it will require editing a lot of code.
 		this.fact = TestObjectifyService.factory();
 	}
 
@@ -85,13 +89,4 @@ public class TestBase
 	{
 		return DatastoreServiceFactory.getDatastoreService();
 	}
-
-	/** Useful utility method */
-	protected void assertRefUninitialzied(Ref<?> ref) {
-		try {
-			ref.get();
-			assert false;
-		} catch (IllegalStateException ex) {}
-	}
-
 }

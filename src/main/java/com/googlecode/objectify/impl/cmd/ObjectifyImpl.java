@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
@@ -434,6 +435,14 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/** @return true if cache is enabled */
 	public boolean getCache() {
 		return cache;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#isLoaded(com.googlecode.objectify.Key)
+	 */
+	@Override
+	public boolean isLoaded(Key<?> key) {
+		return session.contains(key);
 	}
 
 }

@@ -22,6 +22,7 @@ import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.ref.StdRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 
@@ -61,41 +62,31 @@ public class LoadEngine
 	}
 
 	/**
-	 * The fundamental ref() operation.
-	 */
-	@SuppressWarnings("unchecked")
-	public void loadRef(Ref<?> ref) {
-		Result<Object> result = (Result<Object>)this.getResult(ref.key());
-		((Ref<Object>)ref).set(result);
-
-		// If we are running a transaction, enlist the result so that it gets processed on commit even
-		// if the client never materializes the result.
-		if (ofy.getTxn() != null)
-			ofy.getTxn().enlist(result);
-	}
-
-	/**
-	 * Convenience method that creates a new ref and loads it
+	 * Convenience method that loads the key and creates a ref for it, tied to the current ofy instance
 	 */
 	public <T> Ref<T> getRef(Key<T> key) {
-		Ref<T> ref = Ref.create(key);
-		loadRef(ref);
-		return ref;
+		load(key);
+		return new StdRef<T>(key, ofy);
 	}
 
 	/**
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 * Also will recursively prepare the session with @Load parents as appropriate.
 	 */
-	public <T> Result<T> getResult(Key<T> key) {
+	public <T> Result<T> load(Key<T> key) {
 		Result<T> result = round.get(key);
+
+		// If we are running a transaction, enlist the result so that it gets processed on commit even
+		// if the client never materializes the result.
+		if (ofy.getTxn() != null)
+			ofy.getTxn().enlist(result);
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
 			KeyMetadata<?> meta = Keys.getMetadata(key);
 			if (meta != null) {
 				if (meta.shouldLoadParent(loader.getLoadGroups())) {
-					getResult(key.getParent());
+					load(key.getParent());
 				}
 			}
 		}
@@ -121,10 +112,10 @@ public class LoadEngine
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
 	public <T> Ref<T> makeRef(Key<?> rootEntity, Property property, Key<T> key) {
-		Ref<T> ref = Ref.create(key);
+		Ref<T> ref = new StdRef<T>(key, ofy);
 
 		if (shouldLoad(property)) {
-			loadRef(ref);
+			load(key);
 		} else {
 			// Only if there is any potential for upgrade
 			Load load = property.getAnnotation(Load.class);
@@ -132,7 +123,7 @@ public class LoadEngine
 				// add it to the list of upgrades
 				SessionValue<?> sv = session.get(rootEntity);
 				if (sv != null) {	// can this ever be null?
-					sv.addReference(new Reference(property, ref));
+					sv.addReference(new Reference(property, key));
 				}
 			}
 		}
@@ -170,7 +161,7 @@ public class LoadEngine
 		if (check) {
 			for (Reference reference: sv.getReferences()) {
 				if (shouldLoad(reference.getProperty())) {
-					loadRef(reference.getRef());
+					load(reference.getKey());
 				}
 			}
 		}

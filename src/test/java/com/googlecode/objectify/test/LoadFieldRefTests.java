@@ -193,39 +193,53 @@ public class LoadFieldRefTests extends TestBase
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 
-		assert fetched.single.key().equals(k1);
-		assertRefUninitialzied(fetched.single);
+		assert !fetched.single.isLoaded();
+		assert !fetched.multi.get(0).isLoaded();
+		assert !fetched.multi.get(1).isLoaded();
 
-		assert fetched.multi.get(0).equals(fetched.single);
-		for (Ref<Trivial> ref: fetched.multi)
-			assertRefUninitialzied(ref);
+		assert fetched.single.equivalent(k1);
+		assert fetched.single.equivalent(fetched.multi.get(0));
 
 		TestObjectify ofy = fact.begin();
 
 		ofy.clear();
 		fetched = ofy.load().group(Single.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert !fetched.multi.get(1).isLoaded();
+
+		assert fetched.single.equivalent(fetched.multi.get(0));
+		assert fetched.single.get() == fetched.multi.get(0).get();
+
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(0).equals(fetched.single);
-		for (Ref<Trivial> ref: fetched.multi)
-			assertRefUninitialzied(ref);
 
 		ofy.clear();
 		fetched = ofy.load().group(Multi.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert fetched.multi.get(1).isLoaded();
+
+		assert fetched.multi.get(0).equivalent(fetched.single);
+		assert fetched.single.get() == fetched.multi.get(0).get();
+
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 
-		assert fetched.multi.get(0).equals(fetched.single);
-		assertRefUninitialzied(fetched.single);
 
 		ofy.clear();
 		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
+		assert fetched.single.isLoaded();
+		assert fetched.multi.get(0).isLoaded();
+		assert fetched.multi.get(1).isLoaded();
+
 		assert fetched.multi.get(0).get().getId().equals(t1.getId());
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 		assert fetched.single.get() == fetched.multi.get(0).get();
+
 	}
 }

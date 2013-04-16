@@ -133,10 +133,11 @@ public class LoadParentRefTestsUsingSession extends TestBase
 		// This should get an uninitialized ref
 		ChildWithGroup fetched = ofy.get(Key.create(ch));
 		assert fetched.father.key().getId() == f.id;
-		assertRefUninitialzied(fetched.father);
+		assert !fetched.father.isLoaded();
 
 		// This should get a filled in ref
 		ChildWithGroup fetched2 = ofy.load().group(Group.class).key(Key.create(ch)).get();
+		Object wtf = fetched2.father.get();
 		assert fetched2.father.get().id.equals(f.id);
 		assert fetched2.father.get().foo.equals(f.foo);
 	}

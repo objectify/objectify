@@ -14,6 +14,7 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.common.collect.Iterators;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Ref;
@@ -22,9 +23,11 @@ import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
-import com.googlecode.objectify.impl.ref.FirstRef;
+import com.googlecode.objectify.impl.engine.KeyResultPair;
+import com.googlecode.objectify.impl.ref.QueryRef;
+import com.googlecode.objectify.util.AsyncList;
 import com.googlecode.objectify.util.DatastoreUtils;
-import com.googlecode.objectify.util.ResultProxy;
+import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
@@ -97,8 +100,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
 	 */
 	@Override
-	public QueryImpl<T> filter(String condition, Object value)
-	{
+	public QueryImpl<T> filter(String condition, Object value) {
 		QueryImpl<T> q = createQuery();
 		q.addFilter(condition, value);
 		return q;
@@ -108,8 +110,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
 	 */
 	@Override
-	public QueryImpl<T> order(String condition)
-	{
+	public QueryImpl<T> order(String condition) {
 		QueryImpl<T> q = createQuery();
 		q.addOrder(condition);
 		return q;
@@ -121,8 +122,8 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/** Modifies the instance */
-	void addFilter(String condition, Object value)
-	{
+	void addFilter(String condition, Object value) {
+
 		String[] parts = condition.trim().split(" ");
 		if (parts.length < 1 || parts.length > 2)
 			throw new IllegalArgumentException("'" + condition + "' is not a legal filter condition");
@@ -168,8 +169,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * Converts the textual operator (">", "<=", etc) into a FilterOperator.
 	 * Forgiving about the syntax; != and <> are NOT_EQUAL, = and == are EQUAL.
 	 */
-	protected FilterOperator translate(String operator)
-	{
+	protected FilterOperator translate(String operator) {
 		operator = operator.trim();
 
 		if (operator.equals("=") || operator.equals("=="))
@@ -191,8 +191,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/** Modifies the instance */
-	void addOrder(String condition)
-	{
+	void addOrder(String condition) {
 		condition = condition.trim();
 		SortDirection dir = SortDirection.ASCENDING;
 
@@ -280,8 +279,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
-	public String toString()
-	{
+	public String toString() {
 		StringBuilder bld = new StringBuilder(this.getClass().getName());
 		bld.append("{kind=");
 		bld.append(this.actual.getKind());
@@ -294,8 +292,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		FilterPredicate[] filters = this.actual.getFilterPredicates().toArray(new FilterPredicate[this.actual.getFilterPredicates().size()]);
 		Arrays.sort(filters, new Comparator<FilterPredicate>() {
 			@Override
-			public int compare(FilterPredicate o1, FilterPredicate o2)
-			{
+			public int compare(FilterPredicate o1, FilterPredicate o2) {
 				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
 				if (result != 0)
 					return result;
@@ -312,8 +309,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 					return o1.getValue().toString().compareTo(o2.getValue().toString());	// not perfect, but probably as good as we can do
 			}
 		});
-		for (FilterPredicate filter: filters)
-		{
+		for (FilterPredicate filter: filters) {
 			bld.append(",filter=");
 			bld.append(filter.getPropertyName());
 			bld.append(filter.getOperator().name());
@@ -324,8 +320,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 		SortPredicate[] sorts = this.actual.getSortPredicates().toArray(new SortPredicate[this.actual.getSortPredicates().size()]);
 		Arrays.sort(sorts, new Comparator<SortPredicate>() {
 			@Override
-			public int compare(SortPredicate o1, SortPredicate o2)
-			{
+			public int compare(SortPredicate o1, SortPredicate o2) {
 				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
 				if (result != 0)
 					return result;
@@ -334,8 +329,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 				return o1.getDirection().compareTo(o2.getDirection());
 			}
 		});
-		for (SortPredicate sort: this.actual.getSortPredicates())
-		{
+		for (SortPredicate sort: this.actual.getSortPredicates()) {
 			bld.append(",sort=");
 			bld.append(sort.getPropertyName());
 			bld.append(sort.getDirection().name());
@@ -367,8 +361,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	@Override
 	public Ref<T> first() {
 		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
-		Iterator<Ref<T>> it = this.limit(1).refIterable().iterator();
-		return new FirstRef<T>(it);
+		Iterator<KeyResultPair<T>> pairIt = this.limit(1).resultIterable().iterator();
+
+		Iterator<Key<T>> keyIt = Iterators.transform(pairIt, KeyResultPair.<T>keyFunction());
+		return new QueryRef<T>(new IteratorFirstResult<Key<T>>(keyIt));
 	}
 
 	/* (non-Javadoc)
@@ -384,10 +380,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> iterable() {
-		return new TranslatingQueryResultIterable<Ref<T>, T>(refIterable()) {
+		return new TranslatingQueryResultIterable<KeyResultPair<T>, T>(resultIterable()) {
 			@Override
-			protected T translate(Ref<T> from) {
-				return from.get();
+			protected T translate(KeyResultPair<T> from) {
+				return from.getResult().now();
 			}
 		};
 	}
@@ -404,30 +400,21 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @see com.googlecode.objectify.cmd.Query#list()
 	 */
 	@Override
-	public List<T> list()
-	{
-		Iterable<T> it = this.chunk(Integer.MAX_VALUE).iterable();
-		return ResultProxy.makeAsyncList(it);
+	public List<T> list() {
+		return new AsyncList<T>(this.chunk(Integer.MAX_VALUE).iterable());
 	}
 
 	/**
 	 * Get an iterator over the keys.  Not part of the public api, but used by QueryKeysImpl.  Assumes
 	 * that setKeysOnly() has already been set.
 	 */
-	public QueryResultIterable<Key<T>> keysIterable()
-	{
+	public QueryResultIterable<Key<T>> keysIterable() {
 		assert actual.isKeysOnly();
-		return new TranslatingQueryResultIterable<Ref<T>, Key<T>>(refIterable()) {
-			@Override
-			protected Key<T> translate(Ref<T> from) {
-				return from.key();
-			}
-		};
+		return loader.createQueryEngine().queryKeysOnly(this.getActualQuery(), this.fetchOptions());
 	}
 
-	/** Produces the basic iterable on refs based on the current query.  Used to generate all other iterables. */
-	private QueryResultIterable<Ref<T>> refIterable()
-	{
+	/** Produces the basic iterable on results based on the current query.  Used to generate other iterables via transformation. */
+	private QueryResultIterable<KeyResultPair<T>> resultIterable() {
 		boolean hybridize = hybrid;
 
 		if (!hasForcedHybrid) {
@@ -437,23 +424,23 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 				hybridize = false;
 		}
 
-		return loader.createQueryEngine().query(this.getActualQuery(), this.fetchOptions(), hybridize);
+		if (hybridize)
+			return loader.createQueryEngine().queryHybrid(this.getActualQuery(), this.fetchOptions());
+		else
+			return loader.createQueryEngine().queryNormal(this.getActualQuery(), this.fetchOptions());
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
 	@SuppressWarnings("unchecked")
-	public QueryImpl<T> clone()
-	{
-		try
-		{
+	public QueryImpl<T> clone() {
+		try {
 			QueryImpl<T> impl = (QueryImpl<T>)super.clone();
 			impl.actual = DatastoreUtils.cloneQuery(this.actual);
 			return impl;
 		}
-		catch (CloneNotSupportedException e)
-		{
+		catch (CloneNotSupportedException e) {
 			// impossible
 			throw new RuntimeException(e);
 		}
@@ -463,8 +450,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @return a set of fetch options for the current limit, offset, and cursors,
 	 *  based on the default fetch options.  There will always be options even if default.
 	 */
-	private FetchOptions fetchOptions()
-	{
+	private FetchOptions fetchOptions() {
 		FetchOptions opts = FetchOptions.Builder.withDefaults();
 
 		if (this.startAt != null)

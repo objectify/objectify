@@ -3,8 +3,6 @@ package com.googlecode.objectify.util;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.ArrayList;
-import java.util.List;
 
 import com.googlecode.objectify.Result;
 
@@ -15,24 +13,6 @@ import com.googlecode.objectify.Result;
  */
 public class ResultProxy<T> implements InvocationHandler
 {
-	/**
-	 * Converts an Iterable into a list asynchronously, using the ResultProxy.
-	 */
-	public static <S> List<S> makeAsyncList(Iterable<S> it) {
-		Result<List<S>> result = new ResultTranslator<Iterable<S>, List<S>>(it) {
-			@Override
-			protected List<S> translate(Iterable<S> from) {
-				List<S> list = new ArrayList<S>();
-				for (S s: from)
-					list.add(s);
-
-				return list;
-			}
-		};
-
-		return create(List.class, result);
-	}
-
 	/**
 	 * Create a ResultProxy for the given interface.
 	 */
