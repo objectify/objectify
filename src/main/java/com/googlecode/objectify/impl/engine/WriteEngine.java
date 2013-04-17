@@ -65,6 +65,9 @@ public class WriteEngine
 
 		final List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {
+			if (obj == null)
+				throw new NullPointerException("Attempted to save a null entity");
+
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
 			} else {
