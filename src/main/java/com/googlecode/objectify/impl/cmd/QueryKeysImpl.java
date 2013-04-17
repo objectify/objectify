@@ -10,8 +10,9 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.QueryExecute;
 import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.impl.ref.QueryRef;
-import com.googlecode.objectify.util.AsyncList;
+import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.IteratorFirstResult;
+import com.googlecode.objectify.util.ResultProxy;
 
 /**
  * Implementation of QueryKeys.
@@ -43,7 +44,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public List<Key<T>> list() {
-		return new AsyncList<Key<T>>(impl.chunk(Integer.MAX_VALUE).keysIterable());
+		return ResultProxy.create(List.class, new MakeListResult<Key<T>>(impl.chunk(Integer.MAX_VALUE).keysIterable()));
 	}
 
 	@Override

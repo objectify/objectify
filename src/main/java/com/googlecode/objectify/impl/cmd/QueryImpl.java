@@ -25,9 +25,10 @@ import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
 import com.googlecode.objectify.impl.engine.KeyResultPair;
 import com.googlecode.objectify.impl.ref.QueryRef;
-import com.googlecode.objectify.util.AsyncList;
 import com.googlecode.objectify.util.DatastoreUtils;
+import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.IteratorFirstResult;
+import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
@@ -401,7 +402,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public List<T> list() {
-		return new AsyncList<T>(this.chunk(Integer.MAX_VALUE).iterable());
+		return ResultProxy.create(List.class, new MakeListResult<T>(this.chunk(Integer.MAX_VALUE).iterable()));
 	}
 
 	/**
