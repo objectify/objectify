@@ -23,7 +23,7 @@ import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
 /**
- * Tests simple use of the getRef() methods on Objectify
+ * Tests the behavior of Refs.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -68,13 +68,28 @@ public class RefTests extends TestBase
 
 	/** */
 	@Test
-	public void testFind() throws Exception {
+	public void standaloneLoad() throws Exception {
+		Ref<Trivial> ref = Ref.create(k1);
+		assert !ref.isLoaded();
+
+		Trivial loaded = ref.get();
+		assert ref.isLoaded();
+		assert loaded.getSomeString().equals(t1.getSomeString());
+	}
+
+	/** */
+	@Test
+	public void loadRefFromOfy() throws Exception {
 		TestObjectify ofy = fact.begin();
 
 		Ref<Trivial> ref = Ref.create(k1);
+		assert !ref.isLoaded();
 
-		ofy.load().ref(ref);
-		assert ref.get().getSomeString().equals(t1.getSomeString());
+		Ref<Trivial> ref2 = ofy.load().ref(ref);
+		assert ref.isLoaded();
+		assert ref2.isLoaded();
+
+		assert ref2.get().getSomeString().equals(t1.getSomeString());
 	}
 
 	/** */
@@ -88,6 +103,10 @@ public class RefTests extends TestBase
 
 		@SuppressWarnings({ "unused", "unchecked" })
 		Object foo = ofy.load().refs(ref1, ref2, refNone);
+
+		assert ref1.isLoaded();
+		assert ref2.isLoaded();
+		assert refNone.isLoaded();
 
 		assert ref1.get().getSomeString().equals(t1.getSomeString());
 		assert ref2.get().getSomeString().equals(t2.getSomeString());
@@ -109,6 +128,10 @@ public class RefTests extends TestBase
 		list.add(refNone);
 
 		ofy.load().refs(list);
+
+		assert ref1.isLoaded();
+		assert ref2.isLoaded();
+		assert refNone.isLoaded();
 
 		assert ref1.get().getSomeString().equals(t1.getSomeString());
 		assert ref2.get().getSomeString().equals(t2.getSomeString());
