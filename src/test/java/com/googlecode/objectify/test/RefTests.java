@@ -20,7 +20,9 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.RefTests.HasRef.Foo;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the behavior of Refs.
@@ -38,14 +40,13 @@ public class RefTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwo() {
-		fact.register(Trivial.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy.put(t1);
+		k1 = ofy().put(t1);
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy.put(t2);
+		k2 = ofy().put(t2);
 
 		kNone = Key.create(Trivial.class, 12345L);
 	}
@@ -53,15 +54,15 @@ public class RefTests extends TestBase
 //	/** */
 //	@Test
 //	public void testGet() throws Exception {
-//		TestObjectify ofy = fact.begin();
+//		TestObjectify ofy = fact().begin();
 //
 //		Ref<Trivial> ref = Ref.create(k1);
 //
-//		ofy.getRef(ref);
+//		ofy().getRef(ref);
 //		assert ref.value().getSomeString().equals(t1);
 //
 //		try {
-//			ofy.getRef(Ref.create(kNone));
+//			ofy().getRef(Ref.create(kNone));
 //			assert false;
 //		} catch (NotFoundException ex) {}
 //	}
@@ -80,12 +81,10 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void loadRefFromOfy() throws Exception {
-		TestObjectify ofy = fact.begin();
-
 		Ref<Trivial> ref = Ref.create(k1);
 		assert !ref.isLoaded();
 
-		Ref<Trivial> ref2 = ofy.load().ref(ref);
+		Ref<Trivial> ref2 = ofy().load().ref(ref);
 		assert ref.isLoaded();
 		assert ref2.isLoaded();
 
@@ -95,14 +94,12 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void testGetRefsVarargs() throws Exception {
-		TestObjectify ofy = fact.begin();
-
 		Ref<Trivial> ref1 = Ref.create(k1);
 		Ref<Trivial> ref2 = Ref.create(k2);
 		Ref<Trivial> refNone = Ref.create(kNone);
 
 		@SuppressWarnings({ "unused", "unchecked" })
-		Object foo = ofy.load().refs(ref1, ref2, refNone);
+		Object foo = ofy().load().refs(ref1, ref2, refNone);
 
 		assert ref1.isLoaded();
 		assert ref2.isLoaded();
@@ -116,8 +113,6 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void testGetRefsIterable() throws Exception {
-		TestObjectify ofy = fact.begin();
-
 		Ref<Trivial> ref1 = Ref.create(k1);
 		Ref<Trivial> ref2 = Ref.create(k2);
 		Ref<Trivial> refNone = Ref.create(kNone);
@@ -127,7 +122,7 @@ public class RefTests extends TestBase
 		list.add(ref2);
 		list.add(refNone);
 
-		ofy.load().refs(list);
+		ofy().load().refs(list);
 
 		assert ref1.isLoaded();
 		assert ref2.isLoaded();
@@ -151,7 +146,7 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void refsMustBeSerializable() throws Exception {
-		fact.register(HasRef.class);
+		fact().register(HasRef.class);
 
 		HasRef hr = new HasRef();
 		hr.triv = Ref.create(k1);
@@ -169,15 +164,14 @@ public class RefTests extends TestBase
 	/** */
 	@Test
 	public void refsLoadedMustBeSerializable() throws Exception {
-		fact.register(HasRef.class);
+		fact().register(HasRef.class);
 
 		HasRef hr = new HasRef();
 		hr.triv = Ref.create(k1);
 
-		TestObjectify ofy = fact.begin();
-		ofy.put(hr);
-		ofy.clear();
-		HasRef fetched = ofy.load().group(Foo.class).entity(hr).get();
+		ofy().put(hr);
+		ofy().clear();
+		HasRef fetched = ofy().load().group(Foo.class).entity(hr).get();
 
 		// Now try to serialize it in memcache.
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();

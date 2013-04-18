@@ -3,12 +3,14 @@ package com.googlecode.objectify.test;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Basic tests for registering entities
@@ -61,7 +63,7 @@ public class RegisterTests extends TestBase {
 
 	private void assertRegisterSucceeds(Class<?> entity) {
 		try {
-			this.fact.register(entity);
+			fact().register(entity);
 		} catch (Exception e) {
 			assert false : "Unexpected exception of type " + e.getClass();
 		}
@@ -69,7 +71,7 @@ public class RegisterTests extends TestBase {
 
 	private void assertRegisterFails(Class<?> entity, Class<? extends Exception> expectedException) {
 		try {
-			this.fact.register(entity);
+			fact().register(entity);
 			assert false : "Shouldn't be register " + entity.getName();
 		} catch (Exception e) {
 			assert expectedException.isInstance(e) : "Unexpected exception of type " + e.getClass();
@@ -88,7 +90,6 @@ public class RegisterTests extends TestBase {
 	 */
 	@Test
 	public void makeKeyWithoutRegstering() throws Exception {
-		Objectify ofy = this.fact.begin();
 		Key<Normal> k = Key.create(Normal.class, 123L);
 
 		// Old behavior
@@ -100,6 +101,6 @@ public class RegisterTests extends TestBase {
 //		}
 
 		// New behavior
-		assert ofy.load().key(k).get() == null;
+		assert ofy().load().key(k).get() == null;
 	}
 }

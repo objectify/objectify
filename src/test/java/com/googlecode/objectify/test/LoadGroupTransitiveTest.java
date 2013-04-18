@@ -10,6 +10,7 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.util.TestBase;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144
@@ -46,9 +47,9 @@ public class LoadGroupTransitiveTest extends TestBase {
 
 	@Test
 	public void testTransitiveLoad() {
-		this.fact.register(A.class);
-		this.fact.register(B.class);
-		this.fact.register(C.class);
+		fact().register(A.class);
+		fact().register(B.class);
+		fact().register(C.class);
 
 		final B b = new B();
 		final C c = new C();
@@ -73,9 +74,9 @@ public class LoadGroupTransitiveTest extends TestBase {
 
 	@Test
 	public void testTransitiveLoadStepwise() {
-		this.fact.register(A.class);
-		this.fact.register(B.class);
-		this.fact.register(C.class);
+		fact().register(A.class);
+		fact().register(B.class);
+		fact().register(C.class);
 
 		final B b = new B();
 		final C c = new C();

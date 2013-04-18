@@ -15,6 +15,9 @@ import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 /**
  * Tests the lifecycle annotations
  */
@@ -51,8 +54,8 @@ public class LifecycleTests extends TestBase
 	@Test
 	public void testLifecycle() throws Exception
 	{
-		this.fact.register(HasLifecycle.class);
-		this.fact.register(HasInheritedLifecycle.class);
+		fact().register(HasLifecycle.class);
+		fact().register(HasInheritedLifecycle.class);
 
 		HasLifecycle life1 = new HasLifecycle();
 		HasLifecycle fetched = this.putClearGet(life1);
@@ -83,7 +86,7 @@ public class LifecycleTests extends TestBase
 	@Test
 	public void testExceptionInLifecycle() throws Exception
 	{
-		this.fact.register(HasExceptionThrowingLifecycle.class);
+		fact().register(HasExceptionThrowingLifecycle.class);
 
 		try
 		{
@@ -114,19 +117,17 @@ public class LifecycleTests extends TestBase
 	@Test
 	public void testLifecycleLoadTiming() throws Exception
 	{
-		fact.register(HasLoad.class);
-		fact.register(Trivial.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(HasLoad.class);
+		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 123);
-		ofy.put(triv);
+		ofy().put(triv);
 
 		HasLoad hl = new HasLoad();
 		hl.triv = Ref.create(triv);
-		ofy.put(hl);
+		ofy().put(hl);
 
-		ofy.load().entity(hl).get();
+		ofy().load().entity(hl).get();
 	}
 
 	/** */
@@ -166,24 +167,22 @@ public class LifecycleTests extends TestBase
 	@Test
 	public void testComplicatedLifecycle() throws Exception
 	{
-		fact.register(ParentThing.class);
-		fact.register(HasParent.class);
-		fact.register(HasHasParent.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(ParentThing.class);
+		fact().register(HasParent.class);
+		fact().register(HasHasParent.class);
 
 		ParentThing pt = new ParentThing();
 		pt.foo = "fooValue";
-		ofy.put(pt);
+		ofy().put(pt);
 
 		HasParent hp = new HasParent();
 		hp.parent = Ref.create(pt);
-		ofy.put(hp);
+		ofy().put(hp);
 
 		HasHasParent hhp = new HasHasParent();
 		hhp.hasParent = Ref.create(hp);
-		ofy.put(hhp);
+		ofy().put(hhp);
 
-		ofy.load().entity(hhp).get();
+		ofy().load().entity(hhp).get();
 	}
 }

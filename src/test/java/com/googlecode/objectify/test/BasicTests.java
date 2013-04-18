@@ -18,7 +18,9 @@ import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of basic entity manipulation.
@@ -34,12 +36,11 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testGenerateId() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		// Note that 5 is not the id, it's part of the payload
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.save().entity(triv).now();
+		Key<Trivial> k = ofy().save().entity(triv).now();
 
 		assert k.getKind().equals(triv.getClass().getSimpleName());
 		assert k.getId() == triv.getId();
@@ -47,7 +48,7 @@ public class BasicTests extends TestBase
 		Key<Trivial> created = Key.create(Trivial.class, k.getId());
 		assert k.equals(created);
 
-		Trivial fetched = ofy.load().key(k).get();
+		Trivial fetched = ofy().load().key(k).get();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -57,18 +58,17 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testOverwriteId() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy.save().entity(triv).now();
+		Key<Trivial> k = ofy().save().entity(triv).now();
 
 		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		Key<Trivial> k2 = ofy.save().entity(triv2).now();
+		Key<Trivial> k2 = ofy().save().entity(triv2).now();
 
 		assert k2.equals(k);
 
-		Trivial fetched = ofy.load().key(k).get();
+		Trivial fetched = ofy().load().key(k).get();
 
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
@@ -78,18 +78,17 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testNames() throws Exception {
-		fact.register(NamedTrivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(NamedTrivial.class);
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		Key<NamedTrivial> k = ofy.save().entity(triv).now();
+		Key<NamedTrivial> k = ofy().save().entity(triv).now();
 
 		assert k.getName().equals("first");
 
 		Key<NamedTrivial> createdKey = Key.create(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
-		NamedTrivial fetched = ofy.load().key(k).get();
+		NamedTrivial fetched = ofy().load().key(k).get();
 
 		assert fetched.getName().equals(k.getName());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -99,8 +98,7 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testBatchOperations() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv1 = new Trivial("foo", 5);
 		Trivial triv2 = new Trivial("foo2", 6);
@@ -109,7 +107,7 @@ public class BasicTests extends TestBase
 		objs.add(triv1);
 		objs.add(triv2);
 
-		Map<Key<Trivial>, Trivial> map = ofy.save().entities(objs).now();
+		Map<Key<Trivial>, Trivial> map = ofy().save().entities(objs).now();
 		List<Key<Trivial>> keys = new ArrayList<Key<Trivial>>(map.keySet());
 
 		// Verify the put keys
@@ -120,7 +118,7 @@ public class BasicTests extends TestBase
 		}
 
 		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy.load().keys(keys);
+		Map<Key<Trivial>, Trivial> fetched = ofy().load().keys(keys);
 
 		assert fetched.size() == keys.size();
 		for (Trivial triv: objs)
@@ -134,11 +132,10 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testManyToOne() throws Exception {
-		fact.register(Employee.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Employee.class);
 
 		Employee fred = new Employee("fred");
-		ofy.save().entity(fred).now();
+		ofy().save().entity(fred).now();
 
 		Key<Employee> fredKey = Key.create(fred);
 
@@ -149,12 +146,12 @@ public class BasicTests extends TestBase
 			employees.add(emp);
 		}
 
-		ofy.save().entities(employees).now();
+		ofy().save().entities(employees).now();
 
 		assert employees.size() == 100;
 
 		int count = 0;
-		for (Employee emp: ofy.load().type(Employee.class).filter("manager", fred))
+		for (Employee emp: ofy().load().type(Employee.class).filter("manager", fred))
 		{
 			emp.getName(); // Just to make eclipse happy
 			count++;
@@ -165,11 +162,10 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void testConsistencySetting() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin().consistency(Consistency.EVENTUAL);
+		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
-		ofy.save().entity(triv).now();
+		ofy().consistency(Consistency.EVENTUAL).save().entity(triv).now();
 	}
 
 	/** */
@@ -188,16 +184,13 @@ public class BasicTests extends TestBase
 	 */
 	@Test
 	public void testPutNothing() throws Exception {
-		TestObjectify ofy = this.fact.begin();
-
-		ofy.save().entities(Collections.emptyList()).now();
+		ofy().save().entities(Collections.emptyList()).now();
 	}
 
 	/** */
 	@Test
 	public void testChunking() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		List<Trivial> trivs = new ArrayList<Trivial>(100);
 		for (int i = 0; i < 100; i++) {
@@ -205,12 +198,12 @@ public class BasicTests extends TestBase
 			trivs.add(triv);
 		}
 
-		ofy.save().entities(trivs).now();
+		ofy().save().entities(trivs).now();
 
 		assert trivs.size() == 100;
 
 		int count = 0;
-		for (Trivial triv: ofy.load().type(Trivial.class).chunk(2)) {
+		for (Trivial triv: ofy().load().type(Trivial.class).chunk(2)) {
 			assert triv.getSomeNumber() == count;
 			count++;
 		}
@@ -220,19 +213,18 @@ public class BasicTests extends TestBase
 	/** */
 	@Test
 	public void deleteBatch() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv1 = new Trivial("foo5", 5);
 		Trivial triv2 = new Trivial("foo6", 6);
 
-		ofy.save().entities(triv1, triv2).now();
+		ofy().save().entities(triv1, triv2).now();
 
-		assert ofy.load().entities(triv1, triv2).size() == 2;
+		assert ofy().load().entities(triv1, triv2).size() == 2;
 
-		ofy.delete().entities(triv1, triv2).now();
+		ofy().delete().entities(triv1, triv2).now();
 
-		Map<Key<Trivial>, Trivial> result = ofy.load().entities(triv1, triv2);
+		Map<Key<Trivial>, Trivial> result = ofy().load().entities(triv1, triv2);
 		System.out.println("Result is " + result);
 		assert result.size() == 0;
 	}
@@ -241,23 +233,22 @@ public class BasicTests extends TestBase
 	@SuppressWarnings("unchecked")
 	@Test
 	public void loadNonexistant() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv1 = new Trivial("foo5", 5);
-		ofy.save().entity(triv1).now();
+		ofy().save().entity(triv1).now();
 
 		Key<Trivial> triv1Key = Key.create(triv1);
 		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
 		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
 
-		Ref<Trivial> ref = ofy.load().key(triv2Key);
+		Ref<Trivial> ref = ofy().load().key(triv2Key);
 		assert ref.get() == null;
 
-		Map<Key<Trivial>, Trivial> result = ofy.load().keys(triv2Key, triv3Key);
+		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
 		assert result.size() == 0;
 
-		Map<Key<Trivial>, Trivial> result2 = ofy.load().keys(triv1Key, triv2Key);
+		Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
 		assert result2.size() == 1;
 	}
 
@@ -265,42 +256,40 @@ public class BasicTests extends TestBase
 	@SuppressWarnings("unchecked")
 	@Test
 	public void loadNonexistantWithoutSession() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv1 = new Trivial("foo5", 5);
-		ofy.save().entity(triv1).now();
+		ofy().save().entity(triv1).now();
 
 		Key<Trivial> triv1Key = Key.create(triv1);
 		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
 		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
 
-		ofy.clear();
-		Ref<Trivial> ref = ofy.load().key(triv2Key);
+		ofy().clear();
+		Ref<Trivial> ref = ofy().load().key(triv2Key);
 		assert ref.get() == null;
 
-		ofy.clear();
-		Map<Key<Trivial>, Trivial> result = ofy.load().keys(triv2Key, triv3Key);
+		ofy().clear();
+		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
 		assert result.size() == 0;
 
-		ofy.clear();
-		Map<Key<Trivial>, Trivial> result2 = ofy.load().keys(triv1Key, triv2Key);
+		ofy().clear();
+		Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
 		assert result2.size() == 1;
 	}
 
 	/** */
 	@Test
 	public void simpleFetchById() throws Exception {
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
 
 		Trivial triv1 = new Trivial("foo5", 5);
 
-		ofy.save().entity(triv1).now();
+		ofy().save().entity(triv1).now();
 
-		ofy.clear();
+		ofy().clear();
 
-		Trivial fetched = ofy.load().type(Trivial.class).id(triv1.getId()).get();
+		Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).get();
 
 		assert fetched.getSomeString().equals(triv1.getSomeString());
 	}

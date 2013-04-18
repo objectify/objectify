@@ -13,7 +13,9 @@ import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests that a certain-shaped Town results in the correct datastore Entity.
@@ -25,7 +27,7 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testFirstExample() throws Exception
 	{
-		fact.register(Town.class);
+		fact().register(Town.class);
 
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
@@ -84,7 +86,7 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testNullEmbedded2() throws Exception
 	{
-		fact.register(Town.class);
+		fact().register(Town.class);
 
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
@@ -121,7 +123,7 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testNullEmbedded1() throws Exception
 	{
-		fact.register(Town.class);
+		fact().register(Town.class);
 
 		com.google.appengine.api.datastore.Entity e;
 		Town town;
@@ -153,7 +155,7 @@ public class ExampleDocoTests extends TestBase
 	private Town loadTown(Entity e) throws EntityNotFoundException
 	{
 		Key<Town> k = Key.create(e.getKey());
-		return fact.begin().get(k);
+		return ofy().get(k);
 	}
 
 	private boolean arrayPropertyEqual(Entity e, String prop, Object... vals)
@@ -164,8 +166,7 @@ public class ExampleDocoTests extends TestBase
 
 	private com.google.appengine.api.datastore.Entity townToEntity(Town town) throws EntityNotFoundException
 	{
-		TestObjectify ofy = fact.begin();
-		Key<Town> k = ofy.put(town);
+		Key<Town> k = ofy().put(town);
 		return ds().get(null, Keys.toRawKey(k));
 	}
 }

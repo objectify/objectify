@@ -14,6 +14,8 @@ import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Test that we can have abstract base classes in a polymorphic hierarchy.
  *
@@ -41,15 +43,15 @@ public class PolymorphicAbstractBaseTests extends TestBase
 	/** */
 	@Test
 	public void registersForwards() throws Exception {
-		this.fact.register(Base.class);
-		this.fact.register(Subclass.class);
+		fact().register(Base.class);
+		fact().register(Subclass.class);
 	}
 
 	/** */
 	@Test
 	public void registersBackwards() throws Exception {
-		this.fact.register(Subclass.class);
-		this.fact.register(Base.class);
+		fact().register(Subclass.class);
+		fact().register(Base.class);
 	}
 
 	/** */

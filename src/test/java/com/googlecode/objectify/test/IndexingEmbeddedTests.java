@@ -15,11 +15,13 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.IndexingInheritanceTests.DefaultIndexedPojo;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of @Index and @Unindex
- * 
+ *
  * @author Scott Hernandez
  * @author Jeff Schnitzer
  */
@@ -31,26 +33,26 @@ public class IndexingEmbeddedTests extends TestBase
 
 	@Entity
 	@Index
-	public static class LevelTwoIndexedClass 
+	public static class LevelTwoIndexedClass
 	{
-	   String bar="A";
+	String bar="A";
 	}
-	public static class LevelTwoIndexedField 
+	public static class LevelTwoIndexedField
 	{
-		@Index String bar="A"; 
+		@Index String bar="A";
 	}
 
 	public static class LevelOne {
-	    String foo = "1";
-	    @Embed LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
-	    @Embed LevelTwoIndexedField twoField = new LevelTwoIndexedField();
+		String foo = "1";
+		@Embed LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
+		@Embed LevelTwoIndexedField twoField = new LevelTwoIndexedField();
 	}
 
-	@Entity @Unindex 
- 	public static class EntityWithEmbedded {
-	    @Id Long id;
-	    @Embed LevelOne one = new LevelOne();
-	    String prop = "A";
+	@Entity @Unindex
+	public static class EntityWithEmbedded {
+		@Id Long id;
+		@Embed LevelOne one = new LevelOne();
+		String prop = "A";
 	}
 
 	@Entity
@@ -59,7 +61,7 @@ public class IndexingEmbeddedTests extends TestBase
 		@Id Long id;
 
 		@Unindex 			private boolean aProp = true;
-		
+
 		@Index 		@Embed 	private DefaultIndexedPojo[] indexed = {new DefaultIndexedPojo()};
 		@Unindex 	@Embed 	private DefaultIndexedPojo[] unindexed = {new DefaultIndexedPojo()};
 					@Embed 	private DefaultIndexedPojo[] def = {new DefaultIndexedPojo()};
@@ -72,7 +74,7 @@ public class IndexingEmbeddedTests extends TestBase
 //		public EmbeddedIndexedPojo(){
 //			indexedHetro.add(new IndexedDefaultPojo());
 //			indexedHetro.add(new IndexedPojo());
-//			
+//
 //			unindexedHetro.addAll(indexedHetro);
 //			defHetro.addAll(indexedHetro);
 //		}
@@ -83,29 +85,28 @@ public class IndexingEmbeddedTests extends TestBase
 	public void setUp()
 	{
 		super.setUp();
-		
-		this.fact.register(DefaultIndexedPojo.class);
-		this.fact.register(EmbeddedIndexedPojo.class);
-		this.fact.register(EntityWithEmbedded.class);
-	}	
-	
+
+		fact().register(DefaultIndexedPojo.class);
+		fact().register(EmbeddedIndexedPojo.class);
+		fact().register(EntityWithEmbedded.class);
+	}
+
 	/** */
 	@Test
 	public void testEmbeddedIndexedPojo() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		ofy.put(new EmbeddedIndexedPojo());
+		ofy().put(new EmbeddedIndexedPojo());
 
-		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("indexed.indexed =", true).iterator().hasNext();
-		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("indexed.def =", true).iterator().hasNext();
-		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("indexed.unindexed=", true).iterator().hasNext();
-		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("def.indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("def.unindexed =", true).iterator().hasNext();
-		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("def.def =", true).iterator().hasNext();
-		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).iterator().hasNext();
-		assert  ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).iterator().hasNext();
-		
+		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("indexed.indexed =", true).iterator().hasNext();
+		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("indexed.def =", true).iterator().hasNext();
+		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("indexed.unindexed=", true).iterator().hasNext();
+		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("def.indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("def.unindexed =", true).iterator().hasNext();
+		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("def.def =", true).iterator().hasNext();
+		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).iterator().hasNext();
+		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).iterator().hasNext();
+
 	}
 	/** */
 	@Test
@@ -118,12 +119,11 @@ public class IndexingEmbeddedTests extends TestBase
 		 * id = ?
 		 * prop = "A"
 		 */
-		TestObjectify ofy = this.fact.begin();
-		ofy.put(new EntityWithEmbedded());
-		
-		assert !ofy.load().type(EntityWithEmbedded.class).filter("prop =", "A").iterator().hasNext();
-		assert !ofy.load().type(EntityWithEmbedded.class).filter("one.foo =", "1").iterator().hasNext();
-		assert  ofy.load().type(EntityWithEmbedded.class).filter("one.twoClass.bar =", "A").iterator().hasNext();
-		assert  ofy.load().type(EntityWithEmbedded.class).filter("one.twoField.bar =", "A").iterator().hasNext();
-	}	
+		ofy().put(new EntityWithEmbedded());
+
+		assert !ofy().load().type(EntityWithEmbedded.class).filter("prop =", "A").iterator().hasNext();
+		assert !ofy().load().type(EntityWithEmbedded.class).filter("one.foo =", "1").iterator().hasNext();
+		assert  ofy().load().type(EntityWithEmbedded.class).filter("one.twoClass.bar =", "A").iterator().hasNext();
+		assert  ofy().load().type(EntityWithEmbedded.class).filter("one.twoField.bar =", "A").iterator().hasNext();
+	}
 }

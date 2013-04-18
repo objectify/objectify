@@ -28,27 +28,29 @@ import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Tests of a bizarre bug in Google's memcache serialization of Key objects.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EvilMemcacheBugTests extends TestBase
 {
 	/** */
 	//private static Logger log = Logger.getLogger(EvilMemcacheBugTests.class.getName());
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	static class SimpleParent
 	{
 		@Id String id;
-		
+
 		SimpleParent(){}
 		SimpleParent(String id) {
 			this.id = id;
 		}
-		
+
 		static Key<SimpleParent> getSimpleParentKey(String id) {
 			return Key.create(SimpleParent.class, id);
 		}
@@ -63,11 +65,11 @@ public class EvilMemcacheBugTests extends TestBase
 		String id;
 		@Parent Key<SimpleParent> simpleParentKey;
 		String foo = "bar";
-		
+
 		static Key<SimpleEntity> getSimpleChildKey(String id) {
 			return Key.create(SimpleParent.getSimpleParentKey(id), SimpleEntity.class, id);
 		}
-		
+
 		SimpleEntity() {}
 		SimpleEntity(String id) {
 			this.id = id;
@@ -78,17 +80,17 @@ public class EvilMemcacheBugTests extends TestBase
 	/** */
 	@Test
 	public void testMoreSophisticatedInAndOutOfTransaction() throws Exception {
-		this.fact.register(SimpleParent.class);
-		this.fact.register(SimpleEntity.class);
+		fact().register(SimpleParent.class);
+		fact().register(SimpleEntity.class);
 		String simpleId = "btoc";
-		
+
 		Key<SimpleEntity> childKey = SimpleEntity.getSimpleChildKey(simpleId);
 		SimpleEntity simple = new SimpleEntity(simpleId);
 
-		TestObjectify nonTxnOfy = this.fact.begin();
+		TestObjectify nonTxnOfy = fact().begin();
 		nonTxnOfy.put(simple);
-		
-		TestObjectify txnOfy = this.fact.begin().transaction();
+
+		TestObjectify txnOfy = fact().begin().transaction();
 		SimpleEntity simple2;
 		try {
 			simple2 = txnOfy.get(childKey);
@@ -110,8 +112,8 @@ public class EvilMemcacheBugTests extends TestBase
 	@Test
 	public void testRawTransactionalCaching() throws Exception {
 		// Need to register it so the entity kind becomes cacheable
-		this.fact.register(SimpleEntity.class);
-		
+		fact().register(SimpleEntity.class);
+
 		DatastoreService ds = ds();
 		DatastoreService cacheds = CachingDatastoreServiceFactory.getDatastoreService();
 
@@ -119,7 +121,7 @@ public class EvilMemcacheBugTests extends TestBase
 		// If the keys have the same *name*, the test fails because ent3 has the "original" property.  WTF??
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-		
+
 		Entity ent1 = new Entity(childKey);
 		ent1.setProperty("foo", "original");
 		cacheds.put(ent1);
@@ -127,7 +129,7 @@ public class EvilMemcacheBugTests extends TestBase
 		// Weirdly, this will solve the problem too
 		//MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
 		//cs.clearAll();
-		
+
 		Transaction txn = cacheds.beginTransaction();
 		Entity ent2;
 		try {
@@ -142,7 +144,7 @@ public class EvilMemcacheBugTests extends TestBase
 		}
 
 		Entity ent3 = cacheds.get(childKey);
-		
+
 		assert "changed".equals(ent3.getProperty("foo"));
 	}
 
@@ -154,10 +156,10 @@ public class EvilMemcacheBugTests extends TestBase
 		// previous test fails.
 
 		MemcacheService cs1 = MemcacheServiceFactory.getMemcacheService("blah");
-		
+
 		com.google.appengine.api.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
 		com.google.appengine.api.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-		
+
 		Entity ent = new Entity(childKey);
 		ent.setProperty("foo", "original");
 		cs1.put(childKey, ent);
@@ -167,15 +169,15 @@ public class EvilMemcacheBugTests extends TestBase
 
 		Transaction txn = ds.beginTransaction();
 		Entity ent2 = ds.get(txn, childKey);
-		
+
 		//Entity ent2 = (Entity)cs1.get(childKey);
 		assert ent2.getProperty("foo").equals("original");
 		ent2.setProperty("foo", "changed");
-		
+
 		Map<Object, Object> holder = new HashMap<Object, Object>();
 		holder.put(childKey, ent2);
 		cs1.putAll(holder);
-		
+
 		Map<Object, Object> fetched = cs1.getAll((Collection)Collections.singleton(childKey));
 		Entity ent3 = (Entity)fetched.get(childKey);
 		assert ent3.getProperty("foo").equals("changed");
@@ -208,13 +210,13 @@ public class EvilMemcacheBugTests extends TestBase
 
 		// This works
 		assert new String(MemcacheSerialization.makePbKey(entB1.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
-		
+
 		// This fails!  It is a bug in the datastore.  See http://code.google.com/p/googleappengine/issues/detail?id=2088
 		// Objectify works around this problem, so it is not a serious issue.
 		// Update: This succeeds!  As of SDK 1.6.0 this has been fixed.  The Objectify workaround (stringifying keys) has been removed.
 		assert new String(MemcacheSerialization.makePbKey(entB2.getKey())).equals(new String(MemcacheSerialization.makePbKey(childKeyB)));
 	}
-	
+
 //	/** The comment was wrong - the grabTail method was removed in GAE SDK 1.6.0! */
 //	@SuppressWarnings("rawtypes")
 //	@Test
@@ -244,11 +246,11 @@ public class EvilMemcacheBugTests extends TestBase
 //		List dump = (List)meth.invoke(ms, 100);
 //		for(Object obj : dump)
 //			log.info(obj.toString());
-//		
+//
 //		assert (dump.size() == 1);
 ////		Entity ent3 = (Entity) ms.getAll((Collection)Collections.singleton(childKey)).values().toArray()[0];
-//		
+//
 ////		assert "changed".equals(ent3.getProperty("foo"));
-//		
+//
 //	}
 }

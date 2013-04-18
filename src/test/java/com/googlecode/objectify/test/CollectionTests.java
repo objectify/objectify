@@ -26,7 +26,9 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various collection types
@@ -87,8 +89,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicLists() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList(1, 2, 3);
@@ -96,9 +97,9 @@ public class CollectionTests extends TestBase
 		hc.integerArrayList = new ArrayList<Integer>(hc.integerList);
 		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		ofy.clear();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		ofy().clear();
+		hc = ofy().load().key(key).get();
 
 		assertContains123(hc.integerList, ArrayList.class);
 		assertContains123(hc.integerArrayList, ArrayList.class);
@@ -109,8 +110,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testBasicSets() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.integerSet = new HashSet<Integer>();
@@ -123,8 +123,8 @@ public class CollectionTests extends TestBase
 		hc.integerTreeSet = new TreeSet<Integer>(hc.integerSet);
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 
 		assertContains123(hc.integerSet, HashSet.class);
 		assertContains123(hc.integerSortedSet, TreeSet.class);
@@ -137,8 +137,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCustomSet() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.customSet = new CustomSet();
@@ -146,8 +145,8 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(2);
 		hc.customSet.add(3);
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 
 		assertContains123(hc.customSet, CustomSet.class);
 	}
@@ -156,8 +155,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testTypedKeySet() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		Key<Trivial> key7 = Key.create(Trivial.class, 7);
 		Key<Trivial> key8 = Key.create(Trivial.class, 8);
@@ -169,8 +167,8 @@ public class CollectionTests extends TestBase
 		hc.typedKeySet.add(key8);
 		hc.typedKeySet.add(key9);
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 
 		assert hc.typedKeySet instanceof HashSet<?>;
 		assert hc.typedKeySet.size() == 3;
@@ -183,14 +181,13 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testCollectionContainingNull() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList((Integer) null);
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 
 		assert hc.integerList != null;
 		assert hc.integerList.size() == 1;
@@ -210,17 +207,16 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testNullCollections() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = null;
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 
-		ofy.save().entity(hc).now();
-		hc = ofy.load().key(key).get();
+		ofy().save().entity(hc).now();
+		hc = ofy().load().key(key).get();
 		assert hc.integerList == null;	// not loaded
 
 		Entity e = ds().get(Keys.toRawKey(key));
@@ -234,15 +230,14 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testEmptyCollections() throws Exception
 	{
-		fact.register(HasCollections.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
 		hc.integerList = new ArrayList<Integer>();
 
-		Key<HasCollections> key = ofy.save().entity(hc).now();
-		ofy.clear();
-		hc = ofy.load().key(key).get();
+		Key<HasCollections> key = ofy().save().entity(hc).now();
+		ofy().clear();
+		hc = ofy().load().key(key).get();
 
 		System.out.println(ds().get(Keys.toRawKey(hc)));
 
@@ -277,7 +272,7 @@ public class CollectionTests extends TestBase
 	@Test
 	public void testInitializedCollections() throws Exception
 	{
-		this.fact.register(HasInitializedCollection.class);
+		fact().register(HasInitializedCollection.class);
 
 		HasInitializedCollection has = new HasInitializedCollection();
 		HasInitializedCollection fetched = this.putClearGet(has);
@@ -304,7 +299,7 @@ public class CollectionTests extends TestBase
 	@SuppressWarnings("unchecked")
 	public void testRawtypeSet()
 	{
-		this.fact.register(HasRawCollection.class);
+		fact().register(HasRawCollection.class);
 
 		HasRawCollection hrc = new HasRawCollection();
 		hrc.raw.add("foo");

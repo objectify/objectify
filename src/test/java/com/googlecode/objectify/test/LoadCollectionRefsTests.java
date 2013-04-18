@@ -14,7 +14,9 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Just some simple tests of loading field Refs
@@ -56,17 +58,15 @@ public class LoadCollectionRefsTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void setUpThings() {
-		fact.register(Thing.class);
-		fact.register(Other.class);
+		fact().register(Thing.class);
+		fact().register(Other.class);
 	}
 
 	/** */
 	@Test
 	public void specialListWorks() throws Exception {
-		TestObjectify ofy = fact.begin();
-
 		Other other = new Other();
-		ofy.put(other);
+		ofy().put(other);
 
 		Thing thing = new Thing();
 		thing.others.add(Ref.create(other));

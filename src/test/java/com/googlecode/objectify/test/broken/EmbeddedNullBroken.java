@@ -10,13 +10,15 @@ import java.util.List;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.test.util.TestBase;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * These are fairly pathological cases WRT nulls in embedded collections.  They're really hard to solve,
@@ -31,14 +33,13 @@ public class EmbeddedNullBroken extends TestBase {
 	 */
 	@Test
 	public void testFooBar() {
-		fact.register(FooBar.class);
-		Objectify ofy = fact.begin();
+		fact().register(FooBar.class);
 
 		FooBar fooBar = createFooBar();
-		Result<Key<FooBar>> result = ofy.save().entity(fooBar);
+		Result<Key<FooBar>> result = ofy().save().entity(fooBar);
 		result.now();
 
-		FooBar retreived = ofy.load().type(FooBar.class).id(fooBar.id).safeGet();
+		FooBar retreived = ofy().load().type(FooBar.class).id(fooBar.id).safeGet();
 
 		assert fooBar.foos.size() == retreived.foos.size();
 	}
@@ -192,7 +193,7 @@ no problems.
 	/** */
 	@Test
 	public void testNestedEmbeds() {
-		fact.register(Form.class);
+		fact().register(Form.class);
 
 		Approval approval0 = new Approval();
 		approval0.approvedBy = "somezero";

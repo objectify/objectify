@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
@@ -20,6 +19,9 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.FakeLoadContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the basic low-level functions of the Transmog.
@@ -39,15 +41,14 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testTrivial() throws Exception
 	{
-		this.fact.register(Trivial.class);
+		fact().register(Trivial.class);
 
 		Transmog<Trivial> transmog = getTransmog(Trivial.class);
-		Objectify ofy = fact.begin();
 
 		Trivial triv = new Trivial(123L, "foo", 456L);
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(triv, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(triv, new SaveContext(ofy()));
 
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", triv.getId());
@@ -94,10 +95,9 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testSimpleList() throws Exception
 	{
-		fact.register(HasSimpleList.class);
+		fact().register(HasSimpleList.class);
 
 		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
-		Objectify ofy = fact.begin();
 
 		HasSimpleList pojo = new HasSimpleList();
 		pojo.id = 123L;
@@ -105,7 +105,7 @@ public class TransmogTests extends TransmogTestBase
 		pojo.stuff.add("bar");
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 		Node stuffNode;
 
 		assert !rootNode.hasPropertyValue();
@@ -148,16 +148,15 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testSimpleListEmpty() throws Exception
 	{
-		fact.register(HasSimpleList.class);
+		fact().register(HasSimpleList.class);
 
 		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
-		Objectify ofy = fact.begin();
 
 		HasSimpleList pojo = new HasSimpleList();
 		pojo.id = 123L;
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -189,17 +188,16 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testSimpleListExplicitlySetNull() throws Exception
 	{
-		fact.register(HasSimpleList.class);
+		fact().register(HasSimpleList.class);
 
 		Transmog<HasSimpleList> transmog = getTransmog(HasSimpleList.class);
-		Objectify ofy = fact.begin();
 
 		HasSimpleList pojo = new HasSimpleList();
 		pojo.id = 123L;
 		pojo.stuff = null;	// explicitly null it out
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -238,16 +236,15 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testSimpleListUninitialized() throws Exception
 	{
-		fact.register(HasSimpleListUninitialized.class);
+		fact().register(HasSimpleListUninitialized.class);
 
 		Transmog<HasSimpleListUninitialized> transmog = getTransmog(HasSimpleListUninitialized.class);
-		Objectify ofy = fact.begin();
 
 		HasSimpleListUninitialized pojo = new HasSimpleListUninitialized();
 		pojo.id = 123L;
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		assert !rootNode.hasPropertyValue();
 		assertChildValue(rootNode, "id", pojo.id);
@@ -286,16 +283,15 @@ public class TransmogTests extends TransmogTestBase
 	@Test
 	public void testMap() throws Exception
 	{
-		fact.register(HasMap.class);
+		fact().register(HasMap.class);
 		Transmog<HasMap> transmog = getTransmog(HasMap.class);
-		Objectify ofy = fact.begin();
 
 		HasMap pojo = new HasMap();
 		pojo.id = 123L;
 		pojo.stuff.put("foo", 5L);
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+	Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		// id and foo
 		{

@@ -13,7 +13,9 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of basic entity manipulation.
@@ -28,7 +30,7 @@ public class EntityTests extends TestBase
 
 	/**
 	 * A fruit.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
@@ -38,31 +40,31 @@ public class EntityTests extends TestBase
 		@Id Long id;
 		String color;
 		String taste;
-		
+
 		/** Default constructor must always exist */
 		protected Fruit() {}
-		
+
 		/** Constructor*/
 		protected Fruit(String color, String taste)
 		{
 			this.color = color;
 			this.taste = taste;
 		}
-		
+
 		public String getColor()
 		{
 			return this.color;
 		}
-		
+
 		public String getTaste()
 		{
 			return this.taste;
 		}
 	}
-	
+
 	/**
 	 * A fruit, an apple.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
@@ -71,34 +73,34 @@ public class EntityTests extends TestBase
 	{
 		public static final String COLOR = "red";
 		public static final String TASTE = "sweet";
-		
+
 		private String size;
-		
+
 		/** Default constructor must always exist */
 		public Apple() {}
-		
+
 		/** Constructor*/
 		public Apple(String color, String taste)
 		{
 			super(color,taste);
 			this.size = "small";
 		}
-		
-		public String getSize() 
+
+		public String getSize()
 		{
 			return this.size;
 		}
 	}
-	
+
 	/** */
 	@Test
 	public void testApple() throws Exception
 	{
-		fact.register(Apple.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Apple.class);
+
 		Apple a = new Apple(Apple.COLOR, Apple.TASTE);
-		Key<Apple> aKey = ofy.put(a);
-		Apple a2 = ofy.get(aKey);
+		Key<Apple> aKey = ofy().put(a);
+		Apple a2 = ofy().get(aKey);
 		assert a2.getColor().equals(a.getColor()) : "Colors were different after stored/retrieved";
 		assert a2.getSize().equals(a.getSize()) : "Sizes were different after stored/retrieved";
 		assert a2.getTaste().equals(a.getTaste()) : "Tastes were different after stored/retrieved";
@@ -106,7 +108,7 @@ public class EntityTests extends TestBase
 
 	/**
 	 * A banana fruit.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
@@ -115,34 +117,34 @@ public class EntityTests extends TestBase
 	{
 		public static final String COLOR = "yellow";
 		public static final String TASTE = "sweet";
-		
+
 		private String shape;
-		
+
 		/** Default constructor must always exist */
 		public Banana() {}
-		
+
 		/** Constructor*/
 		public Banana(String color, String taste)
 		{
 			super(color,taste);
 			this.shape = "like a banana";
 		}
-		
-		public String getShape() 
+
+		public String getShape()
 		{
 			return this.shape;
 		}
 	}
-	
+
 	/** */
 	@Test
 	public void testBanana() throws Exception
 	{
-		fact.register(Banana.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Banana.class);
+
 		Banana b = new Banana(Banana.COLOR, Banana.TASTE);
-		Key<Banana> bKey = ofy.put(b);
-		Banana b2 = ofy.get(bKey);
+		Key<Banana> bKey = ofy().put(b);
+		Banana b2 = ofy().get(bKey);
 		assert b2.getColor().equals(b.getColor()) : "Colors were different after stored/retrieved";
 		assert b2.getShape().equals(b.getShape()) : "Shapes were different after stored/retrieved";
 		assert b2.getTaste().equals(b.getTaste()) : "Tastes were different after stored/retrieved";
@@ -150,20 +152,20 @@ public class EntityTests extends TestBase
 
 	/**
 	 * A holder of a <T>hing.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
 	@Cache
 	static abstract class Holder<T>
-	{	
+	{
 		@Id Long id;
 		T thing;
-		
+
 		/** Default constructor must always exist */
 		protected Holder() {}
 		protected Holder(T t) {this.thing = t;}
-		
+
 		public T getThing()
 		{
 			return this.thing;
@@ -173,10 +175,10 @@ public class EntityTests extends TestBase
 			this.thing = t;
 		}
 	}
-	
+
 	/**
 	 * A holder of a string.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
@@ -197,27 +199,27 @@ public class EntityTests extends TestBase
 		{
 			return this.thing;
 		}
-		
+
 	}
-	
+
 	/** */
 	@Test
 	public void testStringHolder() throws Exception
 	{
-		fact.register(HolderOfString.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HolderOfString.class);
+
 		String s = "my secret";
 		HolderOfString hos = new HolderOfString(s);
-		Key<HolderOfString> hosKey = ofy.put(hos);
-		HolderOfString hos2 = ofy.get(hosKey);
-		
+		Key<HolderOfString> hosKey = ofy().put(hos);
+		HolderOfString hos2 = ofy().get(hosKey);
+
 		assert hos.getThing().equals(hos2.getMyThing()) : "Strings were different after stored/retrieved";
 		assert hos.getThing().getClass().equals(hos2.getMyThing().getClass()) : "Classes were differnt";
 	}
 
 	/**
 	 * A holder of a string, and a Long.
-	 * 
+	 *
 	 * @author Scott Hernandez
 	 */
 	@Entity
@@ -225,7 +227,7 @@ public class EntityTests extends TestBase
 	static class HolderOfStringAndLong extends HolderOfString
 	{
 		protected Long myPrecious;
-		
+
 		/** Default constructor must always exist */
 		public HolderOfStringAndLong() {}
 
@@ -236,18 +238,18 @@ public class EntityTests extends TestBase
 			return this.myPrecious;
 		}
 	}
-	
+
 	/** */
 	@Test
 	public void testStringHolderWithALong() throws Exception
 	{
-		fact.register(HolderOfStringAndLong.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HolderOfStringAndLong.class);
+
 		String s = "my secret";
 		HolderOfStringAndLong hosal = new HolderOfStringAndLong(s,2L);
-		Key<HolderOfStringAndLong> hosKey = ofy.put(hosal);
-		HolderOfStringAndLong hosal2 = ofy.get(hosKey);
-		
+		Key<HolderOfStringAndLong> hosKey = ofy().put(hosal);
+		HolderOfStringAndLong hosal2 = ofy().get(hosKey);
+
 		assert hosal.getMyPrecious().equals(hosal2.getMyPrecious()) : "Longs were different after stored/retrieved";
 		assert hosal.getThing().equals(hosal2.getMyThing()) : "Strings were different after stored/retrieved";
 		assert hosal.getThing().getClass().equals(hosal2.getMyThing().getClass()) : "Classes were differnt";
@@ -257,17 +259,16 @@ public class EntityTests extends TestBase
 	@Test
 	public void testToPojoAndBack() throws Exception
 	{
-		fact.register(Trivial.class);
-		TestObjectify ofy = this.fact.begin();
-		
+		fact().register(Trivial.class);
+
 		Trivial triv = new Trivial(123L, "blah", 456);
-		
-		com.google.appengine.api.datastore.Entity ent = ofy.toEntity(triv);
+
+		com.google.appengine.api.datastore.Entity ent = ofy().toEntity(triv);
 		assert ent.getKey().getId() == 123L;
 		assert ent.getProperty("someString").equals("blah");
 		assert ent.getProperty("someNumber").equals(456L);
-		
-		Trivial converted = ofy.toPojo(ent);
+
+		Trivial converted = ofy().toPojo(ent);
 		assert converted.getId().equals(triv.getId());
 		assert converted.getSomeString().equals(triv.getSomeString());
 		assert converted.getSomeNumber() == triv.getSomeNumber();

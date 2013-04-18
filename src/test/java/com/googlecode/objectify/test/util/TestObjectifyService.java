@@ -26,7 +26,7 @@ public class TestObjectifyService
 	/**
 	 * @return our extension to ObjectifyFactory
 	 */
-	public static TestObjectifyFactory factory() {
+	public static TestObjectifyFactory fact() {
 		return (TestObjectifyFactory)ObjectifyService.factory();
 	}
 }

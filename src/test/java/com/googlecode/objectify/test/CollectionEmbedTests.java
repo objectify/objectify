@@ -12,6 +12,8 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  */
 public class CollectionEmbedTests extends TestBase
@@ -22,14 +24,14 @@ public class CollectionEmbedTests extends TestBase
 		@Id Long id;
 		@Embed Set<HashableThing> someSet = new HashSet<HashableThing>();
 	}
-	
+
 	public static class HashableThing
 	{
 		Integer value;
-		
+
 		public HashableThing() {}
 		public HashableThing(int val) { this.value = val; }
-		
+
 		@Override public int hashCode() { return value.hashCode(); }
 		@Override public boolean equals(Object obj) { return value.equals(((HashableThing)obj).value); }
 		@Override public String toString() { return this.getClass().getSimpleName() + "(" + value + ")"; }
@@ -38,15 +40,15 @@ public class CollectionEmbedTests extends TestBase
 	@Test
 	public void testHasSet() throws Exception
 	{
-		this.fact.register(HasSet.class);
-		
+		fact().register(HasSet.class);
+
 		HasSet has = new HasSet();
 		has.someSet.add(new HashableThing(4));
 		has.someSet.add(new HashableThing(5));
 		has.someSet.add(new HashableThing(6));
-		
+
 		HasSet fetched = this.putClearGet(has);
-		
+
 		assert fetched.someSet.size() == 3;
 		assert fetched.someSet.contains(new HashableThing(4));
 		assert fetched.someSet.contains(new HashableThing(5));
@@ -56,13 +58,13 @@ public class CollectionEmbedTests extends TestBase
 	@Test
 	public void testSetWithNull() throws Exception
 	{
-		this.fact.register(HasSet.class);
-		
+		fact().register(HasSet.class);
+
 		HasSet has = new HasSet();
 		has.someSet.add(null);
-		
+
 		HasSet fetched = this.putClearGet(has);
-		
+
 		assert fetched.someSet.size() == 1;
 		assert fetched.someSet.contains(null);
 	}
@@ -74,11 +76,11 @@ public class CollectionEmbedTests extends TestBase
 		@Embed List<DeepThing> deeps = new ArrayList<DeepThing>();
 		@Override public String toString() { return this.getClass().getSimpleName() + "(" + deeps + ")"; }
 	}
-	
+
 	/** */
 	public static class DeepThing {
 		@Embed HashableThing thing;
-		
+
 		public DeepThing() {}
 		public DeepThing(int val) { this.thing = new HashableThing(val); }
 		@Override public String toString() { return this.getClass().getSimpleName() + "(" + thing + ")"; }
@@ -88,14 +90,14 @@ public class CollectionEmbedTests extends TestBase
 	@Test
 	public void testHasDeepThings() throws Exception
 	{
-		this.fact.register(HasDeepThings.class);
-		
+		fact().register(HasDeepThings.class);
+
 		HasDeepThings has = new HasDeepThings();
 		has.deeps.add(new DeepThing(4));
 		has.deeps.add(new DeepThing(5));
-		
+
 		HasDeepThings fetched = this.putClearGet(has);
-		
+
 		assert fetched.deeps.size() == 2;
 		assert fetched.deeps.get(0).thing.equals(has.deeps.get(0).thing);
 		assert fetched.deeps.get(1).thing.equals(has.deeps.get(1).thing);

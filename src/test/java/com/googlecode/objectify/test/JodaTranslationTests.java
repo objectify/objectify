@@ -17,6 +17,8 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.translate.opt.joda.JodaTimeTranslators;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Tests of type conversions.
  *
@@ -45,8 +47,8 @@ public class JodaTranslationTests extends TestBase
 	@Test
 	public void joda() throws Exception
 	{
-		JodaTimeTranslators.add(this.fact);
-		this.fact.register(HasJoda.class);
+		JodaTimeTranslators.add(fact());
+		fact().register(HasJoda.class);
 
 		HasJoda hj = new HasJoda();
 		hj.localTime = new LocalTime();

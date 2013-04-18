@@ -31,7 +31,9 @@ import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of type conversions.
@@ -106,9 +108,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void numberToString() throws Exception
 	{
-		fact.register(HasString.class);
+		fact().register(HasString.class);
 
-		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
 
 		Entity ent = new Entity(Key.getKind(HasString.class));
@@ -116,7 +117,7 @@ public class ValueTranslationTests extends TestBase
 		ds.put(null, ent);
 
 		Key<HasString> key = Key.create(ent.getKey());
-		HasString fetched = ofy.load().key(key).get();
+		HasString fetched = ofy().load().key(key).get();
 
 		assert fetched.string.equals("2");	// should be a string
 	}
@@ -127,9 +128,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void stringToNumber() throws Exception
 	{
-		fact.register(HasNumber.class);
+		fact().register(HasNumber.class);
 
-		TestObjectify ofy = this.fact.begin();
 		DatastoreService ds = ds();
 
 		Entity ent = new Entity(Key.getKind(HasNumber.class));
@@ -137,7 +137,7 @@ public class ValueTranslationTests extends TestBase
 		ds.put(null, ent);
 
 		Key<HasNumber> key = Key.create(ent.getKey());
-		HasNumber fetched = ofy.load().key(key).get();
+		HasNumber fetched = ofy().load().key(key).get();
 
 		assert fetched.number == 2;	// should be a number
 	}
@@ -149,7 +149,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStrings() throws Exception
 	{
-		this.fact.register(HasString.class);
+		fact().register(HasString.class);
 
 		HasString has = new HasString();
 		has.string = BIG_STRING;
@@ -165,7 +165,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStringsInCollections() throws Exception
 	{
-		this.fact.register(HasStringArray.class);
+		fact().register(HasStringArray.class);
 
 		HasStringArray has = new HasStringArray();
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
@@ -185,14 +185,13 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStringsInEmbeddedCollections() throws Exception
 	{
-		fact.register(HasNames.class);
+		fact().register(HasNames.class);
 
 		HasNames has = new HasNames();
 		has.names = new Name[] { new Name("Bob", BIG_STRING) };
 
-		TestObjectify ofy = this.fact.begin();
 		try {
-			ofy.save().entity(has).now();
+			ofy().save().entity(has).now();
 			assert false : "You should not be able to put() embedded collections with big strings";
 		}
 		catch (SaveException ex) {
@@ -207,7 +206,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigStringsWithIndexInversion() throws Exception
 	{
-		this.fact.register(HasStringIndexInversion.class);
+		fact().register(HasStringIndexInversion.class);
 
 		HasStringIndexInversion has = new HasStringIndexInversion();
 		has.string = BIG_STRING;
@@ -229,7 +228,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBlobConversion() throws Exception
 	{
-		this.fact.register(Blobby.class);
+		fact().register(Blobby.class);
 
 		Blobby b = new Blobby();
 		b.stuff = new byte[] { 1, 2, 3 };
@@ -252,7 +251,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testSqlDateConversion() throws Exception
 	{
-		this.fact.register(HasSqlDate.class);
+		fact().register(HasSqlDate.class);
 
 		HasSqlDate hasDate = new HasSqlDate();
 		hasDate.when = new java.sql.Date(System.currentTimeMillis());
@@ -275,7 +274,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testAddedConversion1() throws Exception
 	{
-		this.fact.register(HasBigDecimal.class);
+		fact().register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
@@ -292,7 +291,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testAddedConversion2() throws Exception
 	{
-		this.fact.getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
+		fact().getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
 			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Property property, Type type, CreateContext ctx) {
 				return new ValueTranslator<BigDecimal, String>(path, String.class) {
@@ -309,7 +308,7 @@ public class ValueTranslationTests extends TestBase
 			}
 		});
 
-		this.fact.register(HasBigDecimal.class);
+		fact().register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
@@ -322,8 +321,8 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testBigDecimalLongTranslator() throws Exception
 	{
-		this.fact.getTranslators().add(new BigDecimalLongTranslatorFactory());
-		this.fact.register(HasBigDecimal.class);
+		fact().getTranslators().add(new BigDecimalLongTranslatorFactory());
+		fact().register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
@@ -344,7 +343,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testTimeZoneTranslator() throws Exception
 	{
-		this.fact.register(HasTimeZone.class);
+		fact().register(HasTimeZone.class);
 
 		HasTimeZone htz = new HasTimeZone();
 		htz.tz = TimeZone.getDefault();
@@ -365,7 +364,7 @@ public class ValueTranslationTests extends TestBase
 	@Test
 	public void testURLTranslator() throws Exception
 	{
-		this.fact.register(HasURL.class);
+		fact().register(HasURL.class);
 
 		HasURL hu = new HasURL();
 		hu.url = new URL("http://example.com/foo?bar=baz");

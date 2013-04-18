@@ -16,7 +16,9 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the fetching via queries
@@ -37,14 +39,13 @@ public class LoadQueryFieldTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwo() {
-		fact.register(Trivial.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(Trivial.class);
 
 		t0 = new Trivial("foo", 11);
-		k0 = ofy.put(t0);
+		k0 = ofy().put(t0);
 
 		t1 = new Trivial("bar", 22);
-		k1 = ofy.put(t1);
+		k1 = ofy().put(t1);
 
 		tNone0 = new Trivial(123L, "fooNone", 33);
 		tNone1 = new Trivial(456L, "barNone", 44);
@@ -65,18 +66,17 @@ public class LoadQueryFieldTests extends TestBase
 	@Test
 	public void testTargetsExist() throws Exception
 	{
-		fact.register(HasEntities.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(HasEntities.class);
 
 		HasEntities he = new HasEntities();
 		he.single = Ref.create(t0);
 		he.multi.add(Ref.create(t0));
 		he.multi.add(Ref.create(t1));
 
-		Key<HasEntities> hekey = ofy.save().entity(he).now();
-		ofy.clear();
+		Key<HasEntities> hekey = ofy().save().entity(he).now();
+		ofy().clear();
 
-		HasEntities fetched = ofy.load().type(HasEntities.class).filterKey("=", hekey).first().get();
+		HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().get();
 
 		assert fetched.single.get().getId().equals(t0.getId());
 		assert fetched.single.get().getSomeString().equals(t0.getSomeString());

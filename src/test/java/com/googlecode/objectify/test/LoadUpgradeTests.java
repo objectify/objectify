@@ -18,8 +18,8 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.LoadUpgradeTests.HasMulti.Multi;
 import com.googlecode.objectify.test.LoadUpgradeTests.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
@@ -45,14 +45,13 @@ public class LoadUpgradeTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwoOthers() {
-		fact.register(Other.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(Other.class);
 
 		other0 = new Other(123L);
 		other1 = new Other(456L);
 
-		ko0 = ofy.put(other0);
-		ko1 = ofy.put(other1);
+		ko0 = ofy().put(other0);
+		ko1 = ofy().put(other1);
 	}
 
 	/** */
@@ -68,14 +67,14 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void testMultiNotLoaded() throws Exception
 	{
-		fact.register(HasMulti.class);
+		fact().register(HasMulti.class);
 
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
 		HasMulti fetched = this.putClearGet(hm);
 
-		//Key<HasMulti> hmkey = fact.getKey(hm);
+		//Key<HasMulti> hmkey = fact().getKey(hm);
 
 		for (Ref<Other> ref: fetched.multi)
 			assert !ref.isLoaded();
@@ -85,16 +84,15 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void testMultiLoaded() throws Exception
 	{
-		fact.register(HasMulti.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(HasMulti.class);
 
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy.put(hm);
+		Key<HasMulti> hmkey = ofy().put(hm);
 
-		ofy.clear();
-		HasMulti fetched = ofy.load().group(Multi.class).key(hmkey).get();
+		ofy().clear();
+		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).get();
 
 		assert fetched.multi.get(0).get().id == other0.id;
 		assert fetched.multi.get(1).get().id == other1.id;
@@ -104,17 +102,16 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void testMultiReloaded() throws Exception
 	{
-		fact.register(HasMulti.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(HasMulti.class);
 
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy.put(hm);
+		Key<HasMulti> hmkey = ofy().put(hm);
 
-		ofy.clear();
-		ofy.get(hmkey);	// load once
-		HasMulti fetched = ofy.load().group(Multi.class).key(hmkey).get();	// upgrade with multi
+		ofy().clear();
+		ofy().get(hmkey);	// load once
+		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).get();	// upgrade with multi
 
 		Ref<Other> m0 = fetched.multi.get(0);
 		assert m0.get().id == other0.id;
@@ -135,16 +132,15 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void testSingleReloaded() throws Exception
 	{
-		fact.register(HasSingle.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(HasSingle.class);
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		Key<HasSingle> hskey = ofy.put(hs);
+		Key<HasSingle> hskey = ofy().put(hs);
 
-		ofy.clear();
-		ofy.get(hskey);	// load once
-		HasSingle fetched = ofy.load().group(Single.class).key(hskey).get();	// upgrade with single
+		ofy().clear();
+		ofy().get(hskey);	// load once
+		HasSingle fetched = ofy().load().group(Single.class).key(hskey).get();	// upgrade with single
 
 		assert fetched.single.get().id == other0.id;
 	}
@@ -153,7 +149,7 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void upgradingOutsideOfATransaction() throws Exception
 	{
-		fact.register(HasSingle.class);
+		fact().register(HasSingle.class);
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
@@ -178,7 +174,7 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void reloadingOutsideOfATransaction() throws Exception
 	{
-		fact.register(HasSingle.class);
+		fact().register(HasSingle.class);
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
@@ -205,7 +201,7 @@ public class LoadUpgradeTests extends TestBase
 	@Test
 	public void reloadingOutsideOfATransaction2() throws Exception
 	{
-		fact.register(HasSingle.class);
+		fact().register(HasSingle.class);
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);

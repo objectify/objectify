@@ -18,7 +18,9 @@ import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Mul
 import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the fetching system for simple parent values.
@@ -39,14 +41,13 @@ public class LoadFieldRefTests extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwo() {
-		fact.register(Trivial.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy.put(t1);
+		k1 = ofy().put(t1);
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy.put(t2);
+		k2 = ofy().put(t2);
 
 		tNone1 = new Trivial(123L, "fooNone", 33);
 		tNone2 = new Trivial(456L, "barNone", 44);
@@ -67,7 +68,7 @@ public class LoadFieldRefTests extends TestBase
 	@Test
 	public void testTargetsExist() throws Exception
 	{
-		fact.register(HasEntities.class);
+		fact().register(HasEntities.class);
 
 		HasEntities he = new HasEntities();
 		he.single = Ref.create(k1);
@@ -89,7 +90,7 @@ public class LoadFieldRefTests extends TestBase
 	@Test
 	public void testTargetsDontExist() throws Exception
 	{
-		fact.register(HasEntities.class);
+		fact().register(HasEntities.class);
 
 		HasEntities he = new HasEntities();
 		he.single = Ref.create(kNone1);
@@ -115,26 +116,24 @@ public class LoadFieldRefTests extends TestBase
 	@Test
 	public void testTwoLevelsOfFetch() throws Exception
 	{
-		fact.register(ListNode.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(ListNode.class);
 
 		ListNode node3 = new ListNode();
 		node3.foo = "foo3";
-		ofy.put(node3);
+		ofy().put(node3);
 
 		ListNode node2 = new ListNode();
 		node2.foo = "foo2";
 		node2.next = Ref.create(node3);
-		ofy.put(node2);
+		ofy().put(node2);
 
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(node2);
-		ofy.put(node1);
+		ofy().put(node1);
 
-		ofy.clear();
-		ListNode fetched = ofy.get(Key.create(node1));
+		ofy().clear();
+		ListNode fetched = ofy().get(Key.create(node1));
 
 		assert fetched.foo.equals(node1.foo);
 		assert fetched.next.get().id.equals(node2.id);
@@ -148,9 +147,7 @@ public class LoadFieldRefTests extends TestBase
 	@Test
 	public void testMissingTail() throws Exception
 	{
-		fact.register(ListNode.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(ListNode.class);
 
 		// Node2 should not exist but should have a concrete id for node1
 		ListNode node2 = new ListNode();
@@ -159,10 +156,10 @@ public class LoadFieldRefTests extends TestBase
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(Key.create(node2));
-		ofy.put(node1);
+		ofy().put(node1);
 
-		ofy.clear();
-		ListNode fetched = ofy.get(Key.create(node1));
+		ofy().clear();
+		ListNode fetched = ofy().get(Key.create(node1));
 
 		assert fetched.foo.equals(node1.foo);
 		assert fetched.next.get() == null;	// it was fetched, so this should be initialized and null.
@@ -183,7 +180,7 @@ public class LoadFieldRefTests extends TestBase
 	@Test
 	public void testGrouping() throws Exception
 	{
-		fact.register(HasEntitiesWithGroups.class);
+		fact().register(HasEntitiesWithGroups.class);
 
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
@@ -200,10 +197,8 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.single.equivalent(k1);
 		assert fetched.single.equivalent(fetched.multi.get(0));
 
-		TestObjectify ofy = fact.begin();
-
-		ofy.clear();
-		fetched = ofy.load().group(Single.class).key(hekey).get();
+		ofy().clear();
+		fetched = ofy().load().group(Single.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert !fetched.multi.get(1).isLoaded();
@@ -214,8 +209,8 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 
-		ofy.clear();
-		fetched = ofy.load().group(Multi.class).key(hekey).get();
+		ofy().clear();
+		fetched = ofy().load().group(Multi.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();
@@ -229,8 +224,8 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 
 
-		ofy.clear();
-		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
+		ofy().clear();
+		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();

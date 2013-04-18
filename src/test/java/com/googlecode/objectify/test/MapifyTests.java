@@ -18,6 +18,9 @@ import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 /**
  * Test persisting of Map with @Mapify annotations
  */
@@ -64,7 +67,7 @@ public class MapifyTests extends TestBase
 
 	@Test
 	public void testMapify() throws Exception {
-		this.fact.register(HasMapify.class);
+		fact().register(HasMapify.class);
 
 		HasMapify hasMap = new HasMapify();
 		Thing thing0 = new Thing("foo", 123L);
@@ -114,9 +117,9 @@ public class MapifyTests extends TestBase
 	@Test
 	public void testBidirectionalMapify() throws Exception
 	{
-		fact.register(Top.class);
+		fact().register(Top.class);
 
-		TestObjectify ofy = fact.begin();
+		TestObjectify ofy = fact().begin();
 
 		Top top = new Top(123);
 
@@ -157,12 +160,11 @@ public class MapifyTests extends TestBase
 	/** Tests using mapify on entities */
 	@Test
 	public void testMapifyTrivials() throws Exception {
-		this.fact.register(Trivial.class);
-		this.fact.register(HasMapifyTrivial.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Trivial.class);
+		fact().register(HasMapifyTrivial.class);
 
 		Trivial triv = new Trivial("foo", 123L);
-		Key<Trivial> trivKey = ofy.save().entity(triv).now();
+		Key<Trivial> trivKey = ofy().save().entity(triv).now();
 
 		HasMapifyTrivial hasMap = new HasMapifyTrivial();
 		hasMap.trivials.put(trivKey, Ref.create(triv));

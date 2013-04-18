@@ -27,9 +27,11 @@ import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Tests of the @Translate annotation
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TranslateAnnotationTests extends TestBase
@@ -37,13 +39,13 @@ public class TranslateAnnotationTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(TranslateAnnotationTests.class.getName());
-	
+
 	/** Random translator that just prepends some junk and does an uppercase conversion on save so we know it was executed */
 	public static class FunkyStringTranslatorFactory extends ValueTranslatorFactory<String, String> {
 		public FunkyStringTranslatorFactory() {
 			super(String.class);
 		}
-		
+
 		@Override
 		protected ValueTranslator<String, String> createSafe(Path path, Property property, Type type, CreateContext ctx) {
 			return new ValueTranslator<String, String>(path, String.class) {
@@ -59,17 +61,17 @@ public class TranslateAnnotationTests extends TestBase
 			};
 		}
 	}
-	
+
 	/** Translates String collections to comma separated lists of strings, not really intended to be used (no escaping) */
 	public static class FunkyStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>> {
 		@Override
 		public Translator<Collection<String>> create(Path path, Property property, Type type, CreateContext ctx) {
 			if (!Collection.class.isAssignableFrom(GenericTypeReflector.erase(type)))
 				return null;
-			
+
 			if (GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]) != String.class)
 				return null;
-			
+
 			return new ValueTranslator<Collection<String>, String>(path, String.class) {
 				@Override
 				protected Collection<String> loadValue(String value, LoadContext ctx) throws SkipException {
@@ -81,29 +83,29 @@ public class TranslateAnnotationTests extends TestBase
 				protected String saveValue(Collection<String> value, SaveContext ctx) throws SkipException {
 					StringBuilder bld = new StringBuilder();
 					boolean afterFirst = false;
-					
+
 					for (String str: value) {
 						if (afterFirst)
 							bld.append(',');
 						else
 							afterFirst = true;
-						
+
 						bld.append(str.toUpperCase());
 					}
-					
+
 					return bld.toString();
 				}
 			};
 		}
 	}
-	
+
 	/** */
 	@Entity
 	public static class HasTranslateLate
 	{
 		@Id
 		public Long id;
-		
+
 		@Translate(FunkyStringTranslatorFactory.class)
 		public String string;
 	}
@@ -113,13 +115,13 @@ public class TranslateAnnotationTests extends TestBase
 	@Test
 	public void testTranslateLate() throws Exception
 	{
-		fact.register(HasTranslateLate.class);
+		fact().register(HasTranslateLate.class);
 
 		HasTranslateLate ht = new HasTranslateLate();
 		ht.string = "bar";
-		
+
 		HasTranslateLate fetched = this.putClearGet(ht);
-		
+
 		assert fetched.string.equals(ht.string.toUpperCase());
 	}
 
@@ -129,7 +131,7 @@ public class TranslateAnnotationTests extends TestBase
 	{
 		@Id
 		public Long id;
-		
+
 		@Translate(value=FunkyStringCollectionTranslatorFactory.class, early=true)
 		public List<String> strings;
 	}
@@ -139,13 +141,13 @@ public class TranslateAnnotationTests extends TestBase
 	@Test
 	public void testTranslateEarly() throws Exception
 	{
-		fact.register(HasTranslateEarly.class);
+		fact().register(HasTranslateEarly.class);
 
 		HasTranslateEarly ht = new HasTranslateEarly();
 		ht.strings = Arrays.asList(new String[] { "foo", "bar" });
-		
+
 		HasTranslateEarly fetched = this.putClearGet(ht);
-		
+
 		assert fetched.strings.get(0).equals(ht.strings.get(0).toUpperCase());
 		assert fetched.strings.get(1).equals(ht.strings.get(1).toUpperCase());
 	}

@@ -9,7 +9,9 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Test behavior of null fields, and default values
@@ -68,15 +70,14 @@ public class NullDefaultFieldTests extends TestBase
 	 */
 	@Test
 	public void testNewVersionOfEntity() throws Exception {
-		fact.register(EntityWithDefault.class);
+		fact().register(EntityWithDefault.class);
 
-		TestObjectify ofy = fact.begin();
 		// e1 has absent properties
 		Entity e1 = new Entity("EntityWithDefault");
 		e1.setProperty("a", "1");
 		com.google.appengine.api.datastore.Key k1 = ds().put(null, e1);
 
-		EntityWithDefault o = ofy.get(Key.create(EntityWithDefault.class, k1.getId()));
+		EntityWithDefault o = ofy().get(Key.create(EntityWithDefault.class, k1.getId()));
 
 		assert o.a != null;
 		assert "1".equals(o.a);
@@ -93,16 +94,15 @@ public class NullDefaultFieldTests extends TestBase
 	 */
 	@Test
 	public void testDefaultValuesAndNull() throws Exception {
-		fact.register(EntityWithDefault.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(EntityWithDefault.class);
 
-		Key<EntityWithDefault> k1 = ofy.put(new EntityWithDefault("A"));
-		Key<EntityWithDefault> k2 = ofy.put(new EntityWithDefault("A", "B", "C"));
-		Key<EntityWithDefault> k3 = ofy.put(new EntityWithDefault("A", null, null));
+		Key<EntityWithDefault> k1 = ofy().put(new EntityWithDefault("A"));
+		Key<EntityWithDefault> k2 = ofy().put(new EntityWithDefault("A", "B", "C"));
+		Key<EntityWithDefault> k3 = ofy().put(new EntityWithDefault("A", null, null));
 
-		EntityWithDefault o1 = ofy.get(k1);
-		EntityWithDefault o2 = ofy.get(k2);
-		EntityWithDefault o3 = ofy.get(k3);
+		EntityWithDefault o1 = ofy().get(k1);
+		EntityWithDefault o2 = ofy().get(k2);
+		EntityWithDefault o3 = ofy().get(k3);
 
 		assert "A".equals(o1.a);
 		assert "foo".equals(o1.b);

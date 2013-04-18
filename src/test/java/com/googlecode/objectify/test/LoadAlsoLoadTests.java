@@ -17,7 +17,9 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * More tests of using the @AlsoLoad annotation combined with @Load
@@ -50,25 +52,23 @@ public class LoadAlsoLoadTests extends TestBase
 	{
 		super.setUp();
 
-		this.fact.register(HasConcrete.class);
-		this.fact.register(Trivial.class);
+		fact().register(HasConcrete.class);
+		fact().register(Trivial.class);
 	}
 
 	/** */
 	@Test
 	public void alsoLoadWorksWithLoad() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-
 		Trivial triv = new Trivial("someString", 123L);
-		Key<Trivial> trivKey = ofy.save().entity(triv).now();
+		Key<Trivial> trivKey = ofy().save().entity(triv).now();
 
 		com.google.appengine.api.datastore.Entity ent = new com.google.appengine.api.datastore.Entity(Key.getKind(HasConcrete.class));
 		ent.setProperty("foo", trivKey.getRaw());
 		ds().put(null, ent);
 
 		Key<HasConcrete> key = Key.create(ent.getKey());
-		HasConcrete fetched = ofy.load().key(key).get();
+		HasConcrete fetched = ofy().load().key(key).get();
 
 		assert fetched.bar.equals(triv.getSomeString());
 	}

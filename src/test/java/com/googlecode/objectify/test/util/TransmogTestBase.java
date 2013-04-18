@@ -9,6 +9,8 @@ import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Some basic stuff useful to tests that exercise the Transmog.
  *
@@ -19,7 +21,7 @@ public class TransmogTestBase extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(TransmogTestBase.class.getName());
-	
+
 
 	/** Assert child is a propertynode with exactly the content specified, no other children */
 	protected void assertChildValue(Node parent, String childName, Object childValue) {
@@ -46,6 +48,6 @@ public class TransmogTestBase extends TestBase
 
 	/** */
 	protected <T> Transmog<T> getTransmog(Class<T> clazz) {
-		return ((ConcreteEntityMetadata<T>)fact.getMetadata(clazz)).getTransmog();
+		return ((ConcreteEntityMetadata<T>)fact().getMetadata(clazz)).getTransmog();
 	}
 }

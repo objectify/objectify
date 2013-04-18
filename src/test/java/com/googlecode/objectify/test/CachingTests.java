@@ -16,7 +16,9 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Normally we run all tests with caching enabled.  This lets us mix cached
@@ -54,8 +56,8 @@ public class CachingTests extends TestBase
 	{
 		super.setUp();
 
-		this.fact.register(Uncached.class);
-		this.fact.register(Cached.class);
+		fact().register(Uncached.class);
+		fact().register(Cached.class);
 	}
 
 	/** */
@@ -80,11 +82,9 @@ public class CachingTests extends TestBase
 		entities.add(un2);
 		entities.add(ca2);
 
-		TestObjectify ofy = this.fact.begin();
-
-		Map<Key<Object>, Object> keys = ofy.save().entities(entities).now();
-		ofy.clear();
-		Map<Key<Object>, Object> fetched = ofy.load().keys(keys.keySet());
+		Map<Key<Object>, Object> keys = ofy().save().entities(entities).now();
+		ofy().clear();
+		Map<Key<Object>, Object> fetched = ofy().load().keys(keys.keySet());
 
 		assert fetched.size() == 4;
 		assert fetched.containsKey(Key.create(un1));

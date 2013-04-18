@@ -18,7 +18,9 @@ import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWi
 import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the fetching system for simple parent values.
@@ -39,14 +41,13 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 	/** */
 	@BeforeMethod
 	public void createTwo() {
-		fact.register(Trivial.class);
-		TestObjectify ofy = fact.begin();
+		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy.put(t1);
+		k1 = ofy().put(t1);
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy.put(t2);
+		k2 = ofy().put(t2);
 
 		tNone1 = new Trivial(123L, "fooNone", 33);
 		tNone2 = new Trivial(456L, "barNone", 44);
@@ -70,7 +71,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 	@Test
 	public void testGrouping() throws Exception
 	{
-		fact.register(HasEntitiesWithGroups.class);
+		fact().register(HasEntitiesWithGroups.class);
 
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
@@ -87,9 +88,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.single.equivalent(k1);
 		assert fetched.single.equivalent(fetched.multi.get(0));
 
-		TestObjectify ofy = fact.begin();
-
-		fetched = ofy.load().group(Single.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert !fetched.multi.get(1).isLoaded();
@@ -101,7 +100,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 
-		fetched = ofy.load().group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Multi.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();
@@ -113,7 +112,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 
-		fetched = ofy.load().group(Single.class).group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).get();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();

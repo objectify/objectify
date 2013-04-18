@@ -13,11 +13,14 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
+import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
 import com.googlecode.objectify.test.util.TestObjectifyFactory;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various queries
@@ -46,7 +49,6 @@ public class QueryPerformanceTests extends TestBase
 
 			return method.invoke(base, args);
 		}
-
 	}
 
 	/** */
@@ -62,27 +64,25 @@ public class QueryPerformanceTests extends TestBase
 		getCount = 0;
 
 		// throw away the current factory and replace it with one that tracks calls
-		fact = new TestObjectifyFactory() {
+		ObjectifyService.setFactory(new TestObjectifyFactory() {
 			@Override
 			protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
 				return (AsyncDatastoreService)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { AsyncDatastoreService.class }, new CountingProxy(super.createRawAsyncDatastoreService(cfg)));
 			}
-		};
+		});
 
-		fact.register(Trivial.class);
+		fact().register(Trivial.class);
 
 		this.triv1 = new Trivial("foo1", 1);
 
-		TestObjectify ofy = this.fact.begin();
-		ofy.save().entity(triv1).now();
+		ofy().save().entity(triv1).now();
 	}
 
 	/** */
 	@Test
 	public void hybridOn() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		Query<Trivial> q = ofy.load().type(Trivial.class).hybrid(true);
+		Query<Trivial> q = ofy().load().type(Trivial.class).hybrid(true);
 
 		int count = 0;
 		for (@SuppressWarnings("unused") Trivial t: q) {
@@ -97,8 +97,7 @@ public class QueryPerformanceTests extends TestBase
 	@Test
 	public void hybridOff() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		Query<Trivial> q = ofy.load().type(Trivial.class).hybrid(false);
+		Query<Trivial> q = ofy().load().type(Trivial.class).hybrid(false);
 
 		int count = 0;
 		for (@SuppressWarnings("unused") Trivial t: q) {

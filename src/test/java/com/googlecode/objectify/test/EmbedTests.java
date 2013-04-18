@@ -21,7 +21,9 @@ import com.googlecode.objectify.test.entity.Someone;
 import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  */
@@ -93,16 +95,15 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testNullHandling() throws Exception
 	{
-		fact.register(Town.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(Town.class);
 
 		// null mayor
 		Town t1 = new Town();
 		t1.mayor = new Someone(null, 30);
 
-		Key<Town> t1Key = ofy.put(t1);
+		Key<Town> t1Key = ofy().put(t1);
 
-		Town t2 = ofy.get(t1Key);
+		Town t2 = ofy().get(t1Key);
 
 		assert t2.mayor != null;
 		assert t2.mayor.name == null;
@@ -111,9 +112,9 @@ public class EmbedTests extends TestBase
 		t1 = new Town();
 		t1.mayor = new Someone(new Name(null, null), 30);
 
-		t1Key = ofy.put(t1);
+		t1Key = ofy().put(t1);
 
-		t2 = ofy.get(t1Key);
+		t2 = ofy().get(t1Key);
 
 		assert t2.mayor != null;
 
@@ -127,9 +128,7 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testUnindexed() throws Exception
 	{
-		fact.register(PartiallyIndexedEntity.class);
-
-		TestObjectify ofy = this.fact.begin();
+		fact().register(PartiallyIndexedEntity.class);
 
 		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
 				new PartiallyIndexedStruct(
@@ -140,7 +139,7 @@ public class EmbedTests extends TestBase
 						new Someone(new Name("c", "d"), 33), "3", "4")
 		);
 
-		Key<PartiallyIndexedEntity> key = ofy.put(obj);
+		Key<PartiallyIndexedEntity> key = ofy().put(obj);
 
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.firstName", "A");
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.lastName", "B");
@@ -167,7 +166,7 @@ public class EmbedTests extends TestBase
 
 	private void subtestFoundByQuery(boolean expected, Key<?> key, String filter, Object value)
 	{
-		Query<PartiallyIndexedEntity> q = fact.begin().load().type(PartiallyIndexedEntity.class);
+		Query<PartiallyIndexedEntity> q = ofy().load().type(PartiallyIndexedEntity.class);
 		q = q.filter(filter + " =", value);
 		Iterator<PartiallyIndexedEntity> results = q.iterator();
 
@@ -187,17 +186,16 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testDeepEmbeddedArrays() throws Exception
 	{
-		fact.register(TeamEntity.class);
+		fact().register(TeamEntity.class);
 
-		TestObjectify ofy = fact.begin();
 		TeamEntity t = new TeamEntity();
 		t.members = new Names();
 		t.members.names = new Name[]{new Name("Joe", "Smith"), new Name("Jane", "Foo")};
-		Key<TeamEntity> k = ofy.put(t);
+		Key<TeamEntity> k = ofy().put(t);
 
 		System.out.println(ds().get(Keys.toRawKey(k)));
 
-		t = ofy.get(k);
+		t = ofy().get(k);
 		assert t != null;
 		assert t.members != null;
 		assert t.members.names != null;
@@ -234,7 +232,7 @@ public class EmbedTests extends TestBase
 	@Test
 	public void kensTest() throws Exception
 	{
-		this.fact.register(KensClientListName.class);
+		fact().register(KensClientListName.class);
 
 		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
 		KensMailingListEntry mle = new KensMailingListEntry();
@@ -243,9 +241,7 @@ public class EmbedTests extends TestBase
 		KensClientListName clientlistname = new KensClientListName();
 		clientlistname.listMembers = listMembers;
 
-		TestObjectify ofy = this.fact.begin();
-
-		ofy.put(clientlistname);
+		ofy().put(clientlistname);
 	}
 
 	@Entity
@@ -258,7 +254,7 @@ public class EmbedTests extends TestBase
 	@Test
 	public void testEntityEmbedsOtherEntity() throws Exception
 	{
-		this.fact.register(EntityEmbedsOtherEntity.class);
+		fact().register(EntityEmbedsOtherEntity.class);
 
 		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
 		embeds.other = new Trivial(123L, "blah", 7);

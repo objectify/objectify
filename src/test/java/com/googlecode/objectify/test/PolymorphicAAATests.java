@@ -10,16 +10,18 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Just the registration part of polymorphic classes.  The 'A' just to alphabetize it before
  * the other polymorphic tests.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class PolymorphicAAATests extends TestBase
@@ -36,7 +38,7 @@ public class PolymorphicAAATests extends TestBase
 		@Id Long id;
 		String name;
 	}
-	
+
 	/** */
 	@EntitySubclass(index=true)
 	@Index
@@ -44,7 +46,7 @@ public class PolymorphicAAATests extends TestBase
 	{
 		boolean longHair;
 	}
-	
+
 	/** */
 	@EntitySubclass(index=true)
 	@Index
@@ -52,7 +54,7 @@ public class PolymorphicAAATests extends TestBase
 	{
 		boolean hypoallergenic;
 	}
-	
+
 	/** */
 	@EntitySubclass(index=false)
 	@Index
@@ -60,25 +62,25 @@ public class PolymorphicAAATests extends TestBase
 	{
 		int loudness;
 	}
-	
+
 	/** */
 	@Test
 	public void testRegistrationForwards() throws Exception
 	{
-		this.fact.register(Animal.class);
-		this.fact.register(Mammal.class);
-		this.fact.register(Cat.class);
-		this.fact.register(Dog.class);
+		fact().register(Animal.class);
+		fact().register(Mammal.class);
+		fact().register(Cat.class);
+		fact().register(Dog.class);
 	}
 
 	/** */
 	@Test
 	public void testRegistrationBackwards() throws Exception
 	{
-		this.fact.register(Dog.class);
-		this.fact.register(Cat.class);
-		this.fact.register(Mammal.class);
-		this.fact.register(Animal.class);
+		fact().register(Dog.class);
+		fact().register(Cat.class);
+		fact().register(Mammal.class);
+		fact().register(Animal.class);
 	}
 
 	/** */
@@ -86,12 +88,12 @@ public class PolymorphicAAATests extends TestBase
 	public void testBasicFetch() throws Exception
 	{
 		this.testRegistrationForwards();
-		
+
 		Animal a = new Animal();
 		a.name = "Bob";
 		Animal a2 = this.putClearGet(a);
 		assert a.name.equals(a2.name);
-		
+
 		Mammal m = new Mammal();
 		m.name = "Bob";
 		m.longHair = true;
@@ -109,19 +111,17 @@ public class PolymorphicAAATests extends TestBase
 		assert c.hypoallergenic == c2.hypoallergenic;
 	}
 
-	/** 
+	/**
 	 * Issue #80:  http://code.google.com/p/objectify-appengine/issues/detail?id=80
 	 */
 	@Test
 	public void testNullFind() throws Exception
 	{
 		this.testRegistrationForwards();
-		
-		TestObjectify ofy = this.fact.begin();
-		
+
 		// This should produce null
-		Cat cat = ofy.load().type(Cat.class).id(123).get();
-		
+		Cat cat = ofy().load().type(Cat.class).id(123).get();
+
 		assert cat == null;
 	}
 
@@ -135,15 +135,13 @@ public class PolymorphicAAATests extends TestBase
 	public void testFetchMismatch() throws Exception
 	{
 		this.testRegistrationForwards();
-		
-		TestObjectify ofy = this.fact.begin();
-		
+
 		Animal a = new Animal();
 		a.name = "Bob";
-		ofy.put(a);
-		
+		ofy().put(a);
+
 		// This should exclude the value
 		@SuppressWarnings("unused")
-		Mammal m = ofy.load().type(Mammal.class).id(a.id).get();
+		Mammal m = ofy().load().type(Mammal.class).id(a.id).get();
 	}
 }

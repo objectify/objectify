@@ -11,7 +11,9 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the fetching system for simple parent values.
@@ -54,17 +56,15 @@ public class ParentTests extends TestBase
 	@Test
 	public void testKeyParent() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(KeyChild.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(KeyChild.class);
 
 		KeyChild ch = new KeyChild();
 		ch.father = Key.create(Father.class, 123);
 		ch.bar = "bar";
-		ofy.put(ch);
+		ofy().put(ch);
 
-		KeyChild fetched = ofy.get(Key.create(ch));
+		KeyChild fetched = ofy().get(Key.create(ch));
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);
@@ -74,17 +74,15 @@ public class ParentTests extends TestBase
 	@Test
 	public void testRefParent() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(RefChild.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(RefChild.class);
 
 		RefChild ch = new RefChild();
 		ch.father = Ref.create(Key.create(Father.class, 123));
 		ch.bar = "bar";
-		ofy.put(ch);
+		ofy().put(ch);
 
-		RefChild fetched = ofy.get(Key.create(ch));
+		RefChild fetched = ofy().get(Key.create(ch));
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);

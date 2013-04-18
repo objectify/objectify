@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Node;
@@ -20,6 +19,9 @@ import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.FakeLoadContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the basic low-level functions of the Transmog as they relate to @Embed collections.
@@ -52,16 +54,15 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@Test
 	public void testOneFieldCollOneItem() throws Exception
 	{
-		this.fact.register(HasOneFieldColl.class);
+		fact().register(HasOneFieldColl.class);
 		Transmog<HasOneFieldColl> transmog = getTransmog(HasOneFieldColl.class);
-		Objectify ofy = fact.begin();
 
 		HasOneFieldColl pojo = new HasOneFieldColl();
 		pojo.id = 123L;
 		pojo.things.add(new OneField("asdf"));
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		// Should look like { id: 123L, things: [ { foo: "asdf" } ] }
 		{
@@ -113,9 +114,8 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@Test
 	public void testOneFieldCollTwoItems() throws Exception
 	{
-		this.fact.register(HasOneFieldColl.class);
+		fact().register(HasOneFieldColl.class);
 		Transmog<HasOneFieldColl> transmog = getTransmog(HasOneFieldColl.class);
-		Objectify ofy = fact.begin();
 
 		HasOneFieldColl pojo = new HasOneFieldColl();
 		pojo.id = 123L;
@@ -123,7 +123,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new OneField("qwer"));
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		// Should look like { id: 123L, things: [ { foo: "asdf" }, { foo: "qwer" } ] }
 		{
@@ -204,17 +204,16 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@Test
 	public void testTwoFieldsCollOneItem() throws Exception
 	{
-		this.fact.register(HasTwoFieldsColl.class);
+		fact().register(HasTwoFieldsColl.class);
 
 		Transmog<HasTwoFieldsColl> transmog = getTransmog(HasTwoFieldsColl.class);
-		Objectify ofy = fact.begin();
 
 		HasTwoFieldsColl pojo = new HasTwoFieldsColl();
 		pojo.id = 222;
 		pojo.things.add(new TwoFields("asdf", 123L));
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		// Should look like: {id='222', things=[{foo='asdf', bar='123'}]}
 		{
@@ -272,10 +271,9 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@Test
 	public void testTwoFieldsCollTwoItems() throws Exception
 	{
-		this.fact.register(HasTwoFieldsColl.class);
+		fact().register(HasTwoFieldsColl.class);
 
 		Transmog<HasTwoFieldsColl> transmog = getTransmog(HasTwoFieldsColl.class);
-		Objectify ofy = fact.begin();
 
 		HasTwoFieldsColl pojo = new HasTwoFieldsColl();
 		pojo.id = 222;
@@ -283,7 +281,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		pojo.things.add(new TwoFields("zxcv", 456L));
 
 		// Check the tree structure
-		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy));
+		Node rootNode = transmog.saveToNode(pojo, new SaveContext(ofy()));
 
 		{
 			assert !rootNode.hasPropertyValue();

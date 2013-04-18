@@ -9,7 +9,9 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Trying to narrow down a specific problem.
@@ -39,21 +41,19 @@ public class LifecycleTests3 extends TestBase
 	 */
 	@Test
 	public void loadingRefInOnLoad() throws Exception {
-		fact.register(Event.class);
-		fact.register(Product.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Event.class);
+		fact().register(Product.class);
 
 		Event event = new Event();
 		event.foo = "fooValue";
-		ofy.put(event);
+		ofy().put(event);
 
 		Product prod = new Product();
 		prod.event = Ref.create(event);
-		ofy.put(prod);
+		ofy().put(prod);
 
-		ofy.clear();
-		Product fetched = ofy.load().entity(prod).get();
+		ofy().clear();
+		Product fetched = ofy().load().entity(prod).get();
 		assert fetched.event.get().foo.equals("fooValue");
 	}
 }

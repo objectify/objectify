@@ -15,9 +15,11 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 /**
  * Testing what you can and can not do with @Embed blobs like Text and Blob
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EmbeddedBlobTests extends TestBase
@@ -25,19 +27,19 @@ public class EmbeddedBlobTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(EmbeddedBlobTests.class.getName());
-	
+
 	/** */
 	public static class EmbeddedText
 	{
 		public Text text;
 	}
-	
+
 	/** */
 	public static class EmbeddedBlob
 	{
 		public Blob blob;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -46,7 +48,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public EmbeddedText stuff;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -55,7 +57,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public EmbeddedBlob stuff;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -64,7 +66,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public EmbeddedText[] stuff;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -73,7 +75,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public EmbeddedBlob[] stuff;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -82,7 +84,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public List<EmbeddedText> stuff;
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -91,7 +93,7 @@ public class EmbeddedBlobTests extends TestBase
 		public @Id Long id;
 		public List<EmbeddedBlob> stuff;
 	}
-	
+
 	/**
 	 * Fails an assertion if the class registers successfully
 	 */
@@ -99,7 +101,7 @@ public class EmbeddedBlobTests extends TestBase
 	{
 		try
 		{
-			this.fact.register(clazz);
+			fact().register(clazz);
 			assert false : "You should not have been able to register " + clazz;
 		}
 		catch (IllegalStateException ex)
@@ -107,7 +109,7 @@ public class EmbeddedBlobTests extends TestBase
 			// good
 		}
 	}
-	
+
 	/**
 	 * Some of these should be registerable, some not
 	 */
@@ -115,13 +117,13 @@ public class EmbeddedBlobTests extends TestBase
 	public void testRegistration() throws Exception
 	{
 		// These are ok
-		this.fact.register(HasEmbeddedText.class);
-		this.fact.register(HasEmbeddedBlob.class);
-		this.fact.register(HasEmbeddedTextArray.class);
-		this.fact.register(HasEmbeddedBlobArray.class);
-		this.fact.register(HasEmbeddedTextList.class);
-		this.fact.register(HasEmbeddedBlobList.class);
-		
+		fact().register(HasEmbeddedText.class);
+		fact().register(HasEmbeddedBlob.class);
+		fact().register(HasEmbeddedTextArray.class);
+		fact().register(HasEmbeddedBlobArray.class);
+		fact().register(HasEmbeddedTextList.class);
+		fact().register(HasEmbeddedBlobList.class);
+
 		// These are not bad anymore...
 //		this.assertRegistrationFailure(HasEmbeddedTextArray.class);
 //		this.assertRegistrationFailure(HasEmbeddedBlobArray.class);

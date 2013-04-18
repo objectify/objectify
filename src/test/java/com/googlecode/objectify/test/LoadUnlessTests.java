@@ -13,7 +13,9 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.LoadUnlessTests.One.No;
 import com.googlecode.objectify.test.LoadUnlessTests.One.Yes;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of @Load(unless=Blah.class)
@@ -43,44 +45,42 @@ public class LoadUnlessTests extends TestBase
 	@Test
 	public void testLoadUnless() throws Exception
 	{
-		fact.register(One.class);
-		fact.register(Two.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(One.class);
+		fact().register(Two.class);
 
 		Two twoAlways = new Two();
 		twoAlways.id = 456;
-		Key<Two> twoAlwaysKey = ofy.put(twoAlways);
+		Key<Two> twoAlwaysKey = ofy().put(twoAlways);
 		Ref<Two> twoAlwaysRef = Ref.create(twoAlwaysKey);
 
 		Two twoSometimes = new Two();
 		twoSometimes.id = 789;
-		Key<Two> twoSometimesKey = ofy.put(twoSometimes);
+		Key<Two> twoSometimesKey = ofy().put(twoSometimes);
 		Ref<Two> twoSometimesRef = Ref.create(twoSometimesKey);
 
 		One one = new One();
 		one.id = 123;
 		one.always = twoAlwaysRef;
 		one.sometimes = twoSometimesRef;
-		ofy.put(one);
+		ofy().put(one);
 
-		ofy.clear();
-		One fetchedDefault = ofy.load().entity(one).get();
+		ofy().clear();
+		One fetchedDefault = ofy().load().entity(one).get();
 		assert fetchedDefault.always.isLoaded();
 		assert !fetchedDefault.sometimes.isLoaded();
 
-		ofy.clear();
-		One fetchedYes = ofy.load().group(Yes.class).entity(one).get();
+		ofy().clear();
+		One fetchedYes = ofy().load().group(Yes.class).entity(one).get();
 		assert fetchedYes.always.isLoaded();
 		assert fetchedYes.sometimes.isLoaded();
 
-		ofy.clear();
-		One fetchedNo = ofy.load().group(No.class).entity(one).get();
+		ofy().clear();
+		One fetchedNo = ofy().load().group(No.class).entity(one).get();
 		assert !fetchedNo.always.isLoaded();
 		assert !fetchedNo.sometimes.isLoaded();
 
-		ofy.clear();
-		One fetchedYesNo = ofy.load().group(Yes.class, No.class).entity(one).get();
+		ofy().clear();
+		One fetchedYesNo = ofy().load().group(Yes.class, No.class).entity(one).get();
 		assert !fetchedYesNo.always.isLoaded();
 		assert !fetchedYesNo.sometimes.isLoaded();
 	}

@@ -14,11 +14,13 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of @Indexed and @Unindexed inherited by subclasses.
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class IndexingInheritanceTests extends TestBase
@@ -38,7 +40,7 @@ public class IndexingInheritanceTests extends TestBase
 		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
-	
+
 	@SuppressWarnings("unused")
 	@Entity
 	@Cache
@@ -50,7 +52,7 @@ public class IndexingInheritanceTests extends TestBase
 		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
-	
+
 	@SuppressWarnings("unused")
 	@Entity
 	@Cache
@@ -61,7 +63,7 @@ public class IndexingInheritanceTests extends TestBase
 		@Unindex private boolean unindexed = true;
 		private boolean def = true;
 	}
-	
+
 
 	@SuppressWarnings("unused")
 	@Entity
@@ -82,7 +84,7 @@ public class IndexingInheritanceTests extends TestBase
 		@Unindex private boolean unindexedGrandChild = true;
 		private boolean defGrandChild = true;
 	}
-	
+
 	/** Switches the default from unindexed to indexed, but shouldn't have any effect on base */
 	@Entity
 	@Cache
@@ -98,109 +100,102 @@ public class IndexingInheritanceTests extends TestBase
 	public static class DerivedAndUnindexed extends IndexedPojo
 	{
 	}
-	
+
 	/** */
 	@BeforeMethod
 	public void setUp()
 	{
 		super.setUp();
-		
-		this.fact.register(DefaultIndexedPojo.class);
-		this.fact.register(IndexedPojo.class);
-		this.fact.register(UnindexedPojo.class);
-		this.fact.register(DefaultIndexedChildFromUnindexedPojo.class);
-		this.fact.register(DefaultIndexedGrandChildFromUnindexedPojo.class);
-		this.fact.register(DerivedAndIndexed.class);
-		this.fact.register(DerivedAndUnindexed.class);
-	}	
-	
+
+		fact().register(DefaultIndexedPojo.class);
+		fact().register(IndexedPojo.class);
+		fact().register(UnindexedPojo.class);
+		fact().register(DefaultIndexedChildFromUnindexedPojo.class);
+		fact().register(DefaultIndexedGrandChildFromUnindexedPojo.class);
+		fact().register(DerivedAndIndexed.class);
+		fact().register(DerivedAndUnindexed.class);
+	}
+
 	/** */
 	@Test
 	public void testIndexedPojo() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		ofy.put(new IndexedPojo());
+		ofy().put(new IndexedPojo());
 
-		assert ofy.load().type(IndexedPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert ofy.load().type(IndexedPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(IndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+		assert ofy().load().type(IndexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert ofy().load().type(IndexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy().load().type(IndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 	}
 	/** */
 	@Test
 	public void testUnindexedPojo() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		ofy.put(new UnindexedPojo());
+		ofy().put(new UnindexedPojo());
 
-		assert ofy.load().type(UnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(UnindexedPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(UnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
-		
+		assert ofy().load().type(UnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(UnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy().load().type(UnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+
 	}
 	/** */
 	@Test
 	public void testDefaultIndexedPojo() throws Exception
 	{
-		TestObjectify ofy = this.fact.begin();
-		ofy.put(new DefaultIndexedPojo());
+		ofy().put(new DefaultIndexedPojo());
 
-		assert ofy.load().type(DefaultIndexedPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
-		
+		assert ofy().load().type(DefaultIndexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+
 	}
 
 	@Test
 	public void testDefaultIndexedChildFromUnindexedPojo() throws Exception
 	{
-		TestObjectify ofy = fact.begin();
-		ofy.put(new DefaultIndexedChildFromUnindexedPojo());
+		ofy().put(new DefaultIndexedChildFromUnindexedPojo());
 
-		assert ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+		assert ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 
-		assert ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
+		assert ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
 	}
 
 	@Test
 	public void testDefaultIndexedGrandChildFromUnindexedPojo() throws Exception
 	{
-		TestObjectify ofy = fact.begin();
-		ofy.put(new DefaultIndexedGrandChildFromUnindexedPojo());
+		ofy().put(new DefaultIndexedGrandChildFromUnindexedPojo());
 
-		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
+		assert ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
 
-		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
+		assert ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedChild =", true).iterator().hasNext();
 
-		assert ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedGrandChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defGrandChild =", true).iterator().hasNext();
-		assert !ofy.load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedGrandChild =", true).iterator().hasNext();
+		assert ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexedGrandChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("defGrandChild =", true).iterator().hasNext();
+		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("unindexedGrandChild =", true).iterator().hasNext();
 	}
-	
+
 	/** */
 	@Test
 	public void testDerivedAndIndexed() throws Exception
 	{
-		TestObjectify ofy = fact.begin();
-		ofy.put(new DerivedAndIndexed());
-		
-		assert !ofy.load().type(DerivedAndIndexed.class).filter("def", true).iterator().hasNext();
+		ofy().put(new DerivedAndIndexed());
+
+		assert !ofy().load().type(DerivedAndIndexed.class).filter("def", true).iterator().hasNext();
 	}
 
 	/** */
 	@Test
 	public void testDerivedAndUnindexed() throws Exception
 	{
-		TestObjectify ofy = fact.begin();
-		ofy.put(new DerivedAndUnindexed());
-		
-		assert ofy.load().type(DerivedAndUnindexed.class).filter("def", true).iterator().hasNext();
+		ofy().put(new DerivedAndUnindexed());
+
+		assert ofy().load().type(DerivedAndUnindexed.class).filter("def", true).iterator().hasNext();
 	}
 }

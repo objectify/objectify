@@ -13,6 +13,9 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 /**
  * What happens when we @Load entities in two directions
  *
@@ -44,10 +47,10 @@ public class LoadBidrectionalTests extends TestBase
 	@Test
 	public void testBidirectional() throws Exception
 	{
-		fact.register(Top.class);
-		fact.register(Bottom.class);
+		fact().register(Top.class);
+		fact().register(Bottom.class);
 
-		TestObjectify ofy = fact.begin();
+		TestObjectify ofy = fact().begin();
 
 		Top top = new Top(123);
 		Bottom bottom = new Bottom(456);
@@ -85,18 +88,16 @@ public class LoadBidrectionalTests extends TestBase
 	@Test
 	public void testBidirectionalEmbed() throws Exception
 	{
-		fact.register(TopWithEmbed.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(TopWithEmbed.class);
 
 		TopWithEmbed top = new TopWithEmbed(123);
 		top.bottom = new BottomEmbed();
 		top.bottom.top = Ref.create(top);
 
-		ofy.put(top);
-		ofy.clear();
+		ofy().put(top);
+		ofy().clear();
 
-		TopWithEmbed topFetched = ofy.load().entity(top).get();
+		TopWithEmbed topFetched = ofy().load().entity(top).get();
 
 		assert topFetched.bottom.top.get().id == top.id;
 	}

@@ -15,12 +15,14 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfFalse;
 import com.googlecode.objectify.condition.PojoIf;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of partial indexing.  Doesn't stress test the If mechanism; that is
  * checked in the NotSavedTests.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class IndexingPartialTests extends TestBase
@@ -28,10 +30,10 @@ public class IndexingPartialTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(IndexingPartialTests.class.getName());
-	
+
 	/** */
 	public static final String TEST_VALUE = "blah";
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -41,25 +43,24 @@ public class IndexingPartialTests extends TestBase
 		@Id Long id;
 		@Unindex(IfFalse.class) boolean foo;
 	}
-	
+
 	/** */
 	@Test
 	public void testUnindexedWhenFalse() throws Exception
 	{
-		this.fact.register(UnindexedWhenFalse.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(UnindexedWhenFalse.class);
 
 		UnindexedWhenFalse thing = new UnindexedWhenFalse();
-		
+
 		// Should be able to query for it when true
 		thing.foo = true;
-		ofy.put(thing);
-		assert thing.id == ofy.load().type(UnindexedWhenFalse.class).filter("foo", true).first().get().id;
+		ofy().put(thing);
+		assert thing.id == ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).first().get().id;
 
 		// Should not be able to query for it when false
 		thing.foo = false;
-		ofy.put(thing);
-		assert !ofy.load().type(UnindexedWhenFalse.class).filter("foo", true).iterator().hasNext();
+		ofy().put(thing);
+		assert !ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).iterator().hasNext();
 	}
 
 	/** */
@@ -71,7 +72,7 @@ public class IndexingPartialTests extends TestBase
 			return pojo.indexBar;
 		}
 	}
-	
+
 	/** */
 	@Entity
 	@Cache
@@ -82,26 +83,25 @@ public class IndexingPartialTests extends TestBase
 		public boolean indexBar;
 		public @Index(IfComplicated.class) boolean bar;
 	}
-	
+
 	/** */
 	@Test
 	public void testUnindexedOnOtherField() throws Exception
 	{
-		this.fact.register(IndexedOnOtherField.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(IndexedOnOtherField.class);
 
 		IndexedOnOtherField thing = new IndexedOnOtherField();
 		thing.bar = true;
-		
+
 		// Should be able to query for bar when true
 		thing.indexBar = true;
-		ofy.put(thing);
-		assert thing.id == ofy.load().type(IndexedOnOtherField.class).filter("bar", true).first().get().id;
+		ofy().put(thing);
+		assert thing.id == ofy().load().type(IndexedOnOtherField.class).filter("bar", true).first().get().id;
 
 		// Should not be able to query for bar when false
 		thing.indexBar = false;
-		ofy.put(thing);
-		assert !ofy.load().type(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
+		ofy().put(thing);
+		assert !ofy().load().type(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
 	}
-	
+
 }

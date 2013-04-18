@@ -18,11 +18,13 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of queries of odd field types.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class QueryExoticTypesTests extends TestBase
@@ -36,8 +38,8 @@ public class QueryExoticTypesTests extends TestBase
 	public void setUp()
 	{
 		super.setUp();
-	}	
-	
+	}
+
 	/** */
 	@Entity
 	public static class HasDate
@@ -45,30 +47,29 @@ public class QueryExoticTypesTests extends TestBase
 		@Id Long id;
 		@Index Date when;
 	}
-	
+
 	/** */
 	@Test
 	public void testDateFiltering() throws Exception
 	{
-		this.fact.register(HasDate.class);
-		TestObjectify ofy = this.fact.begin();
-		
+		fact().register(HasDate.class);
+
 		long later = System.currentTimeMillis();
 		long earlier = later - 100000;
-			
+
 		HasDate hd = new HasDate();
 		hd.when = new Date(later);
-		
-		ofy.put(hd);
-			
-		Query<HasDate> q = ofy.load().type(HasDate.class).filter("when >", new Date(earlier));
-		
+
+		ofy().put(hd);
+
+		Query<HasDate> q = ofy().load().type(HasDate.class).filter("when >", new Date(earlier));
+
 		List<HasDate> result = q.list();
-		
+
 		assert result.size() == 1;
 		assert result.get(0).when.equals(hd.when);
 	}
-	
+
 	/** */
 	@Entity
 	public static class HasUser
@@ -76,23 +77,22 @@ public class QueryExoticTypesTests extends TestBase
 		@Id Long id;
 		com.google.appengine.api.users.User who;
 	}
-	
+
 	/** */
 	@Test
 	public void testUserFiltering() throws Exception
 	{
-		this.fact.register(HasUser.class);
-		TestObjectify ofy = this.fact.begin();
-		
+		fact().register(HasUser.class);
+
 		HasUser hd = new HasUser();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
-		
-		ofy.put(hd);
-			
-		Query<HasUser> q = ofy.load().type(HasUser.class).filter("who", hd.who);
-		
+
+		ofy().put(hd);
+
+		Query<HasUser> q = ofy().load().type(HasUser.class).filter("who", hd.who);
+
 		List<HasUser> result = q.list();
-		
+
 		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
 		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
 		assert result.size() == 0;
@@ -105,22 +105,21 @@ public class QueryExoticTypesTests extends TestBase
 	@Test
 	public void testBadlyNamedUserFiltering() throws Exception
 	{
-		this.fact.register(User.class);
-		TestObjectify ofy = this.fact.begin();
-		
+		fact().register(User.class);
+
 		User hd = new User();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
-		
-		ofy.put(hd);
-			
-		Query<User> q = ofy.load().type(User.class).filter("who", hd.who);
-		
+
+		ofy().put(hd);
+
+		Query<User> q = ofy().load().type(User.class).filter("who", hd.who);
+
 		List<User> result = q.list();
-		
+
 		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
 		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
 		assert result.size() == 0;
-		
+
 //		assert result.size() == 1;
 //		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
@@ -141,8 +140,7 @@ public class QueryExoticTypesTests extends TestBase
 	@Test
 	public void testFromThruDateFiltering() throws Exception
 	{
-		this.fact.register(HasFromThruDate.class);
-		TestObjectify ofy = this.fact.begin();
+		fact().register(HasFromThruDate.class);
 
 		HasFromThruDate h1 = new HasFromThruDate();
 		Calendar cal1 = Calendar.getInstance();
@@ -163,7 +161,7 @@ public class QueryExoticTypesTests extends TestBase
 		cal1.set(2010, 7, 27);
 		h3.dateList.add(cal1.getTime());
 
-		ofy.put(h1, h2, h3);
+		ofy().put(h1, h2, h3);
 
 		cal1.set(2010, 7, 25);
 		Date fromDate = cal1.getTime();
@@ -172,7 +170,7 @@ public class QueryExoticTypesTests extends TestBase
 		Date thruDate = cal1.getTime();
 
 		Query<HasFromThruDate> q =
-			ofy.load().type(HasFromThruDate.class)
+			ofy().load().type(HasFromThruDate.class)
 				.filter("dateList >=", fromDate).filter("dateList <=", thruDate);
 
 		List<HasFromThruDate> listresult = q.list();

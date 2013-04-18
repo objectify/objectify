@@ -16,11 +16,13 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Testing of field visiblity (package/private/etc)
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class FieldVisibilityTests extends TestBase
@@ -28,7 +30,7 @@ public class FieldVisibilityTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(FieldVisibilityTests.class.getName());
-	
+
 	/** */
 	@Entity
 	@Unindex
@@ -36,22 +38,22 @@ public class FieldVisibilityTests extends TestBase
 	{
 		@Id
 		private Long id;
-		
+
 		@Index
 		private Set<String> stuff = new HashSet<String>();
 	}
-	
+
 	/** */
 	@Test
 	public void testGet() throws Exception
 	{
-		this.fact.register(ThingWithPrivates.class);
-		
+		fact().register(ThingWithPrivates.class);
+
 		ThingWithPrivates thing = new ThingWithPrivates();
 		//thing.stuff.add("foo");
-		
+
 		ThingWithPrivates fetched = this.putClearGet(thing);
-		
+
 		assert fetched.id.equals(thing.id);
 	}
 
@@ -59,15 +61,13 @@ public class FieldVisibilityTests extends TestBase
 	@Test
 	public void testQuery() throws Exception
 	{
-		this.fact.register(ThingWithPrivates.class);
-		
-		TestObjectify ofy = this.fact.begin();
-		
+		fact().register(ThingWithPrivates.class);
+
 		ThingWithPrivates thing = new ThingWithPrivates();
 		thing.stuff.add("foo");
-		
-		ofy.put(thing);
-		
-		ofy.load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
+
+		ofy().put(thing);
+
+		ofy().load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
 	}
 }

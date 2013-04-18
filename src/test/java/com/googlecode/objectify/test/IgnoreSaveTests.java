@@ -18,7 +18,9 @@ import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of using the @IgnoreSave annotation and its various conditions.
@@ -50,16 +52,14 @@ public class IgnoreSaveTests extends TestBase
 	@Test
 	public void testCompletelyUnsaved() throws Exception
 	{
-		this.fact.register(CompletelyUnsaved.class);
-
-		TestObjectify ofy = this.fact.begin();
+		fact().register(CompletelyUnsaved.class);
 
 		Entity ent = new Entity(Key.getKind(CompletelyUnsaved.class));
 		ent.setProperty("foo", TEST_VALUE);
 		ds().put(null, ent);
 
 		Key<CompletelyUnsaved> key = Key.create(ent.getKey());
-		CompletelyUnsaved fetched = ofy.get(key);
+		CompletelyUnsaved fetched = ofy().get(key);
 		assert fetched.foo.equals(TEST_VALUE);
 
 		fetched = putClearGet(fetched);
@@ -80,7 +80,7 @@ public class IgnoreSaveTests extends TestBase
 	@Test
 	public void testUnsavedWhenTrue() throws Exception
 	{
-		this.fact.register(UnsavedWhenTrue.class);
+		fact().register(UnsavedWhenTrue.class);
 
 		UnsavedWhenTrue thing = new UnsavedWhenTrue();
 		thing.foo = true;
@@ -105,7 +105,7 @@ public class IgnoreSaveTests extends TestBase
 	@Test
 	public void testDeeperUnsavedWhenTrue() throws Exception
 	{
-		this.fact.register(DeeperUnsavedWhenTrue.class);
+		fact().register(DeeperUnsavedWhenTrue.class);
 
 		DeeperUnsavedWhenTrue thing = new DeeperUnsavedWhenTrue();
 		thing.foo = true;
@@ -147,7 +147,7 @@ public class IgnoreSaveTests extends TestBase
 	public void testBadFieldTypeNotRegisterable() throws Exception
 	{
 		try {
-			this.fact.register(BadFieldType.class);
+			fact().register(BadFieldType.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
@@ -158,7 +158,7 @@ public class IgnoreSaveTests extends TestBase
 	public void testDeeperBadFieldTypeNotRegisterable() throws Exception
 	{
 		try {
-			this.fact.register(DeeperBadFieldType.class);
+			fact().register(DeeperBadFieldType.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
@@ -169,7 +169,7 @@ public class IgnoreSaveTests extends TestBase
 	public void testEmbeddedCollectionWithUnsavedNotRegisterable() throws Exception
 	{
 		try {
-			this.fact.register(EmbeddedCollectionWithUnsaved.class);
+			fact().register(EmbeddedCollectionWithUnsaved.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}
@@ -191,12 +191,10 @@ public class IgnoreSaveTests extends TestBase
 	@Test
 	public void testUnsavedDefaults() throws Exception
 	{
-		this.fact.register(UnsavedDefaults.class);
-
-		TestObjectify ofy = this.fact.begin();
+		fact().register(UnsavedDefaults.class);
 
 		UnsavedDefaults thing = new UnsavedDefaults();
-		Key<UnsavedDefaults> key = ofy.put(thing);
+		Key<UnsavedDefaults> key = ofy().put(thing);
 
 		// Now get the raw entity and verify that it doesn't have properties saved
 		Entity ent = ds().get(null, Keys.toRawKey(key));

@@ -17,8 +17,9 @@ import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestCo
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFilter;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -33,9 +34,6 @@ public class TestBase
 	private static Logger log = Logger.getLogger(TestBase.class.getName());
 
 	/** */
-	protected TestObjectifyFactory fact;
-
-	/** */
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
 					// Our tests assume strong consistency
@@ -44,21 +42,16 @@ public class TestBase
 					new LocalTaskQueueTestConfig());
 	/** */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		this.helper.setUp();
 
 		// Initialize a new factory each time.
 		TestObjectifyService.initialize();
-
-		// We should get rid of this, but it will require editing a lot of code.
-		this.fact = TestObjectifyService.factory();
 	}
 
 	/** */
 	@AfterMethod
-	public void tearDown()
-	{
+	public void tearDown() {
 		// This is normally done in ObjectifyFilter but that doesn't exist for tests
 		ObjectifyFilter.complete();
 
@@ -66,27 +59,22 @@ public class TestBase
 	}
 
 	/** Utility methods that puts, clears the session, and immediately gets an entity */
-	protected <T> T putClearGet(T saveMe)
-	{
-		Objectify ofy = this.fact.begin();
+	protected <T> T putClearGet(T saveMe) {
+		Key<T> key = ofy().save().entity(saveMe).now();
 
-		Key<T> key = ofy.save().entity(saveMe).now();
-
-		try
-		{
+		try {
 			Entity ent = ds().get(null, key.getRaw());
 			System.out.println(ent);
 		}
 		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
 
-		ofy.clear();
+		ofy().clear();
 
-		return ofy.load().key(key).get();
+		return ofy().load().key(key).get();
 	}
 
 	/** Get a DatastoreService */
-	protected DatastoreService ds()
-	{
+	protected DatastoreService ds() {
 		return DatastoreServiceFactory.getDatastoreService();
 	}
 }

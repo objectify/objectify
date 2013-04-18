@@ -14,7 +14,9 @@ import com.googlecode.objectify.test.LoadGroupInheritance.Father.Bottom;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Middle;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Top;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the inheritance of load group classes
@@ -63,19 +65,17 @@ public class LoadGroupInheritance extends TestBase
 	@Test
 	public void testLoadNoGroup() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(Child.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy.put(ch);
+		Key<Child> kch = ofy().put(ch);
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy.put(f);
+		Key<Father> kf = ofy().put(f);
 
-		ofy.clear();
-		Ref<Father> fatherRef = ofy.load().key(kf);
+		ofy().clear();
+		Ref<Father> fatherRef = ofy().load().key(kf);
 		assert !fatherRef.get().child.isLoaded();
 	}
 
@@ -83,19 +83,17 @@ public class LoadGroupInheritance extends TestBase
 	@Test
 	public void testLoadBottomGroup() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(Child.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy.put(ch);
+		Key<Child> kch = ofy().put(ch);
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy.put(f);
+		Key<Father> kf = ofy().put(f);
 
-		ofy.clear();
-		Ref<Father> fatherRef = ofy.load().group(Bottom.class).key(kf);
+		ofy().clear();
+		Ref<Father> fatherRef = ofy().load().group(Bottom.class).key(kf);
 		assert !fatherRef.get().child.isLoaded();
 	}
 
@@ -103,19 +101,17 @@ public class LoadGroupInheritance extends TestBase
 	@Test
 	public void testLoadMiddleGroup() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(Child.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy.put(ch);
+		Key<Child> kch = ofy().put(ch);
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy.put(f);
+		Key<Father> kf = ofy().put(f);
 
-		ofy.clear();
-		Ref<Father> fatherRef = ofy.load().group(Middle.class).key(kf);
+		ofy().clear();
+		Ref<Father> fatherRef = ofy().load().group(Middle.class).key(kf);
 		assert fatherRef.get().child.get() != null;
 	}
 
@@ -123,19 +119,17 @@ public class LoadGroupInheritance extends TestBase
 	@Test
 	public void testLoadTopGroup() throws Exception
 	{
-		fact.register(Father.class);
-		fact.register(Child.class);
-
-		TestObjectify ofy = fact.begin();
+		fact().register(Father.class);
+		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy.put(ch);
+		Key<Child> kch = ofy().put(ch);
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy.put(f);
+		Key<Father> kf = ofy().put(f);
 
-		ofy.clear();
-		Ref<Father> fatherRef = ofy.load().group(Top.class).key(kf);
+		ofy().clear();
+		Ref<Father> fatherRef = ofy().load().group(Top.class).key(kf);
 		assert fatherRef.get().child.get() != null;
 	}
 }
