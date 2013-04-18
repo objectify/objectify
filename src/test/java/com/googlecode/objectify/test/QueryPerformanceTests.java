@@ -57,8 +57,7 @@ public class QueryPerformanceTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		super.setUp();
 
 		getCount = 0;
@@ -76,12 +75,12 @@ public class QueryPerformanceTests extends TestBase
 		this.triv1 = new Trivial("foo1", 1);
 
 		ofy().save().entity(triv1).now();
+		ofy().clear();
 	}
 
 	/** */
 	@Test
-	public void hybridOn() throws Exception
-	{
+	public void hybridOn() throws Exception {
 		Query<Trivial> q = ofy().load().type(Trivial.class).hybrid(true);
 
 		int count = 0;
@@ -95,8 +94,7 @@ public class QueryPerformanceTests extends TestBase
 
 	/** */
 	@Test
-	public void hybridOff() throws Exception
-	{
+	public void hybridOff() throws Exception {
 		Query<Trivial> q = ofy().load().type(Trivial.class).hybrid(false);
 
 		int count = 0;

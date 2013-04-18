@@ -59,7 +59,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	boolean hybrid;	// starts false
 
 	/** Need to know this so that we can force hybrid off when we get a multiquery (IN/NOT) or order */
-	boolean hasForcedHybrid;
+	boolean hasExplicitHybrid;
 	boolean hasMulti;
 	boolean hasNonKeyOrder;
 
@@ -263,7 +263,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	/** Modifies the instance */
 	void setHybrid(boolean force) {
 		this.hybrid = force;
-		this.hasForcedHybrid = true;
+		this.hasExplicitHybrid = true;
 	}
 
 	/** Modifies the instance */
@@ -418,7 +418,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	private QueryResultIterable<KeyResultPair<T>> resultIterable() {
 		boolean hybridize = hybrid;
 
-		if (!hasForcedHybrid) {
+		if (!hasExplicitHybrid) {
 			// These are the special conditions we know about.  It may expand.
 
 			if (hasMulti && hasNonKeyOrder)

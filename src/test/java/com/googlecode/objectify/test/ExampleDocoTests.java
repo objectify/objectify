@@ -5,7 +5,6 @@ import java.util.List;
 
 import org.testng.annotations.Test;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.Keys;
@@ -152,13 +151,13 @@ public class ExampleDocoTests extends TestBase
 		assert town.folk == null; // null collections are ignored
 	}
 
-	private Town loadTown(Entity e) throws EntityNotFoundException
+	private Town loadTown(com.google.appengine.api.datastore.Entity e) throws EntityNotFoundException
 	{
 		Key<Town> k = Key.create(e.getKey());
 		return ofy().get(k);
 	}
 
-	private boolean arrayPropertyEqual(Entity e, String prop, Object... vals)
+	private boolean arrayPropertyEqual(com.google.appengine.api.datastore.Entity e, String prop, Object... vals)
 	{
 		List<?> found = (List<?>) e.getProperty(prop);
 		return Arrays.asList(vals).equals(found);
@@ -167,6 +166,7 @@ public class ExampleDocoTests extends TestBase
 	private com.google.appengine.api.datastore.Entity townToEntity(Town town) throws EntityNotFoundException
 	{
 		Key<Town> k = ofy().put(town);
+		ofy().clear();
 		return ds().get(null, Keys.toRawKey(k));
 	}
 }
