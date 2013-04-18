@@ -108,7 +108,7 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPa
 	@Override
 	public Cursor getCursor() {
 		if (offsetIntoBatch == 0) {
-			return source.getCursor();
+			return baseCursor;
 		} else {
 			// There may not be a baseCursor if we haven't iterated yet
 			FetchOptions opts = FetchOptions.Builder.withDefaults();

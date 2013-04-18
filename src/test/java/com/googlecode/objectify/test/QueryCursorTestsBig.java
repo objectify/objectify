@@ -22,7 +22,7 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
- * Tests of query cursors using a setup of lots of things.
+ * Tests of query cursors using a setup of lots of things. Note that all the numbers are 1-based because we can't have an id of 0
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -33,11 +33,16 @@ public class QueryCursorTestsBig extends TestBase
 	private static Logger log = Logger.getLogger(QueryCursorTestsBig.class.getName());
 
 	/** */
-	private static final int COUNT = 30;
+	private static final int MAX_ID = 30;
 
 	/** */
 	List<Key<Trivial>> keys;
 	List<Trivial> entities;
+
+	/** Set up the base query we use for tests */
+	private Query<Trivial> query() {
+		return ofy().load().type(Trivial.class).filter("someString", "foo").order("__key__");
+	}
 
 	/** */
 	@BeforeMethod
@@ -47,8 +52,8 @@ public class QueryCursorTestsBig extends TestBase
 		fact().register(Trivial.class);
 
 		entities = new ArrayList<Trivial>();
-		for (int i = 0; i < COUNT; i++)
-			entities.add(new Trivial("foo", i));
+		for (long i = 1; i <= MAX_ID; i++)
+			entities.add(new Trivial(i, "foo", i));
 
 		Map<Key<Trivial>, Trivial> saved = ofy().save().entities(entities).now();
 		keys = new ArrayList<Key<Trivial>>(saved.keySet());
@@ -56,22 +61,74 @@ public class QueryCursorTestsBig extends TestBase
 
 	/** */
 	@Test
-	public void testCursorAtEveryStep() throws Exception {
-		Query<Trivial> q1 = ofy().load().type(Trivial.class).filter("someString", "foo");//.chunk(10);
+	public void simpleOrder() throws Exception {
+		Query<Trivial> q1 = query();
 		QueryResultIterator<Trivial> i1 = q1.iterator();
 
-		int position = 0;
+		int which = 0;
 		while (i1.hasNext()) {
-			Cursor cursor = i1.getCursor();
-			assertCursorAt(cursor, position);
-			i1.next();
-			position++;
+			which++;
+			Trivial triv = i1.next();
+			assert triv == entities.get(which-1);
 		}
+
+		assert which == MAX_ID;
+	}
+
+	/** */
+	@Test
+	public void testCursorAtEveryStep() throws Exception {
+		Query<Trivial> q1 = query();
+		QueryResultIterator<Trivial> i1 = q1.iterator();
+
+		int which = 0;
+		while (i1.hasNext()) {
+			which++;
+			Cursor cursor = i1.getCursor();
+			assertCursorAt(cursor, which);
+			i1.next();
+		}
+
+		assert which == MAX_ID;
+	}
+
+	/** */
+	@Test
+	public void testCursorAtEveryStepWithChunk() throws Exception {
+		Query<Trivial> q1 = query().chunk(5);
+		QueryResultIterator<Trivial> i1 = q1.iterator();
+
+		int which = 0;
+		while (i1.hasNext()) {
+			which++;
+			Cursor cursor = i1.getCursor();
+			assertCursorAt(cursor, which);
+			i1.next();
+		}
+
+		assert which == MAX_ID;
+	}
+
+	/** */
+	@Test
+	public void testCursorAtEveryStepWithLimit() throws Exception {
+		Query<Trivial> q1 = query().limit(20);
+		QueryResultIterator<Trivial> i1 = q1.iterator();
+
+		int which = 0;
+		while (i1.hasNext()) {
+			which++;
+			Cursor cursor = i1.getCursor();
+			assertCursorAt(cursor, which);
+			i1.next();
+		}
+
+		assert which == 20;
 	}
 
 	/** Asserts that the next value in the cursor is the specified position */
 	private void assertCursorAt(Cursor cursor, int position) {
-		Trivial triv = ofy().load().type(Trivial.class).filter("someString",  "foo").startAt(cursor).first().get();
+		Trivial triv = query().startAt(cursor).first().get();
 		assert triv.getSomeNumber() == position;
 	}
 
@@ -79,40 +136,40 @@ public class QueryCursorTestsBig extends TestBase
 	@Test
 	public void testLimitAndCursorUsingIterator() throws Exception {
 		// create 30 objects with someString=foo,
-		// then search for limit 20 (finding cursor at 15th position)
-		// then search for limit 20 using that cursor
+		// then search for limit 20 (finding cursor at 15)
+		// then search using that cursor
 		// then use get() and see if we get the object at cursor
 
-		Query<Trivial> q1 = ofy().load().type(Trivial.class).filter("someString", "foo").limit(20);
-		QueryResultIterator<Trivial> i1 = q1.iterator();
 		List<Trivial> l1 = new ArrayList<Trivial>();
 		Cursor cursor = null;
-		Trivial objectAfterCursor = null;
-		int count = 1;
+
+		Query<Trivial> q1 = query().limit(20);
+		QueryResultIterator<Trivial> i1 = q1.iterator();
+
+		int which = 0;
 		while (i1.hasNext()) {
+			which++;
 			Trivial trivial = i1.next();
 			l1.add(trivial);
-			if (count == 15) {
+
+			if (which == 15)
 				cursor = i1.getCursor();
-			}
-			if (count == 16) {
-				objectAfterCursor = trivial;
-			}
-			count++;
 		}
 
 		assert l1.size() == 20;
 
-		Query<Trivial> q2 = ofy().load().type(Trivial.class).filter("someString =", "foo").limit(20).startAt(cursor);
-		QueryResultIterator<Trivial> i2 = q2.iterator();
 		List<Trivial> l2 = new ArrayList<Trivial>();
+
+		Query<Trivial> q2 = query().limit(20).startAt(cursor);
+		QueryResultIterator<Trivial> i2 = q2.iterator();
+
 		while (i2.hasNext()) {
 			Trivial trivial = i2.next();
 			l2.add(trivial);
 		}
 		assert l2.size() == 15;
 
-		Trivial gotten = q2.first().get();
-		assert gotten.getId().equals(objectAfterCursor.getId());
+		assert l2.get(0) == l1.get(15);
+		assert l2.get(0) == q2.first().get();
 	}
 }
