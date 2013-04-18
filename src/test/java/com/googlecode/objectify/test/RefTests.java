@@ -49,6 +49,8 @@ public class RefTests extends TestBase
 		k2 = ofy().put(t2);
 
 		kNone = Key.create(Trivial.class, 12345L);
+
+		ofy().clear();
 	}
 
 //	/** */
@@ -69,9 +71,15 @@ public class RefTests extends TestBase
 
 	/** */
 	@Test
-	public void standaloneLoad() throws Exception {
+	public void simpleRefIsNotLoaded() throws Exception {
 		Ref<Trivial> ref = Ref.create(k1);
 		assert !ref.isLoaded();
+	}
+
+	/** */
+	@Test
+	public void standaloneLoad() throws Exception {
+		Ref<Trivial> ref = Ref.create(k1);
 
 		Trivial loaded = ref.get();
 		assert ref.isLoaded();
@@ -82,7 +90,6 @@ public class RefTests extends TestBase
 	@Test
 	public void loadRefFromOfy() throws Exception {
 		Ref<Trivial> ref = Ref.create(k1);
-		assert !ref.isLoaded();
 
 		Ref<Trivial> ref2 = ofy().load().ref(ref);
 		assert ref.isLoaded();
