@@ -22,15 +22,15 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
- * Tests of query cursors
+ * Tests of query cursors using a setup of just a couple items.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryCursorTests extends TestBase
+public class QueryCursorTestsSmall extends TestBase
 {
 	/** */
 	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(QueryCursorTests.class.getName());
+	private static Logger log = Logger.getLogger(QueryCursorTestsSmall.class.getName());
 
 	/** */
 	Trivial triv1;
@@ -39,8 +39,7 @@ public class QueryCursorTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		super.setUp();
 
 		fact().register(Trivial.class);
@@ -48,19 +47,14 @@ public class QueryCursorTests extends TestBase
 		this.triv1 = new Trivial("foo1", 1);
 		this.triv2 = new Trivial("foo2", 2);
 
-		List<Trivial> trivs = new ArrayList<Trivial>();
-		trivs.add(this.triv1);
-		trivs.add(this.triv2);
+		Map<Key<Trivial>, Trivial> saved = ofy().save().entities(triv1, triv2).now();
 
-		Map<Key<Trivial>, Trivial> result = ofy().save().entities(trivs).now();
-
-		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
+		this.keys = new ArrayList<Key<Trivial>>(saved.keySet());
 	}
 
 	/** */
 	@Test
-	public void testCursorEnd() throws Exception
-	{
+	public void testCursorEnd() throws Exception {
 		Query<Trivial> q = ofy().load().type(Trivial.class);
 		QueryResultIterator<Trivial> it = q.limit(1).iterator();
 
@@ -94,8 +88,7 @@ public class QueryCursorTests extends TestBase
 
 	/** */
 	@Test
-	public void testCursorOneFetchToEnd() throws Exception
-	{
+	public void testCursorOneFetchToEnd() throws Exception {
 		Query<Trivial> q = ofy().load().type(Trivial.class);
 		QueryResultIterator<Trivial> it = q.iterator();
 
@@ -114,52 +107,5 @@ public class QueryCursorTests extends TestBase
 		assert cursor != null;
 		it = q.startAt(cursor).iterator();
 		assert !it.hasNext();
-	}
-
-	/** */
-	@Test
-	public void testLimitAndCursorUsingIterator() throws Exception {
-		// create 30 objects with someString=foo,
-		// then search for limit 20 (finding cursor at 15th position)
-		// then search for limit 20 using that cursor
-		// then use get() and see if we get the object at cursor
-
-		for (int i = 0; i < 30; i++) {
-			ofy().put(new Trivial("foo", i));
-		}
-
-		Query<Trivial> q1 = ofy().load().type(Trivial.class).filter("someString", "foo").limit(20);
-		QueryResultIterator<Trivial> i1 = q1.iterator();
-		List<Trivial> l1 = new ArrayList<Trivial>();
-		Cursor cursor = null;
-		Trivial objectAfterCursor = null;
-		int count = 1;
-		while (i1.hasNext())
-		{
-			Trivial trivial = i1.next();
-			l1.add(trivial);
-			if (count == 15) {
-				cursor = i1.getCursor();
-			}
-			if (count == 16) {
-				objectAfterCursor = trivial;
-			}
-			count++;
-		}
-
-		assert l1.size() == 20;
-
-		Query<Trivial> q2 = ofy().load().type(Trivial.class).filter("someString =", "foo").limit(20).startAt(cursor);
-		QueryResultIterator<Trivial> i2 = q2.iterator();
-		List<Trivial> l2 = new ArrayList<Trivial>();
-		while (i2.hasNext())
-		{
-			Trivial trivial = i2.next();
-			l2.add(trivial);
-		}
-		assert l2.size() == 15;
-
-		Trivial gotten = q2.first().get();
-		assert gotten.getId().equals(objectAfterCursor.getId());
 	}
 }
