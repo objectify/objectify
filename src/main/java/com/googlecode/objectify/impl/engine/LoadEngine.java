@@ -72,8 +72,12 @@ public class LoadEngine
 	/**
 	 * Gets the result, possibly from the session, putting it in the session if necessary.
 	 * Also will recursively prepare the session with @Load parents as appropriate.
+	 * @throws NullPointerException if key is null
 	 */
 	public <T> Result<T> load(Key<T> key) {
+		if (key == null)
+			throw new NullPointerException("You tried to load a null key!");
+
 		Result<T> result = round.get(key);
 
 		// If we are running a transaction, enlist the result so that it gets processed on commit even
