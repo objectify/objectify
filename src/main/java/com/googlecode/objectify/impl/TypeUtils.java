@@ -22,7 +22,7 @@ public class TypeUtils
 {
 	/** We do not persist fields with any of these modifiers */
 	static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
-	
+
 	/** A map of the primitive types to their wrapper types */
 	static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>();
 	static {
@@ -34,7 +34,7 @@ public class TypeUtils
 		PRIMITIVE_TO_WRAPPER.put(float.class, Float.class);
 		PRIMITIVE_TO_WRAPPER.put(double.class, Double.class);
 	}
-	
+
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */
@@ -52,7 +52,7 @@ public class TypeUtils
 				throw new IllegalStateException(clazz.getName() + " must have a no-arg constructor", e);
 		}
 	}
-	
+
 	/**
 	 * Gets a constructor that has the specified types of arguments.
 	 * Throw an IllegalStateException if the class does not have such a constructor.
@@ -67,14 +67,15 @@ public class TypeUtils
 			throw new IllegalStateException(clazz.getName() + " has no constructor with args " + Arrays.toString(args), e);
 		}
 	}
-	
+
 	/**
 	 * Determine if we should create a Property for the field.  Things we ignore:  static, final, @Ignore, synthetic
 	 */
 	public static boolean isOfInterest(Field field) {
 		return !field.isAnnotationPresent(Ignore.class)
 			&& ((field.getModifiers() & NOT_SAVEABLE_MODIFIERS) == 0)
-			&& !field.isSynthetic();
+			&& !field.isSynthetic()
+			&& !field.getName().startsWith("bitmap$init");	// Scala adds a field bitmap$init$0 and bitmap$init$1 etc
 	}
 
 	/**
@@ -84,10 +85,10 @@ public class TypeUtils
 		for (Annotation[] annos: method.getParameterAnnotations())
 			if (getAnnotation(AlsoLoad.class, annos) != null)
 				return true;
-		
+
 		return false;
 	}
-	
+
 	/** Checked exceptions are LAME. By the way, don't use this since it causes security exceptions on private classes */
 	public static <T> T newInstance(Class<T> clazz) {
 		try {
@@ -96,7 +97,7 @@ public class TypeUtils
 		catch (InstantiationException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
 	}
-	
+
 	/** Checked exceptions are LAME. */
 	public static <T> T newInstance(Constructor<T> ctor, Object... params) {
 		try {
@@ -127,7 +128,7 @@ public class TypeUtils
 
 	/**
 	 * Get all the persistable fields and methods on a class, checking the superclasses as well.
-	 * 
+	 *
 	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
 	 *  and returned in order starting with superclass fields.
 	 */
@@ -141,20 +142,20 @@ public class TypeUtils
 	private static void getProperties(ObjectifyFactory fact, Class<?> clazz, List<Property> good, Class<?> topClass) {
 		if (clazz == null || clazz == Object.class)
 			return;
-		
+
 		getProperties(fact, clazz.getSuperclass(), good, topClass);
-		
+
 		for (Field field: clazz.getDeclaredFields())
 			if (isOfInterest(field))
 				good.add(new FieldProperty(fact, topClass, field));
-		
+
 		for (Method method: clazz.getDeclaredMethods())
 			if (isOfInterest(method))
 				good.add(new MethodProperty(method));
 	}
 
 	/**
-	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking  
+	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking
 	 */
 	public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
 		try {
@@ -174,7 +175,7 @@ public class TypeUtils
 	public static boolean isAssignableFrom(Class<?> to, Class<?> from) {
 		Class<?> notPrimitiveTo = to.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(to) : to;
 		Class<?> notPrimitiveFrom = from.isPrimitive() ? PRIMITIVE_TO_WRAPPER.get(from) : from;
-		
+
 		return notPrimitiveTo.isAssignableFrom(notPrimitiveFrom);
 	}
 
@@ -184,11 +185,11 @@ public class TypeUtils
 		for (Annotation anno: annotations)
 			if (annotationType.isAssignableFrom(anno.getClass()))
 				return (A)anno;
-		
+
 		return null;
 	}
 
-	/** 
+	/**
 	 * Checks both the annotations list and the annotations on the class for the type
 	 * @return null if annotation is not in list or on class.
 	 */
