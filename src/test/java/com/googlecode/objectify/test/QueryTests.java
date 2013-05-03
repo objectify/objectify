@@ -362,4 +362,12 @@ public class QueryTests extends TestBase
 
 		assert count == 2;
 	}
+
+	/** */
+	@Test
+	public void testLimit() throws Exception {
+		List<Trivial> trivs = ofy().load().type(Trivial.class).limit(1).list();
+
+		assert trivs.size() == 1;
+	}
 }
