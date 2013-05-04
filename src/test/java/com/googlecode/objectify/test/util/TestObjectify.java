@@ -16,7 +16,7 @@ public class TestObjectify extends ObjectifyWrapper<TestObjectify, ObjectifyFact
 	public TestObjectify(Objectify ofy) {
 		super(ofy);
 	}
-	
+
 	public <E> Key<E> put(E entitity)  {
 		return this.save().<E>entity(entitity).now();
 	}
@@ -24,8 +24,8 @@ public class TestObjectify extends ObjectifyWrapper<TestObjectify, ObjectifyFact
 	public <E> Map<Key<E>, E> put(E... entities)  {
 		return this.save().<E>entities(entities).now();
 	}
-	
+
 	public <K> K get(Key<K> key) {
-		return this.load().key(key).get();
+		return this.load().key(key).now();
 	}
 }

@@ -3,9 +3,13 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -13,9 +17,6 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the fetching system for parent values using Ref<?> holders.
@@ -57,8 +58,8 @@ public class LoadParentRefTests extends TestBase
 
 		ofy().clear();
 
-		Ref<Child> fetchedRef = ofy().load().key(Key.create(ch));
-		Child fetched = fetchedRef.get();
+		LoadResult<Child> fetchedRef = ofy().load().key(Key.create(ch));
+		Child fetched = fetchedRef.now();
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.get().id.equals(f.id);
@@ -129,8 +130,8 @@ public class LoadParentRefTests extends TestBase
 		ofy().clear();
 
 		// Doing this step by step to make it easier for debugging
-		Ref<TreeNode> fetched3Ref = ofy().load().key(key3);
-		TreeNode fetched3 = fetched3Ref.get();
+		LoadResult<TreeNode> fetched3Ref = ofy().load().key(key3);
+		TreeNode fetched3 = fetched3Ref.now();
 
 		assert fetched3.parent.get() == null;
 		assert fetched3.parent.key().equals(key2);
@@ -165,12 +166,12 @@ public class LoadParentRefTests extends TestBase
 
 		// This should get an empty ref
 		ofy().clear();
-		ChildWithGroup fetched = ofy().load().key(kch).get();
+		ChildWithGroup fetched = ofy().load().key(kch).now();
 		assert fetched.father.key().getId() == f.id;
 		assert !fetched.father.isLoaded();
 
 		// Upgrade in the same session
-		ChildWithGroup fetched2 = ofy().load().group(Group.class).key(kch).get();
+		ChildWithGroup fetched2 = ofy().load().group(Group.class).key(kch).now();
 		assert fetched2 == fetched;
 		assert fetched2.father.isLoaded();
 		assert fetched2.father.get().id.equals(f.id);
@@ -178,7 +179,7 @@ public class LoadParentRefTests extends TestBase
 
 		// Also should work after session is cleared, but objects will not be same
 		ofy().clear();
-		ChildWithGroup fetched3 = ofy().load().group(Group.class).key(kch).get();
+		ChildWithGroup fetched3 = ofy().load().group(Group.class).key(kch).now();
 		assert fetched3 != fetched2;
 		assert fetched3.father.isLoaded();
 		assert fetched3.father.get().id.equals(f.id);

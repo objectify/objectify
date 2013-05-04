@@ -92,7 +92,7 @@ public class LoadUpgradeTests extends TestBase
 		Key<HasMulti> hmkey = ofy().put(hm);
 
 		ofy().clear();
-		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).get();
+		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();
 
 		assert fetched.multi.get(0).get().id == other0.id;
 		assert fetched.multi.get(1).get().id == other1.id;
@@ -111,7 +111,7 @@ public class LoadUpgradeTests extends TestBase
 
 		ofy().clear();
 		ofy().get(hmkey);	// load once
-		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).get();	// upgrade with multi
+		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();	// upgrade with multi
 
 		Ref<Other> m0 = fetched.multi.get(0);
 		assert m0.get().id == other0.id;
@@ -140,7 +140,7 @@ public class LoadUpgradeTests extends TestBase
 
 		ofy().clear();
 		ofy().get(hskey);	// load once
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).get();	// upgrade with single
+		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
 
 		assert fetched.single.get().id == other0.id;
 	}
@@ -165,7 +165,7 @@ public class LoadUpgradeTests extends TestBase
 			}
 		});
 
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).get();	// upgrade with single
+		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
 
 		assert fetched.single.get().id == other0.id;
 	}
@@ -186,13 +186,13 @@ public class LoadUpgradeTests extends TestBase
 		ofy().transact(new VoidWork() {
 			@Override
 			public void vrun() {
-				ofy().load().group(Single.class).key(hskey).get();
+				ofy().load().group(Single.class).key(hskey).now();
 			}
 		});
 
 		// This works even without the load group because we are loading the same object instance,
 		// which has populated refs.  We don't unload refs.
-		HasSingle fetched = ofy().load().key(hskey).get();
+		HasSingle fetched = ofy().load().key(hskey).now();
 
 		assert fetched.single.get().id == other0.id;
 	}
@@ -213,12 +213,12 @@ public class LoadUpgradeTests extends TestBase
 		ofy().transact(new VoidWork() {
 			@Override
 			public void vrun() {
-				ofy().load().group(Single.class).key(hskey).get();
+				ofy().load().group(Single.class).key(hskey).now();
 			}
 		});
 
 		// This is different by loading the group
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).get();
+		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();
 
 		assert fetched.single.get().id == other0.id;
 	}

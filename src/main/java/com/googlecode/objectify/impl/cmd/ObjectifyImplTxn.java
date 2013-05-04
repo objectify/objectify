@@ -91,6 +91,8 @@ public class ObjectifyImplTxn extends ObjectifyImpl
 		// no good reason to ever have withXG false when on the HRD.
 		Future<Transaction> fut = createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
 		txn = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<Transaction>(fut)) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected TransactionImpl wrap(Transaction raw) {
 				return new TransactionImpl(raw);

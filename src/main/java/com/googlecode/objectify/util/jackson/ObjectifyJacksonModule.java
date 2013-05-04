@@ -11,6 +11,7 @@ import com.googlecode.objectify.Ref;
  * intelligent serialization and deserialization of various Objectify and GAE classes.
  */
 public class ObjectifyJacksonModule extends SimpleModule {
+	private static final long serialVersionUID = 1L;
 
 	public ObjectifyJacksonModule() {
 		super("Objectify", Version.unknownVersion());
@@ -29,7 +30,7 @@ public class ObjectifyJacksonModule extends SimpleModule {
 		this.addSerializer(com.google.appengine.api.datastore.Key.class, new RawKeySerializer());
 		this.addKeySerializer(com.google.appengine.api.datastore.Key.class, new RawKeyKeySerializer());
 		this.addDeserializer(com.google.appengine.api.datastore.Key.class, new RawKeyDeserializer());
-		
+
 		// Native datastore BlobKey
 		this.addSerializer(BlobKey.class, new BlobKeySerializer());
 		this.addDeserializer(BlobKey.class, new BlobKeyDeserializer());

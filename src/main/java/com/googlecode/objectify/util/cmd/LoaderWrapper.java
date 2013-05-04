@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.LoadType;
@@ -40,7 +41,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <E> Ref<E> ref(Ref<E> ref) {
+	public <E> LoadResult<E> ref(Ref<E> ref) {
 		return base.ref(ref);
 	}
 
@@ -55,7 +56,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <E> Ref<E> key(Key<E> key) {
+	public <E> LoadResult<E> key(Key<E> key) {
 		return base.key(key);
 	}
 
@@ -70,7 +71,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <E> Ref<E> entity(E entity) {
+	public <E> LoadResult<E> entity(E entity) {
 		return base.entity(entity);
 	}
 
@@ -85,7 +86,7 @@ public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrappe
 	}
 
 	@Override
-	public <E> Ref<E> value(Object key) {
+	public <E> LoadResult<E> value(Object key) {
 		return base.value(key);
 	}
 

@@ -78,7 +78,7 @@ public class LoadCyclesComplexTest extends TestBase {
 		ofy().save().entities(a, b, c).now();
 		ofy().clear();
 
-		A a1 = ofy().load().entity(a).get();
+		A a1 = ofy().load().entity(a).now();
 		assert a1.aem.bs.get(0).get().cs.get(0).get().a != null;
 	}
 }

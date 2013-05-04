@@ -61,7 +61,7 @@ public class LoadBidrectionalTests extends TestBase
 		ofy.put(top, bottom);
 		ofy.clear();
 
-		Top topFetched = ofy.load().entity(top).get();
+		Top topFetched = ofy.load().entity(top).now();
 
 		assert topFetched.bottom.get().id == top.bottom.get().id;
 		assert topFetched.bottom.get().top.get().id == top.id;
@@ -97,7 +97,7 @@ public class LoadBidrectionalTests extends TestBase
 		ofy().put(top);
 		ofy().clear();
 
-		TopWithEmbed topFetched = ofy().load().entity(top).get();
+		TopWithEmbed topFetched = ofy().load().entity(top).now();
 
 		assert topFetched.bottom.top.get().id == top.id;
 	}

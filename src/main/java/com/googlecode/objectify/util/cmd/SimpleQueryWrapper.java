@@ -5,7 +5,7 @@ import java.util.List;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.cmd.SimpleQuery;
 
@@ -89,7 +89,7 @@ public class SimpleQueryWrapper<H extends SimpleQueryWrapper<H, T>, T> implement
 	}
 
 	@Override
-	public Ref<T> first()
+	public LoadResult<T> first()
 	{
 		return base.first();
 	}

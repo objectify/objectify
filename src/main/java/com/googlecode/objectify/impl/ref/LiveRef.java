@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.ref;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Ref;
@@ -7,11 +8,11 @@ import com.googlecode.objectify.Ref;
 
 /**
  * <p>Implementation of Refs which are "live" and connected to the datastore so they can fetch
- * entity values even if they have not already been loaded.</p>
+ * entity values even if they have not already been loaded. This is the standard Ref implementation.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class LiveRef<T> extends Ref<T>
+public class LiveRef<T> extends Ref<T>
 {
 	private static final long serialVersionUID = 1L;
 
@@ -22,9 +23,17 @@ abstract public class LiveRef<T> extends Ref<T>
 	protected LiveRef() {}
 
 	/**
-	 * Live refs are associated with an objectify session
+	 * Create a Ref based on the key
 	 */
-	public LiveRef(Objectify ofy) {
+	public LiveRef(Key<T> key) {
+		this(key, ObjectifyService.ofy());
+	}
+
+	/**
+	 * Create a Ref based on the key, with the specified session
+	 */
+	public LiveRef(Key<T> key, Objectify ofy) {
+		super(key);
 		this.ofy = ofy;
 	}
 

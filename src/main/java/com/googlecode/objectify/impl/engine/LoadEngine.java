@@ -22,7 +22,7 @@ import com.googlecode.objectify.impl.Session;
 import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
-import com.googlecode.objectify.impl.ref.StdRef;
+import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 
@@ -59,14 +59,6 @@ public class LoadEngine
 
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Starting load engine with groups " + loader.getLoadGroups());
-	}
-
-	/**
-	 * Convenience method that loads the key and creates a ref for it, tied to the current ofy instance
-	 */
-	public <T> Ref<T> getRef(Key<T> key) {
-		load(key);
-		return new StdRef<T>(key, ofy);
 	}
 
 	/**
@@ -116,7 +108,7 @@ public class LoadEngine
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
 	public <T> Ref<T> makeRef(Key<?> rootEntity, Property property, Key<T> key) {
-		Ref<T> ref = new StdRef<T>(key, ofy);
+		Ref<T> ref = new LiveRef<T>(key, ofy);
 
 		if (shouldLoad(property)) {
 			load(key);

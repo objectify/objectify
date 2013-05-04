@@ -43,7 +43,7 @@ public class ArrayTests extends TestBase
 
 		Key<HasArrays> k = ofy().save().entity(hasa).now();
 
-		HasArrays fetched = ofy().load().key(k).get();
+		HasArrays fetched = ofy().load().key(k).now();
 
 		assert Arrays.equals(fetched.strings, hasa.strings);
 	}
@@ -57,7 +57,7 @@ public class ArrayTests extends TestBase
 
 		Key<HasArrays> k = ofy().save().entity(hasa).now();
 
-		HasArrays fetched = ofy().load().key(k).get();
+		HasArrays fetched = ofy().load().key(k).now();
 
 		assert Arrays.equals(fetched.ints, hasa.ints);
 	}
@@ -71,7 +71,7 @@ public class ArrayTests extends TestBase
 
 		Key<HasArrays> k = ofy().save().entity(hasa).now();
 
-		HasArrays fetched = ofy().load().key(k).get();
+		HasArrays fetched = ofy().load().key(k).now();
 
 		assert Arrays.equals(fetched.integers, hasa.integers);
 	}
@@ -85,7 +85,7 @@ public class ArrayTests extends TestBase
 
 		Key<HasArrays> k = ofy().save().entity(hasa).now();
 
-		HasArrays fetched = ofy().load().key(k).get();
+		HasArrays fetched = ofy().load().key(k).now();
 
 		assert Arrays.equals(fetched.longs, hasa.longs);
 	}

@@ -4,13 +4,13 @@ import java.util.List;
 
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.LoadResult;
 
 
 /**
  * Common behavior for command implementations that delegate query execution to a real query implementation.
  * Used by LoadCmdImpl and LoadTypeImpl.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract class Queryable<T> extends SimpleQueryImpl<T>
@@ -20,9 +20,9 @@ abstract class Queryable<T> extends SimpleQueryImpl<T>
 	Queryable(LoaderImpl loader) {
 		super(loader);
 	}
-	
+
 	@Override
-	public Ref<T> first()
+	public LoadResult<T> first()
 	{
 		QueryImpl<T> q = createQuery();
 		return q.first();

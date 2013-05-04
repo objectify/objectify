@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -26,9 +29,6 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various collection types
@@ -99,7 +99,7 @@ public class CollectionTests extends TestBase
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
 		ofy().clear();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		assertContains123(hc.integerList, ArrayList.class);
 		assertContains123(hc.integerArrayList, ArrayList.class);
@@ -124,7 +124,7 @@ public class CollectionTests extends TestBase
 		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		assertContains123(hc.integerSet, HashSet.class);
 		assertContains123(hc.integerSortedSet, TreeSet.class);
@@ -146,7 +146,7 @@ public class CollectionTests extends TestBase
 		hc.customSet.add(3);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		assertContains123(hc.customSet, CustomSet.class);
 	}
@@ -168,7 +168,7 @@ public class CollectionTests extends TestBase
 		hc.typedKeySet.add(key9);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		assert hc.typedKeySet instanceof HashSet<?>;
 		assert hc.typedKeySet.size() == 3;
@@ -187,7 +187,7 @@ public class CollectionTests extends TestBase
 		hc.integerList = Arrays.asList((Integer) null);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		assert hc.integerList != null;
 		assert hc.integerList.size() == 1;
@@ -213,10 +213,10 @@ public class CollectionTests extends TestBase
 		hc.integerList = null;
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		ofy().save().entity(hc).now();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 		assert hc.integerList == null;	// not loaded
 
 		Entity e = ds().get(Keys.toRawKey(key));
@@ -237,7 +237,7 @@ public class CollectionTests extends TestBase
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
 		ofy().clear();
-		hc = ofy().load().key(key).get();
+		hc = ofy().load().key(key).now();
 
 		System.out.println(ds().get(Keys.toRawKey(hc)));
 

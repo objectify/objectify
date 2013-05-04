@@ -15,13 +15,12 @@ public class NotFoundException extends RuntimeException
 
 	/** Thrown when there is no key context (eg, query.first() on an empty result set) */
 	public NotFoundException() {
-		super("No entity was found");
-		//key = null;
+		this(null);
 	}
 
 	/** Thrown when we at least know what we are looking for! */
 	public NotFoundException(Key<?> key) {
-		super("No entity was found matching the key: " + key);
+		super(key == null ? "No entity was found" : "No entity was found matching the key: " + key);
 		this.key = key;
 	}
 

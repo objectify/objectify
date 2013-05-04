@@ -65,22 +65,22 @@ public class LoadUnlessTests extends TestBase
 		ofy().put(one);
 
 		ofy().clear();
-		One fetchedDefault = ofy().load().entity(one).get();
+		One fetchedDefault = ofy().load().entity(one).now();
 		assert fetchedDefault.always.isLoaded();
 		assert !fetchedDefault.sometimes.isLoaded();
 
 		ofy().clear();
-		One fetchedYes = ofy().load().group(Yes.class).entity(one).get();
+		One fetchedYes = ofy().load().group(Yes.class).entity(one).now();
 		assert fetchedYes.always.isLoaded();
 		assert fetchedYes.sometimes.isLoaded();
 
 		ofy().clear();
-		One fetchedNo = ofy().load().group(No.class).entity(one).get();
+		One fetchedNo = ofy().load().group(No.class).entity(one).now();
 		assert !fetchedNo.always.isLoaded();
 		assert !fetchedNo.sometimes.isLoaded();
 
 		ofy().clear();
-		One fetchedYesNo = ofy().load().group(Yes.class, No.class).entity(one).get();
+		One fetchedYesNo = ofy().load().group(Yes.class, No.class).entity(one).now();
 		assert !fetchedYesNo.always.isLoaded();
 		assert !fetchedYesNo.sometimes.isLoaded();
 	}

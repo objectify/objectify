@@ -128,7 +128,7 @@ public class QueryCursorTestsBig extends TestBase
 
 	/** Asserts that the next value in the cursor is the specified position */
 	private void assertCursorAt(Cursor cursor, int position) {
-		Trivial triv = query().startAt(cursor).first().get();
+		Trivial triv = query().startAt(cursor).first().now();
 		assert triv.getSomeNumber() == position;
 	}
 
@@ -170,6 +170,6 @@ public class QueryCursorTestsBig extends TestBase
 		assert l2.size() == 15;
 
 		assert l2.get(0) == l1.get(15);
-		assert l2.get(0) == q2.first().get();
+		assert l2.get(0) == q2.first().now();
 	}
 }

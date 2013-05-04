@@ -2,7 +2,7 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 
-import com.googlecode.objectify.impl.ref.StdRef;
+import com.googlecode.objectify.impl.ref.LiveRef;
 
 
 /**
@@ -23,7 +23,7 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		if (key == null)
 			throw new NullPointerException("Cannot create a Ref from a null key");
 
-		return new StdRef<T>(key);
+		return new LiveRef<T>(key);
 	}
 
 	/** Creates a Ref from a registered pojo entity */
@@ -32,10 +32,28 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		return create(key);
 	}
 
+	/** The key associated with this ref */
+	protected Key<T> key;
+
+	/** For GWT serialization */
+	protected Ref() {}
+
+	/**
+	 * Create a Ref based on the key, with the specified session
+	 */
+	protected Ref(Key<T> key) {
+		if (key == null)
+			throw new NullPointerException("Cannot create a Ref for a null key");
+
+		this.key = key;
+	}
+
 	/**
 	 * @return the key associated with this Ref
 	 */
-	abstract public Key<T> key();
+	public Key<T> key() {
+		return key;
+	}
 
 	/**
 	 * Obtain the entity value associated with the key. Will pull from session if present, otherwise will
@@ -74,32 +92,25 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	}
 
 	/**
-	 * Obtain the key if it has been found, throwing an exception if no value was found. The exception is
-	 * only possible for Ref<?>s that are returned by Query.first().
-	 *
-	 * @return the key referenced
-	 * @throws NotFoundException if the specified entity was not found
-	 */
-	final public Key<T> safeKey() {
-		Key<T> k = this.key();
-		if (k == null)
-			throw new NotFoundException();
-		else
-			return k;
-	}
-
-	/**
 	 * Obtain the entity value, throwing an exception if the entity was not found.
 	 *
 	 * @return the entity referenced. Never returns null.
 	 * @throws NotFoundException if the specified entity was not found
 	 */
-	final public T safeGet() {
+	final public T safe() throws NotFoundException {
 		T t = this.get();
 		if (t == null)
 			throw new NotFoundException(key());
 		else
 			return t;
+	}
+
+	/**
+	 * Use safe() instead.
+	 */
+	@Deprecated
+	final public T safeGet() throws NotFoundException {
+		return safe();
 	}
 
 	/** Comparison is based on key */

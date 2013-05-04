@@ -106,7 +106,7 @@ public class SerializeTests extends TestBase
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();
 		fact2.register(HasSerialize.class);
 
-		HasSerialize fetched = fact2.begin().load().type(HasSerialize.class).id(hs.id).get();
+		HasSerialize fetched = fact2.begin().load().type(HasSerialize.class).id(hs.id).now();
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
@@ -125,7 +125,7 @@ public class SerializeTests extends TestBase
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();
 		fact2.register(HasSerializeZip.class);
 
-		HasSerializeZip fetched = fact2.begin().load().type(HasSerializeZip.class).id(hs.id).get();
+		HasSerializeZip fetched = fact2.begin().load().type(HasSerializeZip.class).id(hs.id).now();
 		assert fetched.numbers.equals(hs.numbers);
 	}
 }

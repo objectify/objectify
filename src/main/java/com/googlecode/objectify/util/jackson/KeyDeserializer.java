@@ -13,6 +13,7 @@ import com.googlecode.objectify.Key;
  */
 @SuppressWarnings("rawtypes")
 public class KeyDeserializer extends StdDeserializer<Key> {
+	private static final long serialVersionUID = 1L;
 
 	/** */
 	public KeyDeserializer() {

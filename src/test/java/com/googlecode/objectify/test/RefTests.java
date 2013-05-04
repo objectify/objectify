@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +16,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -20,9 +24,6 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.RefTests.HasRef.Foo;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the behavior of Refs.
@@ -91,11 +92,10 @@ public class RefTests extends TestBase
 	public void loadRefFromOfy() throws Exception {
 		Ref<Trivial> ref = Ref.create(k1);
 
-		Ref<Trivial> ref2 = ofy().load().ref(ref);
+		LoadResult<Trivial> result = ofy().load().ref(ref);
 		assert ref.isLoaded();
-		assert ref2.isLoaded();
 
-		assert ref2.get().getSomeString().equals(t1.getSomeString());
+		assert result.now().getSomeString().equals(t1.getSomeString());
 	}
 
 	/** */
@@ -178,7 +178,7 @@ public class RefTests extends TestBase
 
 		ofy().put(hr);
 		ofy().clear();
-		HasRef fetched = ofy().load().group(Foo.class).entity(hr).get();
+		HasRef fetched = ofy().load().group(Foo.class).entity(hr).now();
 
 		// Now try to serialize it in memcache.
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();

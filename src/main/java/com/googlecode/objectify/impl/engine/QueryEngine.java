@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.util.DatastoreUtils;
 
@@ -50,7 +51,7 @@ public class QueryEngine
 	/**
 	 * Perform a keys-only plus batch gets.
 	 */
-	public <T> QueryResultIterable<KeyResultPair<T>> queryHybrid(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
+	public <T> QueryResultIterable<Result<T>> queryHybrid(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
 		log.finest("Starting hybrid query");
 
@@ -58,9 +59,9 @@ public class QueryEngine
 
 		final PreparedQuery pq = prepare(query);
 
-		return new QueryResultIterable<KeyResultPair<T>>() {
+		return new QueryResultIterable<Result<T>>() {
 			@Override
-			public QueryResultIterator<KeyResultPair<T>> iterator() {
+			public QueryResultIterator<Result<T>> iterator() {
 				return new HybridIterator<T>(loader.createLoadEngine(), pq, fetchOpts);
 			}
 		};
@@ -69,15 +70,15 @@ public class QueryEngine
 	/**
 	 * A normal, non-hybrid query
 	 */
-	public <T> QueryResultIterable<KeyResultPair<T>> queryNormal(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
+	public <T> QueryResultIterable<Result<T>> queryNormal(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
 		log.finest("Starting normal query");
 
 		final PreparedQuery pq = prepare(query);
 
-		return new QueryResultIterable<KeyResultPair<T>>() {
+		return new QueryResultIterable<Result<T>>() {
 			@Override
-			public QueryResultIterator<KeyResultPair<T>> iterator() {
+			public QueryResultIterator<Result<T>> iterator() {
 				return new NormalIterator<T>(loader.createLoadEngine(), pq, fetchOpts);
 			}
 		};

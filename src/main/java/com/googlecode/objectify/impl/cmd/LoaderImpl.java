@@ -12,6 +12,7 @@ import java.util.Set;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
@@ -87,7 +88,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#ref(com.googlecode.objectify.Ref)
 	 */
 	@Override
-	public <E> Ref<E> ref(Ref<E> ref) {
+	public <E> LoadResult<E> ref(Ref<E> ref) {
 		return key(ref.key());
 	}
 
@@ -112,15 +113,15 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * @see com.googlecode.objectify.cmd.Loader#entity(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public <E> Ref<E> key(Key<E> key) {
-		return createLoadEngine().getRef(key);
+	public <E> LoadResult<E> key(Key<E> key) {
+		return new LoadResult<E>(key, createLoadEngine().load(key));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Loader#entity(java.lang.Object)
 	 */
 	@Override
-	public <E> Ref<E> entity(E entity) {
+	public <E> LoadResult<E> entity(E entity) {
 		return key(Key.create(entity));
 	}
 
@@ -129,8 +130,8 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public <E> Ref<E> value(Object key) {
-		return (Ref<E>)key(Keys.toKey(key));
+	public <E> LoadResult<E> value(Object key) {
+		return (LoadResult<E>)key(Keys.toKey(key));
 	}
 
 	/* (non-Javadoc)

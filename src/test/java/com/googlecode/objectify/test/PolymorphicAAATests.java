@@ -120,7 +120,7 @@ public class PolymorphicAAATests extends TestBase
 		this.testRegistrationForwards();
 
 		// This should produce null
-		Cat cat = ofy().load().type(Cat.class).id(123).get();
+		Cat cat = ofy().load().type(Cat.class).id(123).now();
 
 		assert cat == null;
 	}
@@ -142,6 +142,6 @@ public class PolymorphicAAATests extends TestBase
 
 		// This should exclude the value
 		@SuppressWarnings("unused")
-		Mammal m = ofy().load().type(Mammal.class).id(a.id).get();
+		Mammal m = ofy().load().type(Mammal.class).id(a.id).now();
 	}
 }

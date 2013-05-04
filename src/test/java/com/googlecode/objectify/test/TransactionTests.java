@@ -88,7 +88,7 @@ public class TransactionTests extends TestBase
 		HasSimpleCollection simple2;
 		try
 		{
-			simple2 = txnOfy.load().type(HasSimpleCollection.class).id(simple.id).get();
+			simple2 = txnOfy.load().type(HasSimpleCollection.class).id(simple.id).now();
 			simple2.stuff.add("blah");
 			txnOfy.put(simple2);
 			txnOfy.getTxn().commit();
@@ -100,7 +100,7 @@ public class TransactionTests extends TestBase
 		}
 
 		nonTxnOfy.clear();
-		HasSimpleCollection simple3 = nonTxnOfy.load().type(HasSimpleCollection.class).id(simple.id).get();
+		HasSimpleCollection simple3 = nonTxnOfy.load().type(HasSimpleCollection.class).id(simple.id).now();
 
 		assert simple2.stuff.equals(simple3.stuff);
 	}
@@ -155,7 +155,7 @@ public class TransactionTests extends TestBase
 		Trivial updated = ofy().transact(new Work<Trivial>() {
 			@Override
 			public Trivial run() {
-				Trivial result = ofy().load().entity(triv).get();
+				Trivial result = ofy().load().entity(triv).now();
 				result.setSomeNumber(6);
 				ofy().put(result);
 				return result;
@@ -163,7 +163,7 @@ public class TransactionTests extends TestBase
 		});
 		assert updated.getSomeNumber() == 6;
 
-		Trivial fetched = ofy().load().entity(triv).get();
+		Trivial fetched = ofy().load().entity(triv).now();
 		assert fetched.getSomeNumber() == 6;
 	}
 
@@ -183,7 +183,7 @@ public class TransactionTests extends TestBase
 			@Override
 			public Void run() {
 				// Load this, enlist in txn
-				Trivial fetched = ofy().load().entity(triv).get();
+				Trivial fetched = ofy().load().entity(triv).now();
 
 				// Do this async, don't complete it manually
 				ofy().delete().entity(fetched);
@@ -192,7 +192,7 @@ public class TransactionTests extends TestBase
 			}
 		});
 
-		assert ofy().load().entity(triv).get() == null;
+		assert ofy().load().entity(triv).now() == null;
 	}
 
 	/** For transactionless tests */
@@ -220,7 +220,7 @@ public class TransactionTests extends TestBase
 			@Override
 			public Void run() {
 				for (int i=1; i<10; i++)
-					ofy().transactionless().load().type(Thing.class).id(i).get();
+					ofy().transactionless().load().type(Thing.class).id(i).now();
 
 				ofy().put(new Thing(99));
 				return null;
@@ -247,7 +247,7 @@ public class TransactionTests extends TestBase
 		} catch (RuntimeException ex) {}
 
 		// Now verify that it was not saved
-		Trivial fetched = ofy().load().type(Trivial.class).first().get();
+		Trivial fetched = ofy().load().type(Trivial.class).first().now();
 		assert fetched == null;
 	}
 

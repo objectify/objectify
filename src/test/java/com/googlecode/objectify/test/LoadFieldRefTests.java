@@ -198,7 +198,7 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.single.equivalent(fetched.multi.get(0));
 
 		ofy().clear();
-		fetched = ofy().load().group(Single.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert !fetched.multi.get(1).isLoaded();
@@ -210,7 +210,7 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 
 		ofy().clear();
-		fetched = ofy().load().group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Multi.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();
@@ -225,7 +225,7 @@ public class LoadFieldRefTests extends TestBase
 
 
 		ofy().clear();
-		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();

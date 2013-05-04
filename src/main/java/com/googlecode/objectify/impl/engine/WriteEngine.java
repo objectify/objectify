@@ -81,6 +81,8 @@ public class WriteEngine
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
 		Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<E>, E>>(adapted) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Map<Key<E>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
 				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>(base.size() * 2);
@@ -124,6 +126,8 @@ public class WriteEngine
 		Future<Void> fut = ads.delete(ofy.getTxnRaw(), keys);
 		Result<Void> adapted = new ResultAdapter<Void>(fut);
 		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)

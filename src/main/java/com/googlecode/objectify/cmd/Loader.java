@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 
@@ -46,17 +47,17 @@ public interface Loader extends SimpleQuery<Object>
 	<E> LoadType<E> type(Class<E> type);
 
 	/**
-	 * <p>Load a single entity ref.  This starts an asynchronous fetch operation which will be available as ref.get().</p>
+	 * <p>Load a single entity ref.  This starts an asynchronous fetch operation.</p>
 	 *
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * can be thrown from {@code Result} operations.</p>
 	 *
 	 * @param ref holds the key to fetch and will receive the asynchronous result.
-	 * @return the exact ref passed in
+	 * @return a result which can materialize the entity.
 	 */
-	<E> Ref<E> ref(Ref<E> ref);
+	<E> LoadResult<E> ref(Ref<E> ref);
 
 	/**
 	 * <p>Load multiple refs in a batch operation.  This starts an asynchronous fetch.</p>
@@ -64,7 +65,7 @@ public interface Loader extends SimpleQuery<Object>
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * can be thrown from the map operations.</p>
 	 *
 	 * @param refs provide the keys to fetch and will receive the asynchronous result.
 	 * @return as an alternative to accessing the Refs directly, a Map of the asynchronous result.
@@ -82,12 +83,12 @@ public interface Loader extends SimpleQuery<Object>
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * can be thrown from {@code Result} operations.</p>
 	 *
 	 * @param key defines the entity to fetch
-	 * @return a Ref<?> which holds the asynchronous result
+	 * @return a result which can materialize the entity
 	 */
-	<E> Ref<E> key(Key<E> key);
+	<E> LoadResult<E> key(Key<E> key);
 
 	/**
 	 * <p>Load multiple entities by key from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -110,29 +111,25 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * <p>Load a single entity which has the same id/parent as the specified entity.  This starts an asynchronous fetch.</p>
 	 *
-	 * <p>This is typically used to retrieve "unfetched" entities which have been returned as fields in other entities.
-	 * These unfetched entities will have their key fields (id/parent) filled but otherwise be uninitialized.</p>
+	 * <p>This is a shortcut for {@code key(Key.create(entity))}.</p>
 	 *
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * may be thrown from {@code Result} operations.</p>
 	 *
 	 * @param entity defines the entity to fetch; it must be of a registered entity type and have valid id/parent fields.
-	 * @return a Ref<?> which holds the asynchronous result
+	 * @return a result which can materialize the entity
 	 */
-	<E> Ref<E> entity(E entity);
+	<E> LoadResult<E> entity(E entity);
 
 	/**
 	 * <p>Load multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
 	 *
-	 * <p>This is typically used to retrieve "unfetched" entities which have been returned as fields in other entities.
-	 * These unfetched entities will have their key fields (id/parent) filled but otherwise be uninitialized.</p>
-	 *
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown when the Map is accessed.</p>
+	 * may be thrown when the Map is accessed.</p>
 	 *
 	 * @param entities must be a list of objects which belong to registered entity types, and must have id & parent fields
 	 *  properly set.
@@ -154,20 +151,18 @@ public interface Loader extends SimpleQuery<Object>
 	 * <li>Standard Objectify Key<?> objects.</li>
 	 * <li>Native datastore Key objects.</li>
 	 * <li>Ref<?> objects.</li>
-	 * <li>Registered entity instances which have id and parent fields populated.  This is typically used to retrieve "unfetched"
-	 * entities which have been returned as fields in other entities. These unfetched entities will have their key fields
-	 * (id/parent) filled but otherwise be uninitialized.</li>
+	 * <li>Registered entity instances which have id and parent fields populated.</li>
 	 * </ul>
 	 *
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown from {@code Ref<?>.get()}.</p>
+	 * may be thrown from {@code Result} operations.</p>
 	 *
 	 * @param key defines the entity to fetch; can be anything that represents a key structure
 	 * @return a Ref<?> which holds the asynchronous result
 	 */
-	<E> Ref<E> value(Object key);
+	<E> LoadResult<E> value(Object key);
 
 	/**
 	 * <p>Fetch multiple entities from the datastore in a batch.  This starts an asynchronous fetch.</p>
@@ -178,15 +173,13 @@ public interface Loader extends SimpleQuery<Object>
 	 * <li>Standard Objectify Key<?> objects.</li>
 	 * <li>Native datastore Key objects.</li>
 	 * <li>Ref<?> objects.</li>
-	 * <li>Registered entity instances which have id and parent fields populated.  This is typically used to retrieve "unfetched"
-	 * entities which have been returned as fields in other entities. These unfetched entities will have their key fields
-	 * (id/parent) filled but otherwise be uninitialized.</li>
+	 * <li>Registered entity instances which have id and parent fields populated.</li>
 	 * </ul>
 	 *
 	 * <p>Since fetching is asynchronous,
 	 * <a href="http://code.google.com/appengine/articles/handling_datastore_errors.html">datastore exceptions</a>
 	 * ({@code DatastoreTimeoutException}, {@code ConcurrentModificationException}, {@code DatastoreFailureException})
-	 * will be thrown when the Map is accessed.</p>
+	 * may be thrown when the Map is accessed.</p>
 	 *
 	 * @param keysOrEntities defines a possibly heterogeneous mixture of Key<?>, Ref<?>, native datastore Key, or registered
 	 * entity instances with valid id/parent fields.

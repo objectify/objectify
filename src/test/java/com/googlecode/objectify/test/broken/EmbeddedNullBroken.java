@@ -39,7 +39,7 @@ public class EmbeddedNullBroken extends TestBase {
 		Result<Key<FooBar>> result = ofy().save().entity(fooBar);
 		result.now();
 
-		FooBar retreived = ofy().load().type(FooBar.class).id(fooBar.id).safeGet();
+		FooBar retreived = ofy().load().type(FooBar.class).id(fooBar.id).safe();
 
 		assert fooBar.foos.size() == retreived.foos.size();
 	}

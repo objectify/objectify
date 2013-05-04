@@ -41,13 +41,13 @@ public class AncestorTests extends TestBase
 
 		assert childKey.getParent().equals(parentKey);
 
-		Child fetched = ofy().load().key(childKey).get();
+		Child fetched = ofy().load().key(childKey).now();
 
 		assert fetched.getParent().equals(child.getParent());
 		assert fetched.getChildString().equals(child.getChildString());
 
 		// Let's make sure we can get it back from an ancestor query
-		Child queried = ofy().load().type(Child.class).ancestor(parentKey).first().get();
+		Child queried = ofy().load().type(Child.class).ancestor(parentKey).first().now();
 
 		assert queried.getParent().equals(child.getParent());
 		assert queried.getChildString().equals(child.getChildString());

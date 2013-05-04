@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.memcache.ErrorHandler;
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
@@ -90,7 +89,8 @@ public class KeyMemcacheService
 		service.deleteAll(stringify(keys));
 	}
 
-	public void setErrorHandler(ErrorHandler handler) {
+	@SuppressWarnings("deprecation")
+	public void setErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
 		service.setErrorHandler(handler);
 	}
 }

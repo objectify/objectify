@@ -12,6 +12,7 @@ import com.google.appengine.api.blobstore.BlobKey;
  * Will deserialize a BlobKey that was serialized with the BlobKeySerializer
  */
 public class BlobKeyDeserializer extends StdDeserializer<BlobKey> {
+	private static final long serialVersionUID = 1L;
 
 	/** */
 	public BlobKeyDeserializer() {

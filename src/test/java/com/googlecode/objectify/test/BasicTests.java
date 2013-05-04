@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,14 +16,11 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of basic entity manipulation.
@@ -48,7 +48,7 @@ public class BasicTests extends TestBase
 		Key<Trivial> created = Key.create(Trivial.class, k.getId());
 		assert k.equals(created);
 
-		Trivial fetched = ofy().load().key(k).get();
+		Trivial fetched = ofy().load().key(k).now();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -68,7 +68,7 @@ public class BasicTests extends TestBase
 
 		assert k2.equals(k);
 
-		Trivial fetched = ofy().load().key(k).get();
+		Trivial fetched = ofy().load().key(k).now();
 
 		assert fetched.getId() == k.getId();
 		assert fetched.getSomeNumber() == triv2.getSomeNumber();
@@ -88,7 +88,7 @@ public class BasicTests extends TestBase
 		Key<NamedTrivial> createdKey = Key.create(NamedTrivial.class, "first");
 		assert k.equals(createdKey);
 
-		NamedTrivial fetched = ofy().load().key(k).get();
+		NamedTrivial fetched = ofy().load().key(k).now();
 
 		assert fetched.getName().equals(k.getName());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -242,8 +242,8 @@ public class BasicTests extends TestBase
 		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
 		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
 
-		Ref<Trivial> ref = ofy().load().key(triv2Key);
-		assert ref.get() == null;
+		LoadResult<Trivial> res = ofy().load().key(triv2Key);
+		assert res.now() == null;
 
 		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
 		assert result.size() == 0;
@@ -266,8 +266,8 @@ public class BasicTests extends TestBase
 		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
 
 		ofy().clear();
-		Ref<Trivial> ref = ofy().load().key(triv2Key);
-		assert ref.get() == null;
+		LoadResult<Trivial> res = ofy().load().key(triv2Key);
+		assert res.now() == null;
 
 		ofy().clear();
 		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
@@ -289,7 +289,7 @@ public class BasicTests extends TestBase
 
 		ofy().clear();
 
-		Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).get();
+		Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).now();
 
 		assert fetched.getSomeString().equals(triv1.getSomeString());
 	}

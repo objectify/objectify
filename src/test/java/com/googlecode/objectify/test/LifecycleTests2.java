@@ -65,7 +65,7 @@ public class LifecycleTests2 extends TestBase
 		ofy().put(prod);
 
 		ofy().clear();
-		Product fetched = ofy().load().entity(prod).get();
+		Product fetched = ofy().load().entity(prod).now();
 		assert fetched.event.get().org.get().foo.equals("fooValue");
 	}
 }

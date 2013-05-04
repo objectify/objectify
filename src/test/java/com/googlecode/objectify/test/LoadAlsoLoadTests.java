@@ -68,7 +68,7 @@ public class LoadAlsoLoadTests extends TestBase
 		ds().put(null, ent);
 
 		Key<HasConcrete> key = Key.create(ent.getKey());
-		HasConcrete fetched = ofy().load().key(key).get();
+		HasConcrete fetched = ofy().load().key(key).now();
 
 		assert fetched.bar.equals(triv.getSomeString());
 	}

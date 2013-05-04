@@ -12,14 +12,14 @@ import com.googlecode.objectify.util.ResultWrapper;
 
 /**
  * Implementation of the Put interface.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 class SaverImpl implements Saver
 {
 	/** */
 	ObjectifyImpl ofy;
-	
+
 	/** */
 	SaverImpl(ObjectifyImpl ofy) {
 		this.ofy = ofy;
@@ -31,13 +31,15 @@ class SaverImpl implements Saver
 	@Override
 	public <E> Result<Key<E>> entity(E entity) {
 		Result<Map<Key<E>, E>> base = this.<E>entities(Collections.singleton(entity));
-		
+
 		return new ResultWrapper<Map<Key<E>, E>, Key<E>>(base) {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			protected Key<E> wrap(Map<Key<E>, E> base) {
 				return base.keySet().iterator().next();
 			}
-		}; 
+		};
 	}
 
 	/* (non-Javadoc)

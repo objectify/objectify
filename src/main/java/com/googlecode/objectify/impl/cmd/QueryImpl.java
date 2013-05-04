@@ -16,18 +16,18 @@ import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.common.collect.Iterators;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
-import com.googlecode.objectify.impl.engine.KeyResultPair;
-import com.googlecode.objectify.impl.ref.QueryRef;
 import com.googlecode.objectify.util.DatastoreUtils;
-import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.IteratorFirstResult;
+import com.googlecode.objectify.util.MakeListResult;
+import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
 import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
@@ -360,12 +360,12 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 * @see com.googlecode.objectify.cmd.Query#first()
 	 */
 	@Override
-	public Ref<T> first() {
+	public LoadResult<T> first() {
 		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
-		Iterator<KeyResultPair<T>> pairIt = this.limit(1).resultIterable().iterator();
+		Iterator<Result<T>> resultIt = this.limit(1).resultIterable().iterator();
+		Iterator<T> regularIt = Iterators.transform(resultIt, ResultNowFunction.<T>instance());
 
-		Iterator<Key<T>> keyIt = Iterators.transform(pairIt, KeyResultPair.<T>keyFunction());
-		return new QueryRef<T>(new IteratorFirstResult<Key<T>>(keyIt));
+		return new LoadResult<T>(null, new IteratorFirstResult<T>(regularIt));
 	}
 
 	/* (non-Javadoc)
@@ -381,10 +381,10 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> iterable() {
-		return new TranslatingQueryResultIterable<KeyResultPair<T>, T>(resultIterable()) {
+		return new TranslatingQueryResultIterable<Result<T>, T>(resultIterable()) {
 			@Override
-			protected T translate(KeyResultPair<T> from) {
-				return from.getResult().now();
+			protected T translate(Result<T> from) {
+				return from.now();
 			}
 		};
 	}
@@ -415,7 +415,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/** Produces the basic iterable on results based on the current query.  Used to generate other iterables via transformation. */
-	private QueryResultIterable<KeyResultPair<T>> resultIterable() {
+	private QueryResultIterable<Result<T>> resultIterable() {
 		boolean hybridize = hybrid;
 
 		if (!hasExplicitHybrid) {

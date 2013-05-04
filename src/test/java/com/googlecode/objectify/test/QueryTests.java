@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -16,16 +19,13 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various queries
@@ -85,11 +85,11 @@ public class QueryTests extends TestBase
 		for (Key<Trivial> k: q.keys())
 			assert keys.contains(k);
 
-		Key<Trivial> first = q.keys().first().key();
+		Key<Trivial> first = q.keys().first().now();
 		assert first.equals(this.keys.get(0));
 
 		q = q.offset(1);
-		Key<Trivial> second = q.keys().first().key();
+		Key<Trivial> second = q.keys().first().now();
 		assert second.equals(this.keys.get(1));
 	}
 
@@ -200,8 +200,8 @@ public class QueryTests extends TestBase
 	public void testEmptySingleResult() throws Exception
 	{
 		Query<Trivial> q = ofy().load().type(Trivial.class).filter("id", 999999);	// no such entity
-		Ref<Trivial> ref = q.first();
-		Trivial value = ref.get();
+		LoadResult<Trivial> res = q.first();
+		Trivial value = res.now();
 		assert value == null;
 	}
 

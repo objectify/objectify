@@ -13,6 +13,7 @@ import com.google.appengine.api.datastore.KeyFactory;
  * Will deserialize a google native datastore Key that was serialized with the RawKeySerializer
  */
 public class RawKeyDeserializer extends StdDeserializer<Key> {
+	private static final long serialVersionUID = 1L;
 
 	/** */
 	public RawKeyDeserializer() {

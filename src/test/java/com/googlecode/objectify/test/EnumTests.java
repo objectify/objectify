@@ -105,7 +105,7 @@ public class EnumTests extends TestBase
 		he.color = Color.GREEN;
 		ofy().put(he);
 
-		HasEnums fetched = ofy().load().type(HasEnums.class).filter("color =", Color.GREEN).first().get();
+		HasEnums fetched = ofy().load().type(HasEnums.class).filter("color =", Color.GREEN).first().now();
 		assert fetched.id.equals(he.id);
 	}
 }

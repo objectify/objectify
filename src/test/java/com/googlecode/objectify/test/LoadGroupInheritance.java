@@ -3,9 +3,13 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -14,9 +18,6 @@ import com.googlecode.objectify.test.LoadGroupInheritance.Father.Bottom;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Middle;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Top;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the inheritance of load group classes
@@ -75,8 +76,8 @@ public class LoadGroupInheritance extends TestBase
 		Key<Father> kf = ofy().put(f);
 
 		ofy().clear();
-		Ref<Father> fatherRef = ofy().load().key(kf);
-		assert !fatherRef.get().child.isLoaded();
+		LoadResult<Father> fatherRef = ofy().load().key(kf);
+		assert !fatherRef.now().child.isLoaded();
 	}
 
 	/** */
@@ -93,8 +94,8 @@ public class LoadGroupInheritance extends TestBase
 		Key<Father> kf = ofy().put(f);
 
 		ofy().clear();
-		Ref<Father> fatherRef = ofy().load().group(Bottom.class).key(kf);
-		assert !fatherRef.get().child.isLoaded();
+		LoadResult<Father> fatherRef = ofy().load().group(Bottom.class).key(kf);
+		assert !fatherRef.now().child.isLoaded();
 	}
 
 	/** */
@@ -111,8 +112,8 @@ public class LoadGroupInheritance extends TestBase
 		Key<Father> kf = ofy().put(f);
 
 		ofy().clear();
-		Ref<Father> fatherRef = ofy().load().group(Middle.class).key(kf);
-		assert fatherRef.get().child.get() != null;
+		LoadResult<Father> fatherRef = ofy().load().group(Middle.class).key(kf);
+		assert fatherRef.now().child.get() != null;
 	}
 
 	/** */
@@ -129,7 +130,7 @@ public class LoadGroupInheritance extends TestBase
 		Key<Father> kf = ofy().put(f);
 
 		ofy().clear();
-		Ref<Father> fatherRef = ofy().load().group(Top.class).key(kf);
-		assert fatherRef.get().child.get() != null;
+		LoadResult<Father> fatherRef = ofy().load().group(Top.class).key(kf);
+		assert fatherRef.now().child.get() != null;
 	}
 }

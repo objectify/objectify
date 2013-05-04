@@ -12,11 +12,12 @@ import com.googlecode.objectify.Ref;
 
 /**
  * Will deserialize an Objectify Ref<?> that was serialized with the RefSerializer.  Note that it doesn't
- * currently work for full objects (ie, serialized when the ref was loaded), only for string keys (ie, 
+ * currently work for full objects (ie, serialized when the ref was loaded), only for string keys (ie,
  * serialized when the ref was not loaded).
  */
 @SuppressWarnings("rawtypes")
 public class RefDeserializer extends StdDeserializer<Ref> {
+	private static final long serialVersionUID = 1L;
 
 	/** */
 	public RefDeserializer() {
@@ -29,7 +30,7 @@ public class RefDeserializer extends StdDeserializer<Ref> {
 	public Ref deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 		if (jp.getCurrentToken() != JsonToken.VALUE_STRING)
 			throw new IllegalStateException("Cannot yet deserialize Refs that were serialized to a full entity object (as opposed to just string key representation)");
-		
+
 		String text = jp.getText();
 		return Ref.create(Key.create(text));
 	}

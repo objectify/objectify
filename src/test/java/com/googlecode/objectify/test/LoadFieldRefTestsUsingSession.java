@@ -88,7 +88,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.single.equivalent(k1);
 		assert fetched.single.equivalent(fetched.multi.get(0));
 
-		fetched = ofy().load().group(Single.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert !fetched.multi.get(1).isLoaded();
@@ -100,7 +100,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
 
-		fetched = ofy().load().group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Multi.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();
@@ -112,7 +112,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 
-		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).get();
+		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).now();
 		assert fetched.single.isLoaded();
 		assert fetched.multi.get(0).isLoaded();
 		assert fetched.multi.get(1).isLoaded();

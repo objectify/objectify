@@ -132,7 +132,7 @@ public class MapifyTests extends TestBase
 		ofy.put(top);
 		ofy.clear();
 
-		Top topFetched = ofy.load().entity(top).get();
+		Top topFetched = ofy.load().entity(top).now();
 		assert topFetched.bottoms.size() == 1;
 
 		Bottom bottomFetched = topFetched.bottoms.get(bot.name);

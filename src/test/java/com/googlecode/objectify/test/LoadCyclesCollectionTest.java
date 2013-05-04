@@ -50,7 +50,7 @@ public class LoadCyclesCollectionTest extends TestBase {
 		ofy().save().entities(a, b).now();
 
 		ofy().clear();
-		A a1 = ofy().load().entity(a).get();
+		A a1 = ofy().load().entity(a).now();
 		assert a1.b.get(0).get().a != null;
 	}
 }

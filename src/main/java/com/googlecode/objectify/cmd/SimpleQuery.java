@@ -1,7 +1,6 @@
 package com.googlecode.objectify.cmd;
 
 import com.google.appengine.api.datastore.Cursor;
-import com.googlecode.objectify.Ref;
 
 
 /**
@@ -145,13 +144,6 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * of entities can quickly create massive bills.</p>
 	 */
 	public int count();
-
-	/**
-	 * Gets the first entity in the result set.  Obeys the offset value.
-	 *
-	 * @return an asynchronous Ref containing the first result.  The Ref will hold null if the result set is empty.
-	 */
-	public Ref<T> first();
 
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There

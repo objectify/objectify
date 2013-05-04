@@ -6,12 +6,11 @@ import java.util.List;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cmd.QueryExecute;
+import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.QueryKeys;
-import com.googlecode.objectify.impl.ref.QueryRef;
-import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.IteratorFirstResult;
+import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.ResultProxy;
 
 /**
@@ -30,11 +29,12 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 	}
 
 	@Override
-	public Ref<T> first() {
+	public LoadResult<Key<T>> first() {
 		// We are already keysonly
 		Iterator<Key<T>> it = impl.limit(1).keysIterable().iterator();
+		Result<Key<T>> result = new IteratorFirstResult<Key<T>>(it);
 
-		return new QueryRef<T>(new IteratorFirstResult<Key<T>>(it));
+		return new LoadResult<Key<T>>(null, result);
 	}
 
 	@Override
@@ -51,11 +51,4 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 	public QueryResultIterator<Key<T>> iterator() {
 		return iterable().iterator();
 	}
-
-	@Override
-	public QueryExecute<T> asEntities() {
-		// Since we are already keys-only, the original query should spit out partials
-		return impl;
-	}
-
 }

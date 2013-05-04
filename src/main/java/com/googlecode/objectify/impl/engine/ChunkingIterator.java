@@ -17,7 +17,7 @@ import com.googlecode.objectify.Result;
 /**
  * Base class for normal and hybrid iterators, handles the chunking logic.
  */
-abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPair<T>> {
+abstract class ChunkingIterator<T, E> implements QueryResultIterator<Result<T>> {
 	/** */
 	static final Logger log = Logger.getLogger(ChunkingIterator.class.getName());
 
@@ -28,7 +28,7 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPa
 	private int chunkSize;
 
 	/** As we process */
-	private Iterator<KeyResultPair<T>> batchIt;
+	private Iterator<Result<T>> batchIt;
 	private Cursor baseCursor;
 	private int offsetIntoBatch;
 
@@ -48,8 +48,8 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPa
 	}
 
 	@Override
-	public KeyResultPair<T> next() {
-		KeyResultPair<T> pair = batchIt.next();
+	public Result<T> next() {
+		Result<T> pair = batchIt.next();
 		offsetIntoBatch++;
 
 		if (!batchIt.hasNext())
@@ -59,7 +59,7 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPa
 	}
 
 	private void advanceBatch() {
-		List<KeyResultPair<T>> results = new ArrayList<KeyResultPair<T>>();
+		List<Result<T>> results = new ArrayList<Result<T>>();
 
 		// Initialize the cursor and the offset so that we can generate a cursor later
 		baseCursor = source.getCursor();
@@ -75,7 +75,7 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<KeyResultPa
 				log.finest("Query found " + key);
 
 			Result<T> result = loadEngine.load(key);
-			results.add(new KeyResultPair<T>(key, result));
+			results.add(result);
 		}
 
 		loadEngine.execute();

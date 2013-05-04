@@ -70,7 +70,7 @@ public class AlsoLoadTests2 extends TestBase
 		ds().put(ent);
 
 		Key<MethodOverridesField> key = Key.create(ent.getKey());
-		MethodOverridesField fetched = ofy().load().key(key).get();
+		MethodOverridesField fetched = ofy().load().key(key).now();
 
 		assert fetched.foo == null;
 		assert fetched.bar.equals(TEST_VALUE);
@@ -98,7 +98,7 @@ public class AlsoLoadTests2 extends TestBase
 		Key<HasMap> key = Key.create(ent.getKey());
 
 		try {
-			ofy().load().key(key).get();
+			ofy().load().key(key).now();
 			assert false;
 		} catch (TranslateException ex) {
 			// couldn't load conflicting values

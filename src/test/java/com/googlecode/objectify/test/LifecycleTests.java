@@ -127,7 +127,7 @@ public class LifecycleTests extends TestBase
 		hl.triv = Ref.create(triv);
 		ofy().put(hl);
 
-		ofy().load().entity(hl).get();
+		ofy().load().entity(hl).now();
 	}
 
 	/** */
@@ -183,6 +183,6 @@ public class LifecycleTests extends TestBase
 		hhp.hasParent = Ref.create(hp);
 		ofy().put(hhp);
 
-		ofy().load().entity(hhp).get();
+		ofy().load().entity(hhp).now();
 	}
 }

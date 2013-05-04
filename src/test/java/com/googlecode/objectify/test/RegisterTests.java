@@ -101,6 +101,6 @@ public class RegisterTests extends TestBase {
 //		}
 
 		// New behavior
-		assert ofy().load().key(k).get() == null;
+		assert ofy().load().key(k).now() == null;
 	}
 }

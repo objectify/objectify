@@ -76,7 +76,7 @@ public class LoadQueryFieldTests extends TestBase
 		Key<HasEntities> hekey = ofy().save().entity(he).now();
 		ofy().clear();
 
-		HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().get();
+		HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().now();
 
 		assert fetched.single.get().getId().equals(t0.getId());
 		assert fetched.single.get().getSomeString().equals(t0.getSomeString());

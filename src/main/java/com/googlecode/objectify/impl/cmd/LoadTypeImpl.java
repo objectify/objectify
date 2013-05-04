@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
@@ -73,7 +73,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#id(long)
 	 */
 	@Override
-	public Ref<T> id(long id) {
+	public LoadResult<T> id(long id) {
 		return loader.key(Key.create(parent, type, id));
 	}
 
@@ -81,7 +81,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#id(java.lang.String)
 	 */
 	@Override
-	public Ref<T> id(String id) {
+	public LoadResult<T> id(String id) {
 		return loader.key(Key.create(parent, type, id));
 	}
 

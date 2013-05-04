@@ -104,7 +104,7 @@ public class LoadFieldRefLifecycle extends TestBase
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).get();	// upgrade with single
+		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
 
 		assert fetched.middle.get().end.get().loaded;
 	}
@@ -122,7 +122,7 @@ public class LoadFieldRefLifecycle extends TestBase
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once
-		HasMulti fetched = ofy().load().group(Multi.class).key(hskey).get();	// upgrade with single
+		HasMulti fetched = ofy().load().group(Multi.class).key(hskey).now();	// upgrade with single
 
 		for (Ref<End> end: fetched.ends)
 			assert end.get().loaded;

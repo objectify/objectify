@@ -70,7 +70,7 @@ public class TestBase
 
 		ofy().clear();
 
-		return ofy().load().key(key).get();
+		return ofy().load().key(key).now();
 	}
 
 	/** Get a DatastoreService */

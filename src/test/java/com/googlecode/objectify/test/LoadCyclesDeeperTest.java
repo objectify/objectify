@@ -60,7 +60,7 @@ public class LoadCyclesDeeperTest extends TestBase {
 		ofy().save().entities(a, b, c).now();
 
 		ofy().clear();
-		A a1 = ofy().load().entity(a).get();
+		A a1 = ofy().load().entity(a).now();
 		assert a1.b.get().c.get().a.get() != null;
 	}
 }

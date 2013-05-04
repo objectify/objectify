@@ -58,14 +58,14 @@ public class LoadGroupTransitiveTest extends TestBase {
 		ofy().save().entities(b, c).now();
 
 		ofy().clear();
-		B b1 = ofy().load().entity(b).get();
+		B b1 = ofy().load().entity(b).now();
 
 		A a = new A();
 		a.b = Ref.create(b1);	// the problem was that this created a ResultNow<?>-based Ref which was then skipped for upgrades
 
 		ofy().save().entity(a).now();
 
-		A a2 = ofy().load().group(BGroup.class, CGroup.class).entity(a).get();
+		A a2 = ofy().load().group(BGroup.class, CGroup.class).entity(a).now();
 		B b2 = a2.b.get();
 		C c2 = b2.c.get();	// this used to fail with Ref<?> value has not been initialized
 
@@ -85,18 +85,18 @@ public class LoadGroupTransitiveTest extends TestBase {
 		ofy().save().entities(b, c).now();
 
 		ofy().clear();
-		B b1 = ofy().load().entity(b).get();
+		B b1 = ofy().load().entity(b).now();
 
 		A a = new A();
 		a.b = Ref.create(b1);
 
 		ofy().save().entity(a).now();
 
-		A a2 = ofy().load().group(BGroup.class).entity(a).get();
+		A a2 = ofy().load().group(BGroup.class).entity(a).now();
 		B b2 = a2.b.get();
 		assert b2.c.getValue() == null;
 
-		A a3 = ofy().load().group(BGroup.class, CGroup.class).entity(a).get();
+		A a3 = ofy().load().group(BGroup.class, CGroup.class).entity(a).now();
 		B b3 = a3.b.get();
 		C c3 = b3.c.get();	// this used to fail with Ref<?> value has not been initialized
 
