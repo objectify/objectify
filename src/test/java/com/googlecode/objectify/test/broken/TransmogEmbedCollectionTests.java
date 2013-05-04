@@ -38,6 +38,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	private static Logger log = Logger.getLogger(TransmogEmbedCollectionTests.class.getName());
 
 	/** */
+	@Embed
 	static class OneField {
 		String foo;
 		public OneField() {}
@@ -47,7 +48,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@com.googlecode.objectify.annotation.Entity
 	static class HasOneFieldColl {
 		@Id long id;
-		@Embed List<OneField> things = new ArrayList<OneField>();
+		List<OneField> things = new ArrayList<OneField>();
 	}
 
 	/** */
@@ -177,6 +178,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 		assert pojo2.things.equals(pojo.things);
 	}
 
+	@Embed
 	static class TwoFields {
 		String foo;
 		long bar;
@@ -197,7 +199,7 @@ public class TransmogEmbedCollectionTests extends TransmogTestBase
 	@com.googlecode.objectify.annotation.Entity
 	static class HasTwoFieldsColl {
 		@Id long id;
-		@Embed List<TwoFields> things = new ArrayList<TwoFields>();
+		List<TwoFields> things = new ArrayList<TwoFields>();
 	}
 
 	/** */

@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,9 +23,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
 /**
  * Tests of using the @AlsoLoad annotation
  *
@@ -38,6 +38,7 @@ public class AlsoLoadTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 
 	/** */
+	@Embed
 	static class HasAlsoLoadField
 	{
 		@AlsoLoad("oldFoo") String foo;
@@ -52,6 +53,7 @@ public class AlsoLoadTests extends TestBase
 	}
 
 	/** */
+	@Embed
 	static class HasAlsoLoadMethod
 	{
 		String foo;
@@ -76,8 +78,8 @@ public class AlsoLoadTests extends TestBase
 	static class HasEmbedded
 	{
 		@Id Long id;
-		@AlsoLoad("oldFieldUser") @Embed HasAlsoLoadField fieldUser;
-		@AlsoLoad("oldMethodUser") @Embed HasAlsoLoadMethod methodUser;
+		@AlsoLoad("oldFieldUser") HasAlsoLoadField fieldUser;
+		@AlsoLoad("oldMethodUser") HasAlsoLoadMethod methodUser;
 	}
 
 	/** */
@@ -86,8 +88,8 @@ public class AlsoLoadTests extends TestBase
 	static class HasEmbeddedArray
 	{
 		@Id Long id;
-		@AlsoLoad("oldFieldUsers") @Embed HasAlsoLoadField[] fieldUsers;
-		@AlsoLoad("oldMethodUsers") @Embed HasAlsoLoadMethod[] methodUsers;
+		@AlsoLoad("oldFieldUsers") HasAlsoLoadField[] fieldUsers;
+		@AlsoLoad("oldMethodUsers") HasAlsoLoadMethod[] methodUsers;
 	}
 
 	@com.googlecode.objectify.annotation.Entity

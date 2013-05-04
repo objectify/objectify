@@ -44,17 +44,16 @@ public class SerializeTests extends TestBase
 	}
 
 	/** */
-	public static class HasLongs
-	{
+	@Embed
+	public static class HasLongs {
 		@Serialize long[] longs;
 	}
 
 	@Entity
 	@Cache
-	public static class EmbedSerialize
-	{
+	public static class EmbedSerialize {
 		@Id public Long id;
-		@Embed public HasLongs simple;
+		public HasLongs simple;
 	}
 
 	@Test

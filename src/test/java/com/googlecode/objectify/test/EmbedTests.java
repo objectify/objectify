@@ -1,5 +1,8 @@
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -22,17 +25,14 @@ import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
 /**
  */
 public class EmbedTests extends TestBase
 {
-	public static class PartiallyIndexedStruct
-	{
-		@Embed @Index Someone indexedPerson;
-		@Embed @Unindex Someone unindexedPerson;
+	@Embed
+	public static class PartiallyIndexedStruct {
+		@Index Someone indexedPerson;
+		@Unindex Someone unindexedPerson;
 
 		@Index String indexedString;
 		@Unindex String unidexedString;
@@ -50,12 +50,11 @@ public class EmbedTests extends TestBase
 
 	@Entity
 	@Cache
-	public static class PartiallyIndexedEntity
-	{
+	public static class PartiallyIndexedEntity {
 		@Id Long id;
 
-		@Embed @Index PartiallyIndexedStruct indexed;
-		@Embed @Unindex PartiallyIndexedStruct unindexed;
+		@Index PartiallyIndexedStruct indexed;
+		@Unindex PartiallyIndexedStruct unindexed;
 
 		public PartiallyIndexedEntity() { }
 
@@ -66,15 +65,15 @@ public class EmbedTests extends TestBase
 		}
 	}
 
+	@Embed
 	public static class Names
 	{
-		@Embed
 		Name[] names;
 	}
 
+	@Embed
 	public static class Team
 	{
-		@Embed
 		Names members;
 	}
 
@@ -86,9 +85,9 @@ public class EmbedTests extends TestBase
 		Long id;
 	}
 
+	@Embed
 	public static class League
 	{
-		@Embed
 		Team[] teams;
 	}
 
@@ -206,7 +205,7 @@ public class EmbedTests extends TestBase
 		assert t.members.names[1].lastName.equals("Foo");
 	}
 
-
+	@Embed
 	@SuppressWarnings({"serial", "unused"})
 	public static class KensMailingListEntry implements Serializable
 	{
@@ -224,8 +223,7 @@ public class EmbedTests extends TestBase
 		private Long id;
 		private Key<Trivial> orgKey;
 		private String listName;
-		private @Embed
-		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
+		private List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
 		public KensClientListName() {}
 	}
 
@@ -244,25 +242,26 @@ public class EmbedTests extends TestBase
 		ofy().put(clientlistname);
 	}
 
-	@Entity
-	public static class EntityEmbedsOtherEntity
-	{
-		@Id Long id;
-		@Embed Trivial other;
-	}
-
-	@Test
-	public void testEntityEmbedsOtherEntity() throws Exception
-	{
-		fact().register(EntityEmbedsOtherEntity.class);
-
-		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
-		embeds.other = new Trivial(123L, "blah", 7);
-
-		EntityEmbedsOtherEntity fetched = this.putClearGet(embeds);
-
-		assert embeds.other.getId().equals(fetched.other.getId());
-		assert embeds.other.getSomeString().equals(fetched.other.getSomeString());
-	}
+// We don't allow this anymore
+//	@Entity
+//	public static class EntityEmbedsOtherEntity
+//	{
+//		@Id Long id;
+//		@Embed Trivial other;
+//	}
+//
+//	@Test
+//	public void testEntityEmbedsOtherEntity() throws Exception
+//	{
+//		fact().register(EntityEmbedsOtherEntity.class);
+//
+//		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
+//		embeds.other = new Trivial(123L, "blah", 7);
+//
+//		EntityEmbedsOtherEntity fetched = this.putClearGet(embeds);
+//
+//		assert embeds.other.getId().equals(fetched.other.getId());
+//		assert embeds.other.getSomeString().equals(fetched.other.getSomeString());
+//	}
 
 }

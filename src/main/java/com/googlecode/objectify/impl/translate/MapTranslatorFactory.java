@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -51,6 +52,10 @@ public class MapTranslatorFactory implements TranslatorFactory<Map<String, Objec
 		Type keyType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[0]);
 		if (keyType != String.class)
 			return null;
+
+		// This ensures forward compatibility when we allow Map<String, ?> to become an EmbeddedEntity if there is no @EmbedMap
+		if (property.getAnnotation(EmbedMap.class) == null)
+			throw new IllegalStateException("Map<String, ?> fields must have the @EmbedMap annotation. Check " + property);
 
 		final ObjectifyFactory fact = ctx.getFactory();
 

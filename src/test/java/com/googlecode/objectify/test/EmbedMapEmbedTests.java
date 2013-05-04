@@ -1,22 +1,24 @@
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Embed;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.LangUtils;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-
 /**
  * Test persisting of Map with an @Embed value.
  */
-public class MapEmbedTests extends TestBase
+public class EmbedMapEmbedTests extends TestBase
 {
+	@Embed
 	public static class Thing {
 		String name;
 		Long weight;
@@ -34,10 +36,11 @@ public class MapEmbedTests extends TestBase
 	}
 
 	@com.googlecode.objectify.annotation.Entity
+	@Embed	// at the moment there is no reason why you can't have both @Entity and @Embed, but we may reconsider
 	public static class HasMapEmbed {
 		@Id Long id;
-		@Embed Thing thing;
-		@Embed Map<String, Thing> things = new HashMap<String, Thing>();
+		Thing thing;
+		@EmbedMap Map<String, Thing> things = new HashMap<String, Thing>();
 
 		/** Simplistic implementation, ignores id */
 		@Override
@@ -52,7 +55,8 @@ public class MapEmbedTests extends TestBase
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasNestedMapEmbed {
 		@Id Long id;
-		@Embed Map<String, HasMapEmbed> nestedThings = new HashMap<String, HasMapEmbed>();
+		@EmbedMap
+		Map<String, HasMapEmbed> nestedThings = new HashMap<String, HasMapEmbed>();
 	}
 
 	/** Need to be able to create these easily */

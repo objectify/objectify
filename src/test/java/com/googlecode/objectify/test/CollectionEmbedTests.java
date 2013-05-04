@@ -1,5 +1,7 @@
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -12,8 +14,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-
 /**
  */
 public class CollectionEmbedTests extends TestBase
@@ -22,9 +22,10 @@ public class CollectionEmbedTests extends TestBase
 	public static class HasSet
 	{
 		@Id Long id;
-		@Embed Set<HashableThing> someSet = new HashSet<HashableThing>();
+		Set<HashableThing> someSet = new HashSet<HashableThing>();
 	}
 
+	@Embed
 	public static class HashableThing
 	{
 		Integer value;
@@ -73,13 +74,14 @@ public class CollectionEmbedTests extends TestBase
 	@Entity
 	public static class HasDeepThings {
 		@Id Long id;
-		@Embed List<DeepThing> deeps = new ArrayList<DeepThing>();
+		List<DeepThing> deeps = new ArrayList<DeepThing>();
 		@Override public String toString() { return this.getClass().getSimpleName() + "(" + deeps + ")"; }
 	}
 
 	/** */
+	@Embed
 	public static class DeepThing {
-		@Embed HashableThing thing;
+		HashableThing thing;
 
 		public DeepThing() {}
 		public DeepThing(int val) { this.thing = new HashableThing(val); }

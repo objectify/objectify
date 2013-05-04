@@ -2,10 +2,12 @@ package com.googlecode.objectify.test.entity;
 
 import java.io.Serializable;
 
+import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.util.LangUtils;
 
 /**
  */
+@Embed
 @SuppressWarnings("serial")
 public class Name implements Serializable
 {
@@ -21,7 +23,7 @@ public class Name implements Serializable
 		this.firstName = firstName;
 		this.lastName = lastName;
 	}
-	
+
 	public boolean equals(Object o)
 	{
 		return o != null
@@ -29,7 +31,7 @@ public class Name implements Serializable
 			&& LangUtils.objectsEqual(((Name)o).firstName, this.firstName)
 			&& LangUtils.objectsEqual(((Name)o).lastName, this.lastName);
 	}
-	
+
 	@Override
 	public int hashCode()
 	{

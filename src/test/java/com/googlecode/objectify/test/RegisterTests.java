@@ -35,6 +35,7 @@ public class RegisterTests extends TestBase {
 		}
 	}
 
+	@Embed
 	public static class BadStruct {
 		int age;
 
@@ -48,7 +49,6 @@ public class RegisterTests extends TestBase {
 	public static class HasEmbedded {
 		@Id
 		Long id;
-		@Embed
 		BadStruct name;
 
 	}

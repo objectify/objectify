@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
@@ -17,7 +20,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
@@ -31,9 +33,6 @@ import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of type conversions.
@@ -89,7 +88,7 @@ public class ValueTranslationTests extends TestBase
 	public static class HasNames
 	{
 		public @Id Long id;
-		public @Embed Name[] names;
+		public Name[] names;
 	}
 
 	/** */

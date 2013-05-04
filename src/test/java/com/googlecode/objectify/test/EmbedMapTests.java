@@ -1,33 +1,34 @@
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.TranslateException;
+import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Test of expando-type maps that hold primitve values
  */
-public class MapTests extends TestBase
+public class EmbedMapTests extends TestBase
 {
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasMapLong
-	{
+	public static class HasMapLong {
 		@Id
 		Long id;
+
+		@EmbedMap
 		Map<String, Long> primitives = new HashMap<String, Long>();
 	}
 
 	@Test
-	public void testPrimitivesMap() throws Exception
-	{
+	public void testPrimitivesMap() throws Exception {
 		fact().register(HasMapLong.class);
 
 		HasMapLong hml = new HasMapLong();
@@ -40,8 +41,7 @@ public class MapTests extends TestBase
 	}
 
 	@Test
-	public void testDotsForbidden()
-	{
+	public void testDotsForbidden() {
 		fact().register(HasMapLong.class);
 
 		HasMapLong hml = new HasMapLong();
@@ -57,8 +57,7 @@ public class MapTests extends TestBase
 	}
 
 	@Test
-	public void testNullKeysForbidden()
-	{
+	public void testNullKeysForbidden() {
 		fact().register(HasMapLong.class);
 
 		HasMapLong hml = new HasMapLong();
@@ -74,8 +73,7 @@ public class MapTests extends TestBase
 	}
 
 	@Test
-	public void testNullValuesWork() throws Exception
-	{
+	public void testNullValuesWork() throws Exception {
 		fact().register(HasMapLong.class);
 
 		HasMapLong hml = new HasMapLong();
@@ -84,4 +82,22 @@ public class MapTests extends TestBase
 		HasMapLong fetched = this.putClearGet(hml);
 		assert (fetched.primitives.equals(hml.primitives));
 	}
+
+	@com.googlecode.objectify.annotation.Entity
+	public static class MissingEmbedMapAnnotation {
+		@Id
+		Long id;
+
+		Map<String, Long> primitives = new HashMap<String, Long>();
+	}
+
+	/**
+	 * We shouldn't be able to register without the @EmbedMap annotation; secures future compatiblity
+	 */
+	@Test(expectedExceptions=IllegalStateException.class)
+	public void testMissingEmbedMapAnnotation() throws Exception {
+		fact().register(MissingEmbedMapAnnotation.class);
+	}
+
+
 }

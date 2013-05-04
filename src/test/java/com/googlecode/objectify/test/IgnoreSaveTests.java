@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.logging.Logger;
 
 import org.testng.annotations.Test;
@@ -18,9 +21,6 @@ import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of using the @IgnoreSave annotation and its various conditions.
@@ -133,13 +133,14 @@ public class IgnoreSaveTests extends TestBase
 	}
 
 	/** Should not be registerable */
+	@Embed
 	static class TryToEmbedMe { @IgnoreSave(IfNull.class) String bar; }
 
 	@com.googlecode.objectify.annotation.Entity
 	static class EmbeddedCollectionWithUnsaved
 	{
 		@Id Long id;
-		@Embed TryToEmbedMe[] stuff;
+		TryToEmbedMe[] stuff;
 	}
 
 	/** */

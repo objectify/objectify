@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.logging.Logger;
 
 import org.testng.annotations.BeforeMethod;
@@ -13,11 +16,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.test.IndexingInheritanceTests.DefaultIndexedPojo;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of @Index and @Unindex
@@ -31,40 +30,51 @@ public class IndexingEmbeddedTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(IndexingEmbeddedTests.class.getName());
 
-	@Entity
+	@Embed
 	@Index
-	public static class LevelTwoIndexedClass
-	{
-	String bar="A";
+	public static class LevelTwoIndexedClass {
+		String bar="A";
 	}
-	public static class LevelTwoIndexedField
-	{
+	@Embed
+	public static class LevelTwoIndexedField {
 		@Index String bar="A";
 	}
 
+	@Embed
 	public static class LevelOne {
 		String foo = "1";
-		@Embed LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
-		@Embed LevelTwoIndexedField twoField = new LevelTwoIndexedField();
+		LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
+		LevelTwoIndexedField twoField = new LevelTwoIndexedField();
 	}
 
 	@Entity @Unindex
 	public static class EntityWithEmbedded {
 		@Id Long id;
-		@Embed LevelOne one = new LevelOne();
+		LevelOne one = new LevelOne();
 		String prop = "A";
 	}
+
+	@Embed
+	@SuppressWarnings("unused")
+	public static class DefaultIndexedEmbed
+	{
+		@Index private boolean indexed = true;
+		@Unindex private boolean unindexed = true;
+		private boolean def = true;
+	}
+
 
 	@Entity
 	public static class EmbeddedIndexedPojo
 	{
 		@Id Long id;
 
-		@Unindex 			private boolean aProp = true;
+		@Unindex 	private boolean aProp = true;
 
-		@Index 		@Embed 	private DefaultIndexedPojo[] indexed = {new DefaultIndexedPojo()};
-		@Unindex 	@Embed 	private DefaultIndexedPojo[] unindexed = {new DefaultIndexedPojo()};
-					@Embed 	private DefaultIndexedPojo[] def = {new DefaultIndexedPojo()};
+		@Index 		private DefaultIndexedEmbed[] indexed = {new DefaultIndexedEmbed()};
+		@Unindex 	private DefaultIndexedEmbed[] unindexed = {new DefaultIndexedEmbed()};
+					@SuppressWarnings("unused")
+					private DefaultIndexedEmbed[] def = {new DefaultIndexedEmbed()};
 
 // 		Fundamentally broken; how to test bad-hetro behavior?
 
@@ -86,7 +96,6 @@ public class IndexingEmbeddedTests extends TestBase
 	{
 		super.setUp();
 
-		fact().register(DefaultIndexedPojo.class);
 		fact().register(EmbeddedIndexedPojo.class);
 		fact().register(EntityWithEmbedded.class);
 	}

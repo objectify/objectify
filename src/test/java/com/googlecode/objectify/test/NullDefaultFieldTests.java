@@ -1,5 +1,8 @@
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
@@ -10,14 +13,12 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
 /**
  * Test behavior of null fields, and default values
  */
 public class NullDefaultFieldTests extends TestBase
 {
+	@Embed
 	public static class Struct {
 		String s = "default1";
 
@@ -44,7 +45,6 @@ public class NullDefaultFieldTests extends TestBase
 		@Unindex
 		String c = "bar";
 		/** new embedded */
-		@Embed
 		Struct s = new Struct("default2");
 
 		public EntityWithDefault()
