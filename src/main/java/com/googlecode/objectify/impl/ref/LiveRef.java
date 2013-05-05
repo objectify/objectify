@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl.ref;
 
+import java.io.ObjectStreamException;
+
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
@@ -63,4 +65,13 @@ public class LiveRef<T> extends Ref<T>
 
 		return ofy;
 	}
+
+	/**
+	 * When this serializes, write out the DeadRef version. Use the getValue() for value so that
+	 * if the value is not loaded, it serializes as null.
+	 */
+	protected Object writeReplace() throws ObjectStreamException {
+		return new DeadRef<T>(key(), getValue());
+	}
+
 }

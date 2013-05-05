@@ -6,9 +6,7 @@
 
 	<source path="">
 		<!-- Note that the Key/Ref files are not the normal java files -->
-		<include name="Key.java" />
-		<include name="Ref.java" />
-		<include name="NotFoundException.java" />
+		<include name="**/*.java" />
 	</source>
 	<source path="condition">
 		<exclude name="IfDefault.java" />

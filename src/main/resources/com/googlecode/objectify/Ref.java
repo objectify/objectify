@@ -2,7 +2,8 @@ package com.googlecode.objectify;
 
 import java.io.Serializable;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.NotFoundException;;
+import com.googlecode.objectify.NotFoundException;
+import com.googlecode.objectify.impl.ref.DeadRef;
 
 /**
  * <p>GWT emulation of the Ref<?> class. Not complete; there's a lot we can't do client-side.</p>
@@ -21,21 +22,21 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		if (key == null)
 			throw new NullPointerException("Cannot create a Ref from a null key");
 
-		return new Ref<T>(key);
+		return new DeadRef<T>(key);
 	}
 
 	/** */
 	public static <T> Ref<T> create(Key<T> key, T value) {
-		return new Ref<T>(key, value);
+		return new DeadRef<T>(key, value);
 	}
 
 	/** Doesn't set the key! Dangerous. */
 	public static <T> Ref<T> create(T value) {
-		return new Ref<T>(value);
+		return new DeadRef<T>(value);
 	}
 
 	/** For GWT */
-	private Ref() {}
+	protected Ref() {}
 
 	/** */
 	public Ref(Key<T> key) {
@@ -57,7 +58,7 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 */
 	public Key<T> key() {
 		if (key == null)
-			throw new IllegalStateException("This ref was created without a key, and we cannot determine keys on the GWT client-side");
+			throw new IllegalStateException("This ref was created without a key, and we cannot determine keys on GWT client-side");
 
 		return key;
 	}
@@ -131,6 +132,6 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	/** Renders some info about the key */
 	@Override
 	public String toString() {
-		return "Ref<?>(" + key() + ")";
+		return "Ref<?>(key=" + key() + ", value=" + value + ")";
 	}
 }
