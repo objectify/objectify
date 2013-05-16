@@ -14,11 +14,9 @@ import com.google.appengine.api.datastore.Query.SortDirection;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.google.common.collect.Iterators;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.KeyMetadata;
@@ -27,9 +25,7 @@ import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
-import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
-import com.googlecode.objectify.util.TranslatingQueryResultIterable;
 
 /**
  * Implementation of Query.
@@ -362,10 +358,9 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	@Override
 	public LoadResult<T> first() {
 		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
-		Iterator<Result<T>> resultIt = this.limit(1).resultIterable().iterator();
-		Iterator<T> regularIt = Iterators.transform(resultIt, ResultNowFunction.<T>instance());
+		Iterator<T> it = this.limit(1).resultIterable().iterator();
 
-		return new LoadResult<T>(null, new IteratorFirstResult<T>(regularIt));
+		return new LoadResult<T>(null, new IteratorFirstResult<T>(it));
 	}
 
 	/* (non-Javadoc)
@@ -381,12 +376,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	 */
 	@Override
 	public QueryResultIterable<T> iterable() {
-		return new TranslatingQueryResultIterable<Result<T>, T>(resultIterable()) {
-			@Override
-			protected T translate(Result<T> from) {
-				return from.now();
-			}
-		};
+		return resultIterable();
 	}
 
 	/* (non-Javadoc)
@@ -415,7 +405,7 @@ class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 	}
 
 	/** Produces the basic iterable on results based on the current query.  Used to generate other iterables via transformation. */
-	private QueryResultIterable<Result<T>> resultIterable() {
+	private QueryResultIterable<T> resultIterable() {
 		boolean hybridize = hybrid;
 
 		if (!hasExplicitHybrid) {

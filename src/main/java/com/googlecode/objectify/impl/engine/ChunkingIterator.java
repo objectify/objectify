@@ -1,9 +1,6 @@
 package com.googlecode.objectify.impl.engine;
 
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Cursor;
@@ -12,81 +9,38 @@ import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
 
 /**
  * Base class for normal and hybrid iterators, handles the chunking logic.
  */
-abstract class ChunkingIterator<T, E> implements QueryResultIterator<Result<T>> {
+public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	/** */
 	static final Logger log = Logger.getLogger(ChunkingIterator.class.getName());
 
 	/** Input values */
-	protected LoadEngine loadEngine;
 	private PreparedQuery pq;
-	private QueryResultIterator<E> source;
-	private int chunkSize;
+	private QueryResultIterator<Key<T>> source;
 
 	/** As we process */
-	private Iterator<Result<T>> batchIt;
-	private Cursor baseCursor;
-	private int offsetIntoBatch;
+	private QueryResultStreamIterator<T> stream;
 
 	/** */
-	public ChunkingIterator(LoadEngine loadEngine, PreparedQuery pq, QueryResultIterator<E> source, int chunkSize) {
-		this.loadEngine = loadEngine;
+	public ChunkingIterator(LoadEngine loadEngine, PreparedQuery pq, QueryResultIterator<Key<T>> source, int chunkSize) {
 		this.pq = pq;
 		this.source = source;
-		this.chunkSize = chunkSize;
 
-		this.advanceBatch();
+		this.stream = new QueryResultStreamIterator<T>(source, chunkSize, loadEngine);
 	}
 
 	@Override
 	public boolean hasNext() {
-		return batchIt.hasNext();
+		return stream.hasNext();
 	}
 
 	@Override
-	public Result<T> next() {
-		Result<T> pair = batchIt.next();
-		offsetIntoBatch++;
-
-		if (!batchIt.hasNext())
-			this.advanceBatch();
-
-		return pair;
+	public T next() {
+		return stream.next();
 	}
-
-	private void advanceBatch() {
-		List<Result<T>> results = new ArrayList<Result<T>>();
-
-		// Initialize the cursor and the offset so that we can generate a cursor later
-		baseCursor = source.getCursor();
-		offsetIntoBatch = 0;
-
-		for (int i=0; i<chunkSize; i++) {
-			if (!source.hasNext())
-				break;
-
-			Key<T> key = next(source);
-
-			if (log.isLoggable(Level.FINEST))
-				log.finest("Query found " + key);
-
-			Result<T> result = loadEngine.load(key);
-			results.add(result);
-		}
-
-		loadEngine.execute();
-		batchIt = results.iterator();
-	}
-
-	/**
-	 * Implement this to get the next key from the source, and possibly do some other processing
-	 * like stuffing an entity in the load engine.
-	 */
-	abstract protected Key<T> next(QueryResultIterator<E> src);
 
 	/** Not implemented */
 	@Override
@@ -107,15 +61,15 @@ abstract class ChunkingIterator<T, E> implements QueryResultIterator<Result<T>> 
 	 */
 	@Override
 	public Cursor getCursor() {
-		if (offsetIntoBatch == 0) {
-			return baseCursor;
+		if (stream.getOffset() == 0) {
+			return stream.getBaseCursor();
 		} else {
 			// There may not be a baseCursor if we haven't iterated yet
 			FetchOptions opts = FetchOptions.Builder.withDefaults();
-			if (baseCursor != null)
-				opts = opts.startCursor(baseCursor);
+			if (stream.getBaseCursor() != null)
+				opts = opts.startCursor(stream.getBaseCursor());
 
-			return pq.asQueryResultIterator(opts.offset(offsetIntoBatch).limit(0)).getCursor();
+			return pq.asQueryResultIterator(opts.offset(stream.getOffset()).limit(0)).getCursor();
 		}
 	}
 

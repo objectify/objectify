@@ -32,6 +32,7 @@ class KeysOnlyIterator<T> implements QueryResultIterator<Key<T>> {
 	@Override
 	public Key<T> next() {
 		Entity ent = source.next();
+		loaded(ent);
 		return Key.create(ent.getKey());
 	}
 
@@ -50,5 +51,10 @@ class KeysOnlyIterator<T> implements QueryResultIterator<Key<T>> {
 	@Override
 	public List<Index> getIndexList() {
 		return source.getIndexList();
+	}
+
+	/** Can be overriden to add behavior when an entity is loaded */
+	protected void loaded(Entity ent) {
+		// Default do nothing
 	}
 }

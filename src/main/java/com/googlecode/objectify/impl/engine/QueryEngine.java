@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.util.DatastoreUtils;
 
@@ -51,7 +50,7 @@ public class QueryEngine
 	/**
 	 * Perform a keys-only plus batch gets.
 	 */
-	public <T> QueryResultIterable<Result<T>> queryHybrid(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
+	public <T> QueryResultIterable<T> queryHybrid(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
 		log.finest("Starting hybrid query");
 
@@ -59,10 +58,10 @@ public class QueryEngine
 
 		final PreparedQuery pq = prepare(query);
 
-		return new QueryResultIterable<Result<T>>() {
+		return new QueryResultIterable<T>() {
 			@Override
-			public QueryResultIterator<Result<T>> iterator() {
-				return new HybridIterator<T>(loader.createLoadEngine(), pq, fetchOpts);
+			public QueryResultIterator<T> iterator() {
+				return new ChunkingIterator<T>(loader.createLoadEngine(), pq, new KeysOnlyIterator<T>(pq, fetchOpts), fetchOpts.getChunkSize());
 			}
 		};
 	}
@@ -70,16 +69,17 @@ public class QueryEngine
 	/**
 	 * A normal, non-hybrid query
 	 */
-	public <T> QueryResultIterable<Result<T>> queryNormal(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
+	public <T> QueryResultIterable<T> queryNormal(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
 		log.finest("Starting normal query");
 
 		final PreparedQuery pq = prepare(query);
+		final LoadEngine loadEngine = loader.createLoadEngine();
 
-		return new QueryResultIterable<Result<T>>() {
+		return new QueryResultIterable<T>() {
 			@Override
-			public QueryResultIterator<Result<T>> iterator() {
-				return new NormalIterator<T>(loader.createLoadEngine(), pq, fetchOpts);
+			public QueryResultIterator<T> iterator() {
+				return new ChunkingIterator<T>(loadEngine, pq, new StuffingIterator<T>(pq, fetchOpts, loadEngine), fetchOpts.getChunkSize());
 			}
 		};
 	}
