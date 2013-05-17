@@ -14,35 +14,38 @@ import com.googlecode.objectify.util.IterateFunction;
 import com.googlecode.objectify.util.ResultNowFunction;
 
 /**
- * Splits a QueryResultIterator into a series of batches which include the Cursor for
- * the beginning of the batch.
+ * Splits a QueryResultIterator into a series of chunks which include the Cursor for
+ * the beginning of the chunk. The results are materialized in the results as well.
  */
-public class QueryResultBatchIterator<T> implements Iterator<QueryResultBatch<T>> {
+public class ChunkIterator<T> implements Iterator<Chunk<T>> {
 
-	QueryResultIterator<Key<T>> base;
-	Iterator<Iterator<Key<T>>> batches;
+	QueryResultIterator<Key<T>> allKeys;
+	Iterator<Iterator<Key<T>>> chunks;
 	LoadEngine engine;
 
-	public QueryResultBatchIterator(QueryResultIterator<Key<T>> base, int batchSize, LoadEngine engine) {
-		this.base = base;
+	public ChunkIterator(QueryResultIterator<Key<T>> allKeys, int chunkSize, LoadEngine engine) {
+		this.allKeys = allKeys;
+
+		Object warning;
+		//System.out.println("************* " + Lists.newArrayList(allKeys));
 
 		// Iterators.partition() allocates lists with capacity of whatever batch size you pass in; if batch
 		// size is unlimited, we end up trying to allocate maxint.
-		this.batches = (batchSize == Integer.MAX_VALUE)
-				? Iterators.<Iterator<Key<T>>>singletonIterator(base)
-				: Iterators.transform(Iterators.partition(base, batchSize), IterateFunction.<Key<T>>instance());
+		this.chunks = (chunkSize == Integer.MAX_VALUE)
+				? Iterators.<Iterator<Key<T>>>singletonIterator(allKeys)
+				: Iterators.transform(Iterators.partition(allKeys, chunkSize), IterateFunction.<Key<T>>instance());
 		this.engine = engine;
 	}
 
 	@Override
 	public boolean hasNext() {
-		return batches.hasNext();
+		return chunks.hasNext();
 	}
 
 	@Override
-	public QueryResultBatch<T> next() {
-		Cursor cursor = base.getCursor();
-		Iterator<Key<T>> keys = batches.next();
+	public Chunk<T> next() {
+		Cursor cursor = allKeys.getCursor();
+		Iterator<Key<T>> keys = chunks.next();
 		List<Result<T>> results = Lists.newArrayList();
 
 		while (keys.hasNext()) {
@@ -53,7 +56,7 @@ public class QueryResultBatchIterator<T> implements Iterator<QueryResultBatch<T>
 
 		Iterable<T> materialized = Iterables.transform(results, ResultNowFunction.<T>instance());
 
-		return new QueryResultBatch<T>(cursor, materialized);
+		return new Chunk<T>(cursor, materialized);
 	}
 
 	@Override

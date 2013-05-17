@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.engine;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Cursor;
@@ -8,10 +9,15 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 import com.googlecode.objectify.Key;
 
 /**
  * Base class for normal and hybrid iterators, handles the chunking logic.
+ *
+ * The bulk of the complexity is in the QueryResultStreamIterator; this just handles stripping out
+ * null values but being careful about preserving cursor behavior.
  */
 public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	/** */
@@ -22,24 +28,60 @@ public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	private QueryResultIterator<Key<T>> source;
 
 	/** As we process */
-	private QueryResultStreamIterator<T> stream;
+	PeekingIterator<ResultWithCursor<T>> stream;
+
+	/** Track the values for the next time we need to get this */
+	Cursor nextCursor;
+	int nextOffset;
 
 	/** */
 	public ChunkingIterator(LoadEngine loadEngine, PreparedQuery pq, QueryResultIterator<Key<T>> source, int chunkSize) {
 		this.pq = pq;
 		this.source = source;
 
-		this.stream = new QueryResultStreamIterator<T>(source, chunkSize, loadEngine);
+		ChunkIterator<T> chunkIt = new ChunkIterator<T>(source, chunkSize, loadEngine);
+		this.stream = Iterators.peekingIterator(Iterators.concat(chunkIt));
+
+		// Always start with a cursor; there might actually be any results
+		this.nextCursor = source.getCursor();
 	}
 
 	@Override
 	public boolean hasNext() {
-		return stream.hasNext();
+		while (stream.hasNext()) {
+			ResultWithCursor<T> peek = stream.peek();
+			nextCursor = peek.getCursor();
+			nextOffset = peek.getOffset();
+
+			if (peek.getResult() != null)
+				return true;
+			else
+				stream.next();
+		}
+
+		return false;
 	}
 
 	@Override
 	public T next() {
-		return stream.next();
+		while (stream.hasNext()) {
+			ResultWithCursor<T> rc = stream.next();
+
+			if (rc.isLast()) {
+				// We know we are back to the beginning of a batch, and the source cursor should be pointed the right place.
+				nextCursor = source.getCursor();
+				nextOffset = 0;
+			} else {
+				nextCursor = rc.getCursor();
+				nextOffset = rc.getOffset() + 1;
+			}
+
+			if (rc.getResult() != null) {
+				return rc.getResult();
+			}
+		}
+
+		throw new NoSuchElementException();
 	}
 
 	/** Not implemented */
@@ -61,15 +103,15 @@ public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	 */
 	@Override
 	public Cursor getCursor() {
-		if (stream.getOffset() == 0) {
-			return stream.getBaseCursor();
+		if (nextOffset == 0) {
+			return nextCursor;
 		} else {
 			// There may not be a baseCursor if we haven't iterated yet
 			FetchOptions opts = FetchOptions.Builder.withDefaults();
-			if (stream.getBaseCursor() != null)
-				opts = opts.startCursor(stream.getBaseCursor());
+			if (nextCursor != null)
+				opts = opts.startCursor(nextCursor);
 
-			return pq.asQueryResultIterator(opts.offset(stream.getOffset()).limit(0)).getCursor();
+			return pq.asQueryResultIterator(opts.offset(nextOffset).limit(0)).getCursor();
 		}
 	}
 

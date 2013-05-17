@@ -14,6 +14,10 @@ import java.util.logging.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBaseInconsistent;
@@ -51,6 +55,14 @@ public class QueryEventualityTests extends TestBaseInconsistent
 		Map<Key<Trivial>, Trivial> result = ofy().save().entities(trivs).now();
 
 		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
+
+		// This should apply the writes
+		Query q = new Query("Trivial");
+		PreparedQuery pq = ds().prepare(q);
+		pq.asList(FetchOptions.Builder.withDefaults());
+
+		// For some reason this doesn't.
+		ofy().load().keys(keys).size();
 	}
 
 	/**
@@ -59,6 +71,7 @@ public class QueryEventualityTests extends TestBaseInconsistent
 	 */
 	@Test
 	public void deleteWorks() throws Exception {
+		// Should be an unapplied write
 		ofy().delete().entity(triv1).now();
 
 		List<Trivial> found = ofy().load().type(Trivial.class).list();

@@ -6,6 +6,8 @@ package com.googlecode.objectify.test.util;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -22,7 +24,7 @@ public class TestBaseInconsistent
 	/** */
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
-					new LocalDatastoreServiceTestConfig().setDefaultHighRepJobPolicyUnappliedJobPercentage(100f),
+					new LocalDatastoreServiceTestConfig().setAlternateHighRepJobPolicyClass(NeverApplyJobPolicy.class),
 					new LocalMemcacheServiceTestConfig(),
 					new LocalTaskQueueTestConfig());
 	/** */
@@ -41,5 +43,10 @@ public class TestBaseInconsistent
 		ObjectifyFilter.complete();
 
 		this.helper.tearDown();
+	}
+
+	/** Get a DatastoreService */
+	protected DatastoreService ds() {
+		return DatastoreServiceFactory.getDatastoreService();
 	}
 }

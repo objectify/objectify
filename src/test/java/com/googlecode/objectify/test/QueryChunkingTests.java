@@ -15,13 +15,12 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
-import com.google.appengine.repackaged.com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.impl.engine.Chunk;
+import com.googlecode.objectify.impl.engine.ChunkIterator;
 import com.googlecode.objectify.impl.engine.LoadEngine;
-import com.googlecode.objectify.impl.engine.QueryResultBatch;
-import com.googlecode.objectify.impl.engine.QueryResultBatchIterator;
-import com.googlecode.objectify.impl.engine.QueryResultStreamIterator;
+import com.googlecode.objectify.impl.engine.ResultWithCursor;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.ResultNow;
@@ -65,65 +64,48 @@ public class QueryChunkingTests extends TestBase
 
 	/** */
 	@Test
-	public void testQueryResultBatchIterator() throws Exception {
-		QueryResultBatchIterator<Trivial> batchIt = new QueryResultBatchIterator<Trivial>(keysIt, BATCH_SIZE, loadEngine);
+	public void testChunkIterator() throws Exception {
+		ChunkIterator<Trivial> chunkIt = new ChunkIterator<Trivial>(keysIt, BATCH_SIZE, loadEngine);
 
-		QueryResultBatch<Trivial> batch0 = batchIt.next();
-		assert Iterables.get(batch0.getResult(), 0).getId() == 10;
-		assert Iterables.get(batch0.getResult(), 1).getId() == 11;
-		assertCursorGetsId(batch0.getCursor(), 10);
+		Chunk<Trivial> chunk;
+		ResultWithCursor<Trivial> rc;
 
-		QueryResultBatch<Trivial> batch1 = batchIt.next();
-		assert Iterables.get(batch1.getResult(), 0).getId() == 12;
-		assert Iterables.get(batch1.getResult(), 1).getId() == 13;
-		assertCursorGetsId(batch1.getCursor(), 12);
+		// First chunk
+		chunk = chunkIt.next();
 
-		QueryResultBatch<Trivial> batch2 = batchIt.next();
-		assert Iterables.get(batch2.getResult(), 0).getId() == 14;
-		assertCursorGetsId(batch2.getCursor(), 14);
-	}
+		rc = chunk.next();
+		assert rc.getResult().getId() == 10;
+		assertCursorGetsId(rc.getCursor(), 10);
+		assert rc.getOffset() == 0;
 
-	/** */
-	@Test
-	public void testQueryResultStreamIterator() throws Exception {
-		QueryResultStreamIterator<Trivial> streamIt = new QueryResultStreamIterator<Trivial>(keysIt, BATCH_SIZE, loadEngine);
+		rc = chunk.next();
+		assert rc.getResult().getId() == 11;
+		assertCursorGetsId(rc.getCursor(), 10);
+		assert rc.getOffset() == 1;
 
-		assert streamIt.hasNext();
-		assertCursorGetsId(streamIt.getBaseCursor(), 10);
-		assert streamIt.getOffset() == 0;
-		assert streamIt.next().getId() == 10;	// next
-		assertCursorGetsId(streamIt.getBaseCursor(), 10);
-		assert streamIt.getOffset() == 1;
 
-		assert streamIt.hasNext();
-		assertCursorGetsId(streamIt.getBaseCursor(), 10);
-		assert streamIt.getOffset() == 1;
-		assert streamIt.next().getId() == 11;	// next
-		assertCursorGetsId(streamIt.getBaseCursor(), 10);
-		assert streamIt.getOffset() == 2;
+		// Second chunk
+		chunk = chunkIt.next();
 
-		// Second batch
-		assert streamIt.hasNext();
-		assertCursorGetsId(streamIt.getBaseCursor(), 12);
-		assert streamIt.getOffset() == 0;
-		assert streamIt.next().getId() == 12;	// next
-		assertCursorGetsId(streamIt.getBaseCursor(), 12);
-		assert streamIt.getOffset() == 1;
+		rc = chunk.next();
+		assert rc.getResult().getId() == 12;
+		assertCursorGetsId(rc.getCursor(), 12);
+		assert rc.getOffset() == 0;
 
-		assert streamIt.hasNext();
-		assertCursorGetsId(streamIt.getBaseCursor(), 12);
-		assert streamIt.getOffset() == 1;
-		assert streamIt.next().getId() == 13;	// next
-		assertCursorGetsId(streamIt.getBaseCursor(), 12);
-		assert streamIt.getOffset() == 2;
+		rc = chunk.next();
+		assert rc.getResult().getId() == 13;
+		assertCursorGetsId(rc.getCursor(), 12);
+		assert rc.getOffset() == 1;
 
-		// Third batch
-		assert streamIt.hasNext();
-		assertCursorGetsId(streamIt.getBaseCursor(), 14);
-		assert streamIt.getOffset() == 0;
-		assert streamIt.next().getId() == 14;	// next
-		assertCursorGetsId(streamIt.getBaseCursor(), 14);
-		assert streamIt.getOffset() == 1;
+
+		// Third (abbreviated) chunk
+		chunk = chunkIt.next();
+
+		rc = chunk.next();
+		assert rc.getResult().getId() == 14;
+		assertCursorGetsId(rc.getCursor(), 14);
+		assert rc.getOffset() == 0;
+
 	}
 
 	/**
