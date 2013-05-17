@@ -26,9 +26,6 @@ public class ChunkIterator<T> implements Iterator<Chunk<T>> {
 	public ChunkIterator(QueryResultIterator<Key<T>> allKeys, int chunkSize, LoadEngine engine) {
 		this.allKeys = allKeys;
 
-		Object warning;
-		//System.out.println("************* " + Lists.newArrayList(allKeys));
-
 		// Iterators.partition() allocates lists with capacity of whatever batch size you pass in; if batch
 		// size is unlimited, we end up trying to allocate maxint.
 		this.chunks = (chunkSize == Integer.MAX_VALUE)
