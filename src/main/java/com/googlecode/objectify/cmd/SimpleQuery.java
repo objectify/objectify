@@ -36,7 +36,9 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 
 	/**
 	 * Restricts result set only to objects which have the given ancestor
-	 * somewhere in the chain.  Doesn't need to be the immediate parent.
+	 * somewhere in the chain.  Doesn't need to be the immediate parent. The
+	 * specified ancestor itself will be included in the result set (if it
+	 * exists).
 	 *
 	 * @param keyOrEntity can be a Key, a Key<T>, or an Objectify entity object.
 	 */
