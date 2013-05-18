@@ -17,7 +17,7 @@
 	<property name="build.deprecation" value="on" />
 
 	<property name="build.dir" location="target" />
-	<property name="build.javadoc.dir" location="${build.dir}/site/apidocs" />
+	<property name="build.javadoc.dir" location="${build.dir}/apidocs" />
 
 	<property name="javadoc.dir" value="javadoc" />
 

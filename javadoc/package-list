@@ -6,8 +6,6 @@ com.googlecode.objectify.cache
 com.googlecode.objectify.cmd
 com.googlecode.objectify.condition
 com.googlecode.objectify.impl
-com.googlecode.objectify.impl.cmd
-com.googlecode.objectify.impl.engine
 com.googlecode.objectify.impl.ref
 com.googlecode.objectify.impl.translate
 com.googlecode.objectify.impl.translate.opt
