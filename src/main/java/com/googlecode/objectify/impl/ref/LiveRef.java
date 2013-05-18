@@ -60,7 +60,7 @@ public class LiveRef<T> extends Ref<T>
 	 */
 	private Objectify ofy() {
 		// If we have an expired transaction context, we need a new context
-		if (ofy == null || (ofy.getTxn() != null && !ofy.getTxn().isActive()))
+		if (ofy == null || (ofy.getTransaction() != null && !ofy.getTransaction().isActive()))
 			ofy = ObjectifyService.ofy();
 
 		return ofy;

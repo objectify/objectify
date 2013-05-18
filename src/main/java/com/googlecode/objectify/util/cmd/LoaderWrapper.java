@@ -1,14 +1,7 @@
 package com.googlecode.objectify.util.cmd;
 
-import java.util.Map;
-import java.util.Set;
-
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.LoadResult;
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cmd.LoadType;
-import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.impl.cmd.LoaderImpl;
+import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 
 /**
  * Simple wrapper/decorator for a Loader.  Use it like this:
@@ -16,108 +9,16 @@ import com.googlecode.objectify.cmd.Loader;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoaderWrapper<H extends LoaderWrapper<H>> extends SimpleQueryWrapper<H, Object> implements Loader
+public class LoaderWrapper<H extends LoaderWrapper<H>> extends LoaderImpl
 {
 	/** */
-	Loader base;
-
-	/** */
-	public LoaderWrapper(Loader base) {
-		super(base);
-		this.base = base;
-		this.base.setWrapper(this);
+	public LoaderWrapper(ObjectifyImpl ofy) {
+		super(ofy);
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public H group(Class<?>... groups) {
-		H next = this.clone();
-		next.base = base.group(groups);
-		return next;
+		return (H)super.group(groups);
 	}
-
-	@Override
-	public <E> LoadType<E> type(Class<E> type) {
-		return base.type(type);
-	}
-
-	@Override
-	public <E> LoadResult<E> ref(Ref<E> ref) {
-		return base.ref(ref);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> refs(Iterable<Ref<E>> refs) {
-		return base.refs(refs);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> refs(Ref<? extends E>... refs) {
-		return base.refs(refs);
-	}
-
-	@Override
-	public <E> LoadResult<E> key(Key<E> key) {
-		return base.key(key);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> keys(Iterable<Key<E>> keys) {
-		return base.keys(keys);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> keys(Key<? extends E>... keys) {
-		return base.keys(keys);
-	}
-
-	@Override
-	public <E> LoadResult<E> entity(E entity) {
-		return base.entity(entity);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> entities(Iterable<E> entities) {
-		return base.entities(entities);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> entities(E... entities) {
-		return base.entities(entities);
-	}
-
-	@Override
-	public <E> LoadResult<E> value(Object key) {
-		return base.value(key);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> values(Iterable<?> keysOrEntities) {
-		return base.values(keysOrEntities);
-	}
-
-	@Override
-	public <E> Map<Key<E>, E> values(Object... keysOrEntities) {
-		return base.values(keysOrEntities);
-	}
-
-	@Override
-	public <E> E now(Key<E> key) {
-		return base.now(key);
-	}
-
-	@Override
-	public Objectify getObjectify() {
-		return base.getObjectify();
-	}
-
-	@Override
-	public Set<Class<?>> getLoadGroups() {
-		return base.getLoadGroups();
-	}
-
-	@Override
-	public void setWrapper(Loader loader) {
-		base.setWrapper(loader);
-	}
-
 }

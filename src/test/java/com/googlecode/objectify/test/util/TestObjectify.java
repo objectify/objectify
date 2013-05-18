@@ -3,7 +3,6 @@ package com.googlecode.objectify.test.util;
 import java.util.Map;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.util.cmd.ObjectifyWrapper;
 
@@ -13,8 +12,8 @@ import com.googlecode.objectify.util.cmd.ObjectifyWrapper;
 public class TestObjectify extends ObjectifyWrapper<TestObjectify, ObjectifyFactory>
 {
 	/** */
-	public TestObjectify(Objectify ofy) {
-		super(ofy);
+	public TestObjectify(ObjectifyFactory fact) {
+		super(fact);
 	}
 
 	public <E> Key<E> put(E entitity)  {

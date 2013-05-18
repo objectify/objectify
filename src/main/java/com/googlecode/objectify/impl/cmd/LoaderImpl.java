@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.appengine.api.datastore.Entity;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
@@ -21,6 +22,7 @@ import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.engine.LoadEngine;
 import com.googlecode.objectify.impl.engine.QueryEngine;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
@@ -34,16 +36,13 @@ import com.googlecode.objectify.util.ResultProxy;
 public class LoaderImpl extends Queryable<Object> implements Loader
 {
 	/** */
-	protected Loader wrapper = this;
-
-	/** */
 	protected ObjectifyImpl ofy;
 
 	/** */
 	protected Set<Class<?>> loadGroups;
 
 	/** */
-	LoaderImpl(ObjectifyImpl ofy) {
+	public LoaderImpl(ObjectifyImpl ofy) {
 		super(null);
 		this.ofy = ofy;
 		this.loadGroups = Collections.<Class<?>>emptySet();
@@ -52,7 +51,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	/**
 	 * Takes ownership of the fetch groups set.
 	 */
-	LoaderImpl(ObjectifyImpl ofy, Set<Class<?>> loadGroups) {
+	public LoaderImpl(ObjectifyImpl ofy, Set<Class<?>> loadGroups) {
 		super(null);
 		this.ofy = ofy;
 		this.loadGroups = Collections.unmodifiableSet(loadGroups);
@@ -215,7 +214,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public Objectify getObjectify() {
-		return ofy.getWrapper();
+		return ofy;
 	}
 
 	/* (non-Javadoc)
@@ -225,14 +224,6 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	public Set<Class<?>> getLoadGroups() {
 		// This is unmodifiable
 		return loadGroups;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#setWrapper(com.googlecode.objectify.cmd.Loader)
-	 */
-	@Override
-	public void setWrapper(Loader loader) {
-		this.wrapper = loader;
 	}
 
 	/** */
@@ -262,6 +253,14 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	@Override
 	public <E> E now(Key<E> key) {
 		return createLoadEngine().load(key).now();
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
+	 */
+	@Override
+	public <T> T fromEntity(Entity entity) {
+		return ofy.load(entity, new LoadContext(this, createLoadEngine()));
 	}
 
 }

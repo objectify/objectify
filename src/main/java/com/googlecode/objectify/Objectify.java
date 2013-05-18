@@ -61,19 +61,6 @@ public interface Objectify
 	Deleter delete();
 
 	/**
-	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
-	 * do not need to use this; use transact() instead.</p>
-	 *
-	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
-	 * which uses the Low-Level API's implicit transaction management.  Every transactional {@code Objectify}
-	 * instance is associated with a specific {@code Transaction} object.</p>
-	 *
-	 * @return the low-level transaction associated with this Objectify instance,
-	 *  or null if no transaction is associated with this instance.
-	 */
-	public Transaction getTxn();
-
-	/**
 	 * Obtain the ObjectifyFactory from which this Objectify instance was created.
 	 *
 	 * @return the ObjectifyFactory associated with this Objectify instance.
@@ -123,18 +110,17 @@ public interface Objectify
 	Objectify cache(boolean value);
 
 	/**
-	 * <p>Creates a new Objectify instance that wraps a transaction.  The instance inherits any
-	 * settings, but the session cache will be empty.  Upon successful commit, the contents
-	 * of the session cache will be loaded back into the main session.</p>
+	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
+	 * do not need to use this; use transact() instead.</p>
 	 *
-	 * <p>This method exists for low-level manipulation of transactions and does not modify
-	 * the transaction stack in {@code ObjectifyService}.  It should only be used if you know
-	 * exactly what you are doing; for almost all use cases, you should use the {@code transact()}
-	 * method instead.</p>
+	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
+	 * which uses the Low-Level API's implicit transaction management.  Every transactional {@code Objectify}
+	 * instance is associated with a specific {@code Transaction} object.</p>
 	 *
-	 * @return a new Objectify instance with a fresh transaction
+	 * @return the low-level transaction associated with this Objectify instance,
+	 *  or null if no transaction is associated with this instance.
 	 */
-	Objectify transaction();
+	public Transaction getTransaction();
 
 	/**
 	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
@@ -218,19 +204,13 @@ public interface Objectify
 	void clear();
 
 	/**
-	 * Sets the object instance that should be passed on by the base implementation in subsequent actions; for
-	 * example, the Objectify instance that is passed to transact() Work.  You probably don't need to worry about
-	 * this method; just subclass ObjectifyWrapper.
-	 */
-	void setWrapper(Objectify ofy);
-
-	/**
 	 * Convert a POJO object to a native datastore Entity.  This is like a save() operation but without actually saving
 	 * the data to the datastore.
 	 *
 	 * @param pojo must be an instance of a registered pojo entity type.
 	 * @return the native datastore Entity equivalent of the pojo; exactly what Objectify would save if you saved the POJO normally.
 	 */
+	@Deprecated
 	Entity toEntity(Object pojo);
 
 	/**
@@ -241,6 +221,7 @@ public interface Objectify
 	 * @param entity is a native datastore entity which has an appropriate kind registered in the ObjectifyFactory.
 	 * @return the POJO equivalent, just as if you had loaded the entity directly from Objectify.
 	 */
+	@Deprecated
 	<T> T toPojo(Entity entity);
 
 	/**

@@ -4,9 +4,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Saver;
+import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultWrapper;
 
 
@@ -15,13 +18,13 @@ import com.googlecode.objectify.util.ResultWrapper;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class SaverImpl implements Saver
+public class SaverImpl implements Saver
 {
 	/** */
 	ObjectifyImpl ofy;
 
 	/** */
-	SaverImpl(ObjectifyImpl ofy) {
+	public SaverImpl(ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 
@@ -56,6 +59,20 @@ class SaverImpl implements Saver
 	@Override
 	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
 		return ofy.createWriteEngine().<E>save(entities);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.Saver#toEntity(java.lang.Object)
+	 */
+	@Override
+	public Entity toEntity(Object pojo) {
+		if (pojo instanceof Entity) {
+			return (Entity)pojo;
+		} else {
+			@SuppressWarnings("unchecked")
+			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.getFactory().getMetadata(pojo.getClass());
+			return meta.save(pojo, new SaveContext(ofy));
+		}
 	}
 
 }

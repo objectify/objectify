@@ -5,6 +5,8 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,9 +28,6 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 
 /**
  * Tests of a bizarre bug in Google's memcache serialization of Key objects.
@@ -77,36 +76,36 @@ public class EvilMemcacheBugTests extends TestBase
 		}
 	}
 
-	/** */
-	@Test
-	public void testMoreSophisticatedInAndOutOfTransaction() throws Exception {
-		fact().register(SimpleParent.class);
-		fact().register(SimpleEntity.class);
-		String simpleId = "btoc";
-
-		Key<SimpleEntity> childKey = SimpleEntity.getSimpleChildKey(simpleId);
-		SimpleEntity simple = new SimpleEntity(simpleId);
-
-		TestObjectify nonTxnOfy = fact().begin();
-		nonTxnOfy.put(simple);
-
-		TestObjectify txnOfy = fact().begin().transaction();
-		SimpleEntity simple2;
-		try {
-			simple2 = txnOfy.get(childKey);
-			simple2.foo = "joe";
-			txnOfy.put(simple2);
-			txnOfy.getTxn().commit();
-		} finally {
-			if (txnOfy.getTxn().isActive())
-				txnOfy.getTxn().rollback();
-		}
-
-		nonTxnOfy.clear();
-		SimpleEntity simple3 = nonTxnOfy.get(childKey);
-
-		assert simple2.foo.equals(simple3.foo);
-	}
+//	/** */
+//	@Test
+//	public void testMoreSophisticatedInAndOutOfTransaction() throws Exception {
+//		fact().register(SimpleParent.class);
+//		fact().register(SimpleEntity.class);
+//		String simpleId = "btoc";
+//
+//		Key<SimpleEntity> childKey = SimpleEntity.getSimpleChildKey(simpleId);
+//		SimpleEntity simple = new SimpleEntity(simpleId);
+//
+//		TestObjectify nonTxnOfy = fact().begin();
+//		nonTxnOfy.put(simple);
+//
+//		TestObjectify txnOfy = fact().begin().startTransaction();
+//		SimpleEntity simple2;
+//		try {
+//			simple2 = txnOfy.get(childKey);
+//			simple2.foo = "joe";
+//			txnOfy.put(simple2);
+//			txnOfy.getTransaction().commit();
+//		} finally {
+//			if (txnOfy.getTransaction().isActive())
+//				txnOfy.getTransaction().rollback();
+//		}
+//
+//		nonTxnOfy.clear();
+//		SimpleEntity simple3 = nonTxnOfy.get(childKey);
+//
+//		assert simple2.foo.equals(simple3.foo);
+//	}
 
 	/** */
 	@Test

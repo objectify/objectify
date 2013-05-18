@@ -74,8 +74,8 @@ public class LoadEngine
 
 		// If we are running a transaction, enlist the result so that it gets processed on commit even
 		// if the client never materializes the result.
-		if (ofy.getTxn() != null)
-			ofy.getTxn().enlist(result);
+		if (ofy.getTransaction() != null)
+			ofy.getTransaction().enlist(result);
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {

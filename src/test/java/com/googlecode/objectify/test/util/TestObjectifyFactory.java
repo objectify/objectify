@@ -10,8 +10,8 @@ public class TestObjectifyFactory extends ObjectifyFactory
 	@Override
 	public TestObjectify begin()
 	{
-		return new TestObjectify(super.begin())
-		
+		return new TestObjectify(this)
+
 			// This can be used to enable/disable the memory cache globally.
 			.cache(true);
 	}

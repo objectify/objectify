@@ -3,6 +3,7 @@ package com.googlecode.objectify.cmd;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
@@ -193,7 +194,7 @@ public interface Loader extends SimpleQuery<Object>
 	<E> Map<Key<E>, E> values(Object... keysOrEntities);
 
 	/**
-	 * @return the parent Objectify instance (possibly the wrapper)
+	 * @return the parent Objectify instance
 	 */
 	Objectify getObjectify();
 
@@ -203,14 +204,19 @@ public interface Loader extends SimpleQuery<Object>
 	Set<Class<?>> getLoadGroups();
 
 	/**
-	 * Sets the object instance that should be passed on by the base implementation in subsequent actions.
-	 * You probably don't need to worry about this method; just subclass LoaderWrapper.
+	 * Convert a native datastore Entity into a typed POJO.  This is like a load() operation except that you start with
+	 * the native datastore type instead of fetching it from the datastore.  However, note that because of @Load annotations,
+	 * it is possible that datastore operations will be executed during the translation.
+	 *
+	 * @param entity is a native datastore entity which has an appropriate kind registered in the ObjectifyFactory.
+	 * @return the POJO equivalent, just as if you had loaded the entity directly from Objectify.
 	 */
-	void setWrapper(Loader loader);
+	<T> T fromEntity(Entity entity);
 
 	/**
 	 * Get the entity for a key immediately. You rarely, if ever, should want to use this; it exists to support
 	 * Ref<?> behavior. Value will be loaded from the session if available, but will go to the datastore if necessary.
+	 * It is synchronous.
 	 */
 	<E> E now(Key<E> key);
 }

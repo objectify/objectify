@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
@@ -18,10 +21,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -42,20 +41,14 @@ public class TransactionTests extends TestBase
 	{
 		fact().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = null;
+		final Trivial triv = new Trivial("foo", 5);
 
-		TestObjectify tOfy = fact().begin().transaction();
-		try
-		{
-			k = tOfy.put(triv);
-			tOfy.getTxn().commit();
-		}
-		finally
-		{
-			if (tOfy.getTxn().isActive())
-				tOfy.getTxn().rollback();
-		}
+		Key<Trivial> k = ofy().transact(new Work<Key<Trivial>>() {
+			@Override
+			public Key<Trivial> run() {
+				return ofy().put(triv);
+			}
+		});
 
 		Trivial fetched = ofy().get(k);
 
@@ -79,28 +72,21 @@ public class TransactionTests extends TestBase
 	{
 		fact().register(HasSimpleCollection.class);
 
-		HasSimpleCollection simple = new HasSimpleCollection();
+		final HasSimpleCollection simple = new HasSimpleCollection();
+		ofy().put(simple);
 
-		TestObjectify nonTxnOfy = fact().begin();
-		nonTxnOfy.put(simple);
+		HasSimpleCollection simple2 = ofy().transact(new Work<HasSimpleCollection>() {
+			@Override
+			public HasSimpleCollection run() {
+				HasSimpleCollection simple2 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
+				simple2.stuff.add("blah");
+				ofy().put(simple2);
+				return simple2;
+			}
+		});
 
-		TestObjectify txnOfy = fact().begin().transaction();
-		HasSimpleCollection simple2;
-		try
-		{
-			simple2 = txnOfy.load().type(HasSimpleCollection.class).id(simple.id).now();
-			simple2.stuff.add("blah");
-			txnOfy.put(simple2);
-			txnOfy.getTxn().commit();
-		}
-		finally
-		{
-			if (txnOfy.getTxn().isActive())
-				txnOfy.getTxn().rollback();
-		}
-
-		nonTxnOfy.clear();
-		HasSimpleCollection simple3 = nonTxnOfy.load().type(HasSimpleCollection.class).id(simple.id).now();
+		ofy().clear();
+		HasSimpleCollection simple3 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
 
 		assert simple2.stuff.equals(simple3.stuff);
 	}
@@ -115,28 +101,27 @@ public class TransactionTests extends TestBase
 		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> tk = fact().begin().put(triv);
-
-		TestObjectify tOfy1 = fact().begin().transaction();
-		TestObjectify tOfy2 = fact().begin().transaction();
-
-		Trivial triv1 = tOfy1.get(tk);
-		Trivial triv2 = tOfy2.get(tk);
-
-		triv1.setSomeString("bar");
-		triv2.setSomeString("shouldn't work");
-
-		tOfy1.save().entity(triv1).now();
-		tOfy2.save().entity(triv2).now();
-
-		tOfy1.getTxn().commit();
+		final Key<Trivial> tk = ofy().put(triv);
 
 		try {
-			tOfy2.getTxn().commit();
-			assert false;	// must throw exception
-		} catch (ConcurrentModificationException ex) {}
+			ofy().transactNew(2, new VoidWork() {
+				@Override
+				public void vrun() {
+					Trivial triv1 = ofy().transactionless().get(tk);
+					Trivial triv2 = ofy().get(tk);
 
-		Trivial fetched = fact().begin().get(tk);
+					triv1.setSomeString("bar");
+					triv2.setSomeString("shouldn't work");
+
+					ofy().transactionless().save().entity(triv1).now();
+					ofy().save().entity(triv2).now();
+				}
+			});
+			assert false;	// must throw exception
+		}
+		catch (ConcurrentModificationException ex) {}
+
+		Trivial fetched = ofy().get(tk);
 
 		// This will be fetched from the cache, and must not be the "shouldn't work"
 		assert fetched.getSomeString().equals("bar");

@@ -113,8 +113,8 @@ public class WriteEngine
 			}
 		};
 
-		if (ofy.getTxn() != null)
-			ofy.getTxn().enlist(result);
+		if (ofy.getTransaction() != null)
+			ofy.getTransaction().enlist(result);
 
 		return result;
 	}
@@ -137,8 +137,8 @@ public class WriteEngine
 			}
 		};
 
-		if (ofy.getTxn() != null)
-			ofy.getTxn().enlist(result);
+		if (ofy.getTransaction() != null)
+			ofy.getTransaction().enlist(result);
 
 		return result;
 	}
