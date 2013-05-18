@@ -4,12 +4,12 @@ import java.util.Map;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.util.cmd.ObjectifyWrapper;
+import com.googlecode.objectify.impl.ObjectifyImpl;
 
 /**
  * Adds some convenience methods.  Most of the tests were written against Objectify 3 and it's a PITA to convert all the calls.
  */
-public class TestObjectify extends ObjectifyWrapper<TestObjectify, ObjectifyFactory>
+public class TestObjectify extends ObjectifyImpl<TestObjectify>
 {
 	/** */
 	public TestObjectify(ObjectifyFactory fact) {

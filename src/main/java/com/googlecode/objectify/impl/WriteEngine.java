@@ -31,7 +31,7 @@ public class WriteEngine
 	private static final Logger log = Logger.getLogger(WriteEngine.class.getName());
 
 	/** */
-	protected ObjectifyImpl ofy;
+	protected ObjectifyImpl<?> ofy;
 
 	/** */
 	protected AsyncDatastoreService ads;
@@ -41,7 +41,7 @@ public class WriteEngine
 
 	/**
 	 */
-	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session) {
+	public WriteEngine(ObjectifyImpl<?> ofy, AsyncDatastoreService ads, Session session) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
@@ -70,7 +70,7 @@ public class WriteEngine
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
 			} else {
-				EntityMetadata<E> metadata = ofy.getFactory().getMetadataForEntity(obj);
+				EntityMetadata<E> metadata = ofy.factory().getMetadataForEntity(obj);
 				entityList.add(metadata.save(obj, ctx));
 			}
 		}

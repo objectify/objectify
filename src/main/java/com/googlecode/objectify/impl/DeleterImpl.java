@@ -18,10 +18,10 @@ import com.googlecode.objectify.cmd.Deleter;
 class DeleterImpl implements Deleter
 {
 	/** */
-	ObjectifyImpl ofy;
+	ObjectifyImpl<?> ofy;
 
 	/** */
-	DeleterImpl(ObjectifyImpl ofy) {
+	DeleterImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
 	}
 

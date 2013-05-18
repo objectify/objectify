@@ -44,7 +44,7 @@ public class QueryBasicTests extends TestBase
 		assert stuff.size() == 1;
 
 		int count = 0;
-		for (Trivial fetched: ofy().load().type(Trivial.class)) {
+		for (@SuppressWarnings("unused") Trivial fetched: ofy().load().type(Trivial.class)) {
 			count++;
 		}
 		assert count == 1;

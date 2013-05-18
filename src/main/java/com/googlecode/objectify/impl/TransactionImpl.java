@@ -15,7 +15,7 @@ public class TransactionImpl extends TransactionWrapper {
 	/**
 	 * Holds the session data and knows what to do with it.
 	 */
-	private final TransactorYes transactor;
+	private final TransactorYes<?> transactor;
 
 	/**
 	 * Operations which modify the session must be enlisted in the transaction and completed
@@ -25,7 +25,7 @@ public class TransactionImpl extends TransactionWrapper {
 	private List<Result<?>> enlisted = new ArrayList<Result<?>>();
 
 	/** */
-	public TransactionImpl(Transaction raw, TransactorYes transactor) {
+	public TransactionImpl(Transaction raw, TransactorYes<?> transactor) {
 		super(raw);
 		this.transactor = transactor;
 	}

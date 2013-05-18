@@ -57,13 +57,13 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	boolean hasNonKeyOrder;
 
 	/** */
-	QueryImpl(LoaderImpl loader) {
+	QueryImpl(LoaderImpl<?> loader) {
 		super(loader);
 		this.actual = new com.google.appengine.api.datastore.Query();
 	}
 
 	/** */
-	QueryImpl(LoaderImpl loader, Class<T> clazz) {
+	QueryImpl(LoaderImpl<?> loader, Class<T> clazz) {
 		super(loader);
 
 		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
@@ -463,6 +463,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Convenience method */
 	private ObjectifyFactory fact() {
-		return loader.getObjectify().getFactory();
+		return loader.getObjectify().factory();
 	}
 }

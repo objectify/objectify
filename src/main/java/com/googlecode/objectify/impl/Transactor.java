@@ -10,10 +10,10 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class Transactor
+abstract public class Transactor<O extends Objectify>
 {
 	/** Our owner */
-	protected ObjectifyImpl ofy;
+	protected ObjectifyImpl<O> ofy;
 
 	/** Our session */
 	protected Session session;
@@ -21,14 +21,14 @@ abstract public class Transactor
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	public Transactor(ObjectifyImpl ofy) {
+	public Transactor(ObjectifyImpl<O> ofy) {
 		this(ofy, new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	public Transactor(ObjectifyImpl ofy, Session session) {
+	public Transactor(ObjectifyImpl<O> ofy, Session session) {
 		this.ofy = ofy;
 		this.session = session;
 	}
@@ -36,7 +36,7 @@ abstract public class Transactor
 	/**
 	 * @return the objectify impl instance associated with this transaction state
 	 */
-	public ObjectifyImpl getObjectify() {
+	public ObjectifyImpl<O> getObjectify() {
 		return ofy;
 	}
 
@@ -56,7 +56,7 @@ abstract public class Transactor
 	 * @return an Objectify instance that is suitable for transactionless execution. In the case of a
 	 * transactor which is not in a transaction, probably this is the same as getObjectify().
 	 */
-	abstract public Objectify transactionless();
+	abstract public ObjectifyImpl<O> transactionless();
 
 	/**
 	 * @see Objectify#execute(TxnType, Work)

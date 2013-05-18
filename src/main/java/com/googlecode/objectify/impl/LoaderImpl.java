@@ -26,20 +26,21 @@ import com.googlecode.objectify.util.ResultProxy;
 
 
 /**
- * Implementation of the Loader interface.
+ * <p>Implementation of the Loader interface. This is also suitable for subclassing; you
+ * can return your own subclass by overriding ObjectifyImpl.load().</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
+public class LoaderImpl<L extends Loader> extends Queryable<Object> implements Loader, Cloneable
 {
 	/** */
-	protected ObjectifyImpl ofy;
+	protected ObjectifyImpl<?> ofy;
 
 	/** */
 	protected Set<Class<?>> loadGroups;
 
 	/** */
-	public LoaderImpl(ObjectifyImpl ofy) {
+	public LoaderImpl(ObjectifyImpl<?> ofy) {
 		super(null);
 		this.ofy = ofy;
 		this.loadGroups = Collections.<Class<?>>emptySet();
@@ -57,14 +58,15 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	 * @see com.googlecode.objectify.cmd.Loader#group(java.lang.Class<?>[])
 	 */
 	@Override
-	public Loader group(Class<?>... groups) {
-		LoaderImpl clone = this.clone();
+	@SuppressWarnings("unchecked")
+	public L group(Class<?>... groups) {
+		LoaderImpl<L> clone = this.clone();
 
 		Set<Class<?>> next = new HashSet<Class<?>>(Arrays.asList(groups));
 		next.addAll(this.loadGroups);
 		clone.loadGroups = Collections.unmodifiableSet(next);
 
-		return clone;
+		return (L)clone;
 	}
 
 	/* (non-Javadoc)
@@ -219,7 +221,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	}
 
 	/** */
-	public ObjectifyImpl getObjectifyImpl() {
+	public ObjectifyImpl<?> getObjectifyImpl() {
 		return this.ofy;
 	}
 
@@ -259,9 +261,10 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	protected LoaderImpl clone() {
+	@SuppressWarnings("unchecked")
+	protected LoaderImpl<L> clone() {
 		try {
-			return (LoaderImpl)super.clone();
+			return (LoaderImpl<L>)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}

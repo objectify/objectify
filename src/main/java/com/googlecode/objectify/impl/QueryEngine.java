@@ -22,13 +22,13 @@ public class QueryEngine
 	static final Logger log = Logger.getLogger(QueryEngine.class.getName());
 
 	/** */
-	protected LoaderImpl loader;
+	protected LoaderImpl<?> loader;
 	protected AsyncDatastoreService ads;
 	protected Transaction transactionRaw;
 
 	/**
 	 */
-	public QueryEngine(LoaderImpl loader, AsyncDatastoreService ads, Transaction transactionRaw) {
+	public QueryEngine(LoaderImpl<?> loader, AsyncDatastoreService ads, Transaction transactionRaw) {
 		this.loader = loader;
 		this.ads = ads;
 		this.transactionRaw = transactionRaw;

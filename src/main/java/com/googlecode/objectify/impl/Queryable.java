@@ -17,7 +17,7 @@ abstract class Queryable<T> extends SimpleQueryImpl<T>
 {
 	/**
 	 */
-	Queryable(LoaderImpl loader) {
+	Queryable(LoaderImpl<?> loader) {
 		super(loader);
 	}
 

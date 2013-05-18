@@ -65,6 +65,12 @@ public interface Objectify
 	 *
 	 * @return the ObjectifyFactory associated with this Objectify instance.
 	 */
+	public ObjectifyFactory factory();
+
+	/**
+	 * Use factory() instead.
+	 */
+	@Deprecated
 	public ObjectifyFactory getFactory();
 
 	/**

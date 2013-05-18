@@ -22,12 +22,15 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
 /**
- * Implementation of the Objectify interface.  Note we *always* use the AsyncDatastoreService
- * methods that use transactions to avoid the confusion of implicit transactions.
+ * <p>Implementation of the Objectify interface. This is also suitable for subclassing; you
+ * can return your own subclass by overriding ObjectifyFactory.begin().</p>
+ *
+ * <p>Note we *always* use the AsyncDatastoreService
+ * methods that use transactions to avoid the confusion of implicit transactions.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify, Cloneable
+public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 {
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
@@ -38,7 +41,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	protected Double deadline;
 
 	/** */
-	protected Transactor transactor = new TransactorNo(this);
+	protected Transactor<O> transactor = new TransactorNo<O>(this);
 
 	/**
 	 */
@@ -47,7 +50,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	}
 
 	/** Copy constructor */
-	ObjectifyImpl(ObjectifyImpl other) {
+	public ObjectifyImpl(ObjectifyImpl<O> other) {
 		this.factory = other.factory;
 		this.cache = other.cache;
 		this.consistency = other.consistency;
@@ -58,8 +61,16 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getFactory()
 	 */
-	public ObjectifyFactory getFactory() {
+	public ObjectifyFactory factory() {
 		return this.factory;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#getFactory()
+	 */
+	@Deprecated
+	public ObjectifyFactory getFactory() {
+		return factory();
 	}
 
 	/* (non-Javadoc)
@@ -67,7 +78,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Loader load() {
-		return new LoaderImpl(this);
+		return new LoaderImpl<Loader>(this);
 	}
 
 	/* (non-Javadoc)
@@ -90,49 +101,54 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
 	 */
 	@Override
-	public Objectify consistency(Consistency value) {
+	@SuppressWarnings("unchecked")
+	public O consistency(Consistency value) {
 		if (value == null)
 			throw new IllegalArgumentException("Consistency cannot be null");
 
-		ObjectifyImpl clone = this.clone();
+		ObjectifyImpl<O> clone = this.clone();
 		clone.consistency = value;
-		return clone;
+		return (O)clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
 	 */
 	@Override
-	public Objectify deadline(Double value) {
-		ObjectifyImpl clone = this.clone();
+	@SuppressWarnings("unchecked")
+	public O deadline(Double value) {
+		ObjectifyImpl<O> clone = this.clone();
 		clone.deadline = value;
-		return clone;
+		return (O)clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#cache(boolean)
 	 */
 	@Override
-	public Objectify cache(boolean value) {
-		ObjectifyImpl clone = this.clone();
+	@SuppressWarnings("unchecked")
+	public O cache(boolean value) {
+		ObjectifyImpl<O> clone = this.clone();
 		clone.cache = value;
-		return clone;
+		return (O)clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transactionless()
 	 */
 	@Override
-	public Objectify transactionless() {
-		return transactor.transactionless();
+	@SuppressWarnings("unchecked")
+	public O transactionless() {
+		return (O)transactor.transactionless();
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	protected ObjectifyImpl clone() {
+	@SuppressWarnings("unchecked")
+	protected ObjectifyImpl<O> clone() {
 		try {
-			return (ObjectifyImpl)super.clone();
+			return (ObjectifyImpl<O>)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
@@ -261,7 +277,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 				return meta.getRawKey(value);
 			} else {
 				// Run it through the translator
-				Translator<Object> translator = getFactory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(getFactory()));
+				Translator<Object> translator = factory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(factory()));
 				Node node = translator.save(value, Path.root(), false, new SaveContext(this));
 				return getFilterableValue(node, value);
 			}

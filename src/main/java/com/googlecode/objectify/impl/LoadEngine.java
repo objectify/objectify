@@ -31,8 +31,8 @@ public class LoadEngine
 	private static final Logger log = Logger.getLogger(LoadEngine.class.getName());
 
 	/** */
-	LoaderImpl loader;
-	ObjectifyImpl ofy;
+	LoaderImpl<?> loader;
+	ObjectifyImpl<?> ofy;
 	AsyncDatastoreService ads;
 	Session session;
 	Set<Class<?>> loadGroups;
@@ -42,7 +42,7 @@ public class LoadEngine
 
 	/**
 	 */
-	public LoadEngine(LoaderImpl loader, ObjectifyImpl ofy, Session session, AsyncDatastoreService ads, Set<Class<?>> loadGroups) {
+	public LoadEngine(LoaderImpl<?> loader, ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, Set<Class<?>> loadGroups) {
 		this.loader = loader;
 		this.ofy = ofy;
 		this.session = session;
@@ -213,7 +213,7 @@ public class LoadEngine
 		if (ent == null)
 			return null;
 
-		EntityMetadata<T> meta = ofy.getFactory().getMetadata(ent.getKind());
+		EntityMetadata<T> meta = ofy.factory().getMetadata(ent.getKind());
 		if (meta == null)
 			return (T)ent;
 		else

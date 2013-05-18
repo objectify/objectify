@@ -14,20 +14,20 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransactorNo extends Transactor
+public class TransactorNo<O extends Objectify> extends Transactor<O>
 {
 	/** */
 	private static final Logger log = Logger.getLogger(TransactorNo.class.getName());
 
 	/**
 	 */
-	public TransactorNo(ObjectifyImpl ofy) {
+	public TransactorNo(ObjectifyImpl<O> ofy) {
 		super(ofy);
 	}
 
 	/**
 	 */
-	public TransactorNo(ObjectifyImpl ofy, Session session) {
+	public TransactorNo(ObjectifyImpl<O> ofy, Session session) {
 		super(ofy, session);
 	}
 
@@ -44,7 +44,7 @@ public class TransactorNo extends Transactor
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless()
 	 */
 	@Override
-	public Objectify transactionless() {
+	public ObjectifyImpl<O> transactionless() {
 		return ofy;
 	}
 
@@ -132,8 +132,8 @@ public class TransactorNo extends Transactor
 	 * Create a new transactional session by cloning this instance and resetting the transactor component.
 	 */
 	Objectify startTransaction() {
-		ObjectifyImpl cloned = ofy.clone();
-		cloned.transactor = new TransactorYes(cloned, this);
+		ObjectifyImpl<O> cloned = ofy.clone();
+		cloned.transactor = new TransactorYes<O>(cloned, this);
 		return cloned;
 	}
 }

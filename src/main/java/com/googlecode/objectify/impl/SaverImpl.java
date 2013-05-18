@@ -20,10 +20,10 @@ import com.googlecode.objectify.util.ResultWrapper;
 public class SaverImpl implements Saver
 {
 	/** */
-	ObjectifyImpl ofy;
+	ObjectifyImpl<?> ofy;
 
 	/** */
-	public SaverImpl(ObjectifyImpl ofy) {
+	public SaverImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
 	}
 
@@ -69,7 +69,7 @@ public class SaverImpl implements Saver
 			return (Entity)pojo;
 		} else {
 			@SuppressWarnings("unchecked")
-			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.getFactory().getMetadata(pojo.getClass());
+			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());
 			return meta.save(pojo, new SaveContext(ofy));
 		}
 	}

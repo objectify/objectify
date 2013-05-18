@@ -163,7 +163,7 @@ public class ObjectifyFactory
 	 * @return a new Objectify instance
 	 */
 	public Objectify begin() {
-		return new ObjectifyImpl(this);
+		return new ObjectifyImpl<Objectify>(this);
 	}
 
 	/**

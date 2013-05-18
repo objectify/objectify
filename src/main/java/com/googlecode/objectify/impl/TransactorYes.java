@@ -18,17 +18,17 @@ import com.googlecode.objectify.util.ResultWrapper;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransactorYes extends Transactor
+public class TransactorYes<O extends Objectify> extends Transactor<O>
 {
 	/** Our transaction. */
 	protected Result<TransactionImpl> transaction;
 
 	/** The non-transactional transactor that spawned us */
-	protected TransactorNo parentTransactor;
+	protected TransactorNo<O> parentTransactor;
 
 	/**
 	 */
-	public TransactorYes(ObjectifyImpl ofy, TransactorNo parentTransactor) {
+	public TransactorYes(ObjectifyImpl<O> ofy, TransactorNo<O> parentTransactor) {
 		super(ofy);
 
 		this.parentTransactor = parentTransactor;
@@ -59,9 +59,9 @@ public class TransactorYes extends Transactor
 	 * We use the session from the parent, ie life before transactions.
 	 */
 	@Override
-	public Objectify transactionless() {
-		ObjectifyImpl next = ofy.clone();
-		next.transactor = new TransactorNo(next, parentTransactor.getSession());
+	public ObjectifyImpl<O> transactionless() {
+		ObjectifyImpl<O> next = ofy.clone();
+		next.transactor = new TransactorNo<O>(next, parentTransactor.getSession());
 		return next;
 	}
 
