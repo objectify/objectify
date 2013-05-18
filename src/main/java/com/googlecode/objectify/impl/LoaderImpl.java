@@ -30,7 +30,7 @@ import com.googlecode.objectify.util.ResultProxy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoaderImpl extends Queryable<Object> implements Loader
+public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 {
 	/** */
 	protected ObjectifyImpl ofy;
@@ -43,15 +43,6 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 		super(null);
 		this.ofy = ofy;
 		this.loadGroups = Collections.<Class<?>>emptySet();
-	}
-
-	/**
-	 * Takes ownership of the fetch groups set.
-	 */
-	public LoaderImpl(ObjectifyImpl ofy, Set<Class<?>> loadGroups) {
-		super(null);
-		this.ofy = ofy;
-		this.loadGroups = Collections.unmodifiableSet(loadGroups);
 	}
 
 	/* (non-Javadoc)
@@ -67,9 +58,13 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public Loader group(Class<?>... groups) {
+		LoaderImpl clone = this.clone();
+
 		Set<Class<?>> next = new HashSet<Class<?>>(Arrays.asList(groups));
 		next.addAll(this.loadGroups);
-		return new LoaderImpl(ofy, next);
+		clone.loadGroups = Collections.unmodifiableSet(next);
+
+		return clone;
 	}
 
 	/* (non-Javadoc)
@@ -259,6 +254,17 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	public <T> T fromEntity(Entity entity) {
 		LoadEngine engine = createLoadEngine();
 		return engine.load(entity, new LoadContext(this, engine));
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#clone()
+	 */
+	protected LoaderImpl clone() {
+		try {
+			return (LoaderImpl)super.clone();
+		} catch (CloneNotSupportedException e) {
+			throw new RuntimeException(e); // impossible
+		}
 	}
 
 }

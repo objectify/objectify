@@ -12,7 +12,7 @@ import com.googlecode.objectify.cmd.SimpleQuery;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
+public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
 	protected LoaderImpl loader;

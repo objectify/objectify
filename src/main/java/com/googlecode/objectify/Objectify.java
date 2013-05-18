@@ -204,22 +204,13 @@ public interface Objectify
 	void clear();
 
 	/**
-	 * Convert a POJO object to a native datastore Entity.  This is like a save() operation but without actually saving
-	 * the data to the datastore.
-	 *
-	 * @param pojo must be an instance of a registered pojo entity type.
-	 * @return the native datastore Entity equivalent of the pojo; exactly what Objectify would save if you saved the POJO normally.
+	 * Use save().toEntity() instead.
 	 */
 	@Deprecated
 	Entity toEntity(Object pojo);
 
 	/**
-	 * Convert a native datastore Entity into a typed POJO.  This is like a load() operation except that you start with
-	 * the native datastore type instead of fetching it from the datastore.  However, note that because of @Load annotations,
-	 * it is possible that datastore operations will be executed during the translation.
-	 *
-	 * @param entity is a native datastore entity which has an appropriate kind registered in the ObjectifyFactory.
-	 * @return the POJO equivalent, just as if you had loaded the entity directly from Objectify.
+	 * Use load().fromEntity() instead.
 	 */
 	@Deprecated
 	<T> T toPojo(Entity entity);

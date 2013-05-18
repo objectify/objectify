@@ -29,7 +29,7 @@ import com.googlecode.objectify.util.ResultProxy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
+public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
 {
 	/**
 	 * Because we process @Load batches, we need to always work in chunks.  So we should always specify
