@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.engine;
+package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -11,15 +11,9 @@ import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.EntityMetadata;
-import com.googlecode.objectify.impl.KeyMetadata;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.ResultAdapter;
-import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.SessionValue;
-import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
@@ -53,6 +47,11 @@ public class WriteEngine
 		this.session = session;
 	}
 
+	/** @return the transaction, or null if not */
+	private Transaction getTransactionRaw() {
+		return (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
+	}
+
 	/**
 	 * The fundamental put() operation.
 	 */
@@ -77,7 +76,7 @@ public class WriteEngine
 		}
 
 		// The CachingDatastoreService needs its own raw transaction
-		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(ofy.getTxnRaw(), entityList);
+		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(getTransactionRaw(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
 
 		Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<E>, E>>(adapted) {
@@ -123,7 +122,7 @@ public class WriteEngine
 	 * The fundamental delete() operation.
 	 */
 	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
-		Future<Void> fut = ads.delete(ofy.getTxnRaw(), keys);
+		Future<Void> fut = ads.delete(getTransactionRaw(), keys);
 		Result<Void> adapted = new ResultAdapter<Void>(fut);
 		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
 			private static final long serialVersionUID = 1L;

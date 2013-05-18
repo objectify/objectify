@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -19,9 +19,6 @@ import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.impl.KeyMetadata;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.PolymorphicEntityMetadata;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;

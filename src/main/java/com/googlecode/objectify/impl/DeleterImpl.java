@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,7 +8,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.cmd.Deleter;
-import com.googlecode.objectify.impl.Keys;
 
 
 /**

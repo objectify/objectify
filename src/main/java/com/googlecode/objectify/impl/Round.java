@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.engine;
+package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -10,8 +10,6 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.SessionValue;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNow;
 

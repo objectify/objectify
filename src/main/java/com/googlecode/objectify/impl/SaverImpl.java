@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Saver;
-import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultWrapper;
 

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.Iterator;
 import java.util.List;

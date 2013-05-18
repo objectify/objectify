@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.engine.LoadEngine;
 
 /**
  * <p>A translator knows how convert between POJO objects and the EntityNode tree structure

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -7,7 +7,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteIds;
 import com.googlecode.objectify.cmd.DeleteType;
-import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,9 +19,6 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Loader;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.engine.LoadEngine;
-import com.googlecode.objectify.impl.engine.QueryEngine;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNowFunction;
@@ -235,16 +232,16 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
-	public LoadEngine createLoadEngine() {
-		return new LoadEngine(this);
+	LoadEngine createLoadEngine() {
+		return new LoadEngine(this, ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadGroups);
 	}
 
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for queries
 	 */
-	public QueryEngine createQueryEngine() {
-		return new QueryEngine(this);
+	QueryEngine createQueryEngine() {
+		return new QueryEngine(this, ofy.createAsyncDatastoreService(), ofy.getTransaction() == null ? null : ofy.getTransaction().getRaw());
 	}
 
 	/* (non-Javadoc)
@@ -260,7 +257,8 @@ public class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <T> T fromEntity(Entity entity) {
-		return ofy.load(entity, new LoadContext(this, createLoadEngine()));
+		LoadEngine engine = createLoadEngine();
+		return engine.load(entity, new LoadContext(this, engine));
 	}
 
 }

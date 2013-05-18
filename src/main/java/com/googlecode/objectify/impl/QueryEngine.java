@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.engine;
+package com.googlecode.objectify.impl;
 
 import java.util.logging.Logger;
 
@@ -7,8 +7,8 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.impl.cmd.LoaderImpl;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 /**
@@ -23,11 +23,15 @@ public class QueryEngine
 
 	/** */
 	protected LoaderImpl loader;
+	protected AsyncDatastoreService ads;
+	protected Transaction transactionRaw;
 
 	/**
 	 */
-	public QueryEngine(LoaderImpl loader) {
+	public QueryEngine(LoaderImpl loader, AsyncDatastoreService ads, Transaction transactionRaw) {
 		this.loader = loader;
+		this.ads = ads;
+		this.transactionRaw = transactionRaw;
 	}
 
 	/**
@@ -94,7 +98,6 @@ public class QueryEngine
 
 	/** */
 	private PreparedQuery prepare(com.google.appengine.api.datastore.Query query) {
-		AsyncDatastoreService ads = loader.getObjectifyImpl().createAsyncDatastoreService();
-		return ads.prepare(loader.getObjectifyImpl().getTxnRaw(), query);
+		return ads.prepare(transactionRaw, query);
 	}
 }

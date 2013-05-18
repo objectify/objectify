@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.engine;
+package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;

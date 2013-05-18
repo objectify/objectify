@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.engine;
+package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,19 +9,11 @@ import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.impl.KeyMetadata;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.Reference;
-import com.googlecode.objectify.impl.ResultAdapter;
-import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.SessionValue;
-import com.googlecode.objectify.impl.cmd.LoaderImpl;
-import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
@@ -43,17 +35,19 @@ public class LoadEngine
 	ObjectifyImpl ofy;
 	AsyncDatastoreService ads;
 	Session session;
+	Set<Class<?>> loadGroups;
 
 	/** The current round, replaced whenever the round executes */
 	Round round;
 
 	/**
 	 */
-	public LoadEngine(LoaderImpl loader) {
+	public LoadEngine(LoaderImpl loader, ObjectifyImpl ofy, Session session, AsyncDatastoreService ads, Set<Class<?>> loadGroups) {
 		this.loader = loader;
-		this.ofy = loader.getObjectifyImpl();
-		this.session = loader.getObjectifyImpl().getSession();
-		this.ads = loader.getObjectifyImpl().createAsyncDatastoreService();
+		this.ofy = ofy;
+		this.session = session;
+		this.ads = ads;
+		this.loadGroups = loadGroups;
 
 		this.round = new Round(this, session, 0);
 
@@ -181,7 +175,7 @@ public class LoadEngine
 
 				for (Entity ent: raw.now().values()) {
 					Key<?> key = Key.create(ent.getKey());
-					Object entity = ofy.load(ent, ctx);
+					Object entity = load(ent, ctx);
 					result.put(key, entity);
 				}
 
@@ -204,7 +198,25 @@ public class LoadEngine
 	 * Fetch the keys from the async datastore using the current transaction context
 	 */
 	public Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetch(Set<com.google.appengine.api.datastore.Key> keys) {
-		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(ofy.getTxnRaw(), keys);
+		Transaction txn = (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
+
+		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(txn, keys);
 		return ResultAdapter.create(fut);
+	}
+
+	/**
+	 * Converts a datastore entity into a typed pojo object
+	 * @return an assembled pojo, or the Entity itself if the kind is not registered, or null if the input value was null
+	 */
+	@SuppressWarnings("unchecked")
+	public <T> T load(Entity ent, LoadContext ctx) {
+		if (ent == null)
+			return null;
+
+		EntityMetadata<T> meta = ofy.getFactory().getMetadata(ent.getKind());
+		if (meta == null)
+			return (T)ent;
+		else
+			return meta.load(ent, ctx);
 	}
 }

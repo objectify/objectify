@@ -1,15 +1,13 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.ConcurrentModificationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.impl.Session;
 
 /**
  * Transactor which represents the absence of a transaction.
@@ -48,14 +46,6 @@ public class TransactorNo extends Transactor
 	@Override
 	public Objectify transactionless() {
 		return ofy;
-	}
-
-	/** Get the raw transaction we received from the AsyncDatastoreService (or CachingAsyncDatastoreService, if applicable) */
-	private Transaction getTxnRaw() {
-		if (getTransaction() == null)
-			return null;
-		else
-			return getTransaction().getRaw();
 	}
 
 	/* (non-Javadoc)

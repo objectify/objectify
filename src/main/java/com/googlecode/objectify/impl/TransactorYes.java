@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.concurrent.Future;
 
@@ -9,7 +9,6 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.impl.ResultAdapter;
 import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.ResultWrapper;
 

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -9,7 +9,6 @@ import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
-import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -18,16 +17,7 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
-import com.googlecode.objectify.impl.EntityMetadata;
-import com.googlecode.objectify.impl.KeyMetadata;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.impl.Node;
-import com.googlecode.objectify.impl.NullProperty;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Session;
-import com.googlecode.objectify.impl.engine.WriteEngine;
 import com.googlecode.objectify.impl.translate.CreateContext;
-import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
@@ -155,14 +145,6 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		return transactor.getTransaction();
 	}
 
-	/** Get the raw transaction we received from the AsyncDatastoreService (or CachingAsyncDatastoreService, if applicable) */
-	public Transaction getTxnRaw() {
-		if (getTransaction() == null)
-			return null;
-		else
-			return getTransaction().getRaw();
-	}
-
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
@@ -218,7 +200,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	/**
 	 * Make a datastore service config that corresponds to our options.
 	 */
-	public AsyncDatastoreService createAsyncDatastoreService() {
+	protected AsyncDatastoreService createAsyncDatastoreService() {
 		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), cache);
 	}
 
@@ -226,7 +208,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
 	 */
-	public WriteEngine createWriteEngine() {
+	protected WriteEngine createWriteEngine() {
 		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession());
 	}
 
@@ -241,7 +223,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 *
 	 * @return whatever can be put into a filter clause.
 	 */
-	public Object makeFilterable(Object value) {
+	protected Object makeFilterable(Object value) {
 		if (value == null)
 			return null;
 
@@ -294,22 +276,6 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		return node.getPropertyValue();
 	}
 
-	/**
-	 * Converts a datastore entity into a typed pojo object
-	 * @return an assembled pojo, or the Entity itself if the kind is not registered, or null if the input value was null
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> T load(Entity ent, LoadContext ctx) {
-		if (ent == null)
-			return null;
-
-		EntityMetadata<T> meta = getFactory().getMetadata(ent.getKind());
-		if (meta == null)
-			return (T)ent;
-		else
-			return meta.load(ent, ctx);
-	}
-
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#toEntity(java.lang.Object)
 	 */
@@ -326,14 +292,13 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		return load().fromEntity(entity);
 	}
 
-	/** TODO: remove this */
-	@Deprecated
-	public Session getSession() {
+	/** */
+	protected Session getSession() {
 		return this.transactor.getSession();
 	}
 
 	/** @return true if cache is enabled */
-	public boolean getCache() {
+	protected boolean getCache() {
 		return cache;
 	}
 

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
@@ -25,7 +25,7 @@ abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	}
 
 	/**
-	 * Create an initial query object; for a real FindType this will have a class, otherwise it will be generic.
+	 * Create an initial query object; for a typed query this will have a class, otherwise it will be generic.
 	 * For the real QueryImpl itself this is a clone() operation.
 	 */
 	abstract QueryImpl<T> createQuery();

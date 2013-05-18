@@ -5,11 +5,12 @@ package com.googlecode.objectify.util.cmd;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.cmd.ObjectifyImpl;
+import com.googlecode.objectify.impl.ObjectifyImpl;
 
 
 /**
- * <p>Simple wrapper/decorator for an Objectify interface.</p>
+ * <p>This is not actually a wrapper; it extends ObjectifyImpl directly but overrides the return values
+ * for methods with your type. This makes it possible to chain successive calls to your implementation.</p>
  *
  * <p>Use by subclassing like this: {@code class MyObjectify extends ObjectifyWrapper<MyObjectify, MyFactory>}</p>
  *

@@ -1,4 +1,4 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -9,7 +9,6 @@ import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;

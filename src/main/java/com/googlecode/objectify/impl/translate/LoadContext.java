@@ -9,8 +9,8 @@ import java.util.logging.Logger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.engine.LoadEngine;
 
 /**
  * The context of a load operation, which may extend across several entities (for example, a batch).

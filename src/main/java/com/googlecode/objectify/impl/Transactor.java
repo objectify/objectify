@@ -1,9 +1,8 @@
-package com.googlecode.objectify.impl.cmd;
+package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.impl.Session;
 
 /**
  * Determines the transactional behavior of an ObjectifyImpl instance. There are transactional and non-transactional
