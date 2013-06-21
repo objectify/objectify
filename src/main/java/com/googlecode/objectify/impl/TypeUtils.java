@@ -33,6 +33,7 @@ public class TypeUtils
 		PRIMITIVE_TO_WRAPPER.put(long.class, Long.class);
 		PRIMITIVE_TO_WRAPPER.put(float.class, Float.class);
 		PRIMITIVE_TO_WRAPPER.put(double.class, Double.class);
+		PRIMITIVE_TO_WRAPPER.put(char.class, Character.class);
 	}
 
 	/**

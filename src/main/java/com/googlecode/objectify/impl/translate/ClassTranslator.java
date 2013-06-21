@@ -49,15 +49,20 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 
 		for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 			Path propPath = path.extend(prop.getName());
-			Translator<Object> loader = fact.getTranslators().create(propPath, prop, prop.getType(), ctx);
-			TranslatableProperty<Object> tprop = new TranslatableProperty<Object>(prop, loader);
-			props.add(tprop);
+			try {
+				Translator<Object> loader = fact.getTranslators().create(propPath, prop, prop.getType(), ctx);
+				TranslatableProperty<Object> tprop = new TranslatableProperty<Object>(prop, loader);
+				props.add(tprop);
 
-			// Sanity check here
-			if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
-				propPath.throwIllegalState("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
+				// Sanity check here
+				if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
+					throw new IllegalStateException("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
 
-			this.foundTranslatableProperty(tprop);
+				this.foundTranslatableProperty(tprop);
+			} catch (Exception ex) {
+				// Catch any errors during this process and wrap them in an exception that exposes more useful information.
+				propPath.throwIllegalState("Error registering " + clazz.getName(), ex);
+			}
 		}
 	}
 
