@@ -17,10 +17,10 @@ public interface KeyMetadata<T>
 	 * Sets the key onto the POJO id/parent fields
 	 */
 	public void setKey(T pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx);
-	
+
 	/** @return the datastore kind associated with this metadata */
 	public String getKind();
-	
+
 	/**
 	 * <p>This hides all the messiness of trying to create an Entity from an object that:</p>
 	 * <ul>
@@ -28,35 +28,38 @@ public interface KeyMetadata<T>
 	 * <li>If it's a Long id, might be null and require autogeneration</li>
 	 * <li>Might have a parent key</li>
 	 * </ul>
-	 * 
+	 *
 	 * @return an empty Entity object whose key has been set but no other properties.
 	 */
 	public Entity initEntity(T pojo);
 
 	/**
 	 * Gets a key composed of the relevant id and parent fields in the object.
-	 * 
+	 *
 	 * @param pojo must be of the entityClass type for this metadata.
 	 * @throws IllegalArgumentException if pojo has a null id
 	 */
 	public com.google.appengine.api.datastore.Key getRawKey(T pojo);
-		
+
 	/** @return the name of the parent field, or null if there wasn't one */
 	public String getParentFieldName();
 
 	/** @return the name of the id field */
 	public String getIdFieldName();
-	
+
+	/** @return the java type of the id field; it will be either Long.class, Long.TYPE, or String.class */
+	public Class<?> getIdFieldType();
+
 	/**
 	 * @return true if the entity has a parent field
 	 */
 	public boolean hasParentField();
-	
+
 	/**
 	 * @return true if the parent should be loaded given the enabled fetch groups
 	 */
 	public boolean shouldLoadParent(Set<Class<?>> enabledGroups);
-	
+
 	/**
 	 * @return true if the id field is uppercase-Long, which can be genearted.
 	 */

@@ -195,6 +195,15 @@ public class EntityClassTranslator<T> extends ClassTranslator<T> implements KeyM
 		return idMeta.getProperty().getName();
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.impl.KeyMetadata#getIdFieldType()
+	 */
+	@Override
+	public Class<?> getIdFieldType() {
+		// The id must be Long, long, or String, therefore the type is always a Class
+		return (Class<?>)idMeta.getProperty().getType();
+	}
+
 	/**
 	 * @return true if the id field is numeric, false if it is String
 	 */
