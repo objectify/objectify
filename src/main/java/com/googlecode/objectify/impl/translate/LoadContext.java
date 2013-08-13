@@ -1,6 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -11,6 +14,7 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * The context of a load operation, which may extend across several entities (for example, a batch).
@@ -31,6 +35,9 @@ public class LoadContext
 
 	/** The key of the current root entity; will change as multiple entities are loaded */
 	Key<?> currentRoot;
+	
+	/** As we enter and exit embedded contexts, track the objects */
+	Deque<Object> owners = new ArrayDeque<Object>(); 
 
 	/** */
 	public LoadContext(Loader loader, LoadEngine batch) {
@@ -91,5 +98,40 @@ public class LoadContext
 	 */
 	public Set<Class<?>> getLoadGroups() {
 		return loader.getLoadGroups();
+	}
+
+	/**
+	 * Get the owner object which is appropriate for the specified property. Go up the chain looking for a compatible
+	 * type; the first one found is the owner. If nothing found, throw an exception - this should be impossible because
+	 * we validated the class structure when we created the owner.
+	 */
+	public Object getOwner(Property ownerProp) {
+		Class<?> ownerClass = GenericTypeReflector.erase(ownerProp.getType());
+		
+		Iterator<Object> ownersIt = owners.descendingIterator();
+		while (ownersIt.hasNext()) {
+			Object potentialOwner = ownersIt.next();
+			
+			if (ownerClass.isAssignableFrom(potentialOwner.getClass()))
+				return potentialOwner;
+		}
+		
+		throw new IllegalStateException("No owner matching " + ownerProp + " in " + owners + ". This should be impossible.");
+	}
+	
+	/**
+	 * Enter an "owner" context; this is the context of the object that we are processing right now.
+	 */
+	public void enterOwnerContext(Object owner) {
+		owners.addLast(owner);
+	}
+	
+	/**
+	 * Exit an "owner" context. The parameter is just a sanity check to make sure that the value popped off is the same
+	 * as the value we expect.
+	 */
+	public void exitOwnerContext(Object expectedOwner) {
+		Object popped = owners.removeLast();
+		assert popped == expectedOwner;
 	}
 }
