@@ -19,7 +19,7 @@
 	<property name="build.dir" location="target" />
 	<property name="build.javadoc.dir" location="${build.dir}/apidocs" />
 
-	<property name="javadoc.dir" value="javadoc" />
+	<property name="javadoc.dir" value="../objectify-docs/apidocs" />
 
 	<target name="clean">
 		<delete dir="${build.dir}" />
