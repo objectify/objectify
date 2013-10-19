@@ -125,6 +125,6 @@ public class EmbedOwnerTests extends TestBase
 
 	@Test(expectedExceptions=IllegalStateException.class)
 	public void registeringBadOwnerFieldThrowsException() throws Exception {
-		fact().register(HasEmbed.class);
+		fact().register(BadHasEmbed.class);
 	}
 }
