@@ -12,32 +12,21 @@ import com.googlecode.objectify.Work;
  */
 abstract public class Transactor<O extends Objectify>
 {
-	/** Our owner */
-	protected ObjectifyImpl<O> ofy;
-
 	/** Our session */
 	protected Session session;
 
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	public Transactor(ObjectifyImpl<O> ofy) {
-		this(ofy, new Session());
+	public Transactor() {
+		this(new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	public Transactor(ObjectifyImpl<O> ofy, Session session) {
-		this.ofy = ofy;
+	public Transactor(Session session) {
 		this.session = session;
-	}
-
-	/**
-	 * @return the objectify impl instance associated with this transaction state
-	 */
-	public ObjectifyImpl<O> getObjectify() {
-		return ofy;
 	}
 
 	/**
@@ -53,23 +42,24 @@ abstract public class Transactor<O extends Objectify>
 	abstract public TransactionImpl getTransaction();
 
 	/**
+	 * @param parent is the parent objectify instance; the one being transitioned from
 	 * @return an Objectify instance that is suitable for transactionless execution. In the case of a
 	 * transactor which is not in a transaction, probably this is the same as getObjectify().
 	 */
-	abstract public ObjectifyImpl<O> transactionless();
+	abstract public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent);
 
 	/**
 	 * @see Objectify#execute(TxnType, Work)
 	 */
-	abstract public <R> R execute(TxnType txnType, Work<R> work);
+	abstract public <R> R execute(ObjectifyImpl<O> parent, TxnType txnType, Work<R> work);
 
 	/**
 	 * @see Objectify#transact(Work)
 	 */
-	abstract public <R> R transact(Work<R> work);
+	abstract public <R> R transact(ObjectifyImpl<O> parent, Work<R> work);
 
 	/**
 	 * @see Objectify#transactNew(int, Work)
 	 */
-	abstract public <R> R transactNew(int limitTries, Work<R> work);
+	abstract public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work);
 }

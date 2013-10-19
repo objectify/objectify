@@ -14,6 +14,11 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+/**
+ * @author jeff
+ *
+ * @param <O>
+ */
 public class TransactorNo<O extends Objectify> extends Transactor<O>
 {
 	/** */
@@ -21,14 +26,14 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 
 	/**
 	 */
-	public TransactorNo(ObjectifyImpl<O> ofy) {
-		super(ofy);
+	public TransactorNo() {
+		super();
 	}
 
 	/**
 	 */
-	public TransactorNo(ObjectifyImpl<O> ofy, Session session) {
-		super(ofy, session);
+	public TransactorNo(Session session) {
+		super(session);
 	}
 
 	/* (non-Javadoc)
@@ -44,15 +49,15 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless()
 	 */
 	@Override
-	public ObjectifyImpl<O> transactionless() {
-		return ofy;
+	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent) {
+		return parent;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(TxnType txnType, Work<R> work) {
+	public <R> R execute(ObjectifyImpl<O> parent, TxnType txnType, Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
@@ -64,7 +69,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 
 			case REQUIRED:
 			case REQUIRES_NEW:
-				return transact(work);
+				return transact(parent, work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
@@ -73,21 +78,21 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#transact(com.googlecode.objectify.Work)
+	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transact(Work<R> work) {
-		return this.transactNew(Integer.MAX_VALUE, work);
+	public <R> R transact(ObjectifyImpl<O> parent, Work<R> work) {
+		return this.transactNew(parent, Integer.MAX_VALUE, work);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactNew(int, com.googlecode.objectify.Work)
+	 * @see com.googlecode.objectify.impl.Transactor#transactNew(com.googlecode.objectify.impl.ObjectifyImpl, int, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transactNew(int limitTries, Work<R> work) {
+	public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work) {
 		while (true) {
 			try {
-				return transactOnce(work);
+				return transactOnce(parent, work);
 			} catch (ConcurrentModificationException ex) {
 				if (limitTries-- > 0) {
 					if (log.isLoggable(Level.WARNING))
@@ -105,8 +110,8 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(Work<R> work) {
-		Objectify txnOfy = startTransaction();
+	private <R> R transactOnce(ObjectifyImpl<O> parent, Work<R> work) {
+		Objectify txnOfy = startTransaction(parent);
 		try {
 			ObjectifyService.push(txnOfy);
 
@@ -131,8 +136,8 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	/**
 	 * Create a new transactional session by cloning this instance and resetting the transactor component.
 	 */
-	Objectify startTransaction() {
-		ObjectifyImpl<O> cloned = ofy.clone();
+	Objectify startTransaction(ObjectifyImpl<O> parent) {
+		ObjectifyImpl<O> cloned = parent.clone();
 		cloned.transactor = new TransactorYes<O>(cloned, this);
 		return cloned;
 	}

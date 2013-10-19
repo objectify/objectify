@@ -19,6 +19,7 @@ import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 
@@ -37,8 +38,7 @@ public class TransactionTests extends TestBase
 
 	/** */
 	@Test
-	public void testSimpleTransaction() throws Exception
-	{
+	public void testSimpleTransaction() throws Exception {
 		fact().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
@@ -60,16 +60,14 @@ public class TransactionTests extends TestBase
 	/** */
 	@Entity
 	@Cache
-	static class HasSimpleCollection
-	{
+	static class HasSimpleCollection {
 		@Id Long id;
 		List<String> stuff = new ArrayList<String>();
 	}
 
 	/** */
 	@Test
-	public void testInAndOutOfTransaction() throws Exception
-	{
+	public void testInAndOutOfTransaction() throws Exception {
 		fact().register(HasSimpleCollection.class);
 
 		final HasSimpleCollection simple = new HasSimpleCollection();
@@ -96,8 +94,7 @@ public class TransactionTests extends TestBase
 	 * However, it doesn't seem to trigger even without the logic fix in ListenableFuture.
 	 */
 	@Test
-	public void testConcurrencyFailure() throws Exception
-	{
+	public void testConcurrencyFailure() throws Exception {
 		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
@@ -130,8 +127,7 @@ public class TransactionTests extends TestBase
 	/**
 	 */
 	@Test
-	public void testTransactWork() throws Exception
-	{
+	public void testTransactWork() throws Exception {
 		fact().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
@@ -192,8 +188,7 @@ public class TransactionTests extends TestBase
 
 	/** */
 	@Test
-	public void testTransactionless() throws Exception
-	{
+	public void testTransactionless() throws Exception {
 		fact().register(Thing.class);
 
 		for (int i=1; i<10; i++) {
@@ -216,8 +211,7 @@ public class TransactionTests extends TestBase
 	/**
 	 */
 	@Test
-	public void testTransactionRollback() throws Exception
-	{
+	public void testTransactionRollback() throws Exception {
 		fact().register(Trivial.class);
 
 		try {
@@ -236,4 +230,19 @@ public class TransactionTests extends TestBase
 		assert fetched == null;
 	}
 
+	/**
+	 * This is a somewhat clunky way to test this, and requires making impl.getCache() public,
+	 * but it gets the job done.
+	 */
+	@Test
+	public void transactionalObjectifyInheritsCacheSetting() throws Exception {
+		ofy().cache(false).transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				// Test in _and out_ of a transaction
+				ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
+				assert txnlessImpl.getCache() == false;
+			}
+		});
+	}
 }

@@ -41,7 +41,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected Double deadline;
 
 	/** */
-	protected Transactor<O> transactor = new TransactorNo<O>(this);
+	protected Transactor<O> transactor = new TransactorNo<O>();
 
 	/**
 	 */
@@ -139,7 +139,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	@SuppressWarnings("unchecked")
 	public O transactionless() {
-		return (O)transactor.transactionless();
+		return (O)transactor.transactionless(this);
 	}
 
 	/* (non-Javadoc)
@@ -166,7 +166,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R execute(TxnType txnType, Work<R> work) {
-		return transactor.execute(txnType, work);
+		return transactor.execute(null, txnType, work);
 	}
 
 	/* (non-Javadoc)
@@ -174,7 +174,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R transact(Work<R> work) {
-		return transactor.transact(work);
+		return transactor.transact(this, work);
 	}
 
 	/* (non-Javadoc)
@@ -190,7 +190,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R transactNew(int limitTries, Work<R> work) {
-		return transactor.transactNew(limitTries, work);
+		return transactor.transactNew(this, limitTries, work);
 	}
 
 	/* (non-Javadoc)
@@ -314,7 +314,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	}
 
 	/** @return true if cache is enabled */
-	protected boolean getCache() {
+	public boolean getCache() {
 		return cache;
 	}
 
