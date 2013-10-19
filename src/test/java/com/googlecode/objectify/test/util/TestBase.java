@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test.util;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.logging.Logger;
 
 import org.testng.annotations.AfterMethod;
@@ -18,8 +20,6 @@ import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFilter;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -75,6 +75,12 @@ public class TestBase
 
 	/** Get a DatastoreService */
 	protected DatastoreService ds() {
-		return DatastoreServiceFactory.getDatastoreService();
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+
+//		Collection<Transaction> active = ds.getActiveTransactions();
+//		if (active.size() > 0)
+//			throw new IllegalStateException("Active is: " + active);
+		
+		return ds;
 	}
 }
