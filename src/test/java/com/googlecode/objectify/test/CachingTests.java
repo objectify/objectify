@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -11,19 +14,16 @@ import java.util.logging.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
 /**
- * Normally we run all tests with caching enabled.  This lets us mix cached
- * and uncached in batches to see what happens.
- *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CachingTests extends TestBase
@@ -34,8 +34,7 @@ public class CachingTests extends TestBase
 
 	/** */
 	@Entity
-	static class Uncached
-	{
+	static class Uncached {
 		@Id Long id;
 		String stuff;
 	}
@@ -43,8 +42,7 @@ public class CachingTests extends TestBase
 	/** */
 	@Entity
 	@Cache
-	static class Cached
-	{
+	static class Cached {
 		@Id Long id;
 		String stuff;
 	}
@@ -52,8 +50,7 @@ public class CachingTests extends TestBase
 	/**
 	 */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		super.setUp();
 
 		fact().register(Uncached.class);
@@ -62,8 +59,7 @@ public class CachingTests extends TestBase
 
 	/** */
 	@Test
-	public void testHeterogeneousBatch() throws Exception
-	{
+	public void testHeterogeneousBatch() throws Exception {
 		Uncached un1 = new Uncached();
 		un1.stuff = "un1 stuff";
 
@@ -91,5 +87,36 @@ public class CachingTests extends TestBase
 		assert fetched.containsKey(Key.create(un2));
 		assert fetched.containsKey(Key.create(ca1));
 		assert fetched.containsKey(Key.create(ca2));
+	}
+	
+	/** */
+	@Entity
+	@Cache(expirationSeconds=1)
+	static class Expires {
+		@Id Long id;
+		String stuff;
+	}
+
+	/** */
+	@Test
+	public void cacheExpirationWorks() throws Exception {
+		fact().register(Expires.class);
+		
+		Expires exp = new Expires();
+		exp.stuff = "foo";
+		
+		Key<Expires> key = ofy().save().entity(exp).now();
+		ofy().clear();
+		ofy().load().key(key).now();	// cached now
+		
+		MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
+		
+		Object thing = ms.get(key.getString());
+		assert thing != null;
+		
+		Thread.sleep(2000);
+		
+		Object thing2 = ms.get(key.getString());
+		assert thing2 == null;
 	}
 }
