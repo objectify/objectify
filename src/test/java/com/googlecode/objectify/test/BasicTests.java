@@ -17,6 +17,9 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -269,5 +272,30 @@ public class BasicTests extends TestBase
 		Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).now();
 
 		assert fetched.getSomeString().equals(triv1.getSomeString());
+	}
+	
+	
+	@Entity
+	static class HasParent {
+		@Parent Key<Trivial> parent;
+		@Id long id;
+	}
+	
+	/** Simply delete an entity which has a parent */
+	@Test
+	public void deleteAnEntityWithAParent() throws Exception {
+		fact().register(Trivial.class);
+		fact().register(HasParent.class);
+		
+		HasParent hp = new HasParent();
+		hp.parent = Key.create(Trivial.class, 123L);
+		hp.id = 456L;
+		
+		Key<HasParent> hpKey = ofy().save().entity(hp).now();
+		ofy().clear();
+		assert ofy().load().key(hpKey).now() != null;
+		ofy().delete().entity(hp).now();
+		ofy().clear();
+		assert ofy().load().key(hpKey).now() == null;
 	}
 }
