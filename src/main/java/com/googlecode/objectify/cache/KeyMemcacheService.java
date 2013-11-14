@@ -1,6 +1,7 @@
 package com.googlecode.objectify.cache;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +17,8 @@ import com.google.common.collect.Sets;
 
 /**
  * Subset of MemcacheService used by EntityMemcache, but smart enough to translate Key into the stringified
- * version so that the memcache keys are intelligible.
+ * version so that the memcache keys are intelligible. Also guards against calling through to the underlying
+ * service when the operation is a no-op (ie, the collection of keys to operate on is empty).
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -67,25 +69,40 @@ public class KeyMemcacheService
 	}
 
 	public Map<Key, IdentifiableValue> getIdentifiables(Collection<Key> keys) {
+		if (keys.isEmpty())
+			return Collections.emptyMap();
+		
 		Map<String, IdentifiableValue> map = service.getIdentifiables(stringify(keys));
 		return keyify(map);
 	}
 
 	public Map<Key, Object> getAll(Collection<Key> keys) {
+		if (keys.isEmpty())
+			return Collections.emptyMap();
+			
 		Map<String, Object> map = service.getAll(stringify(keys));
 		return keyify(map);
 	}
 
 	public void putAll(Map<Key, Object> map) {
+		if (map.isEmpty())
+			return;
+		
 		service.putAll(stringify(map));
 	}
 
 	public Set<Key> putIfUntouched(Map<Key, CasValues> map) {
+		if (map.isEmpty())
+			return Collections.emptySet();
+		
 		Set<String> result = service.putIfUntouched(stringify(map));
 		return keyify(result);
 	}
 
 	public void deleteAll(Collection<Key> keys) {
+		if (keys.isEmpty())
+			return;
+		
 		service.deleteAll(stringify(keys));
 	}
 
