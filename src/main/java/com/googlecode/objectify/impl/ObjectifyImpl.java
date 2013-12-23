@@ -166,7 +166,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R execute(TxnType txnType, Work<R> work) {
-		return transactor.execute(null, txnType, work);
+		return transactor.execute(this, txnType, work);
 	}
 
 	/* (non-Javadoc)

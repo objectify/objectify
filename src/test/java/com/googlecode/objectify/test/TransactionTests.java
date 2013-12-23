@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
@@ -242,6 +243,18 @@ public class TransactionTests extends TestBase
 				// Test in _and out_ of a transaction
 				ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
 				assert txnlessImpl.getCache() == false;
+			}
+		});
+	}
+	
+	/**
+	 */
+	@Test
+	public void executeMethodWorks() throws Exception {
+		ofy().execute(TxnType.REQUIRED, new VoidWork() {
+			@Override
+			public void vrun() {
+				assert ofy().load().type(Trivial.class).id(123L).now() == null;
 			}
 		});
 	}
