@@ -31,6 +31,9 @@ public class TranslatorRegistry
 
 	/** Where we should insert new translators */
 	int insertPoint;
+	
+	/** Where we should insert new early translators */
+	int earlyInsertPoint;
 
 	/**
 	 * Initialize the default set of converters in the proper order.
@@ -41,6 +44,10 @@ public class TranslatorRegistry
 
 		// The order is CRITICAL!
 		this.translators.add(new TranslateTranslatorFactory(true));	// Early translators get first shot at everything
+		
+		// Magic inflection point at which we want to prioritize added EARLY translators
+		this.earlyInsertPoint = this.translators.size();
+		
 		this.translators.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translators.add(new ByteArrayTranslatorFactory());
 		this.translators.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
@@ -75,6 +82,16 @@ public class TranslatorRegistry
 	 */
 	public void add(TranslatorFactory<?> trans) {
 		this.translators.add(insertPoint, trans);
+		insertPoint++;
+	}
+	
+	/**
+	 * <p>Add a new translator to the beginning of the list, before all other translators
+	 * except other translators that have been added early.</p>
+	 */
+	public void addEarly(TranslatorFactory<?> trans) {
+		this.translators.add(earlyInsertPoint, trans);
+		earlyInsertPoint++;
 		insertPoint++;
 	}
 
