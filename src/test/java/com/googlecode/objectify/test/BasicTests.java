@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -38,7 +39,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testGenerateId() throws Exception {
+	public void idIsGenerated() throws Exception {
 		fact().register(Trivial.class);
 
 		// Note that 5 is not the id, it's part of the payload
@@ -57,10 +58,19 @@ public class BasicTests extends TestBase
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
 		assert fetched.getSomeString().equals(triv.getSomeString());
 	}
+	
+	/** */
+	@Test(expectedExceptions=SaveException.class)
+	public void savingNullNamedIdThrowsException() throws Exception {
+		fact().register(NamedTrivial.class);
+		
+		NamedTrivial triv = new NamedTrivial(null, "foo", 5);
+		ofy().save().entity(triv).now();
+	}
 
 	/** */
 	@Test
-	public void testOverwriteId() throws Exception {
+	public void savingEntityWithSameIdOverwritesData() throws Exception {
 		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
@@ -80,7 +90,7 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testNames() throws Exception {
+	public void savingEntityWithNameIdWorks() throws Exception {
 		fact().register(NamedTrivial.class);
 
 		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
