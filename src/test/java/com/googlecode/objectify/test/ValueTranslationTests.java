@@ -17,6 +17,7 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
@@ -212,6 +213,51 @@ public class ValueTranslationTests extends TestBase
 		HasStringIndexInversion fetched = this.putClearGet(has);
 
 		assert fetched.string.equals(BIG_STRING);
+	}
+	
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasText
+	{
+		public @Id Long id;
+		public Text text;
+	}
+
+	/**
+	 * Stored Strings can be converted to Text in the data model
+	 */
+	@Test
+	public void stringsCanBeConvertedToText() throws Exception
+	{
+		fact().register(HasText.class);
+
+		Entity ent = new Entity(Key.getKind(HasText.class));
+		ent.setProperty("text", "foo");	// setting a string
+		ds().put(null, ent);
+
+		Key<HasText> key = Key.create(ent.getKey());
+		HasText fetched = ofy().load().key(key).now();
+
+		assert fetched.text.getValue().equals("foo");
+	}
+
+	/**
+	 * Stored numbers can be converted to Text in the data model
+	 */
+	@Test
+	public void numbersCanBeConvertedToText() throws Exception
+	{
+		fact().register(HasText.class);
+
+		Entity ent = new Entity(Key.getKind(HasText.class));
+		ent.setProperty("text", 2);	// setting a number
+		ds().put(null, ent);
+
+		Key<HasText> key = Key.create(ent.getKey());
+		HasText fetched = ofy().load().key(key).now();
+
+		assert fetched.text.getValue().equals("2");
 	}
 
 	/** */

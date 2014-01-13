@@ -61,6 +61,7 @@ public class TranslatorRegistry
 		this.insertPoint = this.translators.size();
 
 		this.translators.add(new StringTranslatorFactory());
+		this.translators.add(new TextTranslatorFactory());
 		this.translators.add(new NumberTranslatorFactory());
 		this.translators.add(new KeyTranslatorFactory());
 		this.translators.add(new RefTranslatorFactory());
