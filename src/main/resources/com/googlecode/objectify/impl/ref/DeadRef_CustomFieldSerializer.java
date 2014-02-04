@@ -19,10 +19,7 @@ public class DeadRef_CustomFieldSerializer extends CustomFieldSerializer<DeadRef
 		Key<Object> key = (Key<Object>)streamReader.readObject();
 		Object value = streamReader.readObject();
 
-		// if DeadRef created on client side populate key
-		if (key == null && value != null)
-			key = Key.create(value);
-
+		// The difference from server code is that we keep the value on the client
 		return new DeadRef<Object>(key, value);
 	}
 

@@ -32,6 +32,9 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 
 	/** Doesn't set the key! Dangerous. */
 	public static <T> Ref<T> create(T value) {
+		if (value == null)
+			throw new NullPointerException("Cannot create a Ref from a null value");
+
 		return new DeadRef<T>(value);
 	}
 
@@ -57,9 +60,6 @@ public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	/**
 	 */
 	public Key<T> key() {
-		if (key == null)
-			throw new IllegalStateException("This ref was created without a key, and we cannot determine keys on GWT client-side");
-
 		return key;
 	}
 
