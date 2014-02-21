@@ -98,6 +98,11 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * Determines whether this is a SELECT DISTINCT query.
 	 */
 	public SimpleQuery<T> distinct(boolean value);
+	
+	/**
+	 * Reverse the query, as described in the <a href="https://developers.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/Query#reverse()">GAE docs</a>.
+	 */
+	public SimpleQuery<T> reverse();
 
 	/**
 	 * <p>This method forces Objectify to (or not to) hybridize the query into a keys-only fetch plus batch get.</p>

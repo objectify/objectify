@@ -85,22 +85,6 @@ public class EmbedMapTests extends TestBase
 		assert (fetched.primitives.equals(hml.primitives));
 	}
 
-	@com.googlecode.objectify.annotation.Entity
-	public static class MissingEmbedMapAnnotation {
-		@Id
-		Long id;
-
-		Map<String, Long> primitives = new HashMap<String, Long>();
-	}
-
-	/**
-	 * We shouldn't be able to register without the @EmbedMap annotation; secures future compatiblity
-	 */
-	@Test(expectedExceptions=IllegalStateException.class)
-	public void testMissingEmbedMapAnnotation() throws Exception {
-		fact().register(MissingEmbedMapAnnotation.class);
-	}
-
 	/**
 	 * We should be able to store a Key<?> as the EmbedMap key
 	 */

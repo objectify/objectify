@@ -110,4 +110,10 @@ public interface Query<T> extends SimpleQuery<T>
 	 */
 	@Override
 	public Query<T> hybrid(boolean force);
+	
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#reverse()
+	 */
+	@Override
+	public Query<T> reverse();
 }

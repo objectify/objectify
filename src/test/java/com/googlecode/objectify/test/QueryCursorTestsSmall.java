@@ -136,4 +136,37 @@ public class QueryCursorTestsSmall extends TestBase
 		it = q.startAt(cursor).iterator();
 		assert !it.hasNext();
 	}
+
+	/** */
+	@Test
+	public void cursorReverses() throws Exception {
+		Query<Trivial> q = ofy().load().type(Trivial.class).order("id");
+		QueryResultIterator<Trivial> it = q.iterator();
+
+		@SuppressWarnings("unused")
+		Cursor cursor0 = it.getCursor();
+		final Trivial item1 = it.next();
+
+		Cursor cursor1 = it.getCursor();
+		final Trivial item2 = it.next();
+		assert !it.hasNext();
+
+		Cursor cursor2 = it.getCursor();
+		Cursor cursor2Rev = it.getCursor().reverse();
+
+		it = q.reverse().startAt(cursor2Rev).iterator();
+
+		final Trivial item2Rev = it.next();
+
+		assert it.getCursor().equals(cursor2);
+		assert item2Rev.getSomeString().equals(item2.getSomeString());
+
+		assert it.hasNext();
+
+		final Trivial item1Rev = it.next();
+
+		assert it.getCursor().equals(cursor1);
+		assert item1Rev.getSomeString().equals(item1.getSomeString());
+		assert !it.hasNext();
+	}
 }

@@ -269,6 +269,11 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		this.actual.setDistinct(value);
 	}
 
+	/** Modifies the instance, switching directions */
+	void toggleReverse() {
+		this.actual = this.actual.reverse();
+	}
+
 	/* (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
