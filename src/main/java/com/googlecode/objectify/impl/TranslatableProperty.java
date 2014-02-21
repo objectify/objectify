@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.impl.translate.MapTranslatorFactory.MapMapNodeTranslator;
+import com.googlecode.objectify.impl.translate.EmbedMapTranslatorFactory.MapMapNodeTranslator;
 import com.googlecode.objectify.impl.translate.MapifyTranslatorFactory.MapifyListNodeTranslator;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;

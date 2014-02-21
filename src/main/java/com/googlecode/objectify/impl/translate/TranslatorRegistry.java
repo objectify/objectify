@@ -53,7 +53,7 @@ public class TranslatorRegistry
 		this.translators.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
 		this.translators.add(new CollectionTranslatorFactory());
 		this.translators.add(new MapifyTranslatorFactory());
-		this.translators.add(new MapTranslatorFactory());
+		this.translators.add(new EmbedMapTranslatorFactory());
 		this.translators.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 		this.translators.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
 
