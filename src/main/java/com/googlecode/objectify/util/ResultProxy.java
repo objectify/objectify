@@ -1,5 +1,7 @@
 package com.googlecode.objectify.util;
 
+import java.io.ObjectStreamException;
+import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -11,7 +13,7 @@ import com.googlecode.objectify.Result;
  * A dynamic proxy that wraps a Result<?> value.  For example, if you had a Result<List<String>>, the
  * proxy would implement List<String> and call through to the inner object.
  */
-public class ResultProxy<T> implements InvocationHandler
+public class ResultProxy<T> implements InvocationHandler, Serializable
 {
 	/**
 	 * Create a ResultProxy for the given interface.
@@ -31,4 +33,9 @@ public class ResultProxy<T> implements InvocationHandler
 	public Object invoke(Object obj, Method meth, Object[] params) throws Throwable {
 		return meth.invoke(result.now(), params);
 	}
+	
+	private Object writeReplace() throws ObjectStreamException {
+        return new NowProxy<T>(result.now());
+    }
+	
 }
