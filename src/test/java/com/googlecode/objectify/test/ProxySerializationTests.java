@@ -11,11 +11,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 
@@ -67,5 +69,24 @@ public class ProxySerializationTests extends TestBase
 		
 		assert back.size() == 1;
 		assert back.get(0).getId().equals(triv.getId());
+	}
+	
+	/** */
+	@Test
+	public void loadMapCanBeSerialized() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv = new Trivial("foo", 5);
+		Key<Trivial> k = ofy().save().entity(triv).now();
+
+		@SuppressWarnings("unchecked")
+		Map<Key<Trivial>, Trivial> trivs = ofy().load().keys(k);
+		
+		serialize(trivs);
+		
+		Map<Key<Trivial>, Trivial> back = deserialize();
+		
+		assert back.size() == 1;
+		assert back.get(k).getId().equals(triv.getId());
 	}
 }
