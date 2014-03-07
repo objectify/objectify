@@ -1,7 +1,11 @@
 package com.googlecode.objectify.impl;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.IgnoreSave;
@@ -24,6 +28,10 @@ public class FieldProperty extends AbstractProperty
 	
 	/** If we have an @IgnoreSave and it isn't Always */
 	boolean hasIgnoreSaveConditions;
+	
+	private static final MethodHandles.Lookup lookup = MethodHandles.lookup();
+	private static final Map<Field, MethodHandle> setHandles = new HashMap<>();
+	private static final Map<Field, MethodHandle> getHandles = new HashMap<>();
 	
 	/**
 	 * @param examinedClass is the actual top level concrete class we are examining; the field might
@@ -66,15 +74,33 @@ public class FieldProperty extends AbstractProperty
 	/** */
 	@Override
 	public void set(Object pojo, Object value) {
-		try { this.field.set(pojo, value); }
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+		try {
+			MethodHandle mh = setHandles.get(field);
+			if (mh == null) {
+				mh = lookup.unreflectSetter(field);
+				setHandles.put(field, mh);
+			}
+			mh.invoke(pojo, value);
+		}
+		catch (Throwable ex) { 
+			throw new RuntimeException(ex); 
+		}
 	}
 	
 	/** */
 	@Override
 	public Object get(Object pojo) {
-		try { return this.field.get(pojo); }
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+		try { 
+			MethodHandle mh = getHandles.get(field);
+			if (mh == null) {
+				mh = lookup.unreflectGetter(field);
+				getHandles.put(field, mh);
+			}
+			return mh.invoke(field.getDeclaringClass().cast(pojo)); 
+		}
+		catch (Throwable ex) { 
+			throw new RuntimeException(ex); 
+		}
 	}
 
 	/** */
