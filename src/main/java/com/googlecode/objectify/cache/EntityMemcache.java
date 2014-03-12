@@ -181,6 +181,14 @@ public class EntityMemcache
 	}
 
 	/**
+	 * Sets the error handler for the non-retry memcache object.
+	 */
+	@SuppressWarnings("deprecation")
+	public void setErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
+		this.memcache.setErrorHandler(handler);
+	}
+	
+	/**
 	 * <p>Gets the Buckets for the specified keys.  A bucket is built around an IdentifiableValue so you can
 	 * putAll() them without the risk of overwriting other threads' changes.  Buckets also hide the
 	 * underlying details of storage for negative, empty, and uncacheable results.</p>
