@@ -185,6 +185,14 @@ public class ObjectifyFactory
 	 */
 	public EntityMemcacheStats getMemcacheStats() { return this.memcacheStats; }
 
+	/**
+	 * Sets the error handler for the main memcache object.
+	 */
+	@SuppressWarnings("deprecation")
+	public void setMemcacheErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
+		this.entityMemcache.setErrorHandler(handler);
+	}
+
 	//
 	// Stuff which should only be necessary internally, but might be useful to others.
 	//
