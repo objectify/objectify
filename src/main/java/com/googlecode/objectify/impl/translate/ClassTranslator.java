@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Owner;
 import com.googlecode.objectify.impl.Node;
@@ -67,6 +68,9 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 						// Sanity check here
 						if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
 							throw new IllegalStateException("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
+						
+						if (prop.getType().equals(Object.class) || prop.getType().equals(EmbeddedEntity.class))
+							ctx.leaveEmbeddedEntityAloneHere(propPath);
 		
 						this.foundTranslatableProperty(tprop);
 					}
@@ -127,6 +131,7 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 	@Override
 	protected Node saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
 		Node node = new Node(path);
+		node.setPropertyIndexed(index);
 
 		for (TranslatableProperty<Object> prop: props)
 			prop.executeSave(pojo, node, index, ctx);

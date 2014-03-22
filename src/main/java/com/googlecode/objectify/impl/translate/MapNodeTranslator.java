@@ -33,6 +33,10 @@ abstract public class MapNodeTranslator<T> extends AbstractTranslator<T>
 		if (pojo == null) {
 			Node node = new Node(path);
 			node.setPropertyValue(null, index);
+			
+			if (index)
+				ctx.addIndex(path, null);
+			
 			return node;
 		} else {
 			return this.saveMap(pojo, path, index, ctx);

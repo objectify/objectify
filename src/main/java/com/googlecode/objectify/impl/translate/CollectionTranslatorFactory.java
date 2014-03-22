@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
@@ -53,6 +54,9 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
 			if (componentType == null)	// if it was a raw type, just assume Object
 				componentType = Object.class;
+			
+			if (componentType.equals(Object.class) || componentType.equals(EmbeddedEntity.class))
+				ctx.leaveEmbeddedEntityAloneHere(path);
 
 			final Translator<Object> componentTranslator = fact.getTranslators().create(path, property, componentType, ctx);
 
@@ -86,6 +90,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 						throw new SkipException();
 
 					Node node = new Node(path);
+					node.setPropertyIndexed(index);
 
 					for (Object obj: pojo) {
 						try {

@@ -105,6 +105,7 @@ public class EmbedMapTranslatorFactory implements TranslatorFactory<Map<Object, 
 				// Note that maps are not like embedded collections; they don't form a list structure so you can embed
 				// as many of these as you want.
 				Node node = new Node(path);
+				node.setPropertyIndexed(index);
 
 				for (Map.Entry<Object, ?> entry: pojo.entrySet()) {
 					if (entry.getKey() == null)

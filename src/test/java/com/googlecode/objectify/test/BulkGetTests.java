@@ -21,7 +21,6 @@ public class BulkGetTests extends TestBase
 {
 	/** */
 	@Test
-	@SuppressWarnings("unchecked")
 	public void testOrderOfBulkGet()
 	{
 		fact().register(Trivial.class);

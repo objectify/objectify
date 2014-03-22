@@ -10,7 +10,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -38,6 +40,12 @@ public class Transmog<T>
 
 	/** */
 	Set<Path> embedCollectionPoints;
+	
+	/** */
+	Set<Path> leaveEmbeddedEntityAlonePoints;
+	
+	/** */
+	ObjectifyFactory fact;
 
 	/**
 	 * Creats a transmog for the specified class, introspecting it and discovering
@@ -45,9 +53,12 @@ public class Transmog<T>
 	 */
 	public Transmog(ObjectifyFactory fact, Class<T> clazz)
 	{
+		this.fact = fact;
+		
 		CreateContext ctx = new CreateContext(fact);
 		this.rootTranslator = new EntityClassTranslator<T>(clazz, ctx);
 		this.embedCollectionPoints = ctx.getEmbedCollectionPoints();
+		this.leaveEmbeddedEntityAlonePoints = ctx.getLeaveEmbeddedEntityAlonePoints();
 	}
 
 	/** */
@@ -98,11 +109,35 @@ public class Transmog<T>
 
 			Node root = saveToNode(fromPojo, ctx);
 			Entity entity = save(root);
+			
+			createSyntheticIndexes(entity, ctx);
+			
 			return entity;
 		}
 		catch (SaveException ex) { throw ex; }
 		catch (Exception ex) {
 			throw new SaveException(fromPojo, ex.getMessage(), ex);
+		}
+	}
+
+	/**
+	 * If we are in v2 mode, this will establish any synthetic dot-separate indexes
+	 * for embedded things that are indexed.
+	 */
+	private void createSyntheticIndexes(Entity entity, SaveContext ctx) {
+		
+		// Only do this for v2
+		if (!fact.getSaveWithNewEmbedFormat())
+			return;
+
+		// Look for anything with depth more than 1; these are embedded things
+		for (Map.Entry<Path, Collection<Object>> index: ctx.getIndexes().entrySet()) {
+			Path path = index.getKey();
+			Collection<Object> values = index.getValue();
+			
+			if (path.isEmbedded()) {
+				entity.setProperty(path.toPathString(), values);
+			}
 		}
 	}
 
@@ -135,7 +170,7 @@ public class Transmog<T>
 		Node root = this.loadLiterally(fromEntity);
 
 		// No embed collections?  No changes necessary, we can optimize out the graph walk
-		if (!this.embedCollectionPoints.isEmpty())
+		if (!this.embedCollectionPoints.isEmpty() && needsModificationIntoTranslateFormat(fromEntity))
 			this.modifyIntoTranslateFormat(root);
 
 		// Last step, add the key fields to the root Node so they get populated just like every other field would.
@@ -159,7 +194,24 @@ public class Transmog<T>
 
 		return root;
 	}
+	
+	/**
+	 * v1 embed format needs modification. We determine that the entity is in the v2 format
+	 * if there are any EmbeddedEntity objects at the collection embed points.
+	 * 
+	 * @return true if the entity has the v1 embedded format
+	 */
+	private boolean needsModificationIntoTranslateFormat(Entity fromEntity) {
+		for (Path path: embedCollectionPoints) {
+			Object value = fromEntity.getProperty(path.toPathString());
+			if (value != null && value instanceof Collection) {
+				return false;
+			}
+		}
 
+		return true;
+	}
+	
 	/**
 	 * <p>Break down the Entity into a series of nested Nodes which literally reflect
 	 * the exact x.y.z paths of the properties in the Entity.</p>
@@ -194,13 +246,63 @@ public class Transmog<T>
 
 			Node list = bottom.path(path.getSegment());
 			for (Object obj: coll) {
-				Node map = list.addToList();
-				map.setPropertyValue(obj);
+				Node content = recursivelyBuildNode(list.getPath(), obj);
+				list.addToList(content);
 			}
+		} else if (value instanceof EmbeddedEntity && !shouldLeaveEmbeddedEntityAlone(path)) {
+			for (Map.Entry<String, Object> entry: ((EmbeddedEntity)value).getProperties().entrySet()) {
+				populateNode(root, path.extend(entry.getKey()), entry.getValue());
+			}
+				
 		} else {
 			Node map = bottom.path(path.getSegment());
 			map.setPropertyValue(value);
 		}
+	}
+	
+	/**
+	 * This is a hacked-in alternative way of constructing nodes which we use when we
+	 * hit a List or EmbeddedEntity structure. We know that there will be no more dot-separated
+	 * components at this point, so we can use a more traditional recursive construction process.
+	 * This is a mess that will go away when we get rid of the Node system.
+	 */
+	private Node recursivelyBuildNode(Path path, Object value) {
+		if (value instanceof Collection) {
+			@SuppressWarnings("unchecked")
+			Collection<Object> coll = (Collection<Object>)value;
+
+			Node list = new Node(path);
+			
+			for (Object obj: coll) {
+				Node content = recursivelyBuildNode(list.getPath(), obj);
+				list.addToList(content);
+			}
+			
+			return list;
+			
+		} else if (value instanceof EmbeddedEntity && !shouldLeaveEmbeddedEntityAlone(path)) {
+			Node map = new Node(path);
+			
+			for (Map.Entry<String, Object> entry: ((EmbeddedEntity)value).getProperties().entrySet()) {
+				Node prop = recursivelyBuildNode(path.extend(entry.getKey()), entry.getValue());
+				map.addToMap(prop);
+			}
+			
+			return map;
+				
+		} else {
+			Node thing = new Node(path);
+			thing.setPropertyValue(value);
+			return thing;
+		}
+	}
+
+	/**
+	 * @return true if EmbeddedEntity should be left unmunged into nodes. This will be the case
+	 * if the field it gets assigned to is of type EmbeddedEntity or Object.
+	 */
+	private boolean shouldLeaveEmbeddedEntityAlone(Path path) {
+		return leaveEmbeddedEntityAlonePoints.contains(path);
 	}
 
 	/**
@@ -255,7 +357,7 @@ public class Transmog<T>
 			Node nullsNode = thingsBefore.remove(Path.NULL_INDEXES);	// take this out of the data model
 			Set<Integer> nulls = getNullIndexes(nullsNode);
 
-			// We must de-collecitonize the subgraph
+			// We must de-collectionize the subgraph
 			List<Node> thingsAfter = new ArrayList<Node>();
 
 			int beforeIndex = 0;
@@ -364,18 +466,56 @@ public class Transmog<T>
 				: new Entity(DatastoreUtils.createKey(parent, getKeyMetadata().getKind(), id));
 
 		// Step two is populate the entity fields recursively
-		populateFields(ent, root, false);
+		if (fact.getSaveWithNewEmbedFormat()) {
+			ent.setPropertiesFrom((PropertyContainer)convertToNewFormat(root));
+		} else {
+			populateFieldsOldFormat(ent, root, false);
+		}
 
 		return ent;
 	}
+	
+	/**
+	 * Create the datastore-level structure that corresponds to the Node. This will recurse through the
+	 * node structure; the value returned will either be a List, PropertyContainer, or some sort of native storage type.
+	 * This is the new format for embedded structures.
+	 */
+	private Object convertToNewFormat(Node node) {
+		if (node.hasMap()) {
+			EmbeddedEntity emb = new EmbeddedEntity();
+			
+			for (Node child: node) {
+				Object value = convertToNewFormat(child);
+				setEntityProperty(emb, child.getPath().getSegment(), value, child.isPropertyIndexed());
+			}
+			
+			return emb;
+			
+		} else if (node.hasList()) {
+			// A normal collection of leaf property values
+			List<Object> things = new ArrayList<Object>(node.size());
 
+			for (Node child: node) {
+				things.add(convertToNewFormat(child));
+			}
+
+			return things;
+			
+		} else if (node.hasPropertyValue()) {
+			return node.getPropertyValue();
+			
+		} else {
+			throw new IllegalStateException("Shouldn't be possible");
+		}
+	}
+	
 	/**
 	 * Recursively populate all the nodes onto the entity.
 	 *
 	 * @param collectionize if true means that the value should be put in a collection property value at the end of the chain.
 	 *  This goes to true whenever we hit an embedded collection.
 	 */
-	private void populateFields(Entity entity, Node node, boolean collectionize) {
+	private void populateFieldsOldFormat(Entity entity, Node node, boolean collectionize) {
 		if (node.hasList()) {
 			if (embedCollectionPoints.contains(node.getPath())) {
 				// Watch for nulls to create the ^null collection
@@ -386,7 +526,7 @@ public class Transmog<T>
 					if (child instanceof Node && ((Node)child).hasPropertyValue() && ((Node)child).getPropertyValue() == null)
 						nullIndexes.add(index);
 					else
-						populateFields(entity, child, true);	// just switch to collectionizing
+						populateFieldsOldFormat(entity, child, true);	// just switch to collectionizing
 
 					index++;
 				}
@@ -430,14 +570,14 @@ public class Transmog<T>
 
 			if (node.hasMap()) {
 				for (Node child: node) {
-					populateFields(entity, child, collectionize);
+					populateFieldsOldFormat(entity, child, collectionize);
 				}
 			}
 		}
 	}
 
 	/** Utility method */
-	private void setEntityProperty(Entity entity, String propertyName, Object value, boolean index) {
+	private void setEntityProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
 		if (index)
 			entity.setProperty(propertyName, value);
 		else

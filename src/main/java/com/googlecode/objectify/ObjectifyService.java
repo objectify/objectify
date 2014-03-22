@@ -18,7 +18,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 public class ObjectifyService
 {
 	/** */
-	private static ObjectifyFactory factory = new ObjectifyFactory();
+	private static ObjectifyFactory factory = new ObjectifyFactory(false);
 
 	/** */
 	public static void setFactory(ObjectifyFactory fact) {

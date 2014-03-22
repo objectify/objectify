@@ -138,4 +138,24 @@ public class Path
 	public Object throwIllegalState(String message, Throwable cause) {
 		throw new IllegalStateException("At path '" + this + "': " + message, cause);
 	}
+	
+	/**
+	 * ROOT is 0, top level Entity properties are 1, embedded things are higher.
+	 */
+	public int depth() {
+		int depth = 0;
+		
+		Path here = this;
+		while (here != ROOT) {
+			depth++;
+			here = here.previous;
+		}
+		
+		return depth;
+	}
+	
+	/** Anything with a depth greater than 1 is embedded */
+	boolean isEmbedded() {
+		return depth() > 1;
+	}
 }

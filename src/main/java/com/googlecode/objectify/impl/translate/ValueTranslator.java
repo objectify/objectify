@@ -55,6 +55,9 @@ abstract public class ValueTranslator<P, D> extends PropertyValueNodeTranslator<
 			path.throwIllegalState("Request to index a value that cannot be indexed: " + translated);
 
 		node.setPropertyValue(translated, index);
+		
+		if (index)
+			ctx.addIndex(path, translated);
 
 		return node;
 	}

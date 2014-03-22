@@ -69,6 +69,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 						throw new SkipException();
 
 					Node node = new Node(path);
+					node.setPropertyIndexed(index);
 
 					for (int i=0; i<len; i++) {
 						try {

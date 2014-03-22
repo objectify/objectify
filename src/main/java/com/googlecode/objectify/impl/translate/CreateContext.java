@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -33,6 +34,9 @@ public class CreateContext
 	
 	/** List of path points at which we start an embedded collection (including array) */
 	Set<Path> embedCollectionPoints;
+	
+	/** Points which have type Object or EmbeddedEntity and therefore should not be munged into nodes */
+	Set<Path> leaveEmbeddedEntityAlonePoints = Sets.newHashSet();
 	
 	/** As we enter and exit embedded contexts, track the classes */
 	Deque<Class<?>> owners = new ArrayDeque<Class<?>>(); 
@@ -112,7 +116,7 @@ public class CreateContext
 	
 	/**
 	 * Search the owner chain for a compatible class; if nothing found, throw a user-friendly exception
-	 * @throws IllegalStateException if propery class is not appropriate for the owner chain.
+	 * @throws IllegalStateException if property class is not appropriate for the owner chain.
 	 */
 	public void verifyOwnerProperty(Path path, Property prop) {
 		Class<?> ownerClass = GenericTypeReflector.erase(prop.getType());
@@ -126,5 +130,15 @@ public class CreateContext
 		}
 		
 		throw new IllegalStateException("No compatible class matching " + prop + " in the owner hierarchy " + owners);
+	}
+
+	/** */
+	public Set<Path> getLeaveEmbeddedEntityAlonePoints() {
+		return leaveEmbeddedEntityAlonePoints;
+	}
+	
+	/** */
+	public void leaveEmbeddedEntityAloneHere(Path path) {
+		leaveEmbeddedEntityAlonePoints.add(path);
 	}
 }

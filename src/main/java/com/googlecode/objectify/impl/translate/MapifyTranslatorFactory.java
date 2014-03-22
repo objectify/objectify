@@ -96,6 +96,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 						throw new SkipException();
 
 					Node node = new Node(path);
+					node.setPropertyIndexed(index);
 
 					for (Object obj: pojo.values()) {
 						try {

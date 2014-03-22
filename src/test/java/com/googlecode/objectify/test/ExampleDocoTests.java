@@ -19,6 +19,8 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 /**
  * Tests that a certain-shaped Town results in the correct datastore Entity.
  * The to-string of the Entity is also cut-and-pasted into the Wiki documentation
+ * 
+ * Because this code examines the 
  */
 public class ExampleDocoTests extends TestBase
 {
@@ -26,6 +28,7 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testFirstExample() throws Exception
 	{
+		fact().setSaveWithNewEmbedFormat(false);
 		fact().register(Town.class);
 
 		com.google.appengine.api.datastore.Entity e;
@@ -85,6 +88,7 @@ public class ExampleDocoTests extends TestBase
 	@Test
 	public void testNullEmbedded2() throws Exception
 	{
+		fact().setSaveWithNewEmbedFormat(false);
 		fact().register(Town.class);
 
 		com.google.appengine.api.datastore.Entity e;

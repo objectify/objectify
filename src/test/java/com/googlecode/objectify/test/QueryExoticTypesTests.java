@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -18,9 +21,6 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
 import com.googlecode.objectify.test.util.TestBase;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of queries of odd field types.
@@ -168,6 +168,8 @@ public class QueryExoticTypesTests extends TestBase
 
 		cal1.set(2010, 7, 26);
 		Date thruDate = cal1.getTime();
+		
+//		List<com.google.appengine.api.datastore.Entity> ents = new ArrayList<>(ds().prepare(new com.google.appengine.api.datastore.Query()).asList(FetchOptions.Builder.withDefaults()));
 
 		Query<HasFromThruDate> q =
 			ofy().load().type(HasFromThruDate.class)

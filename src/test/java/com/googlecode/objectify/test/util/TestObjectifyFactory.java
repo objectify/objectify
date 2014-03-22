@@ -7,6 +7,10 @@ import com.googlecode.objectify.ObjectifyFactory;
  */
 public class TestObjectifyFactory extends ObjectifyFactory
 {
+	public TestObjectifyFactory() {
+		super(true);
+	}
+	
 	@Override
 	public TestObjectify begin()
 	{

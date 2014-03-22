@@ -1,10 +1,15 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.SetMultimap;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.Reference;
 import com.googlecode.objectify.util.IdentityMultimapList;
@@ -27,6 +32,12 @@ public class SaveContext
 	 * The problem is that when saving, the id may not be set yet, so we can't track keys.
 	 */
 	IdentityMultimapList<Object, Reference> references = new IdentityMultimapList<Object, Reference>();
+	
+	/**
+	 * Track all indexed values here. We may need to use some of this data to create synthetic
+	 * indexes at the top level (ie, dot-separated indexes for v2 embedded saves).
+	 */
+	SetMultimap<Path, Object> indexes = HashMultimap.create();
 
 	/** */
 	public SaveContext(Objectify ofy) {
@@ -53,5 +64,15 @@ public class SaveContext
 			return Collections.emptyList();
 		else
 			return list;
+	}
+	
+	/** */
+	public void addIndex(Path path, Object object) {
+		indexes.put(path, object);
+	}
+	
+	/** */
+	public Map<Path, Collection<Object>> getIndexes() {
+		return indexes.asMap();
 	}
 }
