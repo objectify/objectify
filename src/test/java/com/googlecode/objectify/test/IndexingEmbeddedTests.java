@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;

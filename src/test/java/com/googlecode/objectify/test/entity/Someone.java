@@ -1,7 +1,6 @@
 package com.googlecode.objectify.test.entity;
 
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 
 /**
  */

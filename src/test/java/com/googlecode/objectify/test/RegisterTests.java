@@ -4,7 +4,6 @@ import org.testng.annotations.Test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;

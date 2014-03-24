@@ -7,9 +7,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Owner;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TranslatableProperty;
@@ -17,12 +17,11 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.util.LogUtils;
 
 /**
- * Translator which knows what to do with a whole class.  This is used by the EmbedClassTranslatorFactory and
- * also subclassed to produce an EntityClassTranslator, which is managed specially.
+ * Translator which knows how to convert a POJO into a PropertiesContainer (ie, Entity or EmbeddedEntity).
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ClassTranslator<T> extends MapNodeTranslator<T>
+public class ClassTranslator<T> implements Translator<T>
 {
 	private static final Logger log = Logger.getLogger(ClassTranslator.class.getName());
 
@@ -52,25 +51,18 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 			}
 		}
 
-		ctx.enterOwnerContext(clazz);
-		try {
+//		ctx.enterOwnerContext(clazz);
+//		try {
 			for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 				Path propPath = path.extend(prop.getName());
 				try {
 					if (prop.getAnnotation(Owner.class) != null) {
-						ctx.verifyOwnerProperty(propPath, prop);
+//						ctx.verifyOwnerProperty(propPath, prop);
 						owners.add(prop);
 					} else {
 						Translator<Object> loader = fact.getTranslators().create(propPath, prop, prop.getType(), ctx);
 						TranslatableProperty<Object> tprop = new TranslatableProperty<Object>(prop, loader);
 						props.add(tprop);
-		
-						// Sanity check here
-						if (prop.hasIgnoreSaveConditions() && ctx.isInCollection() && ctx.isInEmbed())	// of course we're in embed
-							throw new IllegalStateException("You cannot use conditional @IgnoreSave within @Embed collections. @IgnoreSave is only allowed without conditions.");
-						
-						if (prop.getType().equals(Object.class) || prop.getType().equals(EmbeddedEntity.class))
-							ctx.leaveEmbeddedEntityAloneHere(propPath);
 		
 						this.foundTranslatableProperty(tprop);
 					}
@@ -78,10 +70,10 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 					// Catch any errors during this process and wrap them in an exception that exposes more useful information.
 					propPath.throwIllegalState("Error registering " + clazz.getName(), ex);
 				}
-			}
-		} finally {
-			ctx.exitOwnerContext(clazz);
-		}
+//			}
+//		} finally {
+//			ctx.exitOwnerContext(clazz);
+//		}
 	}
 
 	/** */
@@ -92,11 +84,8 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 	 */
 	protected void foundTranslatableProperty(TranslatableProperty<Object> tprop) {}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#loadMap(com.googlecode.objectify.impl.Node, com.googlecode.objectify.impl.translate.LoadContext)
-	 */
 	@Override
-	protected T loadMap(Node node, LoadContext ctx) {
+	public T load(Object node, LoadContext ctx) throws SkipException {
 		if (log.isLoggable(Level.FINEST))
 			log.finest(LogUtils.msg(node.getPath(), "Instantiating a " + clazz.getName()));
 
@@ -125,17 +114,22 @@ public class ClassTranslator<T> extends MapNodeTranslator<T>
 		return pojo;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.translate.MapNodeTranslator#saveMap(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
-	 */
 	@Override
-	protected Node saveMap(T pojo, Path path, boolean index, SaveContext ctx) {
-		Node node = new Node(path);
-		node.setPropertyIndexed(index);
+	public Object save(T pojo, Path path, boolean index, SaveContext ctx) throws SkipException {
+		PropertyContainer container = constructContainer();
 
-		for (TranslatableProperty<Object> prop: props)
-			prop.executeSave(pojo, node, index, ctx);
+		for (TranslatableProperty<Object> prop: props) {
+			prop.executeSave(pojo, container, path, index, ctx);
+		}
 
-		return node;
+		return container;
 	}
+
+	/**
+	 *
+	 */
+	protected PropertyContainer constructContainer() {
+		return new EmbeddedEntity();
+	}
+}
 }

@@ -69,27 +69,6 @@ public class ObjectifyFactory
 	/** Manages caching of entities at a low level */
 	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	
-	/** If true, save @Embed structures using EmbeddedEntity */
-	protected boolean saveWithNewEmbedFormat;
-	
-	/**
-	 * @param saveWithNewEmbedFormat controls whether @Embed value should be saved in the new EmbeddedEntity format.
-	 * You should turn this on and migrate all data when you are ready. At some point in the future, the old format
-	 * will no longer be supported.
-	 */
-	public ObjectifyFactory(boolean saveWithNewEmbedFormat) {
-		this.saveWithNewEmbedFormat = saveWithNewEmbedFormat;
-	}
-	
-	/** If true, save @Embed structures using EmbeddedEntity */
-	public boolean getSaveWithNewEmbedFormat() { return saveWithNewEmbedFormat; }
-	
-	/** 
-	 * Setting this true causes @Embed structures to be saved with the new EmbeddedEntity format.
-	 * Objectify will recognize either format on load.
-	 */
-	public void setSaveWithNewEmbedFormat(boolean value) { this.saveWithNewEmbedFormat = value; }
-
 	/**
 	 * <p>Construct an instance of the specified type.  Objectify uses this method whenever possible to create
 	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other

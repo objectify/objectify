@@ -18,7 +18,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TranslateException;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.test.util.TestBase;

@@ -5,7 +5,6 @@ import java.util.Collection;
 
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;

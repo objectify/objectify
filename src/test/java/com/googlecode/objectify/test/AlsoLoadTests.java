@@ -18,7 +18,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;

@@ -9,14 +9,6 @@ import com.googlecode.objectify.util.LangUtils;
  */
 public class Path
 {
-	/**
-	 * Unfortunately, we made a mistake in the original definition of the ^null property for embedded
-	 * collections.  Instead of thing.^null we defined it as thing^null, which requires special casing.
-	 * So we are fixing this now - we read thing^null as thing.^null, and always save as thing.^null.
-	 * Some day in the far future we can remove this hack.
-	 */
-	public static final String NULL_INDEXES = "^null";
-
 	/** */
 	private static final Path ROOT = new Path("", null);
 	public static Path root() {
@@ -33,33 +25,6 @@ public class Path
 	private Path(String name, Path path) {
 		segment = name;
 		previous = path;
-	}
-
-	/** Convert an x.y.z path string back into a Path */
-	public static Path of(String pathString) {
-		if (pathString.length() == 0)
-			return ROOT;
-		else
-			return ofImpl(ROOT, pathString, 0);
-	}
-
-	/** Recursive implementation of of() */
-	private static Path ofImpl(Path here, String pathString, int begin) {
-		int end = pathString.indexOf('.', begin);
-		if (end < 0) {
-			String part = pathString.substring(begin);
-
-			// HACK HERE, see javadoc for NULL_INDEX
-			if (part.length() > NULL_INDEXES.length() && part.endsWith(NULL_INDEXES)) {
-				String base = part.substring(0, part.length()-NULL_INDEXES.length());
-				return here.extend(base).extend(NULL_INDEXES);
-			} else {
-				return here.extend(part);
-			}
-		} else {
-			String part = pathString.substring(begin, end);
-			return ofImpl(here.extend(part), pathString, end+1);
-		}
 	}
 
 	/** Create the full x.y.z string */

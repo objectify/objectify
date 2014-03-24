@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.LogUtils;
 

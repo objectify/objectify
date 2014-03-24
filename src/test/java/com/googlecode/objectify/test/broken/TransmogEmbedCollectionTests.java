@@ -12,9 +12,7 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.FakeLoadContext;

@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**

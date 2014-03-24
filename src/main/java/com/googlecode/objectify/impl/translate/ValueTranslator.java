@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 
 /**

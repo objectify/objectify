@@ -2,7 +2,6 @@ package com.googlecode.objectify.test.entity;
 
 import java.io.Serializable;
 
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.util.LangUtils;
 
 /**

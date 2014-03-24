@@ -12,7 +12,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 

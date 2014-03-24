@@ -5,8 +5,6 @@ import java.util.Map;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.EmbedMap;
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;

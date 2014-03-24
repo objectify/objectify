@@ -7,8 +7,6 @@ import java.util.Map;
 
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Embed;
-import com.googlecode.objectify.annotation.EmbedMap;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.LangUtils;

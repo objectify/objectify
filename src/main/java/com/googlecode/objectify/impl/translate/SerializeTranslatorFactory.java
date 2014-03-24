@@ -15,7 +15,6 @@ import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 import com.google.appengine.api.datastore.Blob;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;

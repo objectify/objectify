@@ -13,7 +13,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.util.TestBase;

@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.EmbedMapTranslatorFactory.MapMapNodeTranslator;
@@ -108,13 +109,14 @@ public class TranslatableProperty<T> {
 	}
 
 	/**
-	 * Gets the appropriate field value from the pojo and puts it in the node with the appropriate key for this
-	 * property.
+	 * Gets the appropriate field value from the pojo and puts it in the container at the appropriate prop name
+	 * and with the appropriate indexing.
+	 *
 	 * @param onPojo is the parent pojo which holds the property we represent
-	 * @param node is the node that corresponds to the parent pojo; we create a new node and put it in here
+	 * @param containerPath is the path to the container; each property will extend this path.
 	 * @param index is the default state of indexing up to this point
 	 */
-	public void executeSave(Object onPojo, Node node, boolean index, SaveContext ctx) {
+	public void executeSave(Object onPojo, PropertyContainer container, Path containerPath, boolean index, SaveContext ctx) {
 		if (property.isSaved(onPojo)) {
 			// Look for an override on indexing
 			Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
@@ -124,14 +126,22 @@ public class TranslatableProperty<T> {
 			@SuppressWarnings("unchecked")
 			T value = (T)property.get(onPojo);
 			try {
-				Path path = node.getPath().extend(property.getName());
-				Node child = translator.save(value, path, index, ctx);
-				node.put(property.getName(), child);
+				Path nextPath = containerPath.extend(property.getName());
+				Object propValue = translator.save(value, nextPath, index, ctx);
+				setEntityProperty(container, property.getName(), propValue, index);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing
 			}
 		}
+	}
+
+	/** Utility method */
+	private void setEntityProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
+		if (index)
+			entity.setProperty(propertyName, value);
+		else
+			entity.setUnindexedProperty(propertyName, value);
 	}
 
 	/**

@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;

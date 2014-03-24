@@ -5,7 +5,6 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
