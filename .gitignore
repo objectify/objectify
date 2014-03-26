@@ -5,3 +5,7 @@ test-output
 .svn
 .gwt
 .gradle
+.classpath
+.project
+.idea
+objectify.iml
