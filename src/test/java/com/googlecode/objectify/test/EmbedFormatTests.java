@@ -1,13 +1,5 @@
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.common.collect.Lists;
@@ -17,6 +9,13 @@ import com.googlecode.objectify.annotation.Embed;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.Collections;
+import java.util.List;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  */
@@ -181,6 +180,20 @@ public class EmbedFormatTests extends TestBase
 		HasEmbeddedEntityList fetched = this.putClearGet(h);
 		assert fetched.list.size() == 1;
 		assert fetched.list.get(0).getProperty("stuff").equals("stuff0");
+	}
+
+	/** */
+	@Test
+	public void emptyListSaves() throws Exception {
+		fact().register(HasEmbeddedEntityList.class);
+		fact().setSaveWithNewEmbedFormat(true);
+
+		HasEmbeddedEntityList outer = new HasEmbeddedEntityList();
+
+		Key<HasEmbeddedEntityList> key = ofy().save().entity(outer).now();
+
+		Entity entity = ds().get(key.getRaw());
+		assert entity.getProperties().size() == 0;
 	}
 
 	/** */

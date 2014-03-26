@@ -1,15 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PropertyContainer;
@@ -21,7 +11,18 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.EntityClassTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.util.DatastoreUtils;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>Transmogrifies POJO entities into datastore Entity objects and vice-versa.</p>
@@ -474,19 +475,21 @@ public class Transmog<T>
 
 		return ent;
 	}
-	
+
 	/**
 	 * Create the datastore-level structure that corresponds to the Node. This will recurse through the
 	 * node structure; the value returned will either be a List, PropertyContainer, or some sort of native storage type.
 	 * This is the new format for embedded structures.
 	 */
-	private Object convertToNewFormat(Node node) {
+	private Object convertToNewFormat(Node node) throws SkipException {
 		if (node.hasMap()) {
 			EmbeddedEntity emb = new EmbeddedEntity();
 			
 			for (Node child: node) {
-				Object value = convertToNewFormat(child);
-				setEntityProperty(emb, child.getPath().getSegment(), value, child.isPropertyIndexed());
+				try {
+					Object value = convertToNewFormat(child);
+					setEntityProperty(emb, child.getPath().getSegment(), value, child.isPropertyIndexed());
+				} catch (SkipException ex) {}
 			}
 			
 			return emb;
@@ -496,7 +499,9 @@ public class Transmog<T>
 			List<Object> things = new ArrayList<Object>(node.size());
 
 			for (Node child: node) {
-				things.add(convertToNewFormat(child));
+				try {
+					things.add(convertToNewFormat(child));
+				} catch (SkipException ex) {}
 			}
 
 			return things;
@@ -505,7 +510,8 @@ public class Transmog<T>
 			return node.getPropertyValue();
 			
 		} else {
-			throw new IllegalStateException("Shouldn't be possible");
+			// Happens when we have empty embedded collections. In which case we should do nothing.
+			throw new SkipException();
 		}
 	}
 	
