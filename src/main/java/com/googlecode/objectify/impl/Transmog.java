@@ -228,6 +228,11 @@ public class Transmog<T>
 
 		for (Map.Entry<String, Object> prop: fromEntity.getProperties().entrySet()) {
 			Path path = Path.of(prop.getKey());
+
+			// If we have a new format entity, don't try to populate the synthetic index
+			if (path.isEmbedded() && fromEntity.hasProperty(path.getPrevious().toPathString()))
+				continue;
+
 			populateNode(root, path, prop.getValue());
 		}
 

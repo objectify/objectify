@@ -239,5 +239,39 @@ public class EmbedFormatTests extends TestBase
 		OuterWithIndex fetched = ofy().load().type(OuterWithIndex.class).filter("inner.stuff", "stuff").iterator().next();
 		assert fetched.inner.stuff.equals(inner.stuff);
 	}
-	
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class OuterWithListIndex {
+		@Id Long id;
+
+		List<InnerIndexed> inner = Lists.newArrayList();
+		public OuterWithListIndex() { }
+		public OuterWithListIndex(InnerIndexed inner) {
+			this.inner.add(inner);
+		}
+	}
+
+	/** */
+	@Test
+	public void v2ListIndexFormatIsCorrect() throws Exception {
+		fact().register(OuterWithListIndex.class);
+		fact().setSaveWithNewEmbedFormat(true);
+
+		InnerIndexed inner = new InnerIndexed("stuff0");
+		OuterWithListIndex outer = new OuterWithListIndex(inner);
+
+		Key<OuterWithListIndex> key = ofy().save().entity(outer).now();
+
+		Entity entity = ds().get(key.getRaw());
+		assert entity.getProperties().size() == 2;
+		assert entity.getProperty("inner.stuff").equals(Collections.singletonList("stuff0"));
+		assert !entity.isUnindexedProperty("inner.stuff");
+
+		ofy().clear();
+		OuterWithListIndex fetched = ofy().load().type(OuterWithListIndex.class).filter("inner.stuff", "stuff0").iterator().next();
+		assert fetched.inner.size() == 1;
+		assert fetched.inner.get(0).stuff.equals(inner.stuff);
+	}
 }
