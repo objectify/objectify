@@ -2,6 +2,10 @@ build
 target
 test-output
 .settings
+.project
+.classpath
+.idea
+objectify.iml
 .svn
 .gwt
 .gradle
