@@ -70,22 +70,13 @@
 	</profiles>
 
 	<build>
+		<!--
 		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/NotFoundException.java</include>
-					<include>**/*_CustomFieldSerializer.java</include>
-				</includes>
-				<excludes>
-					<!-- We have a special way of doing this on client, pulled in as a normal resource -->
-					<exclude>com/googlecode/objectify/impl/ref/LiveRef_CustomFieldSerializer.java</exclude>
-				</excludes>
-			</resource>
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
 		</resources>
+		-->
 
 		<plugins>
 			<plugin>
