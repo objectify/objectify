@@ -9,6 +9,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.ResultWrapper;
 
 
@@ -68,9 +69,8 @@ public class SaverImpl implements Saver
 		if (pojo instanceof Entity) {
 			return (Entity)pojo;
 		} else {
-			@SuppressWarnings("unchecked")
-			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());
-			return meta.save(pojo, new SaveContext(ofy));
+			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.<Object>getClass());
+			return meta.<Object>save(pojo, new SaveContext(ofy));
 		}
 	}
 

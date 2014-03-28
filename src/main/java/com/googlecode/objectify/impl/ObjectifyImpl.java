@@ -247,7 +247,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		// really have a lot of information about it.  We could use type information from the matched field, but there's
 		// no guarantee that there is a field to check - it could be a typeless query or a query on an old property value.
 		// The only real solution is to create a (non root!) translator on the fly.  Even that is not straightforward,
-		// because erasure wipes out any component type information in a collection.
+		// because erasure wipes out any component type information in a collection. We don't know what the collection
+		// contains.
 		//
 		// The answer:  Check for collections explicitly.  Create a separate translator for every item in the collection;
 		// after all, it could be a heterogeneous list.  This is not especially efficient but GAE only allows a handful of
@@ -278,7 +279,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 			} else {
 				// Run it through the translator
 				Translator<Object> translator = factory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(factory()));
-				Node node = translator.save(value, Path.root(), false, new SaveContext(this));
+				Node node = translator.save(value, false, new SaveContext(this), Path.root());
 				return getFilterableValue(node, value);
 			}
 		}

@@ -113,7 +113,7 @@ public class EmbedMapTranslatorFactory implements TranslatorFactory<Map<Object, 
 					if (key.contains("."))
 						throw new IllegalArgumentException("Map keys cannot contain '.' characters");
 
-					Node child = componentTranslator.save(entry.getValue(), path.extend(key), index, ctx);
+					Node child = componentTranslator.save(entry.getValue(), index, ctx, path.extend(key));
 					node.addToMap(child);
 				}
 

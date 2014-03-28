@@ -99,7 +99,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 					for (Object obj: pojo.values()) {
 						try {
-							Node child = componentTranslator.save(obj, path, index, ctx);
+							Node child = componentTranslator.save(obj, index, ctx, path);
 							node.addToList(child);
 						}
 						catch (SkipException ex) {

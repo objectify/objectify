@@ -3,6 +3,8 @@ package com.googlecode.objectify.impl.translate;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
@@ -27,13 +29,16 @@ public class TranslatorRegistry
 	ObjectifyFactory fact;
 
 	/** */
-	List<TranslatorFactory<?>> translators = new ArrayList<TranslatorFactory<?>>();
+	List<TranslatorFactory<?>> translatorFactories = new ArrayList<TranslatorFactory<?>>();
 
 	/** Where we should insert new translators */
 	int insertPoint;
 	
 	/** Where we should insert new early translators */
 	int earlyInsertPoint;
+
+	/** */
+	Map<TranslatorKey, Translator<?>> translators = new ConcurrentHashMap<>();
 
 	/**
 	 * Initialize the default set of converters in the proper order.
@@ -43,35 +48,35 @@ public class TranslatorRegistry
 		this.fact = fact;
 
 		// The order is CRITICAL!
-		this.translators.add(new TranslateTranslatorFactory(true));	// Early translators get first shot at everything
+		this.translatorFactories.add(new TranslateTranslatorFactory(true));	// Early translators get first shot at everything
 		
 		// Magic inflection point at which we want to prioritize added EARLY translators
-		this.earlyInsertPoint = this.translators.size();
+		this.earlyInsertPoint = this.translatorFactories.size();
 		
-		this.translators.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
-		this.translators.add(new ByteArrayTranslatorFactory());
-		this.translators.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
-		this.translators.add(new CollectionTranslatorFactory());
-		this.translators.add(new MapifyTranslatorFactory());
-		this.translators.add(new EmbedMapTranslatorFactory());
-		this.translators.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
-		this.translators.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
+		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
+		this.translatorFactories.add(new ByteArrayTranslatorFactory());
+		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
+		this.translatorFactories.add(new CollectionTranslatorFactory());
+		this.translatorFactories.add(new MapifyTranslatorFactory());
+		this.translatorFactories.add(new EmbedMapTranslatorFactory());
+		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
+		this.translatorFactories.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
 
 		// Magic inflection point at which we want to prioritize added translators
-		this.insertPoint = this.translators.size();
+		this.insertPoint = this.translatorFactories.size();
 
-		this.translators.add(new StringTranslatorFactory());
-		this.translators.add(new TextTranslatorFactory());
-		this.translators.add(new NumberTranslatorFactory());
-		this.translators.add(new KeyTranslatorFactory());
-		this.translators.add(new RefTranslatorFactory());
-		this.translators.add(new EnumTranslatorFactory());
-		this.translators.add(new SqlDateTranslatorFactory());
-		this.translators.add(new TimeZoneTranslatorFactory());
-		this.translators.add(new URLTranslatorFactory());
+		this.translatorFactories.add(new StringTranslatorFactory());
+		this.translatorFactories.add(new TextTranslatorFactory());
+		this.translatorFactories.add(new NumberTranslatorFactory());
+		this.translatorFactories.add(new KeyTranslatorFactory());
+		this.translatorFactories.add(new RefTranslatorFactory());
+		this.translatorFactories.add(new EnumTranslatorFactory());
+		this.translatorFactories.add(new SqlDateTranslatorFactory());
+		this.translatorFactories.add(new TimeZoneTranslatorFactory());
+		this.translatorFactories.add(new URLTranslatorFactory());
 
 		// LAST!  It catches everything.
-		this.translators.add(new AsIsTranslatorFactory());
+		this.translatorFactories.add(new AsIsTranslatorFactory());
 	}
 
 	/**
@@ -82,7 +87,7 @@ public class TranslatorRegistry
 	 * <p>Translators are added in-order so earlier translaters pre-empt later translators.</p>
 	 */
 	public void add(TranslatorFactory<?> trans) {
-		this.translators.add(insertPoint, trans);
+		this.translatorFactories.add(insertPoint, trans);
 		insertPoint++;
 	}
 	
@@ -91,19 +96,20 @@ public class TranslatorRegistry
 	 * except other translators that have been added early.</p>
 	 */
 	public void addEarly(TranslatorFactory<?> trans) {
-		this.translators.add(earlyInsertPoint, trans);
+		this.translatorFactories.add(earlyInsertPoint, trans);
 		earlyInsertPoint++;
 		insertPoint++;
 	}
 
 	/**
+	 * Obtains the Translator appropriate for this
 	 * Goes through our list of known translators and returns the first one that succeeds
 	 * @param path is the path to this type, used for logging and debugging
 	 * @param ctx is the context we pass down from the root
 	 * @throws IllegalStateException if no matching loader can be found
 	 */
-	public <T> Translator<T> create(Path path, Property property, Type type, CreateContext ctx) {
-		for (TranslatorFactory<?> trans: this.translators) {
+	public <T> Translator<T> get(Property property, Type type, CreateContext ctx, Path path) {
+		for (TranslatorFactory<?> trans: this.translatorFactories) {
 			@SuppressWarnings("unchecked")
 			Translator<T> soFar = (Translator<T>)trans.create(path, property, type, ctx);
 			if (soFar != null)

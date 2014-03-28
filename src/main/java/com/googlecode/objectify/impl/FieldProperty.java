@@ -53,10 +53,8 @@ public class FieldProperty extends AbstractProperty
 		
 		// Now watch out for @IgnoreSave conditions
 		IgnoreSave ignoreSave = field.getAnnotation(IgnoreSave.class);
-		if (ignoreSave != null) {
-			hasIgnoreSaveConditions = ignoreSave.value().length != 1 || ignoreSave.value()[0] != Always.class;
+		if (ignoreSave != null)
 			ignoreSaveConditions = ifGenerator.generateIfConditions(ignoreSave.value(), field);
-		}
 	}
 	
 	/** */
@@ -96,21 +94,8 @@ public class FieldProperty extends AbstractProperty
 			return true;
 		else if (this.matches(onPojo, unindexConditions))
 			return false;
-		else {
-			// check the declared class for instruction
-			Index ind = field.getDeclaringClass().getAnnotation(Index.class);
-			Unindex unind = field.getDeclaringClass().getAnnotation(Unindex.class);
-			if (ind != null && unind != null)
-				throw new IllegalStateException("You cannot have @Index and @Unindex on the same class: " + field.getDeclaringClass());
-			
-			return (ind != null) ? Boolean.TRUE : ((unind != null) ? Boolean.FALSE : null);
-		}
-	}
-	
-	/** */
-	@Override
-	public boolean hasIgnoreSaveConditions() {
-		return hasIgnoreSaveConditions;
+		else
+			return null;
 	}
 	
 	/**

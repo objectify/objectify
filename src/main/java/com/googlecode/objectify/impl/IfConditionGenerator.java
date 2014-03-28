@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.condition.InitializeIf;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
@@ -13,6 +14,10 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  */
 public class IfConditionGenerator
 {
+	/** For simple cases that always test positive (ie, empty if arrays) */
+	private static final If<?, ?>[] ALWAYS = new If<?, ?>[] { new Always() };
+
+	/** */
 	ObjectifyFactory fact;
 	Class<?> examinedClass;
 	
@@ -25,8 +30,13 @@ public class IfConditionGenerator
 		this.examinedClass = examinedClass;
 	}
 	
-	/** */
+	/**
+	 * Clever enough to recognize that an empty set of conditions means Always.
+	 */
 	public If<?, ?>[] generateIfConditions(Class<? extends If<?, ?>>[] ifClasses, Field field) {
+		if (ifClasses.length == 0)
+			return ALWAYS;
+
 		If<?, ?>[] result = new If<?, ?>[ifClasses.length];
 		
 		for (int i=0; i<ifClasses.length; i++) {
@@ -55,8 +65,7 @@ public class IfConditionGenerator
 	}
 	
 	/** */
-	public If<?, ?> createIf(Class<? extends If<?, ?>> ifClass, Field field)
-	{
+	public If<?, ?> createIf(Class<? extends If<?, ?>> ifClass, Field field) {
 		If<?, ?> created = fact.construct(ifClass);
 		
 		if (created instanceof InitializeIf)

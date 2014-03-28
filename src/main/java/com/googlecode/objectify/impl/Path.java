@@ -64,6 +64,9 @@ public class Path
 	}
 
 	/** */
+	public boolean isRoot() { return this == ROOT; }
+
+	/** */
 	@Override
 	public String toString() {
 		return toPathString();

@@ -34,12 +34,12 @@ public interface Translator<T>
 	 * Translates a pojo (or some component thereof) into a format suitable for storage in the datastore.
 	 *
 	 * @param pojo is an object from the pojo entity graph; possibly the whole graph or possibly just a leaf field.
+	 * @param index is whether the instruction so far is to index or not index property values
 	 * @param path is the path that we have taken to get here, which could be long due to re-entrant translators (ie,
 	 *             an embedded pojo that also has a reference to the same class).
-	 * @param index is whether the instruction so far is to index or not index property values
 	 * @return something suitable for storage in the datastore.
 	 * 
 	 * @throws SkipException if this subtree should not be saved.
 	 */
-	Object save(T pojo, Path path, boolean index, SaveContext ctx) throws SkipException;
+	Object save(T pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
 }

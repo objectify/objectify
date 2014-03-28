@@ -33,7 +33,7 @@ abstract public class AbstractTranslator<T> implements Translator<T>
 	 * @see com.googlecode.objectify.impl.translate.Translator#save(java.lang.Object, com.googlecode.objectify.impl.Path, boolean, com.googlecode.objectify.impl.translate.SaveContext)
 	 */
 	@Override
-	final public Node save(T pojo, Path path, boolean index, SaveContext ctx) {
+	final public Node save(T pojo, boolean index, SaveContext ctx, Path path) {
 		Node n = this.saveAbstract(pojo, path, index, ctx);
 
 		if (log.isLoggable(Level.FINEST))

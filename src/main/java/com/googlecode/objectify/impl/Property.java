@@ -19,6 +19,9 @@ public interface Property
 	/** Get an annotation on this type, or null if there is no annotation of that type */
 	<A extends Annotation> A getAnnotation(Class<A> annoType);
 
+	/** Enumerate the annotations */
+	Annotation[] getAnnotations();
+
 	/** Get the real generic type of the field */
 	Type getType();
 
@@ -42,12 +45,6 @@ public interface Property
 	 * @return true if this field should be indexed, false if it should be unindexed, null is "no information, continue with defaults".
 	 */
 	Boolean getIndexInstruction(Object onPojo);
-	
-	/**
-	 * @return true if the property has @IgnoreSave with conditions; there are some cases where this
-	 *  won't work (ie in embedded collections) so we need to throw an exception at registration time.
-	 */
-	boolean hasIgnoreSaveConditions();
 	
 	/**
 	 * @return true if the property should be loaded when the given loadgroups are active

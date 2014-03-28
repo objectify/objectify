@@ -93,7 +93,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 					for (Object obj: pojo) {
 						try {
-							Node child = componentTranslator.save(obj, path, index, ctx);
+							Node child = componentTranslator.save(obj, index, ctx, path);
 							node.addToList(child);
 						}
 						catch (SkipException ex) {

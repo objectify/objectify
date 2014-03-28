@@ -73,7 +73,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 					for (int i=0; i<len; i++) {
 						try {
 							Object value = Array.get(pojo, i);
-							Node addNode = componentTranslator.save(value, path, index, ctx);
+							Node addNode = componentTranslator.save(value, index, ctx, path);
 							node.addToList(addNode);
 						}
 						catch (SkipException ex) {

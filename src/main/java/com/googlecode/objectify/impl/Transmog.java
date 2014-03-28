@@ -1,16 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.Key;
@@ -99,7 +93,7 @@ public class Transmog<T>
 			// The context needs to know the root entity for any given point
 			ctx.setCurrentRoot(fromPojo);
 
-			Entity entity = (Entity)rootTranslator.save(fromPojo, Path.root(), false, ctx);
+			Entity entity = (Entity)rootTranslator.save(fromPojo, false, ctx, Path.root());
 
 			createSyntheticIndexes(entity, ctx);
 			

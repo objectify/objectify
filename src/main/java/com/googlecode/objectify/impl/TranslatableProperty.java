@@ -105,7 +105,7 @@ public class TranslatableProperty<T> {
 	public Object getValue(Object pojo) {
 		@SuppressWarnings("unchecked")
 		T value = (T)property.get(pojo);
-		return translator.save(value, Path.root(), false, new SaveContext(null)).getPropertyValue();
+		return translator.save(value, false, new SaveContext(null), Path.root()).getPropertyValue();
 	}
 
 	/**
@@ -123,12 +123,12 @@ public class TranslatableProperty<T> {
 			if (propertyIndexInstruction != null)
 				index = propertyIndexInstruction;
 
-			@SuppressWarnings("unchecked")
 			T value = (T)property.get(onPojo);
 			try {
-				Path nextPath = containerPath.extend(property.getName());
-				Object propValue = translator.save(value, nextPath, index, ctx);
-				setEntityProperty(container, property.getName(), propValue, index);
+				Path propPath = containerPath.extend(property.getName());
+				Object propValue = translator.save(value, index, ctx, propPath);
+
+				setContainerProperty(container, property.getName(), propValue, index);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing
@@ -137,7 +137,7 @@ public class TranslatableProperty<T> {
 	}
 
 	/** Utility method */
-	private void setEntityProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
+	private void setContainerProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
 		if (index)
 			entity.setProperty(propertyName, value);
 		else

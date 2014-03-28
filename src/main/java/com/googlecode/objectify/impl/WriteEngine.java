@@ -19,7 +19,7 @@ import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
 
 /**
- * This is the master logic for loading, saving, and deleting entities from the datastore.  It provides the
+ * This is the master logic for saving and deleting entities from the datastore.  It provides the
  * fundamental operations that enable the rest of the API.  One of these engines is created for every operation;
  * upon completion, it is thrown away.
  *
