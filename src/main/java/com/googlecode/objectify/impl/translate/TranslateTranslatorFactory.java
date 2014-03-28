@@ -12,7 +12,7 @@ import com.googlecode.objectify.impl.Property;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TranslateTranslatorFactory implements TranslatorFactory<Object>
+public class TranslateTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	boolean earlyOnly;
 	
@@ -24,7 +24,7 @@ public class TranslateTranslatorFactory implements TranslatorFactory<Object>
 	}
 	
 	@Override
-	public Translator<Object> create(Path path, Property property, Type type, final CreateContext ctx) {
+	public Translator<Object, Object> create(Path path, Property property, Type type, final CreateContext ctx) {
 
 		final Translate translateAnno = property.getAnnotation(Translate.class);
 		
@@ -35,9 +35,9 @@ public class TranslateTranslatorFactory implements TranslatorFactory<Object>
 			return null;
 
 		@SuppressWarnings("unchecked")
-		TranslatorFactory<Object> transFact = (TranslatorFactory<Object>)ctx.getFactory().construct(translateAnno.value());
+		TranslatorFactory<Object, Object> transFact = (TranslatorFactory<Object, Object>)ctx.getFactory().construct(translateAnno.value());
 		
-		Translator<Object> trans = transFact.create(path, property, type, ctx);
+		Translator<Object, Object> trans = transFact.create(path, property, type, ctx);
 		if (trans == null) {
 			path.throwIllegalState("TranslatorFactory " + transFact + " was unable to produce a Translator for " + type);
 			return null;	// never gets here

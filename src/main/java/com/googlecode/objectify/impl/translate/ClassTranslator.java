@@ -9,9 +9,12 @@ import java.util.logging.Logger;
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Owner;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
+import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TranslatableProperty;
@@ -24,23 +27,23 @@ import com.googlecode.objectify.util.LogUtils;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ClassTranslator<T> implements Translator<T>
+public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 {
 	private static final Logger log = Logger.getLogger(ClassTranslator.class.getName());
 
 	/** */
 	private final ObjectifyFactory fact;
-	private final Class<T> clazz;
-	private final List<TranslatableProperty<Object>> props = new ArrayList<TranslatableProperty<Object>>();
+	protected final Class<P> clazz;
+	private final List<TranslatableProperty<Object, Object>> props = new ArrayList<>();
 
 	/** Three-state index instruction for the whole class. Null means "leave it as-is". */
 	private final Boolean indexInstruction;
 	
 	/** Any owner properties, if they exist */
-	private final List<Property> owners = new ArrayList<Property>();
+	private final List<Property> owners = new ArrayList<>();
 
 	/** */
-	public ClassTranslator(Class<T> clazz, Path path, CreateContext ctx) {
+	public ClassTranslator(Class<P> clazz, Path path, CreateContext ctx) {
 		this.fact = ctx.getFactory();
 		this.clazz = clazz;
 
@@ -58,15 +61,21 @@ public class ClassTranslator<T> implements Translator<T>
 
 		indexInstruction = getIndexInstruction(clazz);
 
+		// Look for the key metadata
+		TranslatableProperty<Object, Object> idMeta = null;
+		TranslatableProperty<Object, Object> parentMeta = null;
+
 		for (Property prop: TypeUtils.getProperties(fact, clazz)) {
 			Path propPath = path.extend(prop.getName());
 			try {
 				if (prop.getAnnotation(Owner.class) != null) {
 					owners.add(prop);
 				} else {
-					Translator<Object> translator = fact.getTranslators().get(prop, prop.getType(), ctx, propPath);
-					TranslatableProperty<Object> tprop = new TranslatableProperty<Object>(prop, translator);
-					props.add(tprop);
+					Translator<Object, Object> translator = fact.getTranslators().get(prop, prop.getType(), ctx, propPath);
+					TranslatableProperty<Object, Object> tprop = new TranslatableProperty<>(prop, translator);
+
+					if (consider(tprop))
+						props.add(tprop);
 				}
 			} catch (Exception ex) {
 				// Catch any errors during this process and wrap them in an exception that exposes more useful information.
@@ -79,7 +88,7 @@ public class ClassTranslator<T> implements Translator<T>
 	 * Figure out if there is an index instruction for the whole class.
 	 * @return true, false, or null (which means no info)
 	 */
-	private Boolean getIndexInstruction(Class<T> clazz) {
+	private Boolean getIndexInstruction(Class<P> clazz) {
 		Index ind = clazz.getAnnotation(Index.class);
 		Unindex unind = clazz.getAnnotation(Unindex.class);
 
@@ -94,20 +103,18 @@ public class ClassTranslator<T> implements Translator<T>
 			return null;
 	}
 
-	/** */
-	public Class<?> getTranslatedClass() { return this.clazz; }
-
 	/**
 	 * Called when each property is discovered, allows a subclass to do something special with it
+	 * @return false if the property should not be considered a standard populated property.
 	 */
-	protected void foundTranslatableProperty(TranslatableProperty<Object> tprop) {}
+	protected boolean consider(TranslatableProperty<Object, Object> tprop) { return true; }
 
 	@Override
-	public T load(Object node, LoadContext ctx) throws SkipException {
+	public P load(PropertyContainer node, LoadContext ctx) throws SkipException {
 		if (log.isLoggable(Level.FINEST))
-			log.finest(LogUtils.msg(node.getPath(), "Instantiating a " + clazz.getName()));
+			log.finest("Instantiating a " + clazz.getName()));
 
-		T pojo = fact.construct(clazz);
+		P pojo = fact.construct(clazz);
 		
 		// Load any optional owner properties (only applies when this is an embedded class)
 		for (Property ownerProp: owners) {
@@ -133,13 +140,13 @@ public class ClassTranslator<T> implements Translator<T>
 	}
 
 	@Override
-	public Object save(T pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+	public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
 		if (indexInstruction != null)
 			index = indexInstruction;
 
 		PropertyContainer container = constructContainer(path);
 
-		for (TranslatableProperty<Object> prop: props) {
+		for (TranslatableProperty<Object, Object> prop: props) {
 			prop.executeSave(pojo, container, path, index, ctx);
 		}
 

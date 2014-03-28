@@ -18,16 +18,16 @@ import com.googlecode.objectify.util.LogUtils;
 /**
  * Associates a Property with a Translator and provides a more convenient interface.
  */
-public class TranslatableProperty<T> {
+public class TranslatableProperty<P, D> {
 	/** */
 	private static final Logger log = Logger.getLogger(TranslatableProperty.class.getName());
 
 	/** */
 	protected Property property;
-	protected Translator<T> translator;
+	protected Translator<P, D> translator;
 
 	/** */
-	public TranslatableProperty(Property prop, Translator<T> trans) {
+	public TranslatableProperty(Property prop, Translator<P, D> trans) {
 		this.property = prop;
 		this.translator = trans;
 	}
@@ -123,7 +123,7 @@ public class TranslatableProperty<T> {
 			if (propertyIndexInstruction != null)
 				index = propertyIndexInstruction;
 
-			T value = (T)property.get(onPojo);
+			P value = (P)property.get(onPojo);
 			try {
 				Path propPath = containerPath.extend(property.getName());
 				Object propValue = translator.save(value, index, ctx, propPath);

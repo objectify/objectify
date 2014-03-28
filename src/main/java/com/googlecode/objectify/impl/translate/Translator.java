@@ -8,10 +8,12 @@ import com.googlecode.objectify.impl.Path;
  *
  * <p>Translators are composed of other translators; through a chain of these a whole entity
  * object is assembled or disassembled.</p>
+ *
+ * <p>P is the pojo type. D is the datastore type.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Translator<T>
+public interface Translator<P, D>
 {
 	/**
 	 * <p>Loads the content of the specified datastore node, returning the pojo equivalent.</p>
@@ -28,7 +30,7 @@ public interface Translator<T>
 	 * 
 	 * @see LoadEngine
 	 */
-	T load(Object node, LoadContext ctx) throws SkipException;
+	P load(D node, LoadContext ctx) throws SkipException;
 
 	/**
 	 * Translates a pojo (or some component thereof) into a format suitable for storage in the datastore.
@@ -41,5 +43,5 @@ public interface Translator<T>
 	 * 
 	 * @throws SkipException if this subtree should not be saved.
 	 */
-	Object save(T pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
+	D save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
 }

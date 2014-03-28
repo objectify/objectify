@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.impl.translate.LoadContext;
@@ -14,24 +15,24 @@ import com.googlecode.objectify.impl.translate.Translator;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EntityMetadata<T>
+public class EntityMetadata<P>
 {
 	/** */
-	protected ObjectifyFactory fact;
+	private ObjectifyFactory fact;
 
 	/** The base entity class type, ie the class with the @Entity annotation */
-	protected Class<T> entityClass;
+	private Class<P> entityClass;
 
 	/** The cached annotation, or null if entity should not be cached */
-	protected Cache cached;
+	private Cache cached;
 
 	/** */
-	Translator<T> translator;
+	private Translator<P, PropertyContainer> translator;
 
 	/**
 	 * @param translator which can handle the root entity type.
 	 */
-	public EntityMetadata(ObjectifyFactory fact, Translator<T> translator) {
+	public EntityMetadata(ObjectifyFactory fact, Translator<P, PropertyContainer> translator) {
 		this.fact = fact;
 		this.translator = translator;
 	}
@@ -52,8 +53,8 @@ public class EntityMetadata<T>
 	 * Does not check that the entity is appropriate; that should be done when choosing
 	 * which EntityMetadata to call.
 	 */
-	public T load(Entity ent, LoadContext ctx) {
-		final T pojo = this.transmog.load(ent, ctx);
+	public P load(Entity ent, LoadContext ctx) {
+		final P pojo = this.transmog.load(ent, ctx);
 
 		// If there are any @OnLoad methods, call them after everything else
 		ctx.defer(new Runnable() {
@@ -74,20 +75,27 @@ public class EntityMetadata<T>
 	/**
 	 * Converts an object to a datastore Entity with the appropriate Key type.
 	 */
-	public Entity save(T pojo, SaveContext ctx) {
+	public Entity save(P pojo, SaveContext ctx) {
 		return (Entity)translator.save(pojo, false, ctx, Path.root());
 	}
-
 
 	/**
 	 * Gets the class associated with this entity.
 	 */
-	public Class<T> getEntityClass() {
+	public Class<P> getEntityClass() {
 		return this.entityClass;
 	}
 
 	/**
 	 * Get specific metadata about the key for this type.
 	 */
-	public KeyMetadata<T> getKeyMetadata();
+	public KeyMetadata<P> getKeyMetadata();
+
+	/**
+=	 * @return the translator that will convert between native datastore representation and pojo for this type.
+	 */
+	public Translator<P, PropertyContainer> getTranslator() {
+		return translator;
+	}
+
 }
