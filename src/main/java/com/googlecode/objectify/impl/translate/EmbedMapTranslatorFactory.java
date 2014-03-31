@@ -1,8 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.reflect.Type;
-import java.util.Map;
-
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.EmbedMap;
@@ -10,6 +8,9 @@ import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.reflect.Type;
+import java.util.Map;
 
 
 /**
@@ -70,6 +71,9 @@ public class EmbedMapTranslatorFactory implements TranslatorFactory<Map<Object, 
 		final ObjectifyFactory fact = ctx.getFactory();
 
 		Type componentType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[1]);
+
+		if (componentType.equals(Object.class) || componentType.equals(EmbeddedEntity.class))
+			ctx.leaveEmbeddedEntityAloneIfParentHere(path);
 
 		final Translator<Object> componentTranslator = fact.getTranslators().create(path, property, componentType, ctx);
 

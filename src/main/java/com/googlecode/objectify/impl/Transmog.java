@@ -44,7 +44,8 @@ public class Transmog<T>
 	
 	/** */
 	Set<Path> leaveEmbeddedEntityAlonePoints;
-	
+	Set<Path> leaveEmbeddedEntityAloneParentPoints;
+
 	/** */
 	ObjectifyFactory fact;
 
@@ -60,6 +61,7 @@ public class Transmog<T>
 		this.rootTranslator = new EntityClassTranslator<T>(clazz, ctx);
 		this.embedCollectionPoints = ctx.getEmbedCollectionPoints();
 		this.leaveEmbeddedEntityAlonePoints = ctx.getLeaveEmbeddedEntityAlonePoints();
+		this.leaveEmbeddedEntityAloneParentPoints = ctx.getLeaveEmbeddedEntityAloneParentPoints();
 	}
 
 	/** */
@@ -308,7 +310,7 @@ public class Transmog<T>
 	 * if the field it gets assigned to is of type EmbeddedEntity or Object.
 	 */
 	private boolean shouldLeaveEmbeddedEntityAlone(Path path) {
-		return leaveEmbeddedEntityAlonePoints.contains(path);
+		return leaveEmbeddedEntityAlonePoints.contains(path) || leaveEmbeddedEntityAloneParentPoints.contains(path.getPrevious());
 	}
 
 	/**

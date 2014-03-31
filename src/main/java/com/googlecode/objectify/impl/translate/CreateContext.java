@@ -1,17 +1,17 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.common.collect.Sets;
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-
-import com.google.common.collect.Sets;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /** 
  * The context while creating translator factories. Tracks some important state as we navigate the class graph.
@@ -37,7 +37,13 @@ public class CreateContext
 	
 	/** Points which have type Object or EmbeddedEntity and therefore should not be munged into nodes */
 	Set<Path> leaveEmbeddedEntityAlonePoints = Sets.newHashSet();
-	
+
+	/**
+	 * Points which we need to leave Object or EmbeddedEntity alone when we are one level below a special path.
+	 * This allows @EmbedMap which holds an EmbeddedEntity to work.
+	 */
+	Set<Path> leaveEmbeddedEntityAloneParentPoints = Sets.newHashSet();
+
 	/** As we enter and exit embedded contexts, track the classes */
 	Deque<Class<?>> owners = new ArrayDeque<Class<?>>(); 
 	
@@ -133,12 +139,16 @@ public class CreateContext
 	}
 
 	/** */
-	public Set<Path> getLeaveEmbeddedEntityAlonePoints() {
-		return leaveEmbeddedEntityAlonePoints;
-	}
-	
+	public Set<Path> getLeaveEmbeddedEntityAlonePoints() { return leaveEmbeddedEntityAlonePoints; }
+
+	/** */
+	public Set<Path> getLeaveEmbeddedEntityAloneParentPoints() { return leaveEmbeddedEntityAloneParentPoints; }
+
 	/** */
 	public void leaveEmbeddedEntityAloneHere(Path path) {
 		leaveEmbeddedEntityAlonePoints.add(path);
 	}
+
+	/** */
+	public void leaveEmbeddedEntityAloneIfParentHere(Path path) { leaveEmbeddedEntityAloneParentPoints.add(path); }
 }

@@ -1,14 +1,15 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.impl.Node;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -34,6 +35,10 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object>
 		ctx.enterCollection(path);
 		try {
 			final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
+
+			if (componentType.equals(Object.class) || componentType.equals(EmbeddedEntity.class))
+				ctx.leaveEmbeddedEntityAloneHere(path);
+
 			final Translator<Object> componentTranslator = ctx.getFactory().getTranslators().create(path, property, componentType, ctx);
 
 			return new ListNodeTranslator<Object>() {

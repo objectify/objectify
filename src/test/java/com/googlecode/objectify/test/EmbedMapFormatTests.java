@@ -77,4 +77,30 @@ public class EmbedMapFormatTests extends TestBase
 		Entity entity = ds().get(key.getRaw());
 		assert entity.getProperties().size() == 0;
 	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasEmbeddedEntityInMap {
+		@Id Long id;
+		@EmbedMap Map<String, EmbeddedEntity> map = Maps.newHashMap();
+	}
+
+	/** */
+	@Test
+	public void embeddedEntityInMapWorksFine() throws Exception {
+		fact().register(HasEmbeddedEntityInMap.class);
+		fact().setSaveWithNewEmbedFormat(true);
+
+		EmbeddedEntity ee = new EmbeddedEntity();
+		ee.setProperty("stuff", "stuff0");
+
+		HasEmbeddedEntityInMap h = new HasEmbeddedEntityInMap();
+		h.map.put("key0", ee);
+
+		HasEmbeddedEntityInMap fetched = this.putClearGet(h);
+		assert fetched.map.size() == 1;
+		assert fetched.map.get("key0").getProperty("stuff").equals("stuff0");
+	}
+
 }
