@@ -1,9 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.Entity;
@@ -20,6 +16,11 @@ import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * <p>Implementation of the Objectify interface. This is also suitable for subclassing; you
@@ -258,7 +259,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		// mismatching we can't trust Arrays.asList().
 		if (value.getClass().isArray()) {
 			int len = Array.getLength(value);
-			List<Object> asList = new ArrayList<Object>(len);
+			List<Object> asList = new ArrayList<>(len);
 			for (int i=0; i<len; i++)
 				asList.add(Array.get(value, i));
 
@@ -266,7 +267,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		}
 
 		if (value instanceof Iterable) {
-			List<Object> result = new ArrayList<Object>(50);	// hard limit is 30, but wth
+			List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
 			for (Object obj: (Iterable<?>)value)
 				result.add(makeFilterable(obj));
 
@@ -277,20 +278,11 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 			if (meta != null) {
 				return meta.getRawKey(value);
 			} else {
-				// Run it through the translator
-				Translator<Object> translator = factory().getTranslators().create(Path.root(), NullProperty.INSTANCE, value.getClass(), new CreateContext(factory()));
-				Node node = translator.save(value, false, new SaveContext(this), Path.root());
-				return getFilterableValue(node, value);
+				// Run it through a translator
+				Translator<Object, Object> translator = factory().getTranslators().get(value.getClass(), new Annotation[0], new CreateContext(factory()), Path.root());
+				return translator.save(value, false, new SaveContext(this), Path.root());
 			}
 		}
-	}
-
-	/** Extracts a filterable value from the node, or throws an illegalstate exception */
-	private Object getFilterableValue(Node node, Object originalValue) {
-		if (!node.hasPropertyValue())
-			throw new IllegalStateException("Don't know how to filter by '" + originalValue + "'");
-
-		return node.getPropertyValue();
 	}
 
 	/* (non-Javadoc)

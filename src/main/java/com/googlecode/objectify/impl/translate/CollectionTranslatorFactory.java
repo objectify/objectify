@@ -1,18 +1,14 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-
-import javax.xml.soap.Node;
 
 
 /**
@@ -45,11 +41,16 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
 
-		return new Translator<Collection<Object>, Collection<Object>>() {
+		return new TranslatorUsesExistingValue<Collection<Object>, Collection<Object>>() {
 
 			@Override
 			public Collection<Object> load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
-				Collection<Object> collection = wtf;
+				// If there was nothing in the collection, skip it entirely. This mirrors the underlying behavior
+				// of collections in the datastore; if they are empty, they don't exist.
+				if (node == null || node.isEmpty())
+					throw new SkipException();
+
+				Collection<Object> collection = (Collection<Object>)ctx.getExistingValue();
 
 				if (collection == null)
 					collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
@@ -66,7 +67,11 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					}
 				}
 
-				return collection;
+				// No need to reassign the value to itself
+				if (collection == ctx.getExistingValue())
+					throw new SkipException();
+				else
+					return collection;
 			}
 
 			@Override

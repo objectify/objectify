@@ -1,19 +1,15 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Collection;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.googlecode.objectify.impl.translate.CollectionTranslatorFactory.CollectionListNodeTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.impl.translate.EmbedMapTranslatorFactory.MapMapNodeTranslator;
-import com.googlecode.objectify.impl.translate.MapifyTranslatorFactory.MapifyListNodeTranslator;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.impl.translate.UsesExistingValue;
 import com.googlecode.objectify.util.LogUtils;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Associates a Property with a Translator and provides a more convenient interface.
@@ -48,6 +44,12 @@ public class TranslatableProperty<P, D> {
 	public void executeLoad(PropertyContainer container, Object onPojo, LoadContext ctx, Path containerPath) {
 		try {
 			D value = getPropertyFromContainer(container, containerPath);
+
+			if (translator instanceof UsesExistingValue) {
+				P existingValue = (P)property.get(onPojo);
+				ctx.setExistingValue(existingValue);
+			}
+
 			setValue(onPojo, value, ctx, containerPath);
 		} catch (SkipException ex) {
 			// No prob, skip this one

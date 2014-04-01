@@ -56,9 +56,9 @@ public class Translators
 		
 		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translatorFactories.add(new ByteArrayTranslatorFactory());
-//		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
-//		this.translatorFactories.add(new CollectionTranslatorFactory());
-//		this.translatorFactories.add(new MapifyTranslatorFactory());
+		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
+		this.translatorFactories.add(new CollectionTranslatorFactory());
+		this.translatorFactories.add(new MapifyTranslatorFactory());
 //		this.translatorFactories.add(new EmbedMapTranslatorFactory());
 		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 

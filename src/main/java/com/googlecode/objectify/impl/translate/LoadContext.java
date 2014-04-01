@@ -1,5 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.impl.LoadEngine;
+import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -8,13 +15,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cmd.Loader;
-import com.googlecode.objectify.impl.LoadEngine;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * The context of a load operation, which may extend across several entities (for example, a batch).
@@ -37,7 +37,15 @@ public class LoadContext
 	Key<?> currentRoot;
 	
 	/** As we enter and exit embedded contexts, track the objects */
-	Deque<Object> owners = new ArrayDeque<Object>(); 
+	Deque<Object> owners = new ArrayDeque<Object>();
+
+	/**
+	 * If a translator implements the marker interface UsesExistingValue, then this value
+	 * will be assigned with the value that exists in the POJO field. Typically this
+	 * is used by collection-type translators to recycle collection fields initialized by
+	 * the POJO.
+	 */
+	Object existingValue;
 
 	/** */
 	public LoadContext(Loader loader, LoadEngine batch) {
@@ -133,5 +141,19 @@ public class LoadContext
 	public void exitOwnerContext(Object expectedOwner) {
 		Object popped = owners.removeLast();
 		assert popped == expectedOwner;
+	}
+
+	/**
+	 * Get the last parent value seen; this is only done when the UsesExistingValue marker interface is seen.
+	 */
+	public Object getExistingValue() {
+		return existingValue;
+	}
+
+	/**
+	 * Assign the last parent value seen; this is only done when the UsesExistingValue marker interface is seen.
+	 */
+	public void setExistingValue(Object value) {
+		existingValue = value;
 	}
 }

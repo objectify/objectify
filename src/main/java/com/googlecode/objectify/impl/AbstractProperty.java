@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.annotation.Annotation;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.annotation.Load;
+
+import java.lang.annotation.Annotation;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /** 
  * Some common behavior of properties
@@ -72,6 +72,11 @@ abstract public class AbstractProperty implements Property
 	@Override
 	public <A extends Annotation> A getAnnotation(Class<A> annoClass) {
 		return TypeUtils.getAnnotation(annoClass, annotations);
+	}
+
+	@Override
+	public Annotation[] getAnnotations() {
+		return annotations;
 	}
 
 	@Override
