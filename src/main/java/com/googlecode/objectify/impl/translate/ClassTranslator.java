@@ -1,25 +1,22 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Owner;
-import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TranslatableProperty;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.util.LogUtils;
+
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Translator which knows how to convert a POJO into a PropertiesContainer (ie, Entity or EmbeddedEntity).
@@ -27,7 +24,7 @@ import com.googlecode.objectify.util.LogUtils;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ClassTranslator<P> implements Translator<P, PropertyContainer>
+public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 {
 	private static final Logger log = Logger.getLogger(ClassTranslator.class.getName());
 
@@ -43,7 +40,7 @@ public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 	private final List<Property> owners = new ArrayList<>();
 
 	/** */
-	public ClassTranslator(Class<P> clazz, Path path, CreateContext ctx) {
+	public ClassTranslator(Class<P> clazz, CreateContext ctx, Path path) {
 		this.fact = ctx.getFactory();
 		this.clazz = clazz;
 
@@ -71,7 +68,7 @@ public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 				if (prop.getAnnotation(Owner.class) != null) {
 					owners.add(prop);
 				} else {
-					Translator<Object, Object> translator = fact.getTranslators().get(prop, prop.getType(), ctx, propPath);
+					Translator<Object, Object> translator = fact.getTranslators().get(prop.getType(), prop.getAnnotations(), ctx, propPath);
 					TranslatableProperty<Object, Object> tprop = new TranslatableProperty<>(prop, translator);
 
 					if (consider(tprop))
@@ -109,19 +106,20 @@ public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 	 */
 	protected boolean consider(TranslatableProperty<Object, Object> tprop) { return true; }
 
+	/* */
 	@Override
-	public P load(PropertyContainer node, LoadContext ctx) throws SkipException {
+	public P loadSafe(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Instantiating a " + clazz.getName()));
+			log.finest(LogUtils.msg(path, "Instantiating a " + clazz.getName()));
 
-		P pojo = fact.construct(clazz);
+		P pojo = constructEmptyPojo(container, ctx, path);
 		
 		// Load any optional owner properties (only applies when this is an embedded class)
 		for (Property ownerProp: owners) {
 			Object owner = ctx.getOwner(ownerProp);
 
 			if (log.isLoggable(Level.FINEST))
-				log.finest(LogUtils.msg(node.getPath(), "Setting property " + ownerProp.getName() + " to " + owner));
+				log.finest(LogUtils.msg(path, "Setting owner property " + ownerProp.getName() + " to " + owner));
 			
 			ownerProp.set(pojo, owner);
 		}
@@ -129,8 +127,8 @@ public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 		// On with the normal show
 		ctx.enterOwnerContext(pojo);
 		try {
-			for (TranslatableProperty<Object> prop: props) {
-				prop.executeLoad(node, pojo, ctx);
+			for (TranslatableProperty<Object, Object> prop: props) {
+				prop.executeLoad(container, pojo, ctx, path);
 			}
 		} finally {
 			ctx.exitOwnerContext(pojo);
@@ -139,27 +137,33 @@ public class ClassTranslator<P> implements Translator<P, PropertyContainer>
 		return pojo;
 	}
 
+	/* */
 	@Override
-	public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+	public PropertyContainer saveSafe(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
 		if (indexInstruction != null)
 			index = indexInstruction;
 
-		PropertyContainer container = constructContainer(path);
+		PropertyContainer container = constructEmptyContainer(pojo, path);
 
 		for (TranslatableProperty<Object, Object> prop: props) {
-			prop.executeSave(pojo, container, path, index, ctx);
+			prop.executeSave(pojo, container, index, ctx, path);
 		}
 
 		return container;
 	}
 
 	/**
-	 *
+	 * Construct an empty container for the properties of the pojo. Subclasses of this translator
+	 * may wish to initialize key fields.
 	 */
-	protected PropertyContainer constructContainer(Path path) {
-		if (path.isRoot())
-			return new Entity();
-		else
-			return new EmbeddedEntity();
+	protected PropertyContainer constructEmptyContainer(P pojo, Path path) {
+		return new EmbeddedEntity();
+	}
+
+	/**
+	 * Construct the empty POJO. Subclasses of this translator may wish to initialize key fields.
+	 */
+	protected P constructEmptyPojo(PropertyContainer container, LoadContext ctx, Path path) {
+		return fact.construct(clazz);
 	}
 }

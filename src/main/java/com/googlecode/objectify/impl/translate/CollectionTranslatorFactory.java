@@ -1,7 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -9,9 +12,14 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
+import javax.xml.soap.Node;
+
 
 /**
- * <p>Translator which can load things into a collection field.  Might be embedded items, might not.</p>
+ * <p>Translator which can load things into a collection field. Those things are themselves translated.</p>
+ *
+ * <p>This translator is clever about recycling an existing collection in the POJO field when loading.
+ * That way a collection that has been initialized with a sort (or other data) will remain intact.</p>
  *
  * <p>Note that empty or null collections are not stored in the datastore, and null values for the collection
  * field are ignored when they are loaded from the Entity.  This is because the datastore doesn't store empty
@@ -19,94 +27,69 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>>
+public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>, Collection<Object>>
 {
-	abstract public static class CollectionListNodeTranslator extends ListNodeTranslator<Collection<Object>> {
-
-		/** Same as having a null existing collection */
-		@Override
-		final protected Collection<Object> loadList(Node node, LoadContext ctx) {
-			return loadListIntoExistingCollection(node, ctx, null);
-		}
-
-		/**
-		 * Load into an existing collection; allows us to recycle collection instances on entities, which might have
-		 * exotic concrete types or special initializers (comparators, etc).
-		 *
-		 * @param coll can be null to trigger creating a new collection
-		 */
-		abstract public Collection<Object> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<Object> coll);
-	}
-
 	@Override
-	public Translator<Collection<Object>> create(Path path, final Property property, Type type, CreateContext ctx) {
+	public Translator<Collection<Object>, Collection<Object>> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Collection<?>> collectionType = (Class<? extends Collection<?>>)GenericTypeReflector.erase(type);
 
 		if (!Collection.class.isAssignableFrom(collectionType))
 			return null;
 
-		ctx.enterCollection(path);
-		try {
-			final ObjectifyFactory fact = ctx.getFactory();
+		final ObjectifyFactory fact = ctx.getFactory();
 
-			Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
-			if (componentType == null)	// if it was a raw type, just assume Object
-				componentType = Object.class;
-			
-			if (componentType.equals(Object.class) || componentType.equals(EmbeddedEntity.class))
-				ctx.leaveEmbeddedEntityAloneHere(path);
+		Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
+		if (componentType == null)	// if it was a raw type, just assume Object
+			componentType = Object.class;
 
-			final Translator<Object> componentTranslator = fact.getTranslators().create(path, property, componentType, ctx);
+		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
 
-			return new CollectionListNodeTranslator() {
-				@Override
-				@SuppressWarnings("unchecked")
-				public Collection<Object> loadListIntoExistingCollection(Node node, LoadContext ctx, Collection<Object> collection) {
-					if (collection == null)
-						collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
-					else
-						collection.clear();
+		return new Translator<Collection<Object>, Collection<Object>>() {
 
-					for (Node child: node) {
-						try {
-							Object value = componentTranslator.load(child, ctx);
-							collection.add(value);
-						}
-						catch (SkipException ex) {
-							// No prob, just skip that one
-						}
+			@Override
+			public Collection<Object> load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
+				Collection<Object> collection = wtf;
+
+				if (collection == null)
+					collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
+				else
+					collection.clear();
+
+				for (Object child: node) {
+					try {
+						Object value = componentTranslator.load(child, ctx, path);
+						collection.add(value);
 					}
-
-					return collection;
+					catch (SkipException ex) {
+						// No prob, just skip that one
+					}
 				}
 
-				@Override
-				protected Node saveList(Collection<Object> pojo, Path path, boolean index, SaveContext ctx) {
+				return collection;
+			}
 
-					// If it's empty, might as well skip it - the datastore doesn't store empty lists
-					if (pojo == null || pojo.isEmpty())
-						throw new SkipException();
+			@Override
+			public Collection<Object> save(Collection<Object> pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
 
-					Node node = new Node(path);
-					node.setPropertyIndexed(index);
+				// If it's empty, might as well skip it - the datastore doesn't store empty lists
+				if (pojo == null || pojo.isEmpty())
+					throw new SkipException();
 
-					for (Object obj: pojo) {
-						try {
-							Node child = componentTranslator.save(obj, index, ctx, path);
-							node.addToList(child);
-						}
-						catch (SkipException ex) {
-							// Just skip that node, no prob
-						}
+				List<Object> list = new ArrayList<>();
+
+				for (Object obj: pojo) {
+					try {
+						Object translatedChild = componentTranslator.save(obj, index, ctx, path);
+						list.add(translatedChild);
 					}
-
-					return node;
+					catch (SkipException ex) {
+						// Just skip that node, no prob
+					}
 				}
-			};
-		}
-		finally {
-			ctx.exitCollection();
-		}
+
+				return list;
+			}
+		};
 	}
 }

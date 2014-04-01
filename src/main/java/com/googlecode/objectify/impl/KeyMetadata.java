@@ -8,6 +8,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.DatastoreUtils;
 
 
@@ -47,18 +48,18 @@ public class KeyMetadata<P>
 	/**
 	 * Sets the key onto the POJO id/parent fields
 	 */
-	public void setKey(P pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx) {
+	public void setKey(P pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx, Path containerPath) {
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
-		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx);
+		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx, containerPath);
 
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
 			if (this.parentMeta == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + clazz.getName() + " has no @Parent");
 
-			parentMeta.setValue(pojo, parentKey, ctx);
+			parentMeta.setValue(pojo, parentKey, ctx, containerPath);
 		}
 	}
 
@@ -178,7 +179,8 @@ public class KeyMetadata<P>
 		if (parentMeta == null)
 			return null;
 
-		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo);
+		// TODO: The null-ofy SaveContext is a little weird here. There must be a better way.
+		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo, new SaveContext(null), Path.root());
 	}
 
 	/**

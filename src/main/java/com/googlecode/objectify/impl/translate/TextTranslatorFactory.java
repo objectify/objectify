@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Text;
@@ -18,21 +19,20 @@ public class TextTranslatorFactory extends ValueTranslatorFactory<Text, Object>
 	public TextTranslatorFactory() {
 		super(Text.class);
 	}
-	
+
 	@Override
-	protected ValueTranslator<Text, Object> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<Text, Object>(path, Object.class) {
+	protected ValueTranslator<Text, Object> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<Text, Object>(Object.class) {
 			@Override
-			protected Text loadValue(Object value, LoadContext ctx) {
+			protected Text loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof Text)
 					return (Text)value;
 				else
 					return new Text(value.toString());
 			}
-			
+
 			@Override
-			protected Object saveValue(Text value, SaveContext ctx) {
+			protected Object saveValue(Text value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value;
 			}
 		};

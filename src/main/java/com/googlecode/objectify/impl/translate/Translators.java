@@ -1,14 +1,15 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 
 /**
@@ -23,13 +24,13 @@ import com.googlecode.objectify.impl.Property;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TranslatorRegistry
+public class Translators
 {
 	/** */
 	ObjectifyFactory fact;
 
 	/** */
-	List<TranslatorFactory<?>> translatorFactories = new ArrayList<TranslatorFactory<?>>();
+	List<TranslatorFactory<?, ?>> translatorFactories = new ArrayList<>();
 
 	/** Where we should insert new translators */
 	int insertPoint;
@@ -38,12 +39,12 @@ public class TranslatorRegistry
 	int earlyInsertPoint;
 
 	/** */
-	Map<TranslatorKey, Translator<?>> translators = new ConcurrentHashMap<>();
+	Map<TranslatorKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
 
 	/**
 	 * Initialize the default set of converters in the proper order.
 	 */
-	public TranslatorRegistry(ObjectifyFactory fact)
+	public Translators(ObjectifyFactory fact)
 	{
 		this.fact = fact;
 
@@ -55,12 +56,11 @@ public class TranslatorRegistry
 		
 		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translatorFactories.add(new ByteArrayTranslatorFactory());
-		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
-		this.translatorFactories.add(new CollectionTranslatorFactory());
-		this.translatorFactories.add(new MapifyTranslatorFactory());
-		this.translatorFactories.add(new EmbedMapTranslatorFactory());
+//		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
+//		this.translatorFactories.add(new CollectionTranslatorFactory());
+//		this.translatorFactories.add(new MapifyTranslatorFactory());
+//		this.translatorFactories.add(new EmbedMapTranslatorFactory());
 		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
-		this.translatorFactories.add(new EmbedClassTranslatorFactory<Object>());	// AFTER the various collections so we only process the content
 
 		// Magic inflection point at which we want to prioritize added translators
 		this.insertPoint = this.translatorFactories.size();
@@ -75,8 +75,11 @@ public class TranslatorRegistry
 		this.translatorFactories.add(new TimeZoneTranslatorFactory());
 		this.translatorFactories.add(new URLTranslatorFactory());
 
-		// LAST!  It catches everything.
+		// Things that just work as they are (fundamental datastore classes)
 		this.translatorFactories.add(new AsIsTranslatorFactory());
+
+		// LAST! It catches everything.
+		this.translatorFactories.add(new EmbeddedClassTranslatorFactory<Object>());
 	}
 
 	/**
@@ -102,20 +105,32 @@ public class TranslatorRegistry
 	}
 
 	/**
-	 * Obtains the Translator appropriate for this
-	 * Goes through our list of known translators and returns the first one that succeeds
-	 * @param path is the path to this type, used for logging and debugging
-	 * @param ctx is the context we pass down from the root
-	 * @throws IllegalStateException if no matching loader can be found
+	 * Obtains the Translator appropriate for this type and annotations. May be a cached
+	 * translator; if not, one will be discovered and cached.
 	 */
-	public <T> Translator<T> get(Property property, Type type, CreateContext ctx, Path path) {
-		for (TranslatorFactory<?> trans: this.translatorFactories) {
-			@SuppressWarnings("unchecked")
-			Translator<T> soFar = (Translator<T>)trans.create(path, property, type, ctx);
+	public <P, D> Translator<P, D> get(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+
+		TranslatorKey key = new TranslatorKey(type, annotations);
+
+		Translator<?, ?> translator = translators.get(key);
+		if (translator == null) {
+			translator = create(type, annotations, ctx, path);
+			translators.put(key, translator);
+		}
+
+		return (Translator<P, D>)translator;
+	}
+
+	/**
+	 * Create a translator from scratch by going through the discovery process.
+	 */
+	private Translator<?, ?> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		for (TranslatorFactory<?, ?> trans: this.translatorFactories) {
+			Translator<?, ?> soFar = trans.create(type, annotations, ctx, path);
 			if (soFar != null)
 				return soFar;
 		}
 
-		throw new IllegalArgumentException("Don't know how to translate " + type);
+		throw new IllegalArgumentException("Don't know how to translate " + type + " with annotations " + Arrays.toString(annotations));
 	}
 }

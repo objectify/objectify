@@ -1,10 +1,14 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import sun.util.logging.resources.logging;
 
 
 /**
@@ -15,34 +19,31 @@ import com.googlecode.objectify.impl.Property;
  */
 public class StringTranslatorFactory extends ValueTranslatorFactory<String, Object>
 {
+	private static final Logger log = Logger.getLogger(StringTranslatorFactory.class.getName());
+
 	/** */
 	public StringTranslatorFactory() {
 		super(String.class);
 	}
 	
 	@Override
-	protected ValueTranslator<String, Object> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		final boolean disallowConversion = ctx.isInCollection() && ctx.isInEmbed();
-				
-		return new ValueTranslator<String, Object>(path, Object.class) {
+	protected ValueTranslator<String, Object> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<String, Object>(Object.class) {
 			@Override
-			protected String loadValue(Object value, LoadContext ctx) {
+			protected String loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof Text)
 					return ((Text)value).getValue();
 				else
 					return value.toString();
 			}
-			
+
 			@Override
-			protected Object saveValue(String value, SaveContext ctx) {
+			protected Object saveValue(String value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				// Check to see if it's too long and needs to be Text instead
 				if (value.length() > 500) {
-					if (disallowConversion)
-						path.throwIllegalState("Objectify cannot autoconvert Strings greater than 500 characters to Text within @Embed collections." +
-								"  Use Text for the field type instead." +
-								"  You tried to save: " + value);
-					
+					if (index)
+						log.log(Level.WARNING, "Attempt to index a String which has been automatically converted to Text. The property is at " + path);
+
 					return new Text(value);
 				} else {
 					return value;

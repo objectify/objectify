@@ -54,22 +54,7 @@ public class EntityMetadata<P>
 	 * which EntityMetadata to call.
 	 */
 	public P load(Entity ent, LoadContext ctx) {
-		final P pojo = this.transmog.load(ent, ctx);
-
-		// If there are any @OnLoad methods, call them after everything else
-		ctx.defer(new Runnable() {
-			@Override
-			public void run() {
-				invokeLifecycleCallbacks(onLoadMethods, pojo, ctx.getLoader().getObjectify(), ctx, null);
-			}
-
-			@Override
-			public String toString() {
-				return "(deferred invoke lifecycle callbacks on " + pojo + ")";
-			}
-		});
-
-		return pojo;
+		return translator.load(ent, ctx);
 	}
 
 	/**

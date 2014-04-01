@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.sql.Date;
 
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
@@ -16,19 +18,18 @@ public class SqlDateTranslatorFactory extends ValueTranslatorFactory<java.sql.Da
 	public SqlDateTranslatorFactory() {
 		super(java.sql.Date.class);
 	}
-	
+
 	@Override
-	protected ValueTranslator<java.sql.Date, java.util.Date> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<java.sql.Date, java.util.Date>(path, java.util.Date.class) {
+	protected ValueTranslator<Date, java.util.Date> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<java.sql.Date, java.util.Date>(java.util.Date.class) {
 			@Override
-			protected java.util.Date saveValue(java.sql.Date value, SaveContext ctx) {
-				return new java.util.Date(value.getTime());
-			}
-			
-			@Override
-			protected java.sql.Date loadValue(java.util.Date value, LoadContext ctx) {
+			protected Date loadValue(java.util.Date value, LoadContext ctx, Path path) throws SkipException {
 				return new java.sql.Date(value.getTime());
+			}
+
+			@Override
+			protected java.util.Date saveValue(Date value, boolean index, SaveContext ctx, Path path) throws SkipException {
+				return new java.util.Date(value.getTime());
 			}
 		};
 	}

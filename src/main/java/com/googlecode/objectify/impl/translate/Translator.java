@@ -23,14 +23,15 @@ public interface Translator<P, D>
 	 * the magic trick that makes populating entity references work efficiently.</p>
 	 * 
 	 * @param node is the part of the native datastore entity tree we are transforming.
-	 * @param ctx holds state information during an entity load.  
+	 * @param ctx holds state information during an entity load.
+	 * @param path is the current path to this translator
 	 * @return an assembled pojo corresponding to the node subtree; if null is returned, that is the real value!
 	 * 
 	 * @throws SkipException if the subtree should not be loaded into a containing entity
 	 * 
 	 * @see LoadEngine
 	 */
-	P load(D node, LoadContext ctx) throws SkipException;
+	P load(D node, LoadContext ctx, Path path) throws SkipException;
 
 	/**
 	 * Translates a pojo (or some component thereof) into a format suitable for storage in the datastore.

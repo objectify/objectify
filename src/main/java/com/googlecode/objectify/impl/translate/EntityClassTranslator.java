@@ -1,10 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.reflect.Type;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -18,6 +15,8 @@ import com.googlecode.objectify.impl.TranslatableProperty;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
 
+import java.lang.reflect.Type;
+
 
 /**
  * <p>Translator which translates entities, both root level and embedded.</p>
@@ -26,9 +25,6 @@ import com.googlecode.objectify.util.DatastoreUtils;
  */
 public class EntityClassTranslator<P> extends ClassTranslator<P>
 {
-	/** */
-	private static final Logger log = Logger.getLogger(EntityClassTranslator.class.getName());
-
 	/** The @Id field on the pojo - it will be Long, long, or String. Just a temporary holder for keymetadata. */
 	private TranslatableProperty<Object, Object> idMeta;
 
@@ -43,8 +39,8 @@ public class EntityClassTranslator<P> extends ClassTranslator<P>
 	/**
 	 */
 	@SuppressWarnings("unchecked")
-	public EntityClassTranslator(Type type, CreateContext ctx) {
-		super((Class<P>)GenericTypeReflector.erase(type), Path.root(), ctx);
+	public EntityClassTranslator(Type type, CreateContext ctx, Path path) {
+		super((Class<P>)GenericTypeReflector.erase(type), ctx, path);
 
 		// We should never have gotten this far in the registration process
 		assert clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(EntitySubclass.class) != null;
@@ -96,5 +92,25 @@ public class EntityClassTranslator<P> extends ClassTranslator<P>
 		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(erased)
 				|| Key.class.isAssignableFrom(erased)
 				|| Ref.class.isAssignableFrom(erased);
+	}
+
+	@Override
+	protected PropertyContainer constructEmptyContainer(P pojo, Path path) {
+		if (path.isRoot()) {
+			return keyMetadata.initEntity(pojo);
+		} else {
+			EmbeddedEntity ent = new EmbeddedEntity();
+			ent.setKey(keyMetadata.getRawKey(pojo));
+			return ent;
+		}
+	}
+
+	@Override
+	protected P constructEmptyPojo(PropertyContainer container, LoadContext ctx, Path path) {
+		P pojo = super.constructEmptyPojo(container, ctx, path);
+
+		keyMetadata.setKey(pojo, DatastoreUtils.getKey(container), ctx, path);
+
+		return pojo;
 	}
 }

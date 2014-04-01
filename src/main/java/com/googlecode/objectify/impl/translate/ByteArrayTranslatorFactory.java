@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.google.appengine.api.datastore.Blob;
@@ -13,26 +14,29 @@ import com.googlecode.objectify.impl.Property;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], Blob>
-{
+public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[],Blob> {
+
+	/** The pojo type this factory recognizes */
 	private static final Class<? extends byte[]> BYTE_ARRAY_TYPE = new byte[0].getClass();
-	
-	public ByteArrayTranslatorFactory() {
+
+	/**
+	 */
+	protected ByteArrayTranslatorFactory() {
 		super(BYTE_ARRAY_TYPE);
 	}
-	
-	@Override
-	public ValueTranslator<byte[], Blob> createSafe(Path path, Property property, Type type, final CreateContext ctx) {
 
-		return new ValueTranslator<byte[], Blob>(path, Blob.class) {
+	/* */
+	@Override
+	protected ValueTranslator<byte[], Blob> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<byte[], Blob>(Blob.class) {
 			@Override
-			public byte[] loadValue(Blob value, LoadContext ctx) {
-				return value.getBytes();
+			public byte[] loadValue(Blob node, LoadContext ctx, Path path) throws SkipException {
+				return node.getBytes();
 			}
-			
+
 			@Override
-			protected Blob saveValue(byte[] value, SaveContext ctx) {
-				return new Blob(value);
+			public Blob saveValue(byte[] pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+				return new Blob(pojo);
 			}
 		};
 	}

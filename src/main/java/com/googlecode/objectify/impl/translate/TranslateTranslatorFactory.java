@@ -1,10 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.annotation.Translate;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.TypeUtils;
 
 
 /**
@@ -24,20 +26,19 @@ public class TranslateTranslatorFactory implements TranslatorFactory<Object, Obj
 	}
 	
 	@Override
-	public Translator<Object, Object> create(Path path, Property property, Type type, final CreateContext ctx) {
+	public Translator<Object, Object> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		final Translate translateAnno = TypeUtils.getAnnotation(Translate.class, annotations);
 
-		final Translate translateAnno = property.getAnnotation(Translate.class);
-		
 		if (translateAnno == null)
 			return null;
-		
+
 		if (earlyOnly && !translateAnno.early())
 			return null;
 
 		@SuppressWarnings("unchecked")
 		TranslatorFactory<Object, Object> transFact = (TranslatorFactory<Object, Object>)ctx.getFactory().construct(translateAnno.value());
-		
-		Translator<Object, Object> trans = transFact.create(path, property, type, ctx);
+
+		Translator<Object, Object> trans = transFact.create(type, annotations, ctx, path);
 		if (trans == null) {
 			path.throwIllegalState("TranslatorFactory " + transFact + " was unable to produce a Translator for " + type);
 			return null;	// never gets here

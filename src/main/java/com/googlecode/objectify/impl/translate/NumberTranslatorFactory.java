@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
@@ -15,19 +16,18 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class NumberTranslatorFactory implements TranslatorFactory<Number>
+public class NumberTranslatorFactory implements TranslatorFactory<Number, Object>
 {
 	@Override
-	public ValueTranslator<Number, Object> create(Path path, Property property, Type type, CreateContext ctx)
-	{
+	public Translator<Number, Object> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
 		final Class<?> clazz = GenericTypeReflector.erase(type);
-		
+
 		if (!TypeUtils.isAssignableFrom(Number.class, clazz))
 			return null;
-		
-		return new ValueTranslator<Number, Object>(path, Object.class) {
+
+		return new ValueTranslator<Number, Object>(Object.class) {
 			@Override
-			protected Number loadValue(Object value, LoadContext ctx) {
+			protected Number loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof String) {
 					try {
 						return coerceNumber(Long.valueOf((String)value), clazz);
@@ -36,13 +36,13 @@ public class NumberTranslatorFactory implements TranslatorFactory<Number>
 				else if (value instanceof Number) {
 					return coerceNumber((Number)value, clazz);
 				}
-				
+
 				path.throwIllegalState("Don't know how to translate " + value + " to a number");
 				return null;	// never gets here
 			}
-			
+
 			@Override
-			protected Object saveValue(Number value, SaveContext ctx) {
+			protected Object saveValue(Number value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value;
 			}
 		};
@@ -51,8 +51,7 @@ public class NumberTranslatorFactory implements TranslatorFactory<Number>
 	/**
 	 * Coerces the value to be a number of the specified type; needed because
 	 * all numbers come back from the datastore as Long and this screws up
-	 * any type that expects something smaller.  Also does toString just for the
-	 * hell of it.
+	 * any type that expects something smaller.
 	 */
 	private Number coerceNumber(Number value, Class<?> type)
 	{

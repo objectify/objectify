@@ -1,19 +1,17 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 
 /**
- * <p>A translator knows how to load an entity Node subgraph into a POJO object.  When an entity class is registered,
- * the known TranslatorFactories are queried to produce Translator objects for each field.  These translators are
- * permanently associated with the entity metadata so they do not need to be discovered at normal runtime.</p>
+ * <p>A translator knows how to convert between a POJO and a native datastore representation. When an entity class
+ * is registered, the known TranslatorFactories are queried to produce a translator for that class; this translator
+ * will in turn be composed of translators for all of the fields, etc. These translators become a static metamodel
+ * that can efficiently convert back and forth between the formats with minimal runtime overhead.</p>
  * 
- * <p>Translators are composed of other translators; through a chain of these a whole entity
- * object is assembled or disassembled.  Factories can use {@code CreateContext.getFactory().getTranslators()}
- * to create these nested translator instances for component types.</p>
- *
  * <p>P is the pojo type, D is the datastore type.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
@@ -30,12 +28,15 @@ public interface TranslatorFactory<P, D>
 //	 * Called if applies() returns true to indicate that a translator should be used. Also called if the
 //	 * translator is explicitly specified with the @Translate annotation.
 	 *
-	 * @param path current path to this part of the tree, important for logging and exceptions
-	 * @param property is the property we are inspecting to create a translator for
+	 * Create a translator for a type.
+	 *
 	 * @param type is the generic type of the field (or field component).  For example, examining a field of type
 	 *  List<String> will have a Type of List<String>; the TranslatorFactory which recognizes List may then ask
 	 *  for a translator of its component type String.
-	 * @return null if this factory does not know how to deal with that situation. 
+	 * @param annotations are any additional annotations relevant to the occurrence of this type. If this translator
+	 *  is on a field, it will be the annotations of the field. For root entity translators, this will be an empty array.
+	 * @param path is where this type was discovered, important for logging and exceptions
+	 * @return null if this factory does not know how to deal with that situation.
 	 */
-	Translator<P, D> create(Path path, Property property, Type type, CreateContext ctx);
+	Translator<P, D> create(Type type, Annotation[] annotations, CreateContext ctx, Path path);
 }

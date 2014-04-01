@@ -26,7 +26,7 @@ import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.impl.translate.TranslatorRegistry;
+import com.googlecode.objectify.impl.translate.Translators;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -61,7 +61,7 @@ public class ObjectifyFactory
 	protected Registrar registrar = new Registrar(this);
 
 	/** All the various loaders */
-	protected TranslatorRegistry translators = new TranslatorRegistry(this);
+	protected Translators translators = new Translators(this);
 
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
@@ -171,7 +171,7 @@ public class ObjectifyFactory
 	 * must be registered first.  This method must be called in a single-threaded
 	 * mode sometime around application initialization.</p>
 	 *
-	 * <p>Any extra translators must be added to the TranslatorRegistry *before*
+	 * <p>Any extra translators must be added to the Translators *before*
 	 * entity classes are registered.</p>
 	 *
 	 * <p>Attempts to re-register entity classes are ignored.</p>
@@ -321,7 +321,7 @@ public class ObjectifyFactory
 	 *
 	 * @return the repository of TranslatorFactory objects, to which you can optionally add translators
 	 */
-	public TranslatorRegistry getTranslators() {
+	public Translators getTranslators() {
 		return this.translators;
 	}
 }

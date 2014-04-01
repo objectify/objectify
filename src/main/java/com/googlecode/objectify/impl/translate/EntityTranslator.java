@@ -10,8 +10,8 @@ import com.googlecode.objectify.impl.Registrar;
 
 
 /**
- * <p>Translator which can translate arbitrary entities based on registered kinds. This can be used to store
- * </p>
+ * <p>Translator which can translate arbitrary entities based on registered kinds. This provides a layer
+ * of indirection, and allows you to store heterogeneous collections.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -26,11 +26,11 @@ public class EntityTranslator implements Translator<Object, PropertyContainer>
 	}
 
 	@Override
-	public Object load(PropertyContainer node, LoadContext ctx) throws SkipException {
-		Key key = getKey(node);
+	public Object load(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
+		Key key = getKey(container);
 		EntityMetadata<?> meta = registrar.getMetadataSafe(key.getKind());
 
-		return meta.getTranslator().load(node, ctx);
+		return meta.getTranslator().load(container, ctx, path);
 	}
 
 	@Override

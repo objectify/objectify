@@ -62,7 +62,7 @@ public class TranslationTests extends TestBase
 		Path thingPath = Path.root().extend("somewhere");
 
 		CreateContext createCtx = new CreateContext(fact());
-		ClassTranslator<Thing> translator = new ClassTranslator<>(Thing.class, thingPath, createCtx);
+		ClassTranslator<Thing> translator = new ClassTranslator<>(Thing.class, createCtx, thingPath);
 
 		Thing thing = new Thing();
 		thing.foo = "bar";

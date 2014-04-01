@@ -3,11 +3,15 @@ package com.googlecode.objectify.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import sun.management.snmp.jvmmib.JvmMemGCEntryMBean;
 
 /**
  * Some static utility methods for interacting with basic datastore objects like keys and queries.
@@ -114,6 +118,18 @@ public class DatastoreUtils
 	 */
 	public static <S> S getId(Key<?> key) {
 			return getId(key.getRaw());
+	}
+
+	/**
+	 * Unfortunately Entity and EmbeddedEntity do not share a common interface for getting key.
+	 */
+	public static com.google.appengine.api.datastore.Key getKey(PropertyContainer container) {
+		if (container instanceof EmbeddedEntity)
+			return ((EmbeddedEntity)container).getKey();
+		else if (container instanceof Entity)
+			return ((Entity)container).getKey();
+		else
+			throw new IllegalArgumentException("Unknown type of property container: " + container.getClass());
 	}
 }
 

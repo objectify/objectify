@@ -42,70 +42,47 @@ public class TranslatableProperty<P, D> {
 	}
 
 	/**
-	 * Gets the appropriate value from the node and sets it on the appropriate field of the pojo.
-	 * @param node is the container node for the property
-	 * @param onPojo is the container object for the property
+	 * Gets the appropriate value from the container and sets it on the appropriate field of the pojo.
+	 * TODO: figure out what to do with collections and maps etc, things that need to be preserved
 	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public void executeLoad(Node node, Object onPojo, LoadContext ctx) {
-		Node actual = getChild(node, property);
-
-		// We only execute if there is a real node.  Note that even a null value in the data will have a real
-		// EntityNode with a propertyValue of null, so this is a legitimate test for data in the source Entity
-		if (actual != null) {
-			try {
-				// We have a couple special cases - for collection/map fields we would like to preserve the original
-				// instance, if one exists.  It might have been initialized with custom comparators, etc.
-				T value;
-				if (translator instanceof CollectionListNodeTranslator && actual.hasList()) {
-					Collection<Object> coll = (Collection<Object>)this.property.get(onPojo);
-					CollectionListNodeTranslator collTranslator = (CollectionListNodeTranslator)translator;
-					value = (T)collTranslator.loadListIntoExistingCollection(actual, ctx, coll);
-				}
-				else if (translator instanceof MapMapNodeTranslator && actual.hasMap()) {
-					Map map = (Map)this.property.get(onPojo);
-					MapMapNodeTranslator mapTranslator = (MapMapNodeTranslator)translator;
-					value = (T)mapTranslator.loadMapIntoExistingMap(actual, ctx, map);
-				}
-				else if (translator instanceof MapifyListNodeTranslator && actual.hasList()) {
-					Map map = (Map)this.property.get(onPojo);
-					MapifyListNodeTranslator mapTranslator = (MapifyListNodeTranslator)translator;
-					value = (T)mapTranslator.loadListIntoExistingMap(actual, ctx, map);
-				}
-				else {
-					value = translator.load(actual, ctx);
-				}
-
-				setOnPojo(onPojo, value, ctx, node.getPath());
-			}
-			catch (SkipException ex) {
-				// No prob, skip this one
-			}
+	public void executeLoad(PropertyContainer container, Object onPojo, LoadContext ctx, Path containerPath) {
+		try {
+			D value = getPropertyFromContainer(container, containerPath);
+			setValue(onPojo, value, ctx, containerPath);
+		} catch (SkipException ex) {
+			// No prob, skip this one
 		}
 	}
 
 	/**
-	 * Sets the property on the pojo to the value.  However, sensitive to the value possibly being a Result<?>
-	 * wrapper, in which case it enqueues the set operation until the loadcontext is done.
+	 * Sets the property on the pojo to the value. The value should already be translated.
+	 * TODO: Sensitive to the value possibly being a Result<?> wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
-	private void setOnPojo(final Object pojo, final T value, final LoadContext ctx, final Path path) {
+	private void setOnPojo(Object pojo, P value, LoadContext ctx, Path path) {
 		if (log.isLoggable(Level.FINEST))
 			log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
 
 		property.set(pojo, value);
 	}
 
-	/** */
-	public void setValue(Object pojo, Object value, LoadContext ctx) {
-		T obj = translator.load(Node.of(value), ctx);
-		setOnPojo(pojo, obj, ctx, Path.root());
+	/**
+	 * Set this raw datastore value on the relevant property of the pojo, doing whatever translations are necessary.
+	 */
+	public void setValue(Object pojo, D value, LoadContext ctx, Path containerPath) throws SkipException {
+		Path propertyPath = containerPath.extend(property.getName());
+		P loaded = translator.load(value, ctx, propertyPath);
+
+		setOnPojo(pojo, loaded, ctx, propertyPath);
 	}
 
-	/** Comes out in datastore format */
-	public Object getValue(Object pojo) {
+	/**
+	 * Get the value for the property and translate it into datastore format.
+	 */
+	public D getValue(Object pojo, SaveContext ctx, Path containerPath) {
 		@SuppressWarnings("unchecked")
-		T value = (T)property.get(pojo);
-		return translator.save(value, false, new SaveContext(null), Path.root()).getPropertyValue();
+		P value = (P)property.get(pojo);
+
+		return translator.save(value, false, ctx, containerPath.extend(property.getName()));
 	}
 
 	/**
@@ -116,7 +93,7 @@ public class TranslatableProperty<P, D> {
 	 * @param containerPath is the path to the container; each property will extend this path.
 	 * @param index is the default state of indexing up to this point
 	 */
-	public void executeSave(Object onPojo, PropertyContainer container, Path containerPath, boolean index, SaveContext ctx) {
+	public void executeSave(Object onPojo, PropertyContainer container, boolean index, SaveContext ctx, Path containerPath) {
 		if (property.isSaved(onPojo)) {
 			// Look for an override on indexing
 			Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
@@ -145,27 +122,29 @@ public class TranslatableProperty<P, D> {
 	}
 
 	/**
-	 * Gets a child node from a parent, detecting collisions and throwing an exception if one is found.
+	 * Gets the relevant property from the container, detecting alsoload collisions.
 	 *
-	 * @param parent is the collection in which to look
-	 * @param names is a list of names to look for in the parent
-	 * @return one child which has a name in the parent
-	 * @throws IllegalStateException if there are multiple name matches
+	 * @return the value obtained from the container
+	 * @throws IllegalStateException if there are multiple alsoload name matches
 	 */
-	private Node getChild(Node parent, Property prop) {
-		Node child = null;
+	private D getPropertyFromContainer(PropertyContainer container, Path containerPath) {
+		String foundName = null;
+		D value = null;
 
-		for (String name: prop.getLoadNames()) {
-			Node child2 = parent.get(name);
+		for (String name: property.getLoadNames()) {
+			if (container.hasProperty(name)) {
+				if (foundName != null)
+					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
+							+ property.getName() + "' at '" + containerPath.extend(foundName) + "' and '" + containerPath.extend(name) + "'");
 
-			if (child != null && child2 != null)
-				throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
-						+ prop.getName() + "' at '" + child.getPath() + "' and '" + child2.getPath() + "'");
-
-			if (child2 != null)
-				child = child2;
+				value = (D)container.getProperty(name);
+				foundName = name;
+			}
 		}
 
-		return child;
+		if (foundName == null)
+			throw new SkipException();
+		else
+			return value;
 	}
 }

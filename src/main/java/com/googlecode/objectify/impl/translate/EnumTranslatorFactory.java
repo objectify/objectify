@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import com.googlecode.objectify.impl.Path;
@@ -19,18 +20,17 @@ public class EnumTranslatorFactory extends ValueTranslatorFactory<Enum<?>, Strin
 	}
 
 	@Override
-	protected ValueTranslator<Enum<?>, String> createSafe(Path path, Property property, final Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<Enum<?>, String>(path, String.class) {
+	protected ValueTranslator<Enum<?>, String> createValueTranslator(final Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<Enum<?>, String>(String.class) {
+
 			@Override
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			public Enum<?> loadValue(String value, LoadContext ctx) {
-				// Anyone have any idea how to avoid this generics warning?
-				return Enum.valueOf((Class<Enum>)type, value.toString());
+			@SuppressWarnings("unchecked")
+			protected Enum<?> loadValue(String value, LoadContext ctx, Path path) throws SkipException {
+				return Enum.valueOf((Class<Enum>)type, value);
 			}
-			
+
 			@Override
-			protected String saveValue(Enum<?> value, SaveContext ctx) {
+			protected String saveValue(Enum<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.name();
 			}
 		};

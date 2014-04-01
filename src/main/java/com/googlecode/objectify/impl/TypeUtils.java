@@ -201,4 +201,16 @@ public class TypeUtils
 		else
 			return anno;
 	}
+
+	/**
+	 * Checks both the annotations list and the annotations on the class for the type
+	 * @return null if annotation is not in list or on class.
+	 */
+	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations, Class<?> onClass) {
+		A anno = getAnnotation(annotationType, annotations);
+		if (anno == null)
+			return onClass.getAnnotation(annotationType);
+		else
+			return anno;
+	}
 }
