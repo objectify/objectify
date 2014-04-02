@@ -1,7 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -21,7 +19,7 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 	}
 
 	@Override
-	final protected P loadSafe(D value, LoadContext ctx, Path path) throws SkipException {
+	final protected P loadSafe(D value, LoadContext ctx, Path path, P into) throws SkipException {
 		if (!datastoreClass.isAssignableFrom(value.getClass()))
 			path.throwIllegalState("Expected " + datastoreClass + ", got " + value.getClass() + ": " + value);
 

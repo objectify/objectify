@@ -35,11 +35,11 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 			return null;
 
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object, Object> componentTranslator = ctx.getFactory().getTranslators().get(componentType, annotations, ctx, path);
+		final Translator<Object, Object> componentTranslator = ctx.getTranslator(componentType, annotations, ctx, path);
 
 		return new Translator<Object, Collection<Object>>() {
 			@Override
-			public Object load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
+			public Object load(Collection<Object> node, LoadContext ctx, Path path, Object into) throws SkipException {
 				if (node == null)
 					throw new SkipException();
 
@@ -47,7 +47,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 
 				for (Object componentNode: node) {
 					try {
-						Object value = componentTranslator.load(componentNode, ctx, path);
+						Object value = componentTranslator.load(componentNode, ctx, path, null);
 						list.add(value);
 					}
 					catch (SkipException ex) {

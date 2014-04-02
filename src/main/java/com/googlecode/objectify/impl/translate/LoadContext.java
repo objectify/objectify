@@ -39,14 +39,6 @@ public class LoadContext
 	/** As we enter and exit embedded contexts, track the objects */
 	Deque<Object> owners = new ArrayDeque<Object>();
 
-	/**
-	 * If a translator implements the marker interface UsesExistingValue, then this value
-	 * will be assigned with the value that exists in the POJO field. Typically this
-	 * is used by collection-type translators to recycle collection fields initialized by
-	 * the POJO.
-	 */
-	Object existingValue;
-
 	/** */
 	public LoadContext(Loader loader, LoadEngine batch) {
 		this.loader = loader;
@@ -140,19 +132,5 @@ public class LoadContext
 	public void exitOwnerContext(Object expectedOwner) {
 		Object popped = owners.removeLast();
 		assert popped == expectedOwner;
-	}
-
-	/**
-	 * Get the last parent value seen; this is only done when the UsesExistingValue marker interface is seen.
-	 */
-	public Object getExistingValue() {
-		return existingValue;
-	}
-
-	/**
-	 * Assign the last parent value seen; this is only done when the UsesExistingValue marker interface is seen.
-	 */
-	public void setExistingValue(Object value) {
-		existingValue = value;
 	}
 }

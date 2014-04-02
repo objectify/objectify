@@ -1,17 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-
-import com.google.common.collect.Sets;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /** 
  * The context while creating translator factories. Tracks important state as we navigate the class graph.
@@ -24,44 +17,30 @@ public class CreateContext
 	ObjectifyFactory factory;
 	public ObjectifyFactory getFactory() { return this.factory; }
 	
-	/** As we enter and exit embedded contexts, track the classes */
-	Deque<Class<?>> owners = new ArrayDeque<Class<?>>(); 
-	
 	/** */
 	public CreateContext(ObjectifyFactory fact) {
 		this.factory = fact;
 	}
-	
-//	/**
-//	 * Call when entering a new class context.
-//	 */
-//	public void enterOwnerContext(Class<?> clazz) {
-//		owners.addLast(clazz);
-//	}
-//
-//	/**
-//	 * Pops the class context; the parameter is a sanity check
-//	 */
-//	public void exitOwnerContext(Class<?> expected) {
-//		Class<?> clazz = owners.removeLast();
-//		assert clazz == expected;
-//	}
-//
-//	/**
-//	 * Search the owner chain for a compatible class; if nothing found, throw a user-friendly exception
-//	 * @throws IllegalStateException if property class is not appropriate for the owner chain.
-//	 */
-//	public void verifyOwnerProperty(Path path, Property prop) {
-//		Class<?> ownerClass = GenericTypeReflector.erase(prop.getType());
-//
-//		Iterator<Class<?>> ownersIt = owners.descendingIterator();
-//		while (ownersIt.hasNext()) {
-//			Class<?> potentialOwner = ownersIt.next();
-//
-//			if (ownerClass.isAssignableFrom(potentialOwner))
-//				return;
-//		}
-//
-//		throw new IllegalStateException("No compatible class matching " + prop + " in the owner hierarchy " + owners);
-//	}
+
+	/**
+	 * Get the relevant translator, creating it if necessary.
+	 */
+	public <P, D> Translator<P, D> getTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return factory.getTranslators().get(type, annotations, ctx, path);
+	}
+
+	/**
+	 * Get the populator for the specified class. This requires looking up the
+	 * translator for that class and then getting the populator from it.
+	 *
+	 * @param clazz is the class we want a populator for.
+	 */
+	public <P> Populator<P> getPopulator(Class<P> clazz, Path path) {
+		if (clazz.equals(Object.class)) {
+			return (Populator)NullPopulator.INSTANCE;
+		} else {
+			ClassTranslator<P> classTranslator = (ClassTranslator<P>)getTranslator(clazz, new Annotation[0], this, path);
+			return classTranslator.getPopulator();
+		}
+	}
 }

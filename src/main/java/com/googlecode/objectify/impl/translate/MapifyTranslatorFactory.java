@@ -6,6 +6,7 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import com.googlecode.objectify.util.GenericUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -36,10 +37,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericTypeReflector.getTypeParameter(type, Map.class.getTypeParameters()[1]);
-		if (componentType == null)	// if it was a raw type, just assume Object
-			componentType = Object.class;
-
+		Type componentType = GenericUtils.getMapValueType(type);
 		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
 
 		@SuppressWarnings("unchecked")
@@ -47,7 +45,10 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 		return new TranslatorUsesExistingValue<Map<Object, Object>, Collection<Object>>() {
 			@Override
-			public Map<Object, Object> load(Collection<Object> node, LoadContext ctx, Path path, Map<Object, Object> map) throws SkipException {
+			public Map<Object, Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Map<Object, Object> map) throws SkipException {
+				if (node == null)
+					throw new SkipException();
+
 				if (map == null)
 					map = (Map<Object, Object>)fact.constructMap(mapType);
 				else
@@ -55,7 +56,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 				for (Object child: node) {
 					try {
-						Object translatedChild = componentTranslator.load(child, ctx, path);
+						Object translatedChild = componentTranslator.load(child, ctx, path, null);
 
 						Object key = mapper.getKey(translatedChild);
 						map.put(key, translatedChild);

@@ -11,7 +11,7 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.TranslatableProperty;
+import com.googlecode.objectify.impl.PropertyPopulator;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
 
@@ -26,10 +26,10 @@ import java.lang.reflect.Type;
 public class EntityClassTranslator<P> extends ClassTranslator<P>
 {
 	/** The @Id field on the pojo - it will be Long, long, or String. Just a temporary holder for keymetadata. */
-	private TranslatableProperty<Object, Object> idMeta;
+	private PropertyPopulator<Object, Object> idMeta;
 
 	/** The @Parent field on the pojo, or null if there is no parent. Just a temporary holder for keymetadata. */
-	private TranslatableProperty<Object, Object> parentMeta;
+	private PropertyPopulator<Object, Object> parentMeta;
 
 	/**
 	 * Metadata associated with the key.
@@ -55,7 +55,7 @@ public class EntityClassTranslator<P> extends ClassTranslator<P>
 	 * @return false if we get a special id/parent property so that the field doesn't get processed as a normal prop.
 	 */
 	@Override
-	protected boolean consider(TranslatableProperty<Object, Object> tprop) {
+	protected boolean consider(PropertyPopulator<Object, Object> tprop) {
 
 		Property prop = tprop.getProperty();
 

@@ -1,5 +1,9 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Ignore;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -11,10 +15,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Ignore;
 
 /**
  */
@@ -125,6 +125,26 @@ public class TypeUtils
 		}
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+	}
+
+	/**
+	 * Get all the persistable fields and methods declared on a class. Ignores superclasses.
+	 *
+	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
+	 *  and returned in order of declaration.
+	 */
+	public static List<Property> getDeclaredProperties(ObjectifyFactory fact, Class<?> clazz) {
+		List<Property> good = new ArrayList<>();
+
+		for (Field field: clazz.getDeclaredFields())
+			if (isOfInterest(field))
+				good.add(new FieldProperty(fact, clazz, field));
+
+		for (Method method: clazz.getDeclaredMethods())
+			if (isOfInterest(method))
+				good.add(new MethodProperty(method));
+
+		return good;
 	}
 
 	/**

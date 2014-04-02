@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import com.googlecode.objectify.util.GenericUtils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -35,19 +36,16 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]);
-		if (componentType == null)	// if it was a raw type, just assume Object
-			componentType = Object.class;
-
-		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
+		Type componentType = GenericUtils.getCollectionComponentType(type);
+		final Translator<Object, Object> componentTranslator = ctx.getTranslator(componentType, annotations, ctx, path);
 
 		return new TranslatorUsesExistingValue<Collection<Object>, Collection<Object>>() {
 
 			@Override
-			public Collection<Object> load(Collection<Object> node, LoadContext ctx, Path path, Collection<Object> collection) throws SkipException {
-				// If there was nothing in the collection, skip it entirely. This mirrors the underlying behavior
+			public Collection<Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Collection<Object> collection) throws SkipException {
+				// If the collection does not exist, skip it entirely. This mirrors the underlying behavior
 				// of collections in the datastore; if they are empty, they don't exist.
-				if (node == null || node.isEmpty())
+				if (node == null)
 					throw new SkipException();
 
 				if (collection == null)
@@ -57,7 +55,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 				for (Object child: node) {
 					try {
-						Object value = componentTranslator.load(child, ctx, path);
+						Object value = componentTranslator.load(child, ctx, path, null);
 						collection.add(value);
 					}
 					catch (SkipException ex) {

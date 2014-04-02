@@ -1,9 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.annotation.EntitySubclass;
-import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.Path;
 
 import java.util.ArrayList;
@@ -85,7 +83,7 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 
 
 	@Override
-	protected P loadSafe(PropertyContainer node, LoadContext ctx, Path path) throws SkipException {
+	protected P loadSafe(PropertyContainer node, LoadContext ctx, Path path, P into) throws SkipException {
 		return null;
 	}
 

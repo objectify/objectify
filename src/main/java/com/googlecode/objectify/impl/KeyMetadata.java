@@ -23,10 +23,10 @@ public class KeyMetadata<P>
 	private static final Logger log = Logger.getLogger(KeyMetadata.class.getName());
 
 	/** The @Id field on the pojo - it will be Long, long, or String */
-	private TranslatableProperty<Object, Object> idMeta;
+	private PropertyPopulator<Object, Object> idMeta;
 
 	/** The @Parent field on the pojo, or null if there is no parent */
-	private TranslatableProperty<Object, Object> parentMeta;
+	private PropertyPopulator<Object, Object> parentMeta;
 
 	/** */
 	private Class<P> clazz;
@@ -35,7 +35,7 @@ public class KeyMetadata<P>
 	private String kind;
 
 	/** */
-	public KeyMetadata(Class<P> clazz, TranslatableProperty<Object, Object> idMeta, TranslatableProperty<Object, Object> parentMeta, CreateContext ctx) {
+	public KeyMetadata(Class<P> clazz, PropertyPopulator<Object, Object> idMeta, PropertyPopulator<Object, Object> parentMeta, CreateContext ctx) {
 		this.clazz = clazz;
 
 		// There must be some field marked with @Id

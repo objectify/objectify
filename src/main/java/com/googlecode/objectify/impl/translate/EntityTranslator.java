@@ -26,11 +26,11 @@ public class EntityTranslator implements Translator<Object, PropertyContainer>
 	}
 
 	@Override
-	public Object load(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
+	public Object load(PropertyContainer container, LoadContext ctx, Path path, Object into) throws SkipException {
 		Key key = getKey(container);
 		EntityMetadata<?> meta = registrar.getMetadataSafe(key.getKind());
 
-		return meta.getTranslator().load(container, ctx, path);
+		return meta.getTranslator().load(container, ctx, path, null);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.translate.LoadContext;
+import com.googlecode.objectify.impl.translate.Populator;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -15,16 +16,16 @@ import java.util.logging.Logger;
 /**
  * Associates a Property with a Translator and provides a more convenient interface.
  */
-public class TranslatableProperty<P, D> {
+public class PropertyPopulator<P, D> implements Populator<P> {
 	/** */
-	private static final Logger log = Logger.getLogger(TranslatableProperty.class.getName());
+	private static final Logger log = Logger.getLogger(PropertyPopulator.class.getName());
 
 	/** */
 	protected Property property;
 	protected Translator<P, D> translator;
 
 	/** */
-	public TranslatableProperty(Property prop, Translator<P, D> trans) {
+	public PropertyPopulator(Property prop, Translator<P, D> trans) {
 		this.property = prop;
 		this.translator = trans;
 	}
@@ -40,18 +41,18 @@ public class TranslatableProperty<P, D> {
 
 	/**
 	 * Gets the appropriate value from the container and sets it on the appropriate field of the pojo.
-	 * TODO: figure out what to do with collections and maps etc, things that need to be preserved
 	 */
-	public void executeLoad(PropertyContainer container, Object onPojo, LoadContext ctx, Path containerPath) {
+	@Override
+	public void load(PropertyContainer container, LoadContext ctx, Path containerPath, Object intoPojo) {
 		try {
 			D value = getPropertyFromContainer(container, containerPath);
 
-			if (translator instanceof UsesExistingValue) {
-				P existingValue = (P)property.get(onPojo);
-				ctx.setExistingValue(existingValue);
-			}
+			@SuppressWarnings("unchecked")
+			P into = (translator instanceof UsesExistingValue)
+					? (P)property.get(intoPojo)
+					: null;
 
-			setValue(onPojo, value, ctx, containerPath);
+			setValue(into, value, ctx, containerPath, into);
 		} catch (SkipException ex) {
 			// No prob, skip this one
 		}
@@ -71,9 +72,9 @@ public class TranslatableProperty<P, D> {
 	/**
 	 * Set this raw datastore value on the relevant property of the pojo, doing whatever translations are necessary.
 	 */
-	public void setValue(Object pojo, D value, LoadContext ctx, Path containerPath) throws SkipException {
+	public void setValue(Object pojo, D value, LoadContext ctx, Path containerPath, P into) throws SkipException {
 		Path propertyPath = containerPath.extend(property.getName());
-		P loaded = translator.load(value, ctx, propertyPath);
+		P loaded = translator.load(value, ctx, propertyPath, into);
 
 		setOnPojo(pojo, loaded, ctx, propertyPath);
 	}
@@ -91,24 +92,25 @@ public class TranslatableProperty<P, D> {
 	/**
 	 * Gets the appropriate field value from the pojo and puts it in the container at the appropriate prop name
 	 * and with the appropriate indexing.
-	 *
 	 * @param onPojo is the parent pojo which holds the property we represent
-	 * @param containerPath is the path to the container; each property will extend this path.
 	 * @param index is the default state of indexing up to this point
+	 * @param containerPath is the path to the container; each property will extend this path.
 	 */
-	public void executeSave(Object onPojo, PropertyContainer container, boolean index, SaveContext ctx, Path containerPath) {
+	@Override
+	public void save(Object onPojo, boolean index, SaveContext ctx, Path containerPath, PropertyContainer into) {
 		if (property.isSaved(onPojo)) {
 			// Look for an override on indexing
 			Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
 			if (propertyIndexInstruction != null)
 				index = propertyIndexInstruction;
 
+			@SuppressWarnings("unchecked")
 			P value = (P)property.get(onPojo);
 			try {
 				Path propPath = containerPath.extend(property.getName());
 				Object propValue = translator.save(value, index, ctx, propPath);
 
-				DatastoreUtils.setContainerProperty(container, property.getName(), propValue, index);
+				DatastoreUtils.setContainerProperty(into, property.getName(), propValue, index);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing
@@ -132,6 +134,7 @@ public class TranslatableProperty<P, D> {
 					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
 							+ property.getName() + "' at '" + containerPath.extend(foundName) + "' and '" + containerPath.extend(name) + "'");
 
+				//noinspection unchecked
 				value = (D)container.getProperty(name);
 				foundName = name;
 			}
