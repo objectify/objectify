@@ -96,8 +96,7 @@ public class LoadEngine
 	}
 
 	/**
-	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
-	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
+	 * Create a Ref for the key, and maybe start a load operation depending on current load groups.
 	 *
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */

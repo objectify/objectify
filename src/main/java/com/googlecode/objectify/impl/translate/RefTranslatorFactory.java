@@ -22,17 +22,20 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(Type type, final Annotation[] annotations, CreateContext ctx, Path path) {
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
 
 			@Override
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {
-				return ctx.makeRef(property, Key.create(value));
+				//return ctx.makeRef(annotations, Key.create(value));
+				// TODO implement me
+				return Ref.create(Key.create(value));
 			}
 
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				ctx.registerReference(property, value);
+				//ctx.registerReference(property, value);
+				// TODO impelement me
 
 				return value.key().getRaw();
 			}

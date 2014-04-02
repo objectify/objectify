@@ -19,8 +19,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Translator which knows how to convert a POJO into a PropertiesContainer (ie, Entity or EmbeddedEntity).
- * Which one (Entity or EmbeddedEntity) will depend on whether or not we are at the root path.
+ * <p>Translator which knows how to convert one class of POJO into a PropertiesContainer. Class translators
+ * apply only to the declared fields in the class; superclasses are translated by a chained translator
+ * specific to that class, all the way up until we reach Object.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -30,7 +31,14 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 
 	/** */
 	private final ObjectifyFactory fact;
+
+	/** Translator for the superclass, if */
+	private final ClassTranslator<?> superTranslator;
+
+	/** */
 	protected final Class<P> clazz;
+
+	/** */
 	private final List<TranslatableProperty<Object, Object>> props = new ArrayList<>();
 
 	/** Three-state index instruction for the whole class. Null means "leave it as-is". */

@@ -69,22 +69,19 @@ public class Registrar
 
 		String kind = Key.getKind(clazz);
 
-		if (clazz.isAnnotationPresent(Entity.class))
-		{
-			ConcreteEntityMetadata<T> cmeta = new ConcreteEntityMetadata<T>(this.fact, clazz);
+		if (clazz.isAnnotationPresent(Entity.class)) {
+			EntityMetadata<T> cmeta = new EntityMetadata<T>(this.fact, clazz);
 			this.byKind.put(kind, cmeta);
 			this.byClass.put(clazz, cmeta);
 			Keys.register(clazz, cmeta.getKeyMetadata());
 
 			if (cmeta.getCacheExpirySeconds() != null)
 				this.cacheEnabled = true;
-		}
-		else if (clazz.isAnnotationPresent(EntitySubclass.class))
-		{
-			this.registerPolymorphicHierarchy(kind, clazz);
-		}
-		else
-		{
+
+//		} else if (clazz.isAnnotationPresent(EntitySubclass.class)) {
+//			this.registerPolymorphicHierarchy(kind, clazz);
+
+		} else {
 			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @EntitySubclass");
 		}
 	}

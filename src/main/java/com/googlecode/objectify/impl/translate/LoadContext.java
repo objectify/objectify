@@ -81,8 +81,7 @@ public class LoadContext
 	}
 
 	/**
-	 * Create a Ref for the key, and maybe initialize the value depending on the load annotation and the current
-	 * state of load groups.  If appropriate, this will also register the ref for upgrade.
+	 * Create a Ref for the key, and maybe start a load operation depending on current load groups.
 	 */
 	public <T> Ref<T> makeRef(Property property, Key<T> key) {
 		return engine.makeRef(currentRoot, property, key);
