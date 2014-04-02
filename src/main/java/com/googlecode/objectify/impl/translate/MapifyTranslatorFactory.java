@@ -47,9 +47,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 		return new TranslatorUsesExistingValue<Map<Object, Object>, Collection<Object>>() {
 			@Override
-			public Map<Object, Object> load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
-				Map<Object, Object> map = (Map<Object, Object>)ctx.getExistingValue();
-
+			public Map<Object, Object> load(Collection<Object> node, LoadContext ctx, Path path, Map<Object, Object> map) throws SkipException {
 				if (map == null)
 					map = (Map<Object, Object>)fact.constructMap(mapType);
 				else

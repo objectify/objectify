@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import com.googlecode.objectify.impl.translate.SkipException;
 import org.joda.money.BigMoney;
 
 import com.googlecode.objectify.impl.Path;
@@ -26,16 +28,15 @@ public class BigMoneyStringTranslatorFactory extends ValueTranslatorFactory<BigM
 	}
 	
 	@Override
-	protected ValueTranslator<BigMoney, String> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<BigMoney, String>(path, String.class) {
+	protected ValueTranslator<BigMoney, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<BigMoney, String>(String.class) {
 			@Override
-			protected BigMoney loadValue(String value, LoadContext ctx) {
+			protected BigMoney loadValue(String value, LoadContext ctx, Path path) throws SkipException {
 				return BigMoney.parse(value);
 			}
 
 			@Override
-			protected String saveValue(BigMoney value, SaveContext ctx) {
+			protected String saveValue(BigMoney value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.toString();
 			}
 		};

@@ -44,13 +44,11 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		return new TranslatorUsesExistingValue<Collection<Object>, Collection<Object>>() {
 
 			@Override
-			public Collection<Object> load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
+			public Collection<Object> load(Collection<Object> node, LoadContext ctx, Path path, Collection<Object> collection) throws SkipException {
 				// If there was nothing in the collection, skip it entirely. This mirrors the underlying behavior
 				// of collections in the datastore; if they are empty, they don't exist.
 				if (node == null || node.isEmpty())
 					throw new SkipException();
-
-				Collection<Object> collection = (Collection<Object>)ctx.getExistingValue();
 
 				if (collection == null)
 					collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
@@ -67,11 +65,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					}
 				}
 
-				// No need to reassign the value to itself
-				if (collection == ctx.getExistingValue())
-					throw new SkipException();
-				else
-					return collection;
+				return collection;
 			}
 
 			@Override

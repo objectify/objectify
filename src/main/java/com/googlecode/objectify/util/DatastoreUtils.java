@@ -131,5 +131,16 @@ public class DatastoreUtils
 		else
 			throw new IllegalArgumentException("Unknown type of property container: " + container.getClass());
 	}
+
+	/**
+	 * Calls setProperty() or setUnindexedProperty() as determined by the index parameter.
+	 */
+	public static void setContainerProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
+		if (index)
+			entity.setProperty(propertyName, value);
+		else
+			entity.setUnindexedProperty(propertyName, value);
+	}
+
 }
 

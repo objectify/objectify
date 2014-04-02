@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import com.googlecode.objectify.impl.translate.SkipException;
 import org.joda.time.LocalDate;
 
 import com.googlecode.objectify.impl.Path;
@@ -24,16 +26,15 @@ public class LocalDateTranslatorFactory extends ValueTranslatorFactory<LocalDate
 	}
 
 	@Override
-	protected ValueTranslator<LocalDate, String> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<LocalDate, String>(path, String.class) {
+	protected ValueTranslator<LocalDate, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<LocalDate, String>(String.class) {
 			@Override
-			protected LocalDate loadValue(String value, LoadContext ctx) {
+			protected LocalDate loadValue(String value, LoadContext ctx, Path path) throws SkipException {
 				return new LocalDate(value);
 			}
 
 			@Override
-			protected String saveValue(LocalDate value, SaveContext ctx) {
+			protected String saveValue(LocalDate value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.toString();
 			}
 		};

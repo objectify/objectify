@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate.opt;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 
@@ -8,6 +9,7 @@ import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 
@@ -58,16 +60,15 @@ public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigD
 	}
 
 	@Override
-	protected ValueTranslator<BigDecimal, Long> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
-		return new ValueTranslator<BigDecimal, Long>(path, Long.class) {
+	protected ValueTranslator<BigDecimal, Long> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		return new ValueTranslator<BigDecimal, Long>(Long.class) {
 			@Override
-			protected BigDecimal loadValue(Long value, LoadContext ctx) {
+			protected BigDecimal loadValue(Long value, LoadContext ctx, Path path) throws SkipException {
 				return new BigDecimal(value).divide(factor);
 			}
-			
+
 			@Override
-			protected Long saveValue(BigDecimal value, SaveContext ctx) {
+			protected Long saveValue(BigDecimal value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.multiply(factor).longValueExact();
 			}
 		};

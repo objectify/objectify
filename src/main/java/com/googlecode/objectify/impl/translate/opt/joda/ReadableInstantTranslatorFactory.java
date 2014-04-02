@@ -1,9 +1,11 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Type;
 import java.util.Date;
 
+import com.googlecode.objectify.impl.translate.SkipException;
 import org.joda.time.ReadableInstant;
 
 import com.googlecode.objectify.impl.Path;
@@ -29,20 +31,19 @@ public class ReadableInstantTranslatorFactory extends ValueTranslatorFactory<Rea
 	}
 
 	@Override
-	protected ValueTranslator<ReadableInstant, Date> createSafe(Path path, Property property, Type type, CreateContext ctx)
-	{
+	protected ValueTranslator<ReadableInstant, Date> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
 		final Class<?> clazz = GenericTypeReflector.erase(type);
-		
-		return new ValueTranslator<ReadableInstant, Date>(path, Date.class) {
+
+		return new ValueTranslator<ReadableInstant, Date>(Date.class) {
 			@Override
-			protected ReadableInstant loadValue(Date value, LoadContext ctx) {
+			protected ReadableInstant loadValue(Date value, LoadContext ctx, Path path) throws SkipException {
 				// All the Joda instants have a constructor that will take a Date
 				Constructor<?> ctor = TypeUtils.getConstructor(clazz, Object.class);
 				return (ReadableInstant)TypeUtils.newInstance(ctor, value);
 			}
 
 			@Override
-			protected Date saveValue(ReadableInstant value, SaveContext ctx) {
+			protected Date saveValue(ReadableInstant value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.toInstant().toDate();
 			}
 		};

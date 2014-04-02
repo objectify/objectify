@@ -26,7 +26,7 @@ public @interface Translate
 	 * Factory class which will be applied to this field.  It will be constructed with
 	 * ObjectifyFactory.construct().  It must produce a Translator for the field.
 	 */
-	Class<? extends TranslatorFactory<?>> value();
+	Class<? extends TranslatorFactory<?, ?>> value();
 	
 	/**
 	 * If true, the factory will be placed early in the chain, before collection translators.  This

@@ -6,6 +6,7 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.UsesExistingValue;
+import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.LogUtils;
 
 import java.util.logging.Level;
@@ -107,20 +108,12 @@ public class TranslatableProperty<P, D> {
 				Path propPath = containerPath.extend(property.getName());
 				Object propValue = translator.save(value, index, ctx, propPath);
 
-				setContainerProperty(container, property.getName(), propValue, index);
+				DatastoreUtils.setContainerProperty(container, property.getName(), propValue, index);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing
 			}
 		}
-	}
-
-	/** Utility method */
-	private void setContainerProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
-		if (index)
-			entity.setProperty(propertyName, value);
-		else
-			entity.setUnindexedProperty(propertyName, value);
 	}
 
 	/**

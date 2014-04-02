@@ -37,9 +37,12 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
 		final Translator<Object, Object> componentTranslator = ctx.getFactory().getTranslators().get(componentType, annotations, ctx, path);
 
-		return new TranslatorUsesExistingValue<Object, Collection<Object>>() {
+		return new Translator<Object, Collection<Object>>() {
 			@Override
 			public Object load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
+				if (node == null)
+					throw new SkipException();
+
 				List<Object> list = new ArrayList<Object>(node.size());
 
 				for (Object componentNode: node) {

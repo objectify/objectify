@@ -59,10 +59,10 @@ public class Translators
 		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
 		this.translatorFactories.add(new CollectionTranslatorFactory());
 		this.translatorFactories.add(new MapifyTranslatorFactory());
-//		this.translatorFactories.add(new EmbedMapTranslatorFactory());
+		this.translatorFactories.add(new EmbeddedMapTranslatorFactory());
 		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 
-		// Magic inflection point at which we want to prioritize added translators
+		// Magic inflection point at which we want to prioritize added normal translators
 		this.insertPoint = this.translatorFactories.size();
 
 		this.translatorFactories.add(new StringTranslatorFactory());
@@ -89,7 +89,7 @@ public class Translators
 	 *
 	 * <p>Translators are added in-order so earlier translaters pre-empt later translators.</p>
 	 */
-	public void add(TranslatorFactory<?> trans) {
+	public void add(TranslatorFactory<?, ?> trans) {
 		this.translatorFactories.add(insertPoint, trans);
 		insertPoint++;
 	}
@@ -98,7 +98,7 @@ public class Translators
 	 * <p>Add a new translator to the beginning of the list, before all other translators
 	 * except other translators that have been added early.</p>
 	 */
-	public void addEarly(TranslatorFactory<?> trans) {
+	public void addEarly(TranslatorFactory<?, ?> trans) {
 		this.translatorFactories.add(earlyInsertPoint, trans);
 		earlyInsertPoint++;
 		insertPoint++;
