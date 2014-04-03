@@ -54,7 +54,7 @@ public class EntityMetadata<P>
 	 * which EntityMetadata to call.
 	 */
 	public P load(Entity ent, LoadContext ctx) {
-		return translator.load(ent, ctx, Path.root(), null);
+		return translator.load(ent, ctx, Path.root());
 	}
 
 	/**

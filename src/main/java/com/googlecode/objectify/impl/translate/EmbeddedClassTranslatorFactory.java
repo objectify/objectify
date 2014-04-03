@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 
 /**
@@ -23,6 +23,6 @@ public class EmbeddedClassTranslatorFactory<P> implements TranslatorFactory<P, P
 	@Override
 	public Translator<P, PropertyContainer> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
 		Class<P> clazz = (Class<P>)GenericTypeReflector.erase(type);
-		return new ClassTranslator<P>(clazz, ctx, path);
+		return new EmbeddedClassTranslator<P>(clazz, ctx, path);
 	}
 }

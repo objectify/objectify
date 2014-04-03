@@ -1,5 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -7,9 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.impl.Path;
 
 
 /**
@@ -65,6 +65,7 @@ public class Translators
 		// Magic inflection point at which we want to prioritize added normal translators
 		this.insertPoint = this.translatorFactories.size();
 
+		this.translatorFactories.add(new EntityClassTranslatorFactory<Object>());
 		this.translatorFactories.add(new StringTranslatorFactory());
 		this.translatorFactories.add(new TextTranslatorFactory());
 		this.translatorFactories.add(new NumberTranslatorFactory());

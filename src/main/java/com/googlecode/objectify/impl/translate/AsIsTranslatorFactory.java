@@ -29,7 +29,7 @@ public class AsIsTranslatorFactory implements TranslatorFactory<Object, Object>
 
 		return new Translator<Object, Object>() {
 			@Override
-			public Object load(Object node, LoadContext ctx, Path path, Object into) throws SkipException {
+			public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
 				return node;
 			}
 

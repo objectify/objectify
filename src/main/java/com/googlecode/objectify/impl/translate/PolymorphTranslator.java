@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.Path;
 
 import java.util.ArrayList;
@@ -26,7 +26,7 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 	static class SubclassInfo<V>
 	{
 		/** */
-		public ClassTranslator<V> translator;
+		public EmbeddedClassTranslator<V> translator;
 
 		/**
 		 * The discriminator for this subclass, or null for the base class.
@@ -42,7 +42,7 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 		/**
 		 * @param discriminator can be null to indicate the base class
 		 */
-		public SubclassInfo(ClassTranslator<V> translator, String discriminator) {
+		public SubclassInfo(EmbeddedClassTranslator<V> translator, String discriminator) {
 			this.translator = translator;
 			this.discriminator = discriminator;
 		}
@@ -56,7 +56,7 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 
 			this.addIndexedDiscriminators(clazz.getSuperclass());
 
-			EntitySubclass sub = clazz.getAnnotation(EntitySubclass.class);
+			Subclass sub = clazz.getAnnotation(Subclass.class);
 			if (sub != null && sub.index()) {
 				String disc = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
 				this.indexedDiscriminators.add(disc);
@@ -68,7 +68,7 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 	SubclassInfo<P> base;
 
 	/** Keyed by discriminator value; doesn't include the base metdata */
-	Map<String, ClassTranslator<?>> byDiscriminator = new HashMap<>();
+	Map<String, EmbeddedClassTranslator<?>> byDiscriminator = new HashMap<>();
 
 	/** Keyed by Class, includes the base class */
 	Map<Class<? extends P>, SubclassInfo<? extends P>> byClass = new HashMap<>();
@@ -77,13 +77,13 @@ public class PolymorphTranslator<P> extends NullSafeTranslator<P, PropertyContai
 	 * @param baseClass
 	 * @param translator
 	 */
-	public PolymorphTranslator(Class<P> baseClass, ClassTranslator<P> translator) {
+	public PolymorphTranslator(Class<P> baseClass, EmbeddedClassTranslator<P> translator) {
 
 	}
 
 
 	@Override
-	protected P loadSafe(PropertyContainer node, LoadContext ctx, Path path, P into) throws SkipException {
+	protected P loadSafe(PropertyContainer node, LoadContext ctx, Path path) throws SkipException {
 		return null;
 	}
 

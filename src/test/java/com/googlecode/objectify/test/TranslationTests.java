@@ -7,7 +7,7 @@ import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.translate.ClassTranslator;
+import com.googlecode.objectify.impl.translate.EmbeddedClassTranslator;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.EntityClassTranslator;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -62,7 +62,7 @@ public class TranslationTests extends TestBase
 		Path thingPath = Path.root().extend("somewhere");
 
 		CreateContext createCtx = new CreateContext(fact());
-		ClassTranslator<Thing> translator = new ClassTranslator<>(Thing.class, createCtx, thingPath);
+		EmbeddedClassTranslator<Thing> translator = new EmbeddedClassTranslator<>(Thing.class, createCtx, thingPath);
 
 		Thing thing = new Thing();
 		thing.foo = "bar";

@@ -50,7 +50,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 		@SuppressWarnings("unchecked")
 		final Stringifier<Object> stringifier = (Stringifier<Object>)fact.construct(stringifierClass);
 
-		return new TranslatorUsesExistingValue<Map<Object,Object>, EmbeddedEntity>() {
+		return new TranslatorRecycles<Map<Object,Object>, EmbeddedEntity>() {
 
 			@Override
 			public Map<Object, Object> loadInto(EmbeddedEntity node, LoadContext ctx, Path path, Map<Object, Object> into) {
@@ -65,7 +65,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 
 				for (Map.Entry<String, Object> entry: node.getProperties().entrySet()) {
 					Object key = stringifier.fromString(entry.getKey());
-					Object value = componentTranslator.load(entry.getValue(), ctx, path.extend(entry.getKey()), null);
+					Object value = componentTranslator.load(entry.getValue(), ctx, path.extend(entry.getKey()));
 
 					into.put(key, value);
 				}

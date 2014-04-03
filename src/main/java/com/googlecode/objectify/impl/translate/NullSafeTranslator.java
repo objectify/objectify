@@ -10,11 +10,11 @@ import com.googlecode.objectify.impl.Path;
 abstract public class NullSafeTranslator<P, D> implements Translator<P, D>
 {
 	@Override
-	final public P load(D node, LoadContext ctx, Path path, P into) throws SkipException {
+	final public P load(D node, LoadContext ctx, Path path) throws SkipException {
 		if (node == null)
 			return null;
 		else
-			return loadSafe(node, ctx, path, into);
+			return loadSafe(node, ctx, path);
 	}
 
 	@Override
@@ -29,7 +29,7 @@ abstract public class NullSafeTranslator<P, D> implements Translator<P, D>
 	 * Implement this, returning a proper translated value
 	 * @param node will never be null
 	 */
-	abstract protected P loadSafe(D node, LoadContext ctx, Path path, P into) throws SkipException;
+	abstract protected P loadSafe(D node, LoadContext ctx, Path path) throws SkipException;
 	
 	/**
 	 * Implement this, returning a proper translated value

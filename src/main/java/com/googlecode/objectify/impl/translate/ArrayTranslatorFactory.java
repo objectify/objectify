@@ -39,7 +39,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 
 		return new Translator<Object, Collection<Object>>() {
 			@Override
-			public Object load(Collection<Object> node, LoadContext ctx, Path path, Object into) throws SkipException {
+			public Object load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
 				if (node == null)
 					throw new SkipException();
 
@@ -47,7 +47,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 
 				for (Object componentNode: node) {
 					try {
-						Object value = componentTranslator.load(componentNode, ctx, path, null);
+						Object value = componentTranslator.load(componentNode, ctx, path);
 						list.add(value);
 					}
 					catch (SkipException ex) {

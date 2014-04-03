@@ -1,15 +1,22 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -35,14 +42,64 @@ public class KeyMetadata<P>
 	private String kind;
 
 	/** */
-	public KeyMetadata(Class<P> clazz, PropertyPopulator<Object, Object> idMeta, PropertyPopulator<Object, Object> parentMeta, CreateContext ctx) {
+	public KeyMetadata(Class<P> clazz, CreateContext ctx, Path path) {
 		this.clazz = clazz;
+
+		findKeyFields(clazz, ctx, path);
 
 		// There must be some field marked with @Id
 		if (this.idMeta == null)
 			throw new IllegalStateException("There must be an @Id field (String, Long, or long) for " + clazz.getName());
 
 		this.kind = Key.getKind(clazz);
+	}
+
+	/**
+	 * Recursively go through the class hierarchy looking for the idMeta and parentMeta fields.
+	 * @throws IllegalStateException if @Id or @Parent shows up twice.
+	 */
+	private void findKeyFields(Class<?> inspect, CreateContext ctx, Path path) {
+		if (inspect == Object.class)
+			return;
+
+		findKeyFields(inspect.getSuperclass(), ctx, path);
+
+		for (Field field: inspect.getDeclaredFields()) {
+			if (field.getAnnotation(Id.class) != null) {
+				if (this.idMeta != null)
+					throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + clazz.getName());
+
+				if ((field.getType() != Long.class) && (field.getType() != long.class) && (field.getType() != String.class))
+					throw new IllegalStateException("@Id field '" + field.getName() + "' in " + inspect.getName() + " must be of type Long, long, or String");
+
+				Property prop = new FieldProperty(ctx.getFactory(), clazz, field);
+				Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, path.extend(prop.getName()));
+
+				this.idMeta = new PropertyPopulator<>(prop, translator);
+
+			} else if (field.getAnnotation(Parent.class) != null) {
+				if (this.parentMeta != null)
+					throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + clazz.getName());
+
+				if (!isAllowedParentFieldType(field.getType()))
+					throw new IllegalStateException("@Parent fields must be Ref<?>, Key<?>, or datastore Key. Illegal parent: " + field);
+
+				Property prop = new FieldProperty(ctx.getFactory(), clazz, field);
+				Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, path.extend(prop.getName()));
+
+				this.parentMeta = new PropertyPopulator<>(prop, translator);
+			}
+		}
+	}
+
+	/** @return true if the type is an allowed parent type */
+	private boolean isAllowedParentFieldType(Type type) {
+
+		Class<?> erased = GenericTypeReflector.erase(type);
+
+		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(erased)
+				|| Key.class.isAssignableFrom(erased)
+				|| Ref.class.isAssignableFrom(erased);
 	}
 
 	/**

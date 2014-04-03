@@ -1,9 +1,9 @@
 package com.googlecode.objectify.condition;
 
-import java.lang.reflect.Field;
-
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.TypeUtils;
+
+import java.lang.reflect.Field;
 
 
 /**
@@ -21,10 +21,28 @@ import com.googlecode.objectify.impl.TypeUtils;
  * 
  * <p>The {@code foo} field will be left unsaved when it has the value "defaultFoo".</p>
  * 
- * <p>Specifically, this conditional constructs an instance of your entity class
- * and stores the default field value for later comparison.  Note that if you
- * initialize the field in your default constructor, this counts!</p>
- * 
+ * <p>Specifically, this conditional constructs an instance of <i>the class in which
+ * the field is declared</i> and stores the default field value for later comparison.
+ * Note that if you initialize the field in your default constructor, this counts!</p>
+ *
+ * <p>There is one important caveat: Objectify treats each declared class in a type
+ * hierarchy separately. The class in which the field is declared have a no-arg constructor,
+ * and it alone is used to determine the default value. This will NOT work:</p>
+ *
+ * <blockquote><pre>
+ * public class MyBase {
+ *     &#64;Id Long id;
+ *     &#64;IgnoreSave(IfDefault.class) String foo = "baseFoo";
+ * }
+ * public class MyEntity extends MyBase {
+ *     public MyEntity() {
+ *         foo = "subclassFoo";
+ *     }
+ * }
+ * </pre></blockquote>
+ *
+ * <p>In this example, the default value will be "baseFoo".</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class IfDefault extends ValueIf<Object> implements InitializeIf

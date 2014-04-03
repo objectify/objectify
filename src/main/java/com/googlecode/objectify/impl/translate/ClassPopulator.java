@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Owner;
 import com.googlecode.objectify.annotation.Unindex;
@@ -38,8 +40,15 @@ public class ClassPopulator<P> implements Populator<P>
 	/** Three-state index instruction for the whole class. Null means "leave it as-is". */
 	private final Boolean indexInstruction;
 
-	/** */
+	/**
+	 * Includes every property
+	 */
 	public ClassPopulator(Class<P> clazz, CreateContext ctx, Path path) {
+		this(clazz, ctx, path, Predicates.<Property>alwaysTrue());
+	}
+
+	/** */
+	public ClassPopulator(Class<P> clazz, CreateContext ctx, Path path, Predicate<Property> include) {
 		// First thing we do is recursively climb the superclass chain
 		this.superPopulator = ctx.getPopulator(clazz.getSuperclass(), path);
 
@@ -57,7 +66,7 @@ public class ClassPopulator<P> implements Populator<P>
 					Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, propPath);
 					PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
 
-					if (consider(tprop))
+					if (include.apply(prop))
 						props.add(tprop);
 				}
 			} catch (Exception ex) {
@@ -85,12 +94,6 @@ public class ClassPopulator<P> implements Populator<P>
 		else
 			return null;
 	}
-
-	/**
-	 * Called when each property is discovered, allows a subclass to do something special with it
-	 * @return false if the property should not be considered a standard populated property.
-	 */
-	protected boolean consider(PropertyPopulator<Object, Object> tprop) { return true; }
 
 	/* */
 	@Override

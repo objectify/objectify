@@ -43,7 +43,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 		@SuppressWarnings("unchecked")
 		final Mapper<Object, Object> mapper = (Mapper<Object, Object>)fact.construct(mapify.value());
 
-		return new TranslatorUsesExistingValue<Map<Object, Object>, Collection<Object>>() {
+		return new TranslatorRecycles<Map<Object, Object>, Collection<Object>>() {
 			@Override
 			public Map<Object, Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Map<Object, Object> map) throws SkipException {
 				if (node == null)
@@ -56,7 +56,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 				for (Object child: node) {
 					try {
-						Object translatedChild = componentTranslator.load(child, ctx, path, null);
+						Object translatedChild = componentTranslator.load(child, ctx, path);
 
 						Object key = mapper.getKey(translatedChild);
 						map.put(key, translatedChild);

@@ -2,34 +2,37 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Ref;
+import com.google.common.base.Predicate;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.PropertyPopulator;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
+import com.googlecode.objectify.util.LogUtils;
 
-import java.lang.reflect.Type;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
- * <p>Translator which translates entities, both root level and embedded.</p>
+ * <p>Translator which translates entity classes, both root level and embedded. An entity class
+ * is anything which has an @Entity in its superclass hierarchy.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EntityClassTranslator<P> extends ClassTranslator<P>
+public class EntityClassTranslator<P> extends AbstractClassTranslator<P>
 {
-	/** The @Id field on the pojo - it will be Long, long, or String. Just a temporary holder for keymetadata. */
-	private PropertyPopulator<Object, Object> idMeta;
+	private static final Logger log = Logger.getLogger(EntityClassTranslator.class.getName());
 
-	/** The @Parent field on the pojo, or null if there is no parent. Just a temporary holder for keymetadata. */
-	private PropertyPopulator<Object, Object> parentMeta;
+	/** We don't want to include the key fields in normal population */
+	private static final Predicate<Property> NON_KEY_FIELDS = new Predicate<Property>() {
+		@Override
+		public boolean apply(Property prop) {
+			return prop.getAnnotation(Id.class) != null && prop.getAnnotation(Parent.class) != null;
+		}
+	};
 
 	/**
 	 * Metadata associated with the key.
@@ -38,64 +41,41 @@ public class EntityClassTranslator<P> extends ClassTranslator<P>
 
 	/**
 	 */
-	@SuppressWarnings("unchecked")
-	public EntityClassTranslator(Type type, CreateContext ctx, Path path) {
-		super((Class<P>)GenericTypeReflector.erase(type), ctx, path);
+	public EntityClassTranslator(Class<P> clazz, CreateContext ctx, Path path) {
+		super(clazz, ctx, path, new ClassPopulator<P>(clazz, ctx, path, NON_KEY_FIELDS));
 
 		// We should never have gotten this far in the registration process
-		assert clazz.getAnnotation(Entity.class) != null || clazz.getAnnotation(EntitySubclass.class) != null;
+		assert clazz.getAnnotation(Entity.class) != null;
 
-		// Now that we have idMeta and parentMeta, we can construct the keyMetadata
-		keyMetadata = new KeyMetadata<>(clazz, idMeta, parentMeta, ctx);
+		keyMetadata = new KeyMetadata<>(clazz, ctx, path);
+	}
+
+	/* */
+	@Override
+	public P loadSafe(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
+		if (log.isLoggable(Level.FINEST))
+			log.finest(LogUtils.msg(path, "Instantiating a " + clazz.getName()));
+
+		P into = constructEmptyPojo(container, ctx, path);
+
+		populator.load(container, ctx, path, into);
+
+		return into;
+	}
+
+	/* */
+	@Override
+	public PropertyContainer saveSafe(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+		PropertyContainer into = constructEmptyContainer(pojo, path);
+
+		populator.save(pojo, index, ctx, path, into);
+
+		return into;
 	}
 
 	/**
-	 * Look for the id and parent properties
-	 *
-	 * @return false if we get a special id/parent property so that the field doesn't get processed as a normal prop.
 	 */
-	@Override
-	protected boolean consider(PropertyPopulator<Object, Object> tprop) {
-
-		Property prop = tprop.getProperty();
-
-		if (prop.getAnnotation(Id.class) != null) {
-			if (this.idMeta != null)
-				throw new IllegalStateException("Multiple @Id fields in the class hierarchy of " + clazz.getName());
-
-			if ((prop.getType() != Long.class) && (prop.getType() != long.class) && (prop.getType() != String.class))
-				throw new IllegalStateException("@Id field '" + prop.getName() + "' in " + clazz.getName() + " must be of type Long, long, or String");
-
-			this.idMeta = tprop;
-
-			return false;
-		} else if (prop.getAnnotation(Parent.class) != null) {
-			if (this.parentMeta != null)
-				throw new IllegalStateException("Multiple @Parent fields in the class hierarchy of " + clazz.getName());
-
-			if (!isAllowedParentFieldType(prop.getType()))
-				throw new IllegalStateException("@Parent fields must be Ref<?>, Key<?>, or datastore Key. Illegal parent: " + prop);
-
-			this.parentMeta = tprop;
-
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	/** @return true if the type is an allowed parent type */
-	private boolean isAllowedParentFieldType(Type type) {
-
-		Class<?> erased = GenericTypeReflector.erase(type);
-
-		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(erased)
-				|| Key.class.isAssignableFrom(erased)
-				|| Ref.class.isAssignableFrom(erased);
-	}
-
-	@Override
-	protected PropertyContainer constructEmptyContainer(P pojo, Path path) {
+	private PropertyContainer constructEmptyContainer(P pojo, Path path) {
 		if (path.isRoot()) {
 			return keyMetadata.initEntity(pojo);
 		} else {
@@ -105,9 +85,10 @@ public class EntityClassTranslator<P> extends ClassTranslator<P>
 		}
 	}
 
-	@Override
-	protected P constructEmptyPojo(PropertyContainer container, LoadContext ctx, Path path) {
-		P pojo = super.constructEmptyPojo(container, ctx, path);
+	/**
+	 */
+	private P constructEmptyPojo(PropertyContainer container, LoadContext ctx, Path path) {
+		P pojo = fact.construct(clazz);
 
 		keyMetadata.setKey(pojo, DatastoreUtils.getKey(container), ctx, path);
 

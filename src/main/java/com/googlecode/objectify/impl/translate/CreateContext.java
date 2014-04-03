@@ -35,12 +35,13 @@ public class CreateContext
 	 *
 	 * @param clazz is the class we want a populator for.
 	 */
+	@SuppressWarnings("unchecked")
 	public <P> Populator<P> getPopulator(Class<P> clazz, Path path) {
 		if (clazz.equals(Object.class)) {
-			return (Populator)NullPopulator.INSTANCE;
+			return (Populator<P>)NullPopulator.INSTANCE;
 		} else {
-			ClassTranslator<P> classTranslator = (ClassTranslator<P>)getTranslator(clazz, new Annotation[0], this, path);
-			return classTranslator.getPopulator();
+			HasPopulator<P> hasPopulator = (HasPopulator<P>)getTranslator(clazz, new Annotation[0], this, path);
+			return hasPopulator.getPopulator();
 		}
 	}
 }

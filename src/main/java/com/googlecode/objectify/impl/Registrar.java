@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.EntitySubclass;
+import com.googlecode.objectify.annotation.Subclass;
 
 /**
  * <p>Maintains information about registered entity classes<p>
@@ -115,7 +115,7 @@ public class Registrar
 			// First climb the hierarchy
 			registerPolymorphicHierarchy(kind, clazz.getSuperclass());
 
-			if (clazz.isAnnotationPresent(EntitySubclass.class))
+			if (clazz.isAnnotationPresent(Subclass.class))
 			{
 				// Populate this one way or another
 				PolymorphicEntityMetadata polyMeta;

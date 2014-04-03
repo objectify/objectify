@@ -3,10 +3,10 @@ package com.googlecode.objectify.impl;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.Populator;
+import com.googlecode.objectify.impl.translate.Recycles;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
-import com.googlecode.objectify.impl.translate.UsesExistingValue;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.LogUtils;
 
@@ -47,12 +47,10 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 		try {
 			D value = getPropertyFromContainer(container, containerPath);
 
-			@SuppressWarnings("unchecked")
-			P into = (translator instanceof UsesExistingValue)
-					? (P)property.get(intoPojo)
-					: null;
+			if (translator instanceof Recycles)
+				ctx.recycle(property.get(intoPojo));
 
-			setValue(into, value, ctx, containerPath, into);
+			setValue(intoPojo, value, ctx, containerPath);
 		} catch (SkipException ex) {
 			// No prob, skip this one
 		}
@@ -72,9 +70,9 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	/**
 	 * Set this raw datastore value on the relevant property of the pojo, doing whatever translations are necessary.
 	 */
-	public void setValue(Object pojo, D value, LoadContext ctx, Path containerPath, P into) throws SkipException {
+	public void setValue(Object pojo, D value, LoadContext ctx, Path containerPath) throws SkipException {
 		Path propertyPath = containerPath.extend(property.getName());
-		P loaded = translator.load(value, ctx, propertyPath, into);
+		P loaded = translator.load(value, ctx, propertyPath);
 
 		setOnPojo(pojo, loaded, ctx, propertyPath);
 	}

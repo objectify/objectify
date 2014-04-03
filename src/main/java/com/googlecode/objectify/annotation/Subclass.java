@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * <p>Indicates that a class is part of a polymorphic persistence hierarchy.  Subclasses
+ * <p>Indicates that a class is part of a polymorphic persistence hierarchy. Subclasses
  * of an @Entity should be flagged with this annotation.</p>
  * 
  * <p>This is used for Objectify's implementation of polymorphism.  Place this on any
@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
-public @interface EntitySubclass
+public @interface Subclass
 {
 	/** 
 	 * Optionally define the discriminator value for the subclass; default is Class.getSimpleName() 

@@ -10,7 +10,6 @@ import java.util.logging.Logger;
 import org.testng.annotations.Test;
 
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.EntitySubclass;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
 
@@ -35,7 +34,7 @@ public class PolymorphicAbstractBaseTests extends TestBase
 	}
 
 	/** */
-	@EntitySubclass(index=true)
+	@com.googlecode.objectify.annotation.Subclass(index=true)
 	public static class Subclass extends Base {
 		boolean bar;
 	}

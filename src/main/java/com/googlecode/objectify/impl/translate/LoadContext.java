@@ -39,10 +39,26 @@ public class LoadContext
 	/** As we enter and exit embedded contexts, track the objects */
 	Deque<Object> owners = new ArrayDeque<Object>();
 
+	/**
+	 * If a translator implements the marker interface Recycles, this will be populated with
+	 * the existing value of a property.
+	 */
+	Object recycled;
+
 	/** */
 	public LoadContext(Loader loader, LoadEngine batch) {
 		this.loader = loader;
 		this.engine = batch;
+	}
+
+	/** The most recently recycled value */
+	public Object getRecycled() {
+		return recycled;
+	}
+
+	/** */
+	public void recycle(Object value) {
+		this.recycled = value;
 	}
 
 	/** */

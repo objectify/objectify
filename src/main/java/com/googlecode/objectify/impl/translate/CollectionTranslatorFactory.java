@@ -39,7 +39,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 		Type componentType = GenericUtils.getCollectionComponentType(type);
 		final Translator<Object, Object> componentTranslator = ctx.getTranslator(componentType, annotations, ctx, path);
 
-		return new TranslatorUsesExistingValue<Collection<Object>, Collection<Object>>() {
+		return new TranslatorRecycles<Collection<Object>, Collection<Object>>() {
 
 			@Override
 			public Collection<Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Collection<Object> collection) throws SkipException {
@@ -55,7 +55,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 				for (Object child: node) {
 					try {
-						Object value = componentTranslator.load(child, ctx, path, null);
+						Object value = componentTranslator.load(child, ctx, path);
 						collection.add(value);
 					}
 					catch (SkipException ex) {

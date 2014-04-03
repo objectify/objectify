@@ -25,16 +25,13 @@ public interface Translator<P, D>
 	 * @param node is the part of the native datastore entity tree we are transforming.
 	 * @param ctx holds state information during an entity load.
 	 * @param path is the current path to this translator
-	 * @param into is an optional parameter; sometimes we need to create an object at a higher level and pass it
-	 *             down through a stack of translators. Most translators will ignore this, but some will have special
-	 *             behavior, for example, this allows collections to be recycled.
 	 * @return an assembled pojo corresponding to the node subtree; if null is returned, that is the real value!
 	 * 
 	 * @throws SkipException if the return value should be abandoned.
 	 * 
 	 * @see LoadEngine
 	 */
-	P load(D node, LoadContext ctx, Path path, P into) throws SkipException;
+	P load(D node, LoadContext ctx, Path path) throws SkipException;
 
 	/**
 	 * Translates a pojo (or some component thereof) into a format suitable for storage in the datastore.
