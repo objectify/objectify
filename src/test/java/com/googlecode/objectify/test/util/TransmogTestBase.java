@@ -5,7 +5,6 @@ package com.googlecode.objectify.test.util;
 
 import java.util.logging.Logger;
 
-import com.googlecode.objectify.impl.ConcreteEntityMetadata;
 import com.googlecode.objectify.impl.Transmog;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;

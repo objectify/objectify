@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.impl.translate.EntityClassTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -17,9 +18,6 @@ import com.googlecode.objectify.impl.translate.Translator;
  */
 public class EntityMetadata<P>
 {
-	/** */
-	private ObjectifyFactory fact;
-
 	/** The base entity class type, ie the class with the @Entity annotation */
 	private Class<P> entityClass;
 
@@ -27,14 +25,17 @@ public class EntityMetadata<P>
 	private Cache cached;
 
 	/** */
-	private Translator<P, PropertyContainer> translator;
+	private EntityClassTranslator<P> translator;
 
 	/**
-	 * @param translator which can handle the root entity type.
+	 * @param clazz must have @Entity in its hierarchy
 	 */
-	public EntityMetadata(ObjectifyFactory fact, Translator<P, PropertyContainer> translator) {
-		this.fact = fact;
-		this.translator = translator;
+	public EntityMetadata(ObjectifyFactory fact, Class<P> clazz) {
+		assert clazz.isAnnotationPresent(com.googlecode.objectify.annotation.Entity.class);
+
+		this.entityClass = clazz;
+		this.cached = clazz.getAnnotation(Cache.class);
+		this.translator = (EntityClassTranslator<P>)fact.getTranslators().getRoot(clazz);
 	}
 
 	/**
@@ -74,7 +75,9 @@ public class EntityMetadata<P>
 	/**
 	 * Get specific metadata about the key for this type.
 	 */
-	public KeyMetadata<P> getKeyMetadata();
+	public KeyMetadata<P> getKeyMetadata() {
+		return translator.getKeyMetadata();
+	}
 
 	/**
 =	 * @return the translator that will convert between native datastore representation and pojo for this type.

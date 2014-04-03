@@ -1,28 +1,18 @@
 package com.googlecode.objectify.impl;
 
-import com.googlecode.objectify.ObjectifyFactory;
-import com.googlecode.objectify.annotation.AlsoLoad;
-import com.googlecode.objectify.annotation.Ignore;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
  */
 public class TypeUtils
 {
-	/** We do not persist fields with any of these modifiers */
-	static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
-
 	/** A map of the primitive types to their wrapper types */
 	static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>();
 	static {
@@ -69,27 +59,6 @@ public class TypeUtils
 		}
 	}
 
-	/**
-	 * Determine if we should create a Property for the field.  Things we ignore:  static, final, @Ignore, synthetic
-	 */
-	public static boolean isOfInterest(Field field) {
-		return !field.isAnnotationPresent(Ignore.class)
-			&& ((field.getModifiers() & NOT_SAVEABLE_MODIFIERS) == 0)
-			&& !field.isSynthetic()
-			&& !field.getName().startsWith("bitmap$init");	// Scala adds a field bitmap$init$0 and bitmap$init$1 etc
-	}
-
-	/**
-	 * Determine if we should create a Property for the method (ie, @AlsoLoad)
-	 */
-	public static boolean isOfInterest(Method method) {
-		for (Annotation[] annos: method.getParameterAnnotations())
-			if (getAnnotation(AlsoLoad.class, annos) != null)
-				return true;
-
-		return false;
-	}
-
 	/** Checked exceptions are LAME. By the way, don't use this since it causes security exceptions on private classes */
 	public static <T> T newInstance(Class<T> clazz) {
 		try {
@@ -125,69 +94,6 @@ public class TypeUtils
 		}
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-	}
-
-	/**
-	 * Get all the persistable fields and methods declared on a class. Ignores superclasses.
-	 *
-	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
-	 *  and returned in order of declaration.
-	 */
-	public static List<Property> getDeclaredProperties(ObjectifyFactory fact, Class<?> clazz) {
-		List<Property> good = new ArrayList<>();
-
-		for (Field field: clazz.getDeclaredFields())
-			if (isOfInterest(field))
-				good.add(new FieldProperty(fact, clazz, field));
-
-		for (Method method: clazz.getDeclaredMethods())
-			if (isOfInterest(method))
-				good.add(new MethodProperty(method));
-
-		return good;
-	}
-
-	/**
-	 * Get all the persistable fields and methods on a class, checking the superclasses as well.
-	 *
-	 * @return the fields we load and save, including @Id and @Parent fields. All fields will be set accessable
-	 *  and returned in order starting with superclass fields.
-	 */
-	public static List<Property> getProperties(ObjectifyFactory fact, Class<?> clazz) {
-		List<Property> good = new ArrayList<Property>();
-		getProperties(fact, clazz, good, clazz);
-		return good;
-	}
-
-	/** Recursive implementation of getProperties() */
-	private static void getProperties(ObjectifyFactory fact, Class<?> clazz, List<Property> good, Class<?> topClass) {
-		if (clazz == null || clazz == Object.class)
-			return;
-
-		getProperties(fact, clazz.getSuperclass(), good, topClass);
-
-		for (Field field: clazz.getDeclaredFields())
-			if (isOfInterest(field))
-				good.add(new FieldProperty(fact, topClass, field));
-
-		for (Method method: clazz.getDeclaredMethods())
-			if (isOfInterest(method))
-				good.add(new MethodProperty(method));
-	}
-
-	/**
-	 * A recursive version of Class.getDeclaredField, goes up the hierarchy looking
-	 */
-	public static Field getDeclaredField(Class<?> clazz, String fieldName) throws NoSuchFieldException {
-		try {
-			return clazz.getDeclaredField(fieldName);
-		}
-		catch (NoSuchFieldException ex) {
-			if (clazz.getSuperclass() == Object.class)
-				throw ex;
-			else
-				return getDeclaredField(clazz.getSuperclass(), fieldName);
-		}
 	}
 
 	/**

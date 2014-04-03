@@ -50,6 +50,12 @@ public class EntityClassTranslator<P> extends AbstractClassTranslator<P>
 		keyMetadata = new KeyMetadata<>(clazz, ctx, path);
 	}
 
+	/**
+	 */
+	public KeyMetadata<P> getKeyMetadata() {
+		return keyMetadata;
+	}
+
 	/* */
 	@Override
 	public P loadSafe(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {

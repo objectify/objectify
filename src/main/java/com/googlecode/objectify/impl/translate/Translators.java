@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
@@ -50,10 +51,11 @@ public class Translators
 
 		// The order is CRITICAL!
 		this.translatorFactories.add(new TranslateTranslatorFactory(true));	// Early translators get first shot at everything
-		
+
 		// Magic inflection point at which we want to prioritize added EARLY translators
 		this.earlyInsertPoint = this.translatorFactories.size();
-		
+
+		this.translatorFactories.add(new OwnerTranslatorFactory());
 		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translatorFactories.add(new ByteArrayTranslatorFactory());
 		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
@@ -120,6 +122,13 @@ public class Translators
 		}
 
 		return (Translator<P, D>)translator;
+	}
+
+	/**
+	 * Get the translator for a root entity class
+	 */
+	public <P> Translator<P, PropertyContainer> getRoot(Class<P> clazz) {
+		return get(clazz, new Annotation[0], new CreateContext(fact), Path.root());
 	}
 
 	/**

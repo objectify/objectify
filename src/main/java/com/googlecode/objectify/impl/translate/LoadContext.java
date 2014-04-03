@@ -4,9 +4,11 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.LoadEngine;
+import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
+import java.lang.reflect.Type;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -117,13 +119,17 @@ public class LoadContext
 
 	/**
 	 * Get the owner object which is appropriate for the specified property. Go up the chain looking for a compatible
-	 * type; the first one found is the owner. If nothing found, throw an exception - this should be impossible because
-	 * we validated the class structure when we created the owner.
+	 * type; the first one found is the owner. If nothing found, throw an exception.
 	 */
-	public Object getOwner(Property ownerProp) {
-		Class<?> ownerClass = GenericTypeReflector.erase(ownerProp.getType());
+	public Object getOwner(Type ownerType, Path path) {
+		Class<?> ownerClass = GenericTypeReflector.erase(ownerType);
 		
 		Iterator<Object> ownersIt = owners.descendingIterator();
+
+		// We have always entered the current 'this' context when processing properties, so the first thing
+		// we get will always be 'this'. So skip that and the first matching owner should be what we want.
+		ownersIt.next();
+
 		while (ownersIt.hasNext()) {
 			Object potentialOwner = ownersIt.next();
 			
@@ -131,7 +137,7 @@ public class LoadContext
 				return potentialOwner;
 		}
 		
-		throw new IllegalStateException("No owner matching " + ownerProp + " in " + owners + ". This should be impossible.");
+		throw new IllegalStateException("No owner matching " + ownerType + " in " + owners + " at path " + path);
 	}
 	
 	/**

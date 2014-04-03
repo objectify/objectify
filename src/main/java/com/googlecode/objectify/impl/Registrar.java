@@ -1,13 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Subclass;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * <p>Maintains information about registered entity classes<p>
@@ -61,7 +61,7 @@ public class Registrar
 	{
 		// There are two possible cases
 		// 1) This might be a simple class with @Entity
-		// 2) This might be a class annotated with @EntitySubclass
+		// 2) This might be a class annotated with @Subclass
 
 		// If we are already registered, ignore
 		if (this.byClass.containsKey(clazz))
@@ -70,6 +70,7 @@ public class Registrar
 		String kind = Key.getKind(clazz);
 
 		if (clazz.isAnnotationPresent(Entity.class)) {
+
 			EntityMetadata<T> cmeta = new EntityMetadata<T>(this.fact, clazz);
 			this.byKind.put(kind, cmeta);
 			this.byClass.put(clazz, cmeta);
@@ -82,7 +83,7 @@ public class Registrar
 //			this.registerPolymorphicHierarchy(kind, clazz);
 
 		} else {
-			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @EntitySubclass");
+			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @Subclass");
 		}
 	}
 
