@@ -108,7 +108,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 				Path propPath = containerPath.extend(property.getName());
 				Object propValue = translator.save(value, index, ctx, propPath);
 
-				DatastoreUtils.setContainerProperty(into, property.getName(), propValue, index);
+				DatastoreUtils.setContainerProperty(into, property.getName(), propValue, index, ctx, propPath);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing

@@ -8,6 +8,8 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.translate.SaveContext;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -133,12 +135,15 @@ public class DatastoreUtils
 
 	/**
 	 * Calls setProperty() or setUnindexedProperty() as determined by the index parameter.
+	 * Also stuffs any values in the savecontext index.
 	 */
-	public static void setContainerProperty(PropertyContainer entity, String propertyName, Object value, boolean index) {
-		if (index)
+	public static void setContainerProperty(PropertyContainer entity, String propertyName, Object value, boolean index, SaveContext ctx, Path propPath) {
+		if (index) {
 			entity.setProperty(propertyName, value);
-		else
+			ctx.addIndex(propPath, value);
+		} else {
 			entity.setUnindexedProperty(propertyName, value);
+		}
 	}
 
 }
