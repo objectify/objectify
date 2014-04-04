@@ -1,10 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -24,6 +19,11 @@ import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.ResultProxy;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Implementation of Query.
@@ -129,7 +129,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		// If we have a class restriction, check to see if the property is the @Parent or @Id
 		if (this.classRestriction != null)
 		{
-			KeyMetadata<?> meta = Keys.getMetadataSafe(this.classRestriction);
+			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (prop.equals(meta.getParentFieldName())) {
 				throw new IllegalArgumentException("@Parent fields cannot be filtered on. Perhaps you wish to use filterKey() or ancestor() instead?");
@@ -201,7 +201,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
 		if (this.classRestriction != null)
 		{
-			KeyMetadata<?> meta = Keys.getMetadataSafe(this.classRestriction);
+			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (condition.equals(meta.getParentFieldName()))
 				throw new IllegalStateException("You cannot order by @Parent field. Perhaps you wish to order by __key__ instead?");
@@ -223,7 +223,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Modifies the instance */
 	void setAncestor(Object keyOrEntity) {
-		this.actual.setAncestor(Keys.toRawKey(keyOrEntity));
+		this.actual.setAncestor(loader.ofy.factory().keys().anythingToRawKey(keyOrEntity));
 	}
 
 	/** Modifies the instance */

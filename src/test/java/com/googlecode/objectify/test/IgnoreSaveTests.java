@@ -197,7 +197,7 @@ public class IgnoreSaveTests extends TestBase
 		Key<UnsavedDefaults> key = ofy().put(thing);
 
 		// Now get the raw entity and verify that it doesn't have properties saved
-		Entity ent = ds().get(null, Keys.toRawKey(key));
+		Entity ent = ds().get(null, Keys.anythingToRawKey(key));
 		assert ent.getProperties().isEmpty();
 	}
 

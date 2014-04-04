@@ -1,9 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.LoadIds;
@@ -12,6 +8,10 @@ import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 
 /**
@@ -130,7 +130,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public LoadIds<T> parent(Object keyOrEntity) {
-		Key<T> parentKey = Keys.toKey(keyOrEntity);
+		Key<T> parentKey = loader.ofy.factory().keys().anythingToKey(keyOrEntity);
 		return new LoadTypeImpl<T>(loader, type, parentKey);
 	}
 

@@ -1,12 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
@@ -17,6 +10,13 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
@@ -73,7 +73,7 @@ public class LoadEngine
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
-			KeyMetadata<?> meta = Keys.getMetadata(key);
+			KeyMetadata<?> meta = ofy.factory().keys().getMetadata(key);
 			if (meta != null) {
 				if (meta.shouldLoadParent(loader.getLoadGroups())) {
 					load(key.getParent());

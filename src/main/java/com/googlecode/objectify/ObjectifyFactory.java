@@ -1,18 +1,5 @@
 package com.googlecode.objectify;
 
-import java.lang.reflect.Constructor;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedMap;
-import java.util.SortedSet;
-import java.util.TreeMap;
-import java.util.TreeSet;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreService.KeyRangeState;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
@@ -28,6 +15,19 @@ import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
+
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
@@ -60,6 +60,9 @@ public class ObjectifyFactory implements Forge
 
 	/** Encapsulates entity registration info */
 	protected Registrar registrar = new Registrar(this);
+
+	/** Some useful bits for working with keys */
+	protected Keys keys = new Keys(registrar);
 
 	/** All the various loaders */
 	protected Translators translators = new Translators(this);
@@ -297,7 +300,7 @@ public class ObjectifyFactory implements Forge
 	 * @param num must be >= 1 and <= 1 billion
 	 */
 	public <T> KeyRange<T> allocateIds(Object parentKeyOrEntity, Class<T> clazz, long num) {
-		Key<?> parent = Keys.toKey(parentKeyOrEntity);
+		Key<?> parent = keys().anythingToKey(parentKeyOrEntity);
 		String kind = Key.getKind(clazz);
 
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
@@ -325,5 +328,13 @@ public class ObjectifyFactory implements Forge
 	 */
 	public Translators getTranslators() {
 		return this.translators;
+	}
+
+	/**
+	 * Some tools for working with keys. This is an internal Objectify API and subject to change without
+	 * notice. You probably want the Key.create() methods instead.
+	 */
+	public Keys keys() {
+		return keys;
 	}
 }

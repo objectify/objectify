@@ -1,14 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
@@ -17,6 +8,15 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This is the master logic for saving and deleting entities from the datastore.  It provides the
@@ -93,7 +93,7 @@ public class WriteEngine
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
-						KeyMetadata<E> metadata = Keys.getMetadataSafe(obj);
+						KeyMetadata<E> metadata = ofy.factory().keys().getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
 							metadata.setLongId(obj, k.getId());
 					}

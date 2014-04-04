@@ -274,7 +274,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 			return result;
 		} else {
 			// Special case entity pojos that become keys
-			KeyMetadata<Object> meta = Keys.getMetadata(value);
+			KeyMetadata<Object> meta = factory().keys().getMetadata(value);
 			if (meta != null) {
 				return meta.getRawKey(value);
 			} else {

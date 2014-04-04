@@ -50,15 +50,15 @@ public class Registrar
 	}
 
 	/**
-	 * <p>All POJO entity classes which are to be managed by Objectify
-	 * must be registered first.  This method must be called in a single-threaded
-	 * mode sometime around application initialization.  Re-registering a class
-	 * has no effect.</p>
+	 * <p>All @Entity and @Subclass classes (for both entity and embedded classes)
+	 * must be registered before using Objectify to load or save data.  This method
+	 * must be called in a single-threaded mode sometime around application initialization.</p>
 	 *
-	 * @param clazz must be annotated with either @Entity or @EntitySubclass
+	 * <p>Re-registering a class has no effect.</p>
+	 *
+	 * @param clazz must be annotated with either @Entity or @Subclass
 	 */
-	public <T> void register(Class<T> clazz)
-	{
+	public <T> void register(Class<T> clazz) {
 		// There are two possible cases
 		// 1) This might be a simple class with @Entity
 		// 2) This might be a class annotated with @Subclass

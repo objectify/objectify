@@ -193,7 +193,7 @@ public class CollectionTests extends TestBase
 		assert hc.integerList.size() == 1;
 		assert hc.integerList.get(0) == null;
 
-		Entity e = ds().get(Keys.toRawKey(key));
+		Entity e = ds().get(Keys.anythingToRawKey(key));
 		assert e.hasProperty("integerList");
 		List<?> l = (List<?>) e.getProperty("integerList");
 		assert l != null;
@@ -219,7 +219,7 @@ public class CollectionTests extends TestBase
 		hc = ofy().load().key(key).now();
 		assert hc.integerList == null;	// not loaded
 
-		Entity e = ds().get(Keys.toRawKey(key));
+		Entity e = ds().get(Keys.anythingToRawKey(key));
 		// rule : never store a null collection
 		assert !e.hasProperty("integerList");
 	}
@@ -239,7 +239,7 @@ public class CollectionTests extends TestBase
 		ofy().clear();
 		hc = ofy().load().key(key).now();
 
-		System.out.println(ds().get(Keys.toRawKey(hc)));
+		System.out.println(ds().get(Keys.anythingToRawKey(hc)));
 
 		// This wouldn't be valid if we didn't clear the session
 		assert hc.integerList == null;

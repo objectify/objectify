@@ -1,13 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.cmd.Deleter;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 /**
@@ -76,7 +76,7 @@ class DeleterImpl implements Deleter
 	public Result<Void> entities(Iterable<?> entities) {
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
 		for (Object obj: entities)
-			keys.add(Keys.toRawKey(obj));
+			keys.add(ofy.factory().keys().rawKeyOf(obj));
 
 		return ofy.createWriteEngine().delete(keys);
 	}

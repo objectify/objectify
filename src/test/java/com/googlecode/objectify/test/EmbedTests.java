@@ -191,7 +191,7 @@ public class EmbedTests extends TestBase
 		t.members.names = new Name[]{new Name("Joe", "Smith"), new Name("Jane", "Foo")};
 		Key<TeamEntity> k = ofy().put(t);
 
-		System.out.println(ds().get(Keys.toRawKey(k)));
+		System.out.println(ds().get(Keys.anythingToRawKey(k)));
 
 		t = ofy().get(k);
 		assert t != null;

@@ -1,10 +1,9 @@
 package com.googlecode.objectify;
 
-import java.io.Serializable;
-
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.impl.Keys;
+
+import java.io.Serializable;
 
 /**
  * <p>A typesafe wrapper for the datastore Key object.</p>
@@ -59,7 +58,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** Create a key from a registered POJO entity. */
 	public static <T> Key<T> create(T pojo) {
-		return Keys.keyOf(pojo);
+		return ObjectifyService.factory().keys().keyOf(pojo);
 	}
 
 	/** */

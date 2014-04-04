@@ -171,6 +171,6 @@ public class ExampleDocoTests extends TestBase
 	{
 		Key<Town> k = ofy().put(town);
 		ofy().clear();
-		return ds().get(null, Keys.toRawKey(k));
+		return ds().get(null, Keys.anythingToRawKey(k));
 	}
 }

@@ -1,13 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteIds;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.util.DatastoreUtils;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 
 /**
@@ -47,7 +47,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public DeleteIds parent(Object keyOrEntity) {
-		Key<?> parentKey = Keys.toKey(keyOrEntity);
+		Key<?> parentKey = deleter.ofy.factory().keys().anythingToKey(keyOrEntity);
 		return new DeleteTypeImpl(deleter, type, parentKey);
 	}
 

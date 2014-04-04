@@ -1,14 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
@@ -23,6 +14,15 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 
 /**
@@ -115,7 +115,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public <E> LoadResult<E> entity(E entity) {
-		return key(Key.create(entity));
+		return key(ofy.factory().keys().keyOf(entity));
 	}
 
 	/* (non-Javadoc)
@@ -124,7 +124,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> LoadResult<E> value(Object key) {
-		return (LoadResult<E>)key(Keys.toKey(key));
+		return (LoadResult<E>)key(ofy.factory().keys().anythingToKey(key));
 	}
 
 	/* (non-Javadoc)
@@ -178,7 +178,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 		// Do this in a separate pass so any errors converting keys will show up before we try loading something
 		List<Key<E>> keys = new ArrayList<Key<E>>();
 		for (Object keyish: values)
-			keys.add((Key<E>)Keys.toKey(keyish));
+			keys.add((Key<E>)ofy.factory().keys().anythingToKey(keyish));
 
 		LoadEngine engine = createLoadEngine();
 
