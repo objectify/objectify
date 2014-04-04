@@ -1,6 +1,5 @@
 package com.googlecode.objectify.annotation;
 
-import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.stringifier.Stringifier;
 
 import java.lang.annotation.ElementType;

@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
-
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.cache.MemcacheStats;
+
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /** 
  * Tracks hit/miss statistics for the memcache. 

@@ -1,9 +1,9 @@
 package com.googlecode.objectify.util;
 
+import com.googlecode.objectify.Result;
+
 import java.io.ObjectStreamException;
 import java.io.Serializable;
-
-import com.googlecode.objectify.Result;
 
 /**
  * Caches a result value so it is only executed once

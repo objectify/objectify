@@ -1,8 +1,8 @@
 package com.googlecode.objectify.condition;
 
-import java.lang.reflect.Field;
-
 import com.googlecode.objectify.ObjectifyFactory;
+
+import java.lang.reflect.Field;
 
 /**
  * <p>If an If<?, ?> condition class implements this interface, it will be called once just after construction.

@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl.ref;
 
-import java.io.ObjectStreamException;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Ref;
+
+import java.io.ObjectStreamException;
 
 
 /**

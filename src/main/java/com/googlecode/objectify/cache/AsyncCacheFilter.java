@@ -1,13 +1,12 @@
 package com.googlecode.objectify.cache;
 
-import java.io.IOException;
-
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import java.io.IOException;
 
 /**
  * <p>This Filter is a companion to the CachingAsyncDatastoreService, and must be

@@ -1,7 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
@@ -10,6 +8,8 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.util.DatastoreUtils;
+
+import java.util.logging.Logger;
 
 /**
  * Logic for dealing with queries.

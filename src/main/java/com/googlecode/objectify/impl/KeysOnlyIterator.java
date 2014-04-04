@@ -1,7 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
@@ -9,6 +7,8 @@ import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
+
+import java.util.List;
 
 /**
  * Takes a keys-only iterable source and produces keys. Not complicated.

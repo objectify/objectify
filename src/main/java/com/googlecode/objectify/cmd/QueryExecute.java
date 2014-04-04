@@ -1,9 +1,9 @@
 package com.googlecode.objectify.cmd;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.googlecode.objectify.LoadResult;
+
+import java.util.List;
 
 
 /**

@@ -1,11 +1,11 @@
 package com.googlecode.objectify.annotation;
 
+import com.googlecode.objectify.impl.translate.TranslatorFactory;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.googlecode.objectify.impl.translate.TranslatorFactory;
 
 /**
  * <p>Lets you define a particular translator for a specific property (field or @AlsoLoad method).

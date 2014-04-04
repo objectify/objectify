@@ -1,10 +1,10 @@
 package com.googlecode.objectify.util;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.Index;
 import com.google.appengine.api.datastore.QueryResultIterator;
+
+import java.util.List;
 
 /**
  * QueryResultIterator wrapper that translates from one type to another

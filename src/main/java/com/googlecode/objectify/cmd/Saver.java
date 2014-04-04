@@ -1,10 +1,10 @@
 package com.googlecode.objectify.cmd;
 
-import java.util.Map;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
+
+import java.util.Map;
 
 
 /**

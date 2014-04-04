@@ -1,9 +1,9 @@
 package com.googlecode.objectify.impl;
 
-import java.util.concurrent.Future;
-
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.FutureHelper;
+
+import java.util.concurrent.Future;
 
 /**
  * Adapts a Future object to a (much more convenient) Result object.

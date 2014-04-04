@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.Key;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.googlecode.objectify.Key;
 
 /**
  * The basic session cache.  A lot easier than passing the generic arguments around!

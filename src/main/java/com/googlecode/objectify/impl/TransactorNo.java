@@ -1,13 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.util.ConcurrentModificationException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+
+import java.util.ConcurrentModificationException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Transactor which represents the absence of a transaction.

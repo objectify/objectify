@@ -1,12 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /**
  * <p>Numbers are funky in the datastore.  You can save numbers of any size, but they always retrieve as Long.

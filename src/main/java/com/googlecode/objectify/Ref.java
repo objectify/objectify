@@ -1,8 +1,8 @@
 package com.googlecode.objectify;
 
-import java.io.Serializable;
-
 import com.googlecode.objectify.impl.ref.LiveRef;
+
+import java.io.Serializable;
 
 
 /**

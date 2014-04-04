@@ -1,16 +1,5 @@
 package com.googlecode.objectify.cache;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreAttributes;
 import com.google.appengine.api.datastore.Entity;
@@ -26,6 +15,17 @@ import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.cache.EntityMemcache.Bucket;
 import com.googlecode.objectify.util.FutureNow;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional

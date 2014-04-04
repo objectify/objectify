@@ -1,17 +1,16 @@
 package com.googlecode.objectify.impl.translate.opt;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
 
 /**
  * <p>This a simple strategy for storing BigDecimal in the datastore.  BigDecimalLongConverter multiplies

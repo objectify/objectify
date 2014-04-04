@@ -7,10 +7,6 @@ import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.DatastoreUtils;
-import com.googlecode.objectify.util.LogUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**

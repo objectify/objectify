@@ -1,12 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 /**
  * The datastore can't store URL, so translate it to a String and back.

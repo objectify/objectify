@@ -1,12 +1,12 @@
 package com.googlecode.objectify.util;
 
+import com.googlecode.objectify.Result;
+
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-
-import com.googlecode.objectify.Result;
 
 
 /**

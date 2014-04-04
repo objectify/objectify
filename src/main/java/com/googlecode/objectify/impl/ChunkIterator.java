@@ -1,8 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.common.collect.Iterables;
@@ -12,6 +9,9 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.IterateFunction;
 import com.googlecode.objectify.util.ResultNowFunction;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Splits a QueryResultIterator into a series of chunks which include the Cursor for

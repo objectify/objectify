@@ -1,5 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.appengine.api.datastore.Blob;
+import com.googlecode.objectify.annotation.Serialize;
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.TypeUtils;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -14,13 +20,6 @@ import java.util.logging.Logger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
-
-import com.google.appengine.api.datastore.Blob;
-import com.googlecode.objectify.annotation.Serialize;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 
 /**

@@ -1,8 +1,5 @@
 package com.googlecode.objectify.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -11,7 +8,9 @@ import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import sun.management.snmp.jvmmib.JvmMemGCEntryMBean;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Some static utility methods for interacting with basic datastore objects like keys and queries.

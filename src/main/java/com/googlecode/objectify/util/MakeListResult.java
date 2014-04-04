@@ -1,8 +1,8 @@
 package com.googlecode.objectify.util;
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
+
+import java.util.List;
 
 
 /**

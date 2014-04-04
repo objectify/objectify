@@ -1,5 +1,13 @@
 package com.googlecode.objectify.cache;
 
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.memcache.ErrorHandlers;
+import com.google.appengine.api.memcache.Expiration;
+import com.google.appengine.api.memcache.MemcacheService.CasValues;
+import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,14 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.memcache.ErrorHandlers;
-import com.google.appengine.api.memcache.Expiration;
-import com.google.appengine.api.memcache.MemcacheService.CasValues;
-import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>

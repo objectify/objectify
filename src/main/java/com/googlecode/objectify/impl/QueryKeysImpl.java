@@ -1,8 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Iterator;
-import java.util.List;
-
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
@@ -12,6 +9,9 @@ import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.ResultProxy;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Implementation of QueryKeys.

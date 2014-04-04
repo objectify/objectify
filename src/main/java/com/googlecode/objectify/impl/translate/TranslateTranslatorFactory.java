@@ -1,12 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 import com.googlecode.objectify.annotation.Translate;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.TypeUtils;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 
 /**

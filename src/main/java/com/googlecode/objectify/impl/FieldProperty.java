@@ -1,14 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
 /** 
  * Property which encapsulates a simple field. 

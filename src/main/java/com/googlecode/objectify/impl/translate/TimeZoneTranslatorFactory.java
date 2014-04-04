@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.TimeZone;
-
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 
 /**

@@ -1,13 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Type;
-
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.condition.Always;
 import com.googlecode.objectify.condition.If;
 import com.googlecode.objectify.condition.InitializeIf;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
 
 /** 
  * Utility that makes it easy to generate If conditions. 

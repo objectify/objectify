@@ -1,8 +1,8 @@
 package com.googlecode.objectify.util;
 
-import java.util.concurrent.Future;
-
 import com.google.appengine.api.utils.FutureWrapper;
+
+import java.util.concurrent.Future;
 
 /**
  * Slightly more convenient than the GAE SDK version.

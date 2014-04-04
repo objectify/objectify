@@ -1,13 +1,13 @@
 package com.googlecode.objectify.cache;
 
+import com.google.appengine.api.memcache.ErrorHandlers;
+import com.google.appengine.api.memcache.MemcacheService;
+
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.appengine.api.memcache.ErrorHandlers;
-import com.google.appengine.api.memcache.MemcacheService;
 
 /**
  * <p>Dynamic proxy which wraps a MemcacheService and adds retries when an exception occurs.

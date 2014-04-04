@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.LoadResult;
+
+import java.util.List;
 
 
 /**

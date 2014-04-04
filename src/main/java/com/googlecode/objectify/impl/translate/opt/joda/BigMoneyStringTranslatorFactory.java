@@ -1,18 +1,16 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
-import com.googlecode.objectify.impl.translate.SkipException;
-import org.joda.money.BigMoney;
-
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+import org.joda.money.BigMoney;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 /**
  * Stores BigMoney as its string representation.  Note that this does not index properly;

@@ -1,14 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.appengine.api.datastore.Text;
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import sun.util.logging.resources.logging;
 
 
 /**

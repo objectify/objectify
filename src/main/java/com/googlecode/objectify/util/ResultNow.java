@@ -1,8 +1,8 @@
 package com.googlecode.objectify.util;
 
-import java.io.Serializable;
-
 import com.googlecode.objectify.Result;
+
+import java.io.Serializable;
 
 /**
  * Simplistic result that holds a constant value.

@@ -1,11 +1,11 @@
 package com.googlecode.objectify.annotation;
 
+import com.googlecode.objectify.condition.If;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.googlecode.objectify.condition.If;
 
 /**
  * <p>When placed on an entity field, the field will not be written to the datastore.

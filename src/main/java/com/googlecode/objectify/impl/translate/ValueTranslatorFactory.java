@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * Provides a little boilerplate for translators that work on simple atomic types.

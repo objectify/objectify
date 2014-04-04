@@ -1,10 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 /**
  * Knows how to convert Enums to the datastore String

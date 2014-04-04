@@ -6,9 +6,6 @@ package com.googlecode.objectify;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyFactory;
-
 /**
  * Holder of the master ObjectifyFactory and provider of the current thread-local Objectify instance.
  * Call {@code ofy()} at any point to get the current Objectify with the correct transaction context.

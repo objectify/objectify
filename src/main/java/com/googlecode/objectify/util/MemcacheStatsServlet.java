@@ -3,19 +3,18 @@
 
 package com.googlecode.objectify.util;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.text.NumberFormat;
-import java.util.Map;
+import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.impl.EntityMemcacheStats;
+import com.googlecode.objectify.impl.EntityMemcacheStats.Stat;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import com.googlecode.objectify.ObjectifyService;
-import com.googlecode.objectify.impl.EntityMemcacheStats;
-import com.googlecode.objectify.impl.EntityMemcacheStats.Stat;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.text.NumberFormat;
+import java.util.Map;
 
 /**
  * <p>If you are using the ObjectifyService static factory, you can mount this servlet to see the

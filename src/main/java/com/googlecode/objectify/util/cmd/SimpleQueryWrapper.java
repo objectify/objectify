@@ -1,13 +1,13 @@
 package com.googlecode.objectify.util.cmd;
 
-import java.util.List;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.cmd.SimpleQuery;
+
+import java.util.List;
 
 /**
  * Simple wrapper/decorator for a SimpleQuery.  Use it like this:

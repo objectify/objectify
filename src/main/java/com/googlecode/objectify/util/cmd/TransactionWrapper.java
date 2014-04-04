@@ -1,8 +1,8 @@
 package com.googlecode.objectify.util.cmd;
 
-import java.util.concurrent.Future;
-
 import com.google.appengine.api.datastore.Transaction;
+
+import java.util.concurrent.Future;
 
 /**
  * Simple pass-through to the base methods. 

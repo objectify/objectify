@@ -1,8 +1,8 @@
 package com.googlecode.objectify.condition;
 
-import java.lang.reflect.Field;
-
 import com.googlecode.objectify.ObjectifyFactory;
+
+import java.lang.reflect.Field;
 
 
 /**

@@ -1,10 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.googlecode.objectify.Objectify;
@@ -13,6 +8,11 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.Reference;
 import com.googlecode.objectify.util.IdentityMultimapList;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The context of a save operation; might involve multiple entities (eg, batch save).

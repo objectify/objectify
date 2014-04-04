@@ -1,11 +1,11 @@
 package com.googlecode.objectify.annotation;
 
+import com.googlecode.objectify.condition.If;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.googlecode.objectify.condition.If;
 
 /**
  * <p>This annotation controls whether or not fields are indexed in the datastore.</p>

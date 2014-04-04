@@ -1,8 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.LogUtils;

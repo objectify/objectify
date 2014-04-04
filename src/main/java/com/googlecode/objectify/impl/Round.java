@@ -1,17 +1,17 @@
 package com.googlecode.objectify.impl;
 
+import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Result;
+import com.googlecode.objectify.util.ResultCache;
+import com.googlecode.objectify.util.ResultNow;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
-import com.googlecode.objectify.util.ResultCache;
-import com.googlecode.objectify.util.ResultNow;
 
 /**
  * Each round in the series of fetches required to complete a batch.  A round executes when

@@ -1,7 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.concurrent.Future;
-
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
@@ -11,6 +9,8 @@ import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.ResultWrapper;
+
+import java.util.concurrent.Future;
 
 /**
  * Implementation for when we start a transaction.  Maintains a separate session, but then copies all

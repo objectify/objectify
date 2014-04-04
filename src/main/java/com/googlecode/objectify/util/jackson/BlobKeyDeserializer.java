@@ -1,12 +1,12 @@
 package com.googlecode.objectify.util.jackson;
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.google.appengine.api.blobstore.BlobKey;
+
+import java.io.IOException;
 
 /**
  * Will deserialize a BlobKey that was serialized with the BlobKeySerializer

@@ -1,11 +1,11 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.Result;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import com.googlecode.objectify.Result;
 
 /**
  * The information we maintain on behalf of an entity instance in the session cache.  Normally

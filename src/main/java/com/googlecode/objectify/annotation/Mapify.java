@@ -1,11 +1,11 @@
 package com.googlecode.objectify.annotation;
 
+import com.googlecode.objectify.mapper.Mapper;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
-import com.googlecode.objectify.mapper.Mapper;
 
 /**
  * <p>This annotation causes collection fields to be converted into a map by selecting

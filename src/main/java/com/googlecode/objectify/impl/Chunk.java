@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl;
 
-import java.util.Iterator;
-
 import com.google.appengine.api.datastore.Cursor;
+
+import java.util.Iterator;
 
 /**
  * A single chunk during a query.

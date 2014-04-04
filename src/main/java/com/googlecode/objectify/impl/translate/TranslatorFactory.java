@@ -1,10 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.googlecode.objectify.impl.Path;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 /**
  * <p>A translator knows how to convert between a POJO and a native datastore representation. When an entity class

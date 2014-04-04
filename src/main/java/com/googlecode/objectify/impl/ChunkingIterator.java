@@ -1,9 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.logging.Logger;
-
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Index;
@@ -12,6 +8,10 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.googlecode.objectify.Key;
+
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.logging.Logger;
 
 /**
  * Base class for normal and hybrid iterators, handles the chunking logic.

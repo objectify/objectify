@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
 
 
 /**

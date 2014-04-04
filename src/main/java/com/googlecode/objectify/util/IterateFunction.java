@@ -1,8 +1,8 @@
 package com.googlecode.objectify.util;
 
-import java.util.Iterator;
-
 import com.google.common.base.Function;
+
+import java.util.Iterator;
 
 /**
  * Function that converts Iterables into Iterators.

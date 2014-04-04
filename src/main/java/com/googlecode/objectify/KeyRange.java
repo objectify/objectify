@@ -1,9 +1,9 @@
 package com.googlecode.objectify;
 
+import com.googlecode.objectify.util.TranslatingIterator;
+
 import java.io.Serializable;
 import java.util.Iterator;
-
-import com.googlecode.objectify.util.TranslatingIterator;
 
 /**
  * <p>This is a typesafe version of the KeyRange object.  It represents a number
