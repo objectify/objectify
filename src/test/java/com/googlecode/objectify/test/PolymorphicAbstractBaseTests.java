@@ -5,15 +5,15 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Test that we can have abstract base classes in a polymorphic hierarchy.
@@ -62,7 +62,7 @@ public class PolymorphicAbstractBaseTests extends TestBase
 		sub.foo = "foo";
 		sub.bar = true;
 
-		Subclass fetched = this.putClearGet(sub);
+		Subclass fetched = ofy().putClearGet(sub);
 		assert sub.foo.equals(fetched.foo);
 		assert sub.bar == fetched.bar;
 	}

@@ -5,17 +5,16 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.test.PolymorphicAAATests.Animal;
 import com.googlecode.objectify.test.PolymorphicAAATests.Cat;
 import com.googlecode.objectify.test.PolymorphicAAATests.Dog;
 import com.googlecode.objectify.test.PolymorphicAAATests.Mammal;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -50,24 +49,24 @@ public class PolymorphicQueryTests extends TestBase
 
 		this.animal = new Animal();
 		this.animal.name = "Ann";
-		ofy().put(this.animal);
+		ofy().save().entity(this.animal).now();
 
 		this.mammal = new Mammal();
 		this.mammal.name = "Mamet";
 		this.mammal.longHair = true;
-		ofy().put(this.mammal);
+		ofy().save().entity(this.mammal).now();
 
 		this.cat = new Cat();
 		this.cat.name = "Catrina";
 		this.cat.longHair = true;
 		this.cat.hypoallergenic = true;
-		ofy().put(this.cat);
+		ofy().save().entity(this.cat).now();
 
 		this.dog = new Dog();
 		this.dog.name = "Doug";
 		this.dog.longHair = true;
 		this.dog.loudness = 11;
-		ofy().put(this.dog);
+		ofy().save().entity(this.dog).now();
 	}
 
 	/** */
@@ -149,7 +148,7 @@ public class PolymorphicQueryTests extends TestBase
 		other.hypoallergenic = false;
 		other.longHair = false;
 
-		ofy().put(other);
+		ofy().save().entity(other).now();
 
 		// now query, should only get Catrina
 		List<Cat> cats = ofy().load().type(Cat.class).filter("longHair", true).list();

@@ -3,10 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -15,6 +11,9 @@ import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.IfFalse;
 import com.googlecode.objectify.condition.PojoIf;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -54,12 +53,12 @@ public class IndexingPartialTests extends TestBase
 
 		// Should be able to query for it when true
 		thing.foo = true;
-		ofy().put(thing);
+		ofy().save().entity(thing).now();
 		assert thing.id == ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).first().now().id;
 
 		// Should not be able to query for it when false
 		thing.foo = false;
-		ofy().put(thing);
+		ofy().save().entity(thing).now();
 		assert !ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).iterator().hasNext();
 	}
 
@@ -95,12 +94,12 @@ public class IndexingPartialTests extends TestBase
 
 		// Should be able to query for bar when true
 		thing.indexBar = true;
-		ofy().put(thing);
+		ofy().save().entity(thing).now();
 		assert thing.id == ofy().load().type(IndexedOnOtherField.class).filter("bar", true).first().now().id;
 
 		// Should not be able to query for bar when false
 		thing.indexBar = false;
-		ofy().put(thing);
+		ofy().save().entity(thing).now();
 		assert !ofy().load().type(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
 	}
 

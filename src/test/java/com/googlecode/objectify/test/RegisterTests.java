@@ -34,7 +34,6 @@ public class RegisterTests extends TestBase {
 		}
 	}
 
-	@Embed
 	public static class BadStruct {
 		int age;
 
@@ -51,7 +50,6 @@ public class RegisterTests extends TestBase {
 		BadStruct name;
 
 	}
-
 
 	@Test
 	public void testNoArgConstructor() {

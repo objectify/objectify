@@ -3,11 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Ref;
@@ -17,6 +12,10 @@ import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.LoadParentRefTests.Father;
 import com.googlecode.objectify.test.LoadParentRefTests.TreeNode;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Same as LoadParentRefTests but without the session clearing, so each load must reload some additional parts.
@@ -34,12 +33,12 @@ public class LoadParentRefTestsUsingSession extends TestBase
 
 		Father f = new Father();
 		f.foo = "foo";
-		ofy().put(f);
+		ofy().save().entity(f).now();
 
 		Child ch = new Child();
 		ch.father = Ref.create(Key.create(f));
 		ch.bar = "bar";
-		Key<Child> kch = ofy().put(ch);
+		Key<Child> kch = ofy().save().entity(ch).now();
 
 		LoadResult<Child> fetchedRef = ofy().load().key(kch);
 		Child fetched = fetchedRef.now();
@@ -57,19 +56,19 @@ public class LoadParentRefTestsUsingSession extends TestBase
 
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
-		ofy().put(node1);
+		ofy().save().entity(node1).now();
 
 		TreeNode node2 = new TreeNode();
 		node2.parent = Ref.create(node1);
 		node2.foo = "foo2";
-		ofy().put(node2);
+		ofy().save().entity(node2).now();
 
 		TreeNode node3 = new TreeNode();
 		node3.parent = Ref.create(node2);
 		node3.foo = "foo3";
-		ofy().put(node3);
+		ofy().save().entity(node3).now();
 
-		TreeNode fetched3 = ofy().get(Key.create(node3));
+		TreeNode fetched3 = ofy().load().entity(node3).now();
 
 		assert fetched3.foo.equals(node3.foo);
 		assert fetched3.parent.get().id.equals(node2.id);
@@ -87,7 +86,7 @@ public class LoadParentRefTestsUsingSession extends TestBase
 
 		TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
-		Key<TreeNode> key1 = ofy().put(node1);
+		Key<TreeNode> key1 = ofy().save().entity(node1).now();
 
 		// Node2 should not exist but should have a concrete id for node3
 		TreeNode node2 = new TreeNode();
@@ -98,7 +97,7 @@ public class LoadParentRefTestsUsingSession extends TestBase
 		TreeNode node3 = new TreeNode();
 		node3.parent = Ref.create(key2);
 		node3.foo = "foo3";
-		Key<TreeNode> key3 = ofy().put(node3);
+		Key<TreeNode> key3 = ofy().save().entity(node3).now();
 
 		// Doing this step by step to make it easier for debugging
 		LoadResult<TreeNode> fetched3Ref = ofy().load().key(key3);
@@ -118,17 +117,17 @@ public class LoadParentRefTestsUsingSession extends TestBase
 
 		Father f = new Father();
 		f.foo = "foo";
-		ofy().put(f);
+		ofy().save().entity(f).now();
 
 		ChildWithGroup ch = new ChildWithGroup();
 		ch.father = Ref.create(Key.create(f));
 		ch.bar = "bar";
-		ofy().put(ch);
+		ofy().save().entity(ch).now();
 
 		ofy().clear();
 
 		// This should get an uninitialized ref
-		ChildWithGroup fetched = ofy().get(Key.create(ch));
+		ChildWithGroup fetched = ofy().load().entity(ch).now();
 		assert fetched.father.key().getId() == f.id;
 		assert !fetched.father.isLoaded();
 

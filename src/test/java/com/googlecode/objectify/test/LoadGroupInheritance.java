@@ -3,11 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Ref;
@@ -18,6 +13,10 @@ import com.googlecode.objectify.test.LoadGroupInheritance.Father.Bottom;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Middle;
 import com.googlecode.objectify.test.LoadGroupInheritance.Father.Top;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the inheritance of load group classes
@@ -70,10 +69,10 @@ public class LoadGroupInheritance extends TestBase
 		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy().put(ch);
+		Key<Child> kch = ofy().save().entity(ch).now();
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().put(f);
+		Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
 		LoadResult<Father> fatherRef = ofy().load().key(kf);
@@ -88,10 +87,10 @@ public class LoadGroupInheritance extends TestBase
 		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy().put(ch);
+		Key<Child> kch = ofy().save().entity(ch).now();
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().put(f);
+		Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
 		LoadResult<Father> fatherRef = ofy().load().group(Bottom.class).key(kf);
@@ -106,10 +105,10 @@ public class LoadGroupInheritance extends TestBase
 		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy().put(ch);
+		Key<Child> kch = ofy().save().entity(ch).now();
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().put(f);
+		Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
 		LoadResult<Father> fatherRef = ofy().load().group(Middle.class).key(kf);
@@ -124,10 +123,10 @@ public class LoadGroupInheritance extends TestBase
 		fact().register(Child.class);
 
 		Child ch = new Child(123);
-		Key<Child> kch = ofy().put(ch);
+		Key<Child> kch = ofy().save().entity(ch).now();
 
 		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().put(f);
+		Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
 		LoadResult<Father> fatherRef = ofy().load().group(Top.class).key(kf);

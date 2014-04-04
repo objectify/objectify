@@ -3,19 +3,18 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of @Index and @Unindex
@@ -29,17 +28,14 @@ public class IndexingEmbeddedTests extends TestBase
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(IndexingEmbeddedTests.class.getName());
 
-	@Embed
 	@Index
 	public static class LevelTwoIndexedClass {
 		String bar="A";
 	}
-	@Embed
 	public static class LevelTwoIndexedField {
 		@Index String bar="A";
 	}
 
-	@Embed
 	public static class LevelOne {
 		String foo = "1";
 		LevelTwoIndexedClass twoClass = new LevelTwoIndexedClass();
@@ -53,7 +49,6 @@ public class IndexingEmbeddedTests extends TestBase
 		String prop = "A";
 	}
 
-	@Embed
 	@SuppressWarnings("unused")
 	public static class DefaultIndexedEmbed
 	{
@@ -103,7 +98,7 @@ public class IndexingEmbeddedTests extends TestBase
 	@Test
 	public void testEmbeddedIndexedPojo() throws Exception
 	{
-		ofy().put(new EmbeddedIndexedPojo());
+		ofy().save().entity(new EmbeddedIndexedPojo()).now();
 
 		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("indexed.indexed =", true).iterator().hasNext();
 		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("indexed.def =", true).iterator().hasNext();
@@ -127,7 +122,7 @@ public class IndexingEmbeddedTests extends TestBase
 		 * id = ?
 		 * prop = "A"
 		 */
-		ofy().put(new EntityWithEmbedded());
+		ofy().save().entity(new EntityWithEmbedded()).now();
 
 		assert !ofy().load().type(EntityWithEmbedded.class).filter("prop =", "A").iterator().hasNext();
 		assert !ofy().load().type(EntityWithEmbedded.class).filter("one.foo =", "1").iterator().hasNext();

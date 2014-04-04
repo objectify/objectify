@@ -1,12 +1,11 @@
 package com.googlecode.objectify.test.entity;
 
-import java.io.Serializable;
-
 import com.googlecode.objectify.util.LangUtils;
+
+import java.io.Serializable;
 
 /**
  */
-@Embed
 @SuppressWarnings("serial")
 public class Name implements Serializable
 {

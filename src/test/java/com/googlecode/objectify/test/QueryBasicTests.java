@@ -3,21 +3,21 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of basic query operations

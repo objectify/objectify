@@ -1,17 +1,16 @@
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.test.entity.Criminal;
+import com.googlecode.objectify.test.entity.Name;
+import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import com.googlecode.objectify.test.entity.Criminal;
-import com.googlecode.objectify.test.entity.Name;
-import com.googlecode.objectify.test.util.TestBase;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -48,7 +47,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = null;
 		crim.moreAliases = null;
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 		assert fetched.aliases == null;
 		assert fetched.moreAliases == null;
 
@@ -88,7 +87,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[0];
 		crim.moreAliases = new ArrayList<Name>();
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 		assert fetched.aliases == null;	// not valid with caching objectify
 		assert fetched.moreAliases == null;
 
@@ -128,7 +127,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { null };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 1;
 		assert fetched.aliases[0] == null;
@@ -160,7 +159,7 @@ public class EmbeddedNullTests extends TestBase
 		Criminal crim = new Criminal();
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
@@ -178,7 +177,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
@@ -217,7 +216,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), new Name("Mojo", null), new Name("Ivan", "Stang") };
 		crim.aliasesSet = new HashSet<Name>(Arrays.asList(crim.aliases));
 
-		Criminal fetched = this.putClearGet(crim);
+		Criminal fetched = ofy().putClearGet(crim);
 
 		for (Name name: crim.aliases)
 			assert fetched.aliasesSet.contains(name);

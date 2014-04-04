@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test.util;
 
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.googlecode.objectify.ObjectifyService;
 
 /**
@@ -29,4 +31,18 @@ public class TestObjectifyService
 	public static TestObjectifyFactory fact() {
 		return (TestObjectifyFactory)ObjectifyService.factory();
 	}
+
+	/**
+	 * Get a DatastoreService
+	 */
+	public static DatastoreService ds() {
+		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
+
+//		Collection<Transaction> active = ds.getActiveTransactions();
+//		if (active.size() > 0)
+//			throw new IllegalStateException("Active is: " + active);
+
+		return ds;
+	}
+
 }

@@ -5,15 +5,14 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import com.googlecode.objectify.annotation.Subclass;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -91,13 +90,13 @@ public class PolymorphicAAATests extends TestBase
 
 		Animal a = new Animal();
 		a.name = "Bob";
-		Animal a2 = this.putClearGet(a);
+		Animal a2 = ofy().putClearGet(a);
 		assert a.name.equals(a2.name);
 
 		Mammal m = new Mammal();
 		m.name = "Bob";
 		m.longHair = true;
-		Mammal m2 = this.putClearGet(m);
+		Mammal m2 = ofy().putClearGet(m);
 		assert m.name.equals(m2.name);
 		assert m.longHair == m2.longHair;
 
@@ -105,7 +104,7 @@ public class PolymorphicAAATests extends TestBase
 		c.name = "Bob";
 		c.longHair = true;
 		c.hypoallergenic = true;
-		Cat c2 = this.putClearGet(c);
+		Cat c2 = ofy().putClearGet(c);
 		assert c.name.equals(c2.name);
 		assert c.longHair == c2.longHair;
 		assert c.hypoallergenic == c2.hypoallergenic;
@@ -138,7 +137,7 @@ public class PolymorphicAAATests extends TestBase
 
 		Animal a = new Animal();
 		a.name = "Bob";
-		ofy().put(a);
+		ofy().save().entity(a).now();
 
 		// This should exclude the value
 		@SuppressWarnings("unused")

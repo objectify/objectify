@@ -3,16 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TranslateException;
@@ -21,6 +11,16 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreLoad;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * More tests of using the @AlsoLoad annotation
@@ -81,7 +81,7 @@ public class AlsoLoadTests2 extends TestBase
 	{
 		@Id
 		Long id;
-		@EmbedMap @AlsoLoad("alsoPrimitives")
+		@AlsoLoad("alsoPrimitives")
 		Map<String, Long> primitives = new HashMap<String, Long>();
 	}
 

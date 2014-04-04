@@ -3,8 +3,10 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.translate.opt.joda.JodaTimeTranslators;
+import com.googlecode.objectify.test.util.TestBase;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
@@ -12,12 +14,10 @@ import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
 import org.testng.annotations.Test;
 
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.translate.opt.joda.JodaTimeTranslators;
-import com.googlecode.objectify.test.util.TestBase;
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of type conversions.
@@ -57,7 +57,7 @@ public class JodaTranslationTests extends TestBase
 		hj.dateTime = new DateTime();
 		hj.dateTimeZone = DateTimeZone.forID("America/Los_Angeles");
 
-		HasJoda fetched = this.putClearGet(hj);
+		HasJoda fetched = ofy().putClearGet(hj);
 		assert hj.localTime.equals(fetched.localTime);
 		assert hj.localDate.equals(fetched.localDate);
 		assert hj.localDateTime.equals(fetched.localDateTime);

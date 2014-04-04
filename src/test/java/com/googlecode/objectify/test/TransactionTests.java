@@ -3,16 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
@@ -23,6 +13,15 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
+import java.util.List;
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -47,11 +46,11 @@ public class TransactionTests extends TestBase
 		Key<Trivial> k = ofy().transact(new Work<Key<Trivial>>() {
 			@Override
 			public Key<Trivial> run() {
-				return ofy().put(triv);
+				return ofy().save().entity(triv).now();
 			}
 		});
 
-		Trivial fetched = ofy().get(k);
+		Trivial fetched = ofy().load().key(k).now();
 
 		assert fetched.getId().equals(k.getId());
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
@@ -72,14 +71,14 @@ public class TransactionTests extends TestBase
 		fact().register(HasSimpleCollection.class);
 
 		final HasSimpleCollection simple = new HasSimpleCollection();
-		ofy().put(simple);
+		ofy().save().entity(simple).now();
 
 		HasSimpleCollection simple2 = ofy().transact(new Work<HasSimpleCollection>() {
 			@Override
 			public HasSimpleCollection run() {
 				HasSimpleCollection simple2 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
 				simple2.stuff.add("blah");
-				ofy().put(simple2);
+				ofy().save().entity(simple2);
 				return simple2;
 			}
 		});
@@ -99,14 +98,14 @@ public class TransactionTests extends TestBase
 		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 5);
-		final Key<Trivial> tk = ofy().put(triv);
+		final Key<Trivial> tk = ofy().save().entity(triv).now();
 
 		try {
 			ofy().transactNew(2, new VoidWork() {
 				@Override
 				public void vrun() {
-					Trivial triv1 = ofy().transactionless().get(tk);
-					Trivial triv2 = ofy().get(tk);
+					Trivial triv1 = ofy().transactionless().load().key(tk).now();
+					Trivial triv2 = ofy().load().key(tk).now();
 
 					triv1.setSomeString("bar");
 					triv2.setSomeString("shouldn't work");
@@ -119,7 +118,7 @@ public class TransactionTests extends TestBase
 		}
 		catch (ConcurrentModificationException ex) {}
 
-		Trivial fetched = ofy().get(tk);
+		Trivial fetched = ofy().load().key(tk).now();
 
 		// This will be fetched from the cache, and must not be the "shouldn't work"
 		assert fetched.getSomeString().equals("bar");
@@ -132,14 +131,14 @@ public class TransactionTests extends TestBase
 		fact().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
-		ofy().put(triv);
+		ofy().save().entity(triv).now();
 
 		Trivial updated = ofy().transact(new Work<Trivial>() {
 			@Override
 			public Trivial run() {
 				Trivial result = ofy().load().entity(triv).now();
 				result.setSomeNumber(6);
-				ofy().put(result);
+				ofy().save().entity(result);
 				return result;
 			}
 		});
@@ -159,7 +158,7 @@ public class TransactionTests extends TestBase
 		final Trivial triv = new Trivial("foo", 5);
 
 		// Make sure it's in the session (and memcache for that matter)
-		this.putClearGet(triv);
+		ofy().putClearGet(triv);
 
 		ofy().transact(new Work<Void>() {
 			@Override
@@ -194,7 +193,7 @@ public class TransactionTests extends TestBase
 
 		for (int i=1; i<10; i++) {
 			Thing th = new Thing(i);
-			ofy().put(th);
+			ofy().save().entity(th).now();
 		}
 
 		ofy().transact(new Work<Void>() {
@@ -203,7 +202,7 @@ public class TransactionTests extends TestBase
 				for (int i=1; i<10; i++)
 					ofy().transactionless().load().type(Thing.class).id(i).now();
 
-				ofy().put(new Thing(99));
+				ofy().save().entity(new Thing(99));
 				return null;
 			}
 		});
@@ -220,7 +219,7 @@ public class TransactionTests extends TestBase
 				@Override
 				public void vrun() {
 					Trivial triv = new Trivial("foo", 5);
-					ofy().put(triv);
+					ofy().save().entity(triv).now();
 					throw new RuntimeException();
 				}
 			});

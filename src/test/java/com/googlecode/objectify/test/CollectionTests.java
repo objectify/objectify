@@ -3,8 +3,14 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
+import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,16 +25,9 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.logging.Logger;
 
-import org.testng.annotations.Test;
-
-import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Ignore;
-import com.googlecode.objectify.impl.Keys;
-import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.TestBase;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various collection types
@@ -193,7 +192,7 @@ public class CollectionTests extends TestBase
 		assert hc.integerList.size() == 1;
 		assert hc.integerList.get(0) == null;
 
-		Entity e = ds().get(Keys.anythingToRawKey(key));
+		Entity e = ds().get(key.getRaw());
 		assert e.hasProperty("integerList");
 		List<?> l = (List<?>) e.getProperty("integerList");
 		assert l != null;
@@ -219,7 +218,7 @@ public class CollectionTests extends TestBase
 		hc = ofy().load().key(key).now();
 		assert hc.integerList == null;	// not loaded
 
-		Entity e = ds().get(Keys.anythingToRawKey(key));
+		Entity e = ds().get(key.getRaw());
 		// rule : never store a null collection
 		assert !e.hasProperty("integerList");
 	}
@@ -239,7 +238,7 @@ public class CollectionTests extends TestBase
 		ofy().clear();
 		hc = ofy().load().key(key).now();
 
-		System.out.println(ds().get(Keys.anythingToRawKey(hc)));
+		System.out.println(ds().get(Key.create(hc).getRaw()));
 
 		// This wouldn't be valid if we didn't clear the session
 		assert hc.integerList == null;
@@ -275,12 +274,12 @@ public class CollectionTests extends TestBase
 		fact().register(HasInitializedCollection.class);
 
 		HasInitializedCollection has = new HasInitializedCollection();
-		HasInitializedCollection fetched = this.putClearGet(has);
+		HasInitializedCollection fetched = ofy().putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 
 		has = new HasInitializedCollection();
 		has.initialized.add("blah");
-		fetched = this.putClearGet(has);
+		fetched = ofy().putClearGet(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 	}
 
@@ -304,7 +303,7 @@ public class CollectionTests extends TestBase
 		HasRawCollection hrc = new HasRawCollection();
 		hrc.raw.add("foo");
 
-		HasRawCollection fetched = this.putClearGet(hrc);
+		HasRawCollection fetched = ofy().putClearGet(hrc);
 
 		assert hrc.raw.equals(fetched.raw);
 	}

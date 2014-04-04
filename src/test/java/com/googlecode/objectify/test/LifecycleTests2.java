@@ -54,15 +54,15 @@ public class LifecycleTests2 extends TestBase
 
 		Org org = new Org();
 		org.foo = "fooValue";
-		ofy().put(org);
+		ofy().save().entity(org).now();
 
 		Event event = new Event();
 		event.org = Ref.create(org);
-		ofy().put(event);
+		ofy().save().entity(event).now();
 
 		Product prod = new Product();
 		prod.event = Ref.create(event);
-		ofy().put(prod);
+		ofy().save().entity(prod).now();
 
 		ofy().clear();
 		Product fetched = ofy().load().entity(prod).now();

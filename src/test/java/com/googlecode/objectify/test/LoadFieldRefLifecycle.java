@@ -3,12 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -19,6 +13,11 @@ import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.test.LoadFieldRefLifecycle.HasMulti.Multi;
 import com.googlecode.objectify.test.LoadFieldRefLifecycle.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -82,9 +81,9 @@ public class LoadFieldRefLifecycle extends TestBase
 		fact().register(End.class);
 
 		end0 = new End(123L);
-		ke0 = ofy().put(end0);
+		ke0 = ofy().save().entity(end0).now();
 		end1 = new End(456L);
-		ke1 = ofy().put(end1);
+		ke1 = ofy().save().entity(end1).now();
 	}
 
 	/** */
@@ -96,11 +95,11 @@ public class LoadFieldRefLifecycle extends TestBase
 
 		Middle mid = new Middle(456);
 		mid.end = Ref.create(ke0);
-		Key<Middle> kmid = ofy().put(mid);
+		Key<Middle> kmid = ofy().save().entity(mid).now();
 
 		HasSingle hs = new HasSingle();
 		hs.middle = Ref.create(kmid);
-		Key<HasSingle> hskey = ofy().put(hs);
+		Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once
@@ -118,7 +117,7 @@ public class LoadFieldRefLifecycle extends TestBase
 		HasMulti hs = new HasMulti();
 		hs.ends.add(Ref.create(ke0));
 		hs.ends.add(Ref.create(ke1));
-		Key<HasMulti> hskey = ofy().put(hs);
+		Key<HasMulti> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once

@@ -46,11 +46,11 @@ public class LifecycleTests3 extends TestBase
 
 		Event event = new Event();
 		event.foo = "fooValue";
-		ofy().put(event);
+		ofy().save().entity(event).now();
 
 		Product prod = new Product();
 		prod.event = Ref.create(event);
-		ofy().put(prod);
+		ofy().save().entity(prod).now();
 
 		ofy().clear();
 		Product fetched = ofy().load().entity(prod).now();

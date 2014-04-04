@@ -1,11 +1,11 @@
 package com.googlecode.objectify.test.entity;
 
-import java.util.List;
-import java.util.Set;
-
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Entity for testing null/empty embedded arrays and collections
@@ -22,8 +22,4 @@ public class Criminal
 	public List<Name> moreAliases;
 
 	public Set<Name> aliasesSet;
-
-	public Criminal()
-	{
-	}
 }

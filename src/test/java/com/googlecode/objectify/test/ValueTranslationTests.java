@@ -3,18 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.util.Arrays;
-import java.util.TimeZone;
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Text;
@@ -25,15 +13,28 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.net.URL;
+import java.util.Arrays;
+import java.util.TimeZone;
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of type conversions.
@@ -110,11 +111,9 @@ public class ValueTranslationTests extends TestBase
 	{
 		fact().register(HasString.class);
 
-		DatastoreService ds = ds();
-
 		Entity ent = new Entity(Key.getKind(HasString.class));
 		ent.setProperty("string", 2);	// setting a number
-		ds.put(null, ent);
+		ds().put(null, ent);
 
 		Key<HasString> key = Key.create(ent.getKey());
 		HasString fetched = ofy().load().key(key).now();
@@ -153,7 +152,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasString has = new HasString();
 		has.string = BIG_STRING;
-		HasString fetched = this.putClearGet(has);
+		HasString fetched = ofy().putClearGet(has);
 
 		assert fetched.string.equals(BIG_STRING);
 	}
@@ -171,7 +170,7 @@ public class ValueTranslationTests extends TestBase
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
 
 		@SuppressWarnings("unused")
-		HasStringArray fetched = this.putClearGet(has);
+		HasStringArray fetched = ofy().putClearGet(has);
 
 		// When caching is enabled you get the same order back, but if caching is disabled,
 		// you get the Text moved to the end of the heterogenous collection.  Ick.
@@ -210,7 +209,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasStringIndexInversion has = new HasStringIndexInversion();
 		has.string = BIG_STRING;
-		HasStringIndexInversion fetched = this.putClearGet(has);
+		HasStringIndexInversion fetched = ofy().putClearGet(has);
 
 		assert fetched.string.equals(BIG_STRING);
 	}
@@ -278,7 +277,7 @@ public class ValueTranslationTests extends TestBase
 		Blobby b = new Blobby();
 		b.stuff = new byte[] { 1, 2, 3 };
 
-		Blobby c = this.putClearGet(b);
+		Blobby c = ofy().putClearGet(b);
 
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
@@ -301,7 +300,7 @@ public class ValueTranslationTests extends TestBase
 		HasSqlDate hasDate = new HasSqlDate();
 		hasDate.when = new java.sql.Date(System.currentTimeMillis());
 
-		HasSqlDate fetched = this.putClearGet(hasDate);
+		HasSqlDate fetched = ofy().putClearGet(hasDate);
 
 		assert hasDate.when.equals(fetched.when);
 	}
@@ -326,7 +325,7 @@ public class ValueTranslationTests extends TestBase
 
 		try
 		{
-			this.putClearGet(hbd);
+			ofy().putClearGet(hbd);
 			assert false;	// shouldn't be possible without registering converter
 		}
 		catch (SaveException ex) {}
@@ -338,15 +337,15 @@ public class ValueTranslationTests extends TestBase
 	{
 		fact().getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
-			protected ValueTranslator<BigDecimal, String> createSafe(Path path, Property property, Type type, CreateContext ctx) {
-				return new ValueTranslator<BigDecimal, String>(path, String.class) {
+			protected ValueTranslator<BigDecimal, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+				return new ValueTranslator<BigDecimal, String>(String.class) {
 					@Override
-					protected BigDecimal loadValue(String value, LoadContext ctx) {
+					protected BigDecimal loadValue(String value, LoadContext ctx, Path path) throws SkipException {
 						return new BigDecimal(value);
 					}
 
 					@Override
-					protected String saveValue(BigDecimal value, SaveContext ctx) {
+					protected String saveValue(BigDecimal value, boolean index, SaveContext ctx, Path path) throws SkipException {
 						return value.toString();
 					}
 				};
@@ -358,7 +357,7 @@ public class ValueTranslationTests extends TestBase
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 
-		HasBigDecimal fetched = this.putClearGet(hbd);
+		HasBigDecimal fetched = ofy().putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 
@@ -372,7 +371,7 @@ public class ValueTranslationTests extends TestBase
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 
-		HasBigDecimal fetched = this.putClearGet(hbd);
+		HasBigDecimal fetched = ofy().putClearGet(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 
@@ -393,7 +392,7 @@ public class ValueTranslationTests extends TestBase
 		HasTimeZone htz = new HasTimeZone();
 		htz.tz = TimeZone.getDefault();
 
-		HasTimeZone fetched = this.putClearGet(htz);
+		HasTimeZone fetched = ofy().putClearGet(htz);
 		assert htz.tz.equals(fetched.tz);
 	}
 
@@ -414,7 +413,7 @@ public class ValueTranslationTests extends TestBase
 		HasURL hu = new HasURL();
 		hu.url = new URL("http://example.com/foo?bar=baz");
 
-		HasURL fetched = this.putClearGet(hu);
+		HasURL fetched = ofy().putClearGet(hu);
 		assert hu.url.equals(fetched.url);
 	}
 }

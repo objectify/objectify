@@ -3,17 +3,16 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -120,7 +119,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testIndexedPojo() throws Exception
 	{
-		ofy().put(new IndexedPojo());
+		ofy().save().entity(new IndexedPojo()).now();
 
 		assert ofy().load().type(IndexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert ofy().load().type(IndexedPojo.class).filter("def =", true).iterator().hasNext();
@@ -130,7 +129,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testUnindexedPojo() throws Exception
 	{
-		ofy().put(new UnindexedPojo());
+		ofy().save().entity(new UnindexedPojo()).now();
 
 		assert ofy().load().type(UnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(UnindexedPojo.class).filter("def =", true).iterator().hasNext();
@@ -141,7 +140,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testDefaultIndexedPojo() throws Exception
 	{
-		ofy().put(new DefaultIndexedPojo());
+		ofy().save().entity(new DefaultIndexedPojo()).now();
 
 		assert ofy().load().type(DefaultIndexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(DefaultIndexedPojo.class).filter("def =", true).iterator().hasNext();
@@ -152,7 +151,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testDefaultIndexedChildFromUnindexedPojo() throws Exception
 	{
-		ofy().put(new DefaultIndexedChildFromUnindexedPojo());
+		ofy().save().entity(new DefaultIndexedChildFromUnindexedPojo()).now();
 
 		assert ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(DefaultIndexedChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
@@ -166,7 +165,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testDefaultIndexedGrandChildFromUnindexedPojo() throws Exception
 	{
-		ofy().put(new DefaultIndexedGrandChildFromUnindexedPojo());
+		ofy().save().entity(new DefaultIndexedGrandChildFromUnindexedPojo()).now();
 
 		assert ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(DefaultIndexedGrandChildFromUnindexedPojo.class).filter("def =", true).iterator().hasNext();
@@ -185,7 +184,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testDerivedAndIndexed() throws Exception
 	{
-		ofy().put(new DerivedAndIndexed());
+		ofy().save().entity(new DerivedAndIndexed()).now();
 
 		assert !ofy().load().type(DerivedAndIndexed.class).filter("def", true).iterator().hasNext();
 	}
@@ -194,7 +193,7 @@ public class IndexingInheritanceTests extends TestBase
 	@Test
 	public void testDerivedAndUnindexed() throws Exception
 	{
-		ofy().put(new DerivedAndUnindexed());
+		ofy().save().entity(new DerivedAndUnindexed()).now();
 
 		assert ofy().load().type(DerivedAndUnindexed.class).filter("def", true).iterator().hasNext();
 	}

@@ -3,16 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
@@ -24,6 +14,15 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.RefTests.HasRef.Foo;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests the behavior of Refs.
@@ -44,10 +43,10 @@ public class RefTests extends TestBase
 		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy().put(t1);
+		k1 = ofy().save().entity(t1).now();
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy().put(t2);
+		k2 = ofy().save().entity(t2).now();
 
 		kNone = Key.create(Trivial.class, 12345L);
 
@@ -158,7 +157,7 @@ public class RefTests extends TestBase
 		HasRef hr = new HasRef();
 		hr.triv = Ref.create(k1);
 
-		HasRef fetched = putClearGet(hr);
+		HasRef fetched = ofy().putClearGet(hr);
 
 		// Now try to serialize it in memcache.
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
@@ -176,7 +175,7 @@ public class RefTests extends TestBase
 		HasRef hr = new HasRef();
 		hr.triv = Ref.create(k1);
 
-		ofy().put(hr);
+		ofy().save().entity(hr).now();
 		ofy().clear();
 		HasRef fetched = ofy().load().group(Foo.class).entity(hr).now();
 

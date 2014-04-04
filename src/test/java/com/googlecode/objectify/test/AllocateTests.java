@@ -3,17 +3,16 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.Iterator;
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.KeyRange;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Criminal;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.Iterator;
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -30,8 +29,7 @@ public class AllocateTests extends TestBase
 
 	/** */
 	@Test
-	public void testBasicAllocation() throws Exception
-	{
+	public void testBasicAllocation() throws Exception {
 		fact().register(Trivial.class);
 
 		KeyRange<Trivial> range = fact().allocateIds(Trivial.class, 5);
@@ -39,8 +37,7 @@ public class AllocateTests extends TestBase
 		Iterator<Key<Trivial>> it = range.iterator();
 
 		long previousId = 0;
-		for (int i=0; i<5; i++)
-		{
+		for (int i=0; i<5; i++) {
 			Key<Trivial> next = it.next();
 			assert next.getId() > previousId;
 			previousId = next.getId();
@@ -55,8 +52,7 @@ public class AllocateTests extends TestBase
 
 	/** */
 	@Test
-	public void testParentAllocation() throws Exception
-	{
+	public void testParentAllocation() throws Exception {
 		fact().register(Trivial.class);
 		fact().register(Child.class);
 
@@ -66,8 +62,7 @@ public class AllocateTests extends TestBase
 		Iterator<Key<Child>> it = range.iterator();
 
 		long previousId = 0;
-		for (int i=0; i<5; i++)
-		{
+		for (int i=0; i<5; i++) {
 			Key<Child> next = it.next();
 			assert next.getId() > previousId;
 			previousId = next.getId();
@@ -82,8 +77,7 @@ public class AllocateTests extends TestBase
 
 	/** */
 	@Test
-	public void testKindNamespaceAllocation() throws Exception
-	{
+	public void testKindNamespaceAllocation() throws Exception {
 		fact().register(Trivial.class);
 		fact().register(Criminal.class);
 

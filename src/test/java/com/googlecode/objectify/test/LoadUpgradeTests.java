@@ -3,12 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
@@ -18,6 +12,11 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.LoadUpgradeTests.HasMulti.Multi;
 import com.googlecode.objectify.test.LoadUpgradeTests.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -50,8 +49,8 @@ public class LoadUpgradeTests extends TestBase
 		other0 = new Other(123L);
 		other1 = new Other(456L);
 
-		ko0 = ofy().put(other0);
-		ko1 = ofy().put(other1);
+		ko0 = ofy().save().entity(other0).now();
+		ko1 = ofy().save().entity(other1).now();
 	}
 
 	/** */
@@ -72,7 +71,7 @@ public class LoadUpgradeTests extends TestBase
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		HasMulti fetched = this.putClearGet(hm);
+		HasMulti fetched = ofy().putClearGet(hm);
 
 		//Key<HasMulti> hmkey = fact().getKey(hm);
 
@@ -89,7 +88,7 @@ public class LoadUpgradeTests extends TestBase
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy().put(hm);
+		Key<HasMulti> hmkey = ofy().save().entity(hm).now();
 
 		ofy().clear();
 		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();
@@ -107,10 +106,10 @@ public class LoadUpgradeTests extends TestBase
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy().put(hm);
+		Key<HasMulti> hmkey = ofy().save().entity(hm).now();
 
 		ofy().clear();
-		ofy().get(hmkey);	// load once
+		ofy().load().key(hmkey).now();	// load once
 		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();	// upgrade with multi
 
 		Ref<Other> m0 = fetched.multi.get(0);
@@ -136,10 +135,10 @@ public class LoadUpgradeTests extends TestBase
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		Key<HasSingle> hskey = ofy().put(hs);
+		Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
-		ofy().get(hskey);	// load once
+		ofy().load().key(hskey).now();	// load once
 		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
 
 		assert fetched.single.get().id == other0.id;
@@ -153,7 +152,7 @@ public class LoadUpgradeTests extends TestBase
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		final Key<HasSingle> hskey = ofy().put(hs);
+		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 
@@ -161,7 +160,7 @@ public class LoadUpgradeTests extends TestBase
 		ofy().transact(new VoidWork() {
 			@Override
 			public void vrun() {
-				ofy().get(hskey);
+				ofy().load().key(hskey).now();
 			}
 		});
 
@@ -178,7 +177,7 @@ public class LoadUpgradeTests extends TestBase
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		final Key<HasSingle> hskey = ofy().put(hs);
+		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 
@@ -205,7 +204,7 @@ public class LoadUpgradeTests extends TestBase
 
 		HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		final Key<HasSingle> hskey = ofy().put(hs);
+		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 

@@ -1,16 +1,15 @@
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.ObjectifyService.ofy;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
@@ -28,7 +27,6 @@ public class LoadCyclesComplexTest extends TestBase {
 		AEm aem = new AEm();
 	}
 
-	@Embed
 	public static class AEm {
 		@Load
 		public List<Ref<B>> bs = new ArrayList<Ref<B>>();

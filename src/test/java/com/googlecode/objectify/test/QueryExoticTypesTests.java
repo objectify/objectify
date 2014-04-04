@@ -3,8 +3,14 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.test.entity.User;
+import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -12,15 +18,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.test.entity.User;
-import com.googlecode.objectify.test.util.TestBase;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of queries of odd field types.
@@ -60,7 +59,7 @@ public class QueryExoticTypesTests extends TestBase
 		HasDate hd = new HasDate();
 		hd.when = new Date(later);
 
-		ofy().put(hd);
+		ofy().save().entity(hd).now();
 
 		Query<HasDate> q = ofy().load().type(HasDate.class).filter("when >", new Date(earlier));
 
@@ -87,7 +86,7 @@ public class QueryExoticTypesTests extends TestBase
 		HasUser hd = new HasUser();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 
-		ofy().put(hd);
+		ofy().save().entity(hd).now();
 
 		Query<HasUser> q = ofy().load().type(HasUser.class).filter("who", hd.who);
 
@@ -110,7 +109,7 @@ public class QueryExoticTypesTests extends TestBase
 		User hd = new User();
 		hd.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
 
-		ofy().put(hd);
+		ofy().save().entity(hd).now();
 
 		Query<User> q = ofy().load().type(User.class).filter("who", hd.who);
 
@@ -161,7 +160,7 @@ public class QueryExoticTypesTests extends TestBase
 		cal1.set(2010, 7, 27);
 		h3.dateList.add(cal1.getTime());
 
-		ofy().put(h1, h2, h3);
+		ofy().save().entities(h1, h2, h3).now();
 
 		cal1.set(2010, 7, 25);
 		Date fromDate = cal1.getTime();

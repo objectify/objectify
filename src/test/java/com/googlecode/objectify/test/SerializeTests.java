@@ -1,17 +1,16 @@
 package com.googlecode.objectify.test;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectifyFactory;
+import org.testng.annotations.Test;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -38,12 +37,11 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		HasSerialize fetched = this.putClearGet(hs);
+		HasSerialize fetched = ofy().putClearGet(hs);
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
 	/** */
-	@Embed
 	public static class HasLongs {
 		@Serialize long[] longs;
 	}
@@ -64,7 +62,7 @@ public class SerializeTests extends TestBase
 		es.simple = new HasLongs();
 		es.simple.longs = new long[] { 1L, 2L, 3L };
 
-		EmbedSerialize fetched = this.putClearGet(es);
+		EmbedSerialize fetched = ofy().putClearGet(es);
 		assert Arrays.equals(es.simple.longs, fetched.simple.longs);
 	}
 
@@ -85,7 +83,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		HasSerializeZip fetched = this.putClearGet(hs);
+		HasSerializeZip fetched = ofy().putClearGet(hs);
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
@@ -98,7 +96,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		ofy().put(hs);
+		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the non-zip annotation
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();
@@ -117,7 +115,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		ofy().put(hs);
+		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the zip annotation
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();

@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test.util;
 
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 
 /**
@@ -7,13 +8,8 @@ import com.googlecode.objectify.ObjectifyFactory;
  */
 public class TestObjectifyFactory extends ObjectifyFactory
 {
-	public TestObjectifyFactory() {
-		super(true);
-	}
-	
 	@Override
-	public TestObjectify begin()
-	{
+	public Objectify begin() {
 		return new TestObjectify(this)
 
 			// This can be used to enable/disable the memory cache globally.

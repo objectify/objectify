@@ -44,25 +44,34 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	public Translator<P, PropertyContainer> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
 		Class<P> clazz = (Class<P>)GenericTypeReflector.erase(type);
 
-		Creator<P> creator;
-		Populator<P> populator;
-
 		// Entity is an inherited annotation; this checks up the hierarchy
-		if (clazz.isAnnotationPresent(Entity.class)) {
-			KeyMetadata<P> keyMetadata = new KeyMetadata<>(clazz, ctx, path);
-			creator = new EntityCreator<>(clazz, ctx.getFactory(), keyMetadata);
-			populator = new ClassPopulator<>(clazz, ctx, path, NON_KEY_FIELDS);
-		} else {
-			creator = new EmbeddedCreator<>(clazz, ctx.getFactory());
-			populator = new ClassPopulator<P>(clazz, ctx, path);
-		}
-
-		ClassTranslator<P> classTranslator = new ClassTranslator<P>(clazz, path, creator, populator);
+		ClassTranslator<P> classTranslator = (clazz.isAnnotationPresent(Entity.class))
+				? createEntityClassTranslator(clazz, ctx, path)
+				: createEmbeddedClassTranslator(clazz, ctx, path);
 
 		if (clazz.isAnnotationPresent(Subclass.class))
 			registerSubclass(classTranslator, clazz.getSuperclass(), annotations, ctx, path);
 
 		return classTranslator;
+	}
+
+	/**
+	 */
+	public static <P> ClassTranslator<P> createEntityClassTranslator(Class<P> clazz, CreateContext ctx, Path path) {
+		KeyMetadata<P> keyMetadata = new KeyMetadata<>(clazz, ctx, path);
+		Creator<P> creator = new EntityCreator<>(clazz, ctx.getFactory(), keyMetadata);
+		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path, NON_KEY_FIELDS);
+
+		return new ClassTranslator<P>(clazz, path, creator, populator);
+	}
+
+	/**
+	 */
+	public static <P> ClassTranslator<P> createEmbeddedClassTranslator(Class<P> clazz, CreateContext ctx, Path path) {
+		Creator<P> creator = new EmbeddedCreator<>(clazz, ctx.getFactory());
+		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path);
+
+		return new ClassTranslator<P>(clazz, path, creator, populator);
 	}
 
 	/**

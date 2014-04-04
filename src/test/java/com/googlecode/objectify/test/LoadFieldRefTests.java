@@ -3,12 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -18,6 +12,11 @@ import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Mul
 import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -44,10 +43,10 @@ public class LoadFieldRefTests extends TestBase
 		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy().put(t1);
+		k1 = ofy().save().entity(t1).now();
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy().put(t2);
+		k2 = ofy().save().entity(t2).now();
 
 		tNone1 = new Trivial(123L, "fooNone", 33);
 		tNone2 = new Trivial(456L, "barNone", 44);
@@ -75,7 +74,7 @@ public class LoadFieldRefTests extends TestBase
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
 
-		HasEntities fetched = this.putClearGet(he);
+		HasEntities fetched = ofy().putClearGet(he);
 
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
@@ -96,7 +95,7 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(kNone1);
 		he.multi.add(Ref.create(kNone1));
 		he.multi.add(Ref.create(kNone2));
-		HasEntities fetched = this.putClearGet(he);
+		HasEntities fetched = ofy().putClearGet(he);
 
 		assert fetched.single.get() == null;
 
@@ -120,20 +119,20 @@ public class LoadFieldRefTests extends TestBase
 
 		ListNode node3 = new ListNode();
 		node3.foo = "foo3";
-		ofy().put(node3);
+		ofy().save().entity(node3).now();
 
 		ListNode node2 = new ListNode();
 		node2.foo = "foo2";
 		node2.next = Ref.create(node3);
-		ofy().put(node2);
+		ofy().save().entity(node2).now();
 
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(node2);
-		ofy().put(node1);
+		ofy().save().entity(node1).now();
 
 		ofy().clear();
-		ListNode fetched = ofy().get(Key.create(node1));
+		ListNode fetched = ofy().load().entity(node1).now();
 
 		assert fetched.foo.equals(node1.foo);
 		assert fetched.next.get().id.equals(node2.id);
@@ -156,10 +155,10 @@ public class LoadFieldRefTests extends TestBase
 		ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(Key.create(node2));
-		ofy().put(node1);
+		ofy().save().entity(node1).now();
 
 		ofy().clear();
-		ListNode fetched = ofy().get(Key.create(node1));
+		ListNode fetched = ofy().load().entity(node1).now();
 
 		assert fetched.foo.equals(node1.foo);
 		assert fetched.next.get() == null;	// it was fetched, so this should be initialized and null.
@@ -186,7 +185,7 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = this.putClearGet(he);
+		HasEntitiesWithGroups fetched = ofy().putClearGet(he);
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 

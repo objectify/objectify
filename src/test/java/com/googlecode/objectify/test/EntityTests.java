@@ -3,16 +3,15 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -99,8 +98,8 @@ public class EntityTests extends TestBase
 		fact().register(Apple.class);
 
 		Apple a = new Apple(Apple.COLOR, Apple.TASTE);
-		Key<Apple> aKey = ofy().put(a);
-		Apple a2 = ofy().get(aKey);
+		Key<Apple> aKey = ofy().save().entity(a).now();
+		Apple a2 = ofy().load().key(aKey).now();
 		assert a2.getColor().equals(a.getColor()) : "Colors were different after stored/retrieved";
 		assert a2.getSize().equals(a.getSize()) : "Sizes were different after stored/retrieved";
 		assert a2.getTaste().equals(a.getTaste()) : "Tastes were different after stored/retrieved";
@@ -143,8 +142,8 @@ public class EntityTests extends TestBase
 		fact().register(Banana.class);
 
 		Banana b = new Banana(Banana.COLOR, Banana.TASTE);
-		Key<Banana> bKey = ofy().put(b);
-		Banana b2 = ofy().get(bKey);
+		Key<Banana> bKey = ofy().save().entity(b).now();
+		Banana b2 = ofy().load().key(bKey).now();
 		assert b2.getColor().equals(b.getColor()) : "Colors were different after stored/retrieved";
 		assert b2.getShape().equals(b.getShape()) : "Shapes were different after stored/retrieved";
 		assert b2.getTaste().equals(b.getTaste()) : "Tastes were different after stored/retrieved";
@@ -210,8 +209,8 @@ public class EntityTests extends TestBase
 
 		String s = "my secret";
 		HolderOfString hos = new HolderOfString(s);
-		Key<HolderOfString> hosKey = ofy().put(hos);
-		HolderOfString hos2 = ofy().get(hosKey);
+		Key<HolderOfString> hosKey = ofy().save().entity(hos).now();
+		HolderOfString hos2 = ofy().load().key(hosKey).now();
 
 		assert hos.getThing().equals(hos2.getMyThing()) : "Strings were different after stored/retrieved";
 		assert hos.getThing().getClass().equals(hos2.getMyThing().getClass()) : "Classes were differnt";
@@ -247,8 +246,8 @@ public class EntityTests extends TestBase
 
 		String s = "my secret";
 		HolderOfStringAndLong hosal = new HolderOfStringAndLong(s,2L);
-		Key<HolderOfStringAndLong> hosKey = ofy().put(hosal);
-		HolderOfStringAndLong hosal2 = ofy().get(hosKey);
+		Key<HolderOfStringAndLong> hosKey = ofy().save().entity(hosal).now();
+		HolderOfStringAndLong hosal2 = ofy().load().key(hosKey).now();
 
 		assert hosal.getMyPrecious().equals(hosal2.getMyPrecious()) : "Longs were different after stored/retrieved";
 		assert hosal.getThing().equals(hosal2.getMyThing()) : "Strings were different after stored/retrieved";

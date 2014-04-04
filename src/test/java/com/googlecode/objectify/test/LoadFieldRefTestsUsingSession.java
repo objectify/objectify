@@ -3,12 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -18,6 +12,11 @@ import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWi
 import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -44,10 +43,10 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		fact().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
-		k1 = ofy().put(t1);
+		k1 = ofy().save().entity(t1).now();
 
 		t2 = new Trivial("bar", 22);
-		k2 = ofy().put(t2);
+		k2 = ofy().save().entity(t2).now();
 
 		tNone1 = new Trivial(123L, "fooNone", 33);
 		tNone2 = new Trivial(456L, "barNone", 44);
@@ -77,7 +76,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = this.putClearGet(he);
+		HasEntitiesWithGroups fetched = ofy().putClearGet(he);
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 

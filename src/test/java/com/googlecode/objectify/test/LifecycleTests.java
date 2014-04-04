@@ -1,7 +1,5 @@
 package com.googlecode.objectify.test;
 
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Cache;
@@ -14,6 +12,7 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
+import org.testng.annotations.Test;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -58,7 +57,7 @@ public class LifecycleTests extends TestBase
 		fact().register(HasInheritedLifecycle.class);
 
 		HasLifecycle life1 = new HasLifecycle();
-		HasLifecycle fetched = this.putClearGet(life1);
+		HasLifecycle fetched = ofy().putClearGet(life1);
 
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
@@ -66,7 +65,7 @@ public class LifecycleTests extends TestBase
 		assert fetched.onLoadedWithObjectify;
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
-		fetched = this.putClearGet(life2);
+		fetched = ofy().putClearGet(life2);
 
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
@@ -90,7 +89,7 @@ public class LifecycleTests extends TestBase
 
 		try
 		{
-			this.putClearGet(new HasExceptionThrowingLifecycle());
+			ofy().putClearGet(new HasExceptionThrowingLifecycle());
 			assert false;
 		}
 		catch (UnsupportedOperationException ex)
@@ -121,11 +120,11 @@ public class LifecycleTests extends TestBase
 		fact().register(Trivial.class);
 
 		Trivial triv = new Trivial("foo", 123);
-		ofy().put(triv);
+		ofy().save().entity(triv).now();
 
 		HasLoad hl = new HasLoad();
 		hl.triv = Ref.create(triv);
-		ofy().put(hl);
+		ofy().save().entity(hl).now();
 
 		ofy().load().entity(hl).now();
 	}
@@ -173,15 +172,15 @@ public class LifecycleTests extends TestBase
 
 		ParentThing pt = new ParentThing();
 		pt.foo = "fooValue";
-		ofy().put(pt);
+		ofy().save().entity(pt).now();
 
 		HasParent hp = new HasParent();
 		hp.parent = Ref.create(pt);
-		ofy().put(hp);
+		ofy().save().entity(hp).now();
 
 		HasHasParent hhp = new HasHasParent();
 		hhp.hasParent = Ref.create(hp);
-		ofy().put(hhp);
+		ofy().save().entity(hhp).now();
 
 		ofy().load().entity(hhp).now();
 	}

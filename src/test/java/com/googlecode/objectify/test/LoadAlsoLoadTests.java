@@ -3,11 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -17,7 +12,12 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 

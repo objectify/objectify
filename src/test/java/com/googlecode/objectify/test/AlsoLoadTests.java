@@ -3,17 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -21,6 +10,17 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of using the @AlsoLoad annotation
@@ -37,9 +37,7 @@ public class AlsoLoadTests extends TestBase
 	public static final String TEST_VALUE = "blah";
 
 	/** */
-	@Embed
-	static class HasAlsoLoadField
-	{
+	static class HasAlsoLoadField {
 		@AlsoLoad("oldFoo") String foo;
 
 		public HasAlsoLoadField() {}
@@ -52,9 +50,7 @@ public class AlsoLoadTests extends TestBase
 	}
 
 	/** */
-	@Embed
-	static class HasAlsoLoadMethod
-	{
+	static class HasAlsoLoadMethod {
 		String foo;
 
 		public HasAlsoLoadMethod() {}
@@ -74,8 +70,7 @@ public class AlsoLoadTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	static class HasEmbedded
-	{
+	static class HasEmbedded {
 		@Id Long id;
 		@AlsoLoad("oldFieldUser") HasAlsoLoadField fieldUser;
 		@AlsoLoad("oldMethodUser") HasAlsoLoadMethod methodUser;
@@ -84,8 +79,7 @@ public class AlsoLoadTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	static class HasEmbeddedArray
-	{
+	static class HasEmbeddedArray {
 		@Id Long id;
 		@AlsoLoad("oldFieldUsers") HasAlsoLoadField[] fieldUsers;
 		@AlsoLoad("oldMethodUsers") HasAlsoLoadMethod[] methodUsers;
@@ -93,8 +87,7 @@ public class AlsoLoadTests extends TestBase
 
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	static class HasAlsoLoads
-	{
+	static class HasAlsoLoads {
 		@Id Long id;
 		public Long getId() { return this.id; }
 		public void setId(Long value) { this.id = value; }
@@ -120,8 +113,7 @@ public class AlsoLoadTests extends TestBase
 		/** Default constructor must always exist */
 		public HasAlsoLoads() {}
 
-		public HasAlsoLoads(String stuff, String otherStuff)
-		{
+		public HasAlsoLoads(String stuff, String otherStuff) {
 			this.stuff = stuff;
 			this.otherStuff = otherStuff;
 		}
@@ -131,8 +123,7 @@ public class AlsoLoadTests extends TestBase
 	 * Add an entry to the database that should never come back from null queries.
 	 */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		super.setUp();
 
 		fact().register(HasAlsoLoads.class);
@@ -142,8 +133,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testSimpleAlsoLoad() throws Exception
-	{
+	public void testSimpleAlsoLoad() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("oldStuff", "oldStuff");
 		ds().put(ent);
@@ -157,15 +147,13 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testAlsoLoadDuplicateError() throws Exception
-	{
+	public void testAlsoLoadDuplicateError() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("stuff", "stuff");
 		ent.setProperty("oldStuff", "oldStuff");
 		ds().put(ent);
 
-		try
-		{
+		try {
 			Key<HasAlsoLoads> key = Key.create(ent.getKey());
 			ofy().load().key(key).now();
 			assert false: "Shouldn't be able to read data duplicated with @AlsoLoad";
@@ -175,8 +163,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testAlsoLoadMethods() throws Exception
-	{
+	public void testAlsoLoadMethods() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
 		ent.setProperty("weirdStuff", "5");
 		ds().put(ent);
@@ -189,8 +176,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testEasyHasEmbedded() throws Exception
-	{
+	public void testEasyHasEmbedded() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
 		ent.setProperty("fieldUser.oldFoo", TEST_VALUE);
 		ent.setProperty("methodUser.oldFoo", TEST_VALUE);
@@ -205,8 +191,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testHarderHasEmbedded() throws Exception
-	{
+	public void testHarderHasEmbedded() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
 		ent.setProperty("oldFieldUser.oldFoo", TEST_VALUE);
 		ent.setProperty("oldMethodUser.oldFoo", TEST_VALUE);
@@ -221,8 +206,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testEasyHasEmbeddedArray() throws Exception
-	{
+	public void testEasyHasEmbeddedArray() throws Exception {
 		List<String> values = new ArrayList<String>();
 		values.add(TEST_VALUE);
 		values.add(TEST_VALUE);
@@ -244,8 +228,7 @@ public class AlsoLoadTests extends TestBase
 
 	/** */
 	@Test
-	public void testHarderHasEmbeddedArray() throws Exception
-	{
+	public void testHarderHasEmbeddedArray() throws Exception {
 		List<String> values = new ArrayList<String>();
 		values.add(TEST_VALUE);
 		values.add(TEST_VALUE);

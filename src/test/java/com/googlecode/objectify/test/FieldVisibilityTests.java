@@ -5,17 +5,16 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -52,7 +51,7 @@ public class FieldVisibilityTests extends TestBase
 		ThingWithPrivates thing = new ThingWithPrivates();
 		//thing.stuff.add("foo");
 
-		ThingWithPrivates fetched = this.putClearGet(thing);
+		ThingWithPrivates fetched = ofy().putClearGet(thing);
 
 		assert fetched.id.equals(thing.id);
 	}
@@ -66,7 +65,7 @@ public class FieldVisibilityTests extends TestBase
 		ThingWithPrivates thing = new ThingWithPrivates();
 		thing.stuff.add("foo");
 
-		ofy().put(thing);
+		ofy().save().entity(thing).now();
 
 		ofy().load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
 	}

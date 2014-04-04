@@ -3,12 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -16,6 +10,11 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -42,10 +41,10 @@ public class LoadQueryFieldTests extends TestBase
 		fact().register(Trivial.class);
 
 		t0 = new Trivial("foo", 11);
-		k0 = ofy().put(t0);
+		k0 = ofy().save().entity(t0).now();
 
 		t1 = new Trivial("bar", 22);
-		k1 = ofy().put(t1);
+		k1 = ofy().save().entity(t1).now();
 
 		tNone0 = new Trivial(123L, "fooNone", 33);
 		tNone1 = new Trivial(456L, "barNone", 44);

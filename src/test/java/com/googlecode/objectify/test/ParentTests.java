@@ -62,9 +62,9 @@ public class ParentTests extends TestBase
 		KeyChild ch = new KeyChild();
 		ch.father = Key.create(Father.class, 123);
 		ch.bar = "bar";
-		ofy().put(ch);
+		ofy().save().entity(ch).now();
 
-		KeyChild fetched = ofy().get(Key.create(ch));
+		KeyChild fetched = ofy().load().entity(ch).now();
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);
@@ -80,9 +80,9 @@ public class ParentTests extends TestBase
 		RefChild ch = new RefChild();
 		ch.father = Ref.create(Key.create(Father.class, 123));
 		ch.bar = "bar";
-		ofy().put(ch);
+		ofy().save().entity(ch).now();
 
-		RefChild fetched = ofy().get(Key.create(ch));
+		RefChild fetched = ofy().load().entity(ch).now();
 
 		assert fetched.bar.equals(ch.bar);
 		assert fetched.father.equals(ch.father);

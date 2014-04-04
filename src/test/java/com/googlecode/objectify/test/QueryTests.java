@@ -3,8 +3,16 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.test.entity.Child;
+import com.googlecode.objectify.test.entity.Employee;
+import com.googlecode.objectify.test.entity.NamedTrivial;
+import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,17 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.LoadResult;
-import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.test.entity.Child;
-import com.googlecode.objectify.test.entity.Employee;
-import com.googlecode.objectify.test.entity.NamedTrivial;
-import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.TestBase;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of various queries
@@ -150,7 +149,7 @@ public class QueryTests extends TestBase
 	{
 
 		Trivial triv3 = new Trivial(null, 3);
-		ofy().put(triv3);
+		ofy().save().entity(triv3).now();
 
 		Iterator<Trivial> it = ofy().load().type(Trivial.class).filter("someString", null).iterator();
 
@@ -214,7 +213,7 @@ public class QueryTests extends TestBase
 		Key<Employee> bobKey = Key.create(Employee.class, "bob");
 
 		Employee fred = new Employee("fred", bobKey);
-		ofy().put(fred);
+		ofy().save().entity(fred).now();
 
 		Iterator<Employee> it = ofy().load().type(Employee.class).filter("manager", bobKey).iterator();
 
@@ -231,10 +230,10 @@ public class QueryTests extends TestBase
 		fact().register(Employee.class);
 
 		Employee bob = new Employee("bob");
-		ofy().put(bob);
+		ofy().save().entity(bob).now();
 
 		Employee fred = new Employee("fred", bob);
-		ofy().put(fred);
+		ofy().save().entity(fred).now();
 
 		Iterator<Employee> it = ofy().load().type(Employee.class).filter("manager2", bob).iterator();
 
@@ -251,10 +250,10 @@ public class QueryTests extends TestBase
 		fact().register(Child.class);
 
 		Trivial triv = new Trivial(null, 3);
-		Key<Trivial> trivKey = ofy().put(triv);
+		Key<Trivial> trivKey = ofy().save().entity(triv).now();
 
 		Child child = new Child(trivKey, "blah");
-		ofy().put(child);
+		ofy().save().entity(child).now();
 
 		Iterator<Object> it = ofy().load().ancestor(trivKey).iterator();
 
@@ -275,8 +274,8 @@ public class QueryTests extends TestBase
 	{
 		Trivial triv1 = new Trivial("foo", 3);
 		Trivial triv2 = new Trivial("bar", 3);
-		ofy().put(triv1);
-		ofy().put(triv2);
+		ofy().save().entity(triv1).now();
+		ofy().save().entity(triv2).now();
 
 		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
 
@@ -298,8 +297,8 @@ public class QueryTests extends TestBase
 
 		NamedTrivial triv1 = new NamedTrivial("foo", null, 3);
 		NamedTrivial triv2 = new NamedTrivial("bar", null, 3);
-		ofy().put(triv1);
-		ofy().put(triv2);
+		ofy().save().entity(triv1).now();
+		ofy().save().entity(triv2).now();
 
 		List<String> conditions = Arrays.asList(new String[] {"foo", "bar", "baz"});
 
@@ -326,7 +325,7 @@ public class QueryTests extends TestBase
 	public void testINfilteringWithKeySpecial() throws Exception
 	{
 		Trivial triv1 = new Trivial("foo", 3);
-		Key<Trivial> key1 = ofy().put(triv1);
+		Key<Trivial> key1 = ofy().save().entity(triv1).now();
 		Set<Key<Trivial>> singleton = Collections.singleton(key1);
 
 		List<Trivial> result = ofy().load().type(Trivial.class).filter("__key__ in", singleton).list();
@@ -344,7 +343,7 @@ public class QueryTests extends TestBase
 		Key<Employee> bobKey = Key.create(Employee.class, "bob");
 		Employee fred = new Employee("fred", bobKey);
 
-		ofy().put(fred);
+		ofy().save().entity(fred).now();
 
 		Set<Key<Employee>> singleton = Collections.singleton(bobKey);
 

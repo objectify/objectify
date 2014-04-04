@@ -9,6 +9,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -37,9 +38,9 @@ public class IgnoreTests extends TestBase
 		o.transientKeyword = 42;
 		o.transientAnnotation = 43;
 
-		Key<HasTransients> k = ofy().put(o);
+		Key<HasTransients> k = ofy().save().entity(o).now();
 		ofy().clear();	// reset session
-		o = ofy().get(k);
+		o = ofy().load().key(k).now();
 
 		assert "saved".equals(o.name);
 		assert o.transientKeyword == 42;

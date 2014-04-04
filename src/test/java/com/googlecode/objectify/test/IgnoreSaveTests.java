@@ -3,13 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.logging.Logger;
-
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
@@ -18,8 +11,14 @@ import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfDefault;
 import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
-import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
+
+import java.util.logging.Logger;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of using the @IgnoreSave annotation and its various conditions.
@@ -58,10 +57,10 @@ public class IgnoreSaveTests extends TestBase
 		ds().put(null, ent);
 
 		Key<CompletelyUnsaved> key = Key.create(ent.getKey());
-		CompletelyUnsaved fetched = ofy().get(key);
+		CompletelyUnsaved fetched = ofy().load().key(key).now();
 		assert fetched.foo.equals(TEST_VALUE);
 
-		fetched = putClearGet(fetched);
+		fetched = ofy().putClearGet(fetched);
 		assert fetched.foo == null;	// this would fail without the session clear()
 	}
 
@@ -85,7 +84,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.foo = true;
 		thing.bar = true;
 
-		UnsavedWhenTrue fetched = putClearGet(thing);
+		UnsavedWhenTrue fetched = ofy().putClearGet(thing);
 		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}
@@ -110,7 +109,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.foo = true;
 		thing.bar = true;
 
-		DeeperUnsavedWhenTrue fetched = putClearGet(thing);
+		DeeperUnsavedWhenTrue fetched = ofy().putClearGet(thing);
 		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}
@@ -132,7 +131,6 @@ public class IgnoreSaveTests extends TestBase
 	}
 
 	/** Should not be registerable */
-	@Embed
 	static class TryToEmbedMe { @IgnoreSave(IfNull.class) String bar; }
 
 	@com.googlecode.objectify.annotation.Entity
@@ -194,10 +192,10 @@ public class IgnoreSaveTests extends TestBase
 		fact().register(UnsavedDefaults.class);
 
 		UnsavedDefaults thing = new UnsavedDefaults();
-		Key<UnsavedDefaults> key = ofy().put(thing);
+		Key<UnsavedDefaults> key = ofy().save().entity(thing).now();
 
 		// Now get the raw entity and verify that it doesn't have properties saved
-		Entity ent = ds().get(null, Keys.anythingToRawKey(key));
+		Entity ent = ds().get(null, key.getRaw());
 		assert ent.getProperties().isEmpty();
 	}
 

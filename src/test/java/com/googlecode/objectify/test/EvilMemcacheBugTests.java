@@ -5,15 +5,6 @@
 
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -28,6 +19,15 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.cache.CachingDatastoreServiceFactory;
 import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectifyService;
+import org.testng.annotations.Test;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 
 /**
  * Tests of a bizarre bug in Google's memcache serialization of Key objects.
@@ -113,7 +113,7 @@ public class EvilMemcacheBugTests extends TestBase
 		// Need to register it so the entity kind becomes cacheable
 		fact().register(SimpleEntity.class);
 
-		DatastoreService ds = ds();
+		DatastoreService ds = TestObjectifyService.ds();
 		DatastoreService cacheds = CachingDatastoreServiceFactory.getDatastoreService();
 
 		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.

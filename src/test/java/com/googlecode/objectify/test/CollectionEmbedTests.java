@@ -1,17 +1,17 @@
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.testng.annotations.Test;
-
-import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.test.util.TestBase;
+import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  */
@@ -24,7 +24,6 @@ public class CollectionEmbedTests extends TestBase
 		Set<HashableThing> someSet = new HashSet<HashableThing>();
 	}
 
-	@Embed
 	public static class HashableThing
 	{
 		Integer value;
@@ -47,7 +46,7 @@ public class CollectionEmbedTests extends TestBase
 		has.someSet.add(new HashableThing(5));
 		has.someSet.add(new HashableThing(6));
 
-		HasSet fetched = this.putClearGet(has);
+		HasSet fetched = ofy().putClearGet(has);
 
 		assert fetched.someSet.size() == 3;
 		assert fetched.someSet.contains(new HashableThing(4));
@@ -63,7 +62,7 @@ public class CollectionEmbedTests extends TestBase
 		HasSet has = new HasSet();
 		has.someSet.add(null);
 
-		HasSet fetched = this.putClearGet(has);
+		HasSet fetched = ofy().putClearGet(has);
 
 		assert fetched.someSet.size() == 1;
 		assert fetched.someSet.contains(null);
@@ -78,7 +77,6 @@ public class CollectionEmbedTests extends TestBase
 	}
 
 	/** */
-	@Embed
 	public static class DeepThing {
 		HashableThing thing;
 
@@ -97,7 +95,7 @@ public class CollectionEmbedTests extends TestBase
 		has.deeps.add(new DeepThing(4));
 		has.deeps.add(new DeepThing(5));
 
-		HasDeepThings fetched = this.putClearGet(has);
+		HasDeepThings fetched = ofy().putClearGet(has);
 
 		assert fetched.deeps.size() == 2;
 		assert fetched.deeps.get(0).thing.equals(has.deeps.get(0).thing);

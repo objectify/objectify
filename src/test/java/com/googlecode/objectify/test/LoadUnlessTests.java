@@ -50,19 +50,19 @@ public class LoadUnlessTests extends TestBase
 
 		Two twoAlways = new Two();
 		twoAlways.id = 456;
-		Key<Two> twoAlwaysKey = ofy().put(twoAlways);
+		Key<Two> twoAlwaysKey = ofy().save().entity(twoAlways).now();
 		Ref<Two> twoAlwaysRef = Ref.create(twoAlwaysKey);
 
 		Two twoSometimes = new Two();
 		twoSometimes.id = 789;
-		Key<Two> twoSometimesKey = ofy().put(twoSometimes);
+		Key<Two> twoSometimesKey = ofy().save().entity(twoSometimes).now();
 		Ref<Two> twoSometimesRef = Ref.create(twoSometimesKey);
 
 		One one = new One();
 		one.id = 123;
 		one.always = twoAlwaysRef;
 		one.sometimes = twoSometimesRef;
-		ofy().put(one);
+		ofy().save().entity(one).now();
 
 		ofy().clear();
 		One fetchedDefault = ofy().load().entity(one).now();

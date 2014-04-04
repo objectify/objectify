@@ -1,13 +1,15 @@
 package com.googlecode.objectify.test.util;
 
-import java.util.Map;
-
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
+
 /**
- * Adds some convenience methods.  Most of the tests were written against Objectify 3 and it's a PITA to convert all the calls.
+ * Adds some convenience methods.
  */
 public class TestObjectify extends ObjectifyImpl<TestObjectify>
 {
@@ -16,15 +18,19 @@ public class TestObjectify extends ObjectifyImpl<TestObjectify>
 		super(fact);
 	}
 
-	public <E> Key<E> put(E entitity)  {
-		return this.save().<E>entity(entitity).now();
+	/** Utility methods that puts, clears the session, and immediately gets an entity */
+	public <T> T putClearGet(T saveMe) {
+		Key<T> key = save().entity(saveMe).now();
+
+		try {
+			Entity ent = ds().get(null, key.getRaw());
+			System.out.println(ent);
+		}
+		catch (EntityNotFoundException e) { throw new RuntimeException(e); }
+
+		clear();
+
+		return load().key(key).now();
 	}
 
-	public <E> Map<Key<E>, E> put(E... entities)  {
-		return this.save().<E>entities(entities).now();
-	}
-
-	public <K> K get(Key<K> key) {
-		return this.load().key(key).now();
-	}
 }

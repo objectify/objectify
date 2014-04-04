@@ -1,11 +1,5 @@
 package com.googlecode.objectify.test;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -16,6 +10,11 @@ import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectify;
+import org.testng.annotations.Test;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -25,7 +24,6 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  */
 public class MapifyTests extends TestBase
 {
-	@Embed
 	public static class Thing {
 		String name;
 		Long weight;
@@ -74,7 +72,7 @@ public class MapifyTests extends TestBase
 		Thing thing1 = new Thing("bar", 456L);
 		hasMap.things.put(thing1.weight, thing1);
 
-		HasMapify fetched = this.putClearGet(hasMap);
+		HasMapify fetched = ofy().putClearGet(hasMap);
 
 		assert hasMap.things.equals(fetched.things);
 
@@ -95,7 +93,6 @@ public class MapifyTests extends TestBase
 	}
 
 	/** */
-	@Embed
 	public static class Bottom {
 		public @Load Ref<Top> top;
 		public String name;
@@ -118,8 +115,6 @@ public class MapifyTests extends TestBase
 	{
 		fact().register(Top.class);
 
-		TestObjectify ofy = fact().begin();
-
 		Top top = new Top(123);
 
 		Bottom bot = new Bottom();
@@ -128,10 +123,10 @@ public class MapifyTests extends TestBase
 
 		top.bottoms.put(bot.name, bot);
 
-		ofy.put(top);
-		ofy.clear();
+		ofy().save().entity(top).now();
+		ofy().clear();
 
-		Top topFetched = ofy.load().entity(top).now();
+		Top topFetched = ofy().load().entity(top).now();
 		assert topFetched.bottoms.size() == 1;
 
 		Bottom bottomFetched = topFetched.bottoms.get(bot.name);
@@ -168,7 +163,7 @@ public class MapifyTests extends TestBase
 		HasMapifyTrivial hasMap = new HasMapifyTrivial();
 		hasMap.trivials.put(trivKey, Ref.create(triv));
 
-		HasMapifyTrivial fetched = this.putClearGet(hasMap);
+		HasMapifyTrivial fetched = ofy().putClearGet(hasMap);
 
 		assert hasMap.trivials.get(trivKey).get().getSomeString().equals(fetched.trivials.get(trivKey).get().getSomeString());
 	}
