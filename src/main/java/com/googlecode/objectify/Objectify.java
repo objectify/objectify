@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.cmd.Deleter;
@@ -66,12 +65,6 @@ public interface Objectify
 	 * @return the ObjectifyFactory associated with this Objectify instance.
 	 */
 	public ObjectifyFactory factory();
-
-	/**
-	 * Use factory() instead.
-	 */
-	@Deprecated
-	public ObjectifyFactory getFactory();
 
 	/**
 	 * <p>Provides a new Objectify instance with the specified Consistency.  Generally speaking, STRONG consistency
@@ -208,18 +201,6 @@ public interface Objectify
 	 * only if you really know what you are doing" feature.</p>
 	 */
 	void clear();
-
-	/**
-	 * Use save().toEntity() instead.
-	 */
-	@Deprecated
-	Entity toEntity(Object pojo);
-
-	/**
-	 * Use load().fromEntity() instead.
-	 */
-	@Deprecated
-	<T> T toPojo(Entity entity);
 
 	/**
 	 * @return true if the key has been loaded into the session; false if loading the key would result in a datastore

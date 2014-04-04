@@ -262,12 +262,12 @@ public class EntityTests extends TestBase
 
 		Trivial triv = new Trivial(123L, "blah", 456);
 
-		com.google.appengine.api.datastore.Entity ent = ofy().toEntity(triv);
+		com.google.appengine.api.datastore.Entity ent = ofy().save().toEntity(triv);
 		assert ent.getKey().getId() == 123L;
 		assert ent.getProperty("someString").equals("blah");
 		assert ent.getProperty("someNumber").equals(456L);
 
-		Trivial converted = ofy().toPojo(ent);
+		Trivial converted = ofy().load().fromEntity(ent);
 		assert converted.getId().equals(triv.getId());
 		assert converted.getSomeString().equals(triv.getSomeString());
 		assert converted.getSomeNumber() == triv.getSomeNumber();

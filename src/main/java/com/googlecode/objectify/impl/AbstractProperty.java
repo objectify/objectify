@@ -35,7 +35,7 @@ abstract public class AbstractProperty implements Property
 		if (this.getAnnotation(IgnoreLoad.class) == null)
 			nameSet.add(name);
 		
-		// Now any additional names, either @AlsoLoad or the deprecated @OldName
+		// Now any additional names
 		AlsoLoad alsoLoad = this.getAnnotation(AlsoLoad.class);
 		if (alsoLoad != null)
 			if (alsoLoad.value() == null || alsoLoad.value().length == 0)

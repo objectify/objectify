@@ -36,20 +36,4 @@ public class LoadResult<T> implements Result<T>
 		else
 			return t;
 	}
-
-	/**
-	 * Use now() instead.
-	 */
-	@Deprecated
-	public final T get() {
-		return now();
-	}
-
-	/**
-	 * Use safe() instead.
-	 */
-	@Deprecated
-	public final T safeGet() {
-		return safe();
-	}
 }

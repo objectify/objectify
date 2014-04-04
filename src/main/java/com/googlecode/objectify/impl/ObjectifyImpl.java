@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.ReadPolicy;
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
@@ -64,14 +63,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	public ObjectifyFactory factory() {
 		return this.factory;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getFactory()
-	 */
-	@Deprecated
-	public ObjectifyFactory getFactory() {
-		return factory();
 	}
 
 	/* (non-Javadoc)
@@ -283,22 +274,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 				return translator.save(value, false, new SaveContext(this), Path.root());
 			}
 		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#toEntity(java.lang.Object)
-	 */
-	@Override
-	public Entity toEntity(Object pojo) {
-		return save().toEntity(pojo);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
-	 */
-	@Override
-	public <T> T toPojo(Entity entity) {
-		return load().fromEntity(entity);
 	}
 
 	/** */

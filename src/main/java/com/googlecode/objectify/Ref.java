@@ -105,14 +105,6 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 			return t;
 	}
 
-	/**
-	 * Use safe() instead.
-	 */
-	@Deprecated
-	final public T safeGet() throws NotFoundException {
-		return safe();
-	}
-
 	/** Comparison is based on key */
 	@Override
 	public int compareTo(Ref<T> o) {
