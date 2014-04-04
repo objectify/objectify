@@ -50,8 +50,8 @@ public class IfDefault extends ValueIf<Object> implements InitializeIf
 	Object defaultValue;
 	
 	@Override
-	public void init(ObjectifyFactory fact, Class<?> concreteClass, Field field) {
-		Object pojo = fact.construct(concreteClass);
+	public void init(ObjectifyFactory fact, Field field) {
+		Object pojo = fact.construct(field.getDeclaringClass());
 		this.defaultValue = TypeUtils.field_get(field, pojo);
 	}
 	

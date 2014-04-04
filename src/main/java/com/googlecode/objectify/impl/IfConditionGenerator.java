@@ -19,15 +19,11 @@ public class IfConditionGenerator
 
 	/** */
 	ObjectifyFactory fact;
-	Class<?> examinedClass;
-	
+
 	/**
-	 * @param examinedClass is the actual top level concrete class we are examining; the field might
-	 * be declared on a superclass of this class so it's not the same as field.getDeclaringClass()
 	 */
-	public IfConditionGenerator(ObjectifyFactory fact, Class<?> examinedClass) {
+	public IfConditionGenerator(ObjectifyFactory fact) {
 		this.fact = fact;
-		this.examinedClass = examinedClass;
 	}
 	
 	/**
@@ -56,9 +52,9 @@ public class IfConditionGenerator
 				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
 						+ " because you cannot assign " + field.getType().getName() + " to " + valueClass.getName());
 			
-			if (!TypeUtils.isAssignableFrom(pojoClass, examinedClass))
+			if (!TypeUtils.isAssignableFrom(pojoClass, field.getDeclaringClass()))
 				throw new IllegalStateException("Cannot use If class " + ifClass.getName() + " on " + field
-						+ " because the containing class " + examinedClass.getName() + " is not compatible with " + pojoClass.getName());
+						+ " because the containing class " + field.getDeclaringClass().getName() + " is not compatible with " + pojoClass.getName());
 		}
 		
 		return result;
@@ -69,7 +65,7 @@ public class IfConditionGenerator
 		If<?, ?> created = fact.construct(ifClass);
 		
 		if (created instanceof InitializeIf)
-			((InitializeIf)created).init(fact, examinedClass, field);
+			((InitializeIf)created).init(fact, field);
 		
 		return created;
 	}

@@ -4,7 +4,8 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.impl.translate.EntityClassTranslator;
+import com.googlecode.objectify.impl.translate.ClassTranslator;
+import com.googlecode.objectify.impl.translate.EntityCreator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
@@ -25,7 +26,10 @@ public class EntityMetadata<P>
 	private Cache cached;
 
 	/** */
-	private EntityClassTranslator<P> translator;
+	private ClassTranslator<P> translator;
+
+	/** */
+	private KeyMetadata<P> keyMetadata;
 
 	/**
 	 * @param clazz must have @Entity in its hierarchy
@@ -35,7 +39,8 @@ public class EntityMetadata<P>
 
 		this.entityClass = clazz;
 		this.cached = clazz.getAnnotation(Cache.class);
-		this.translator = (EntityClassTranslator<P>)fact.getTranslators().getRoot(clazz);
+		this.translator = (ClassTranslator<P>)fact.getTranslators().getRoot(clazz);
+		this.keyMetadata = ((EntityCreator<P>)translator.getCreator()).getKeyMetadata();
 	}
 
 	/**
@@ -76,7 +81,7 @@ public class EntityMetadata<P>
 	 * Get specific metadata about the key for this type.
 	 */
 	public KeyMetadata<P> getKeyMetadata() {
-		return translator.getKeyMetadata();
+		return keyMetadata;
 	}
 
 	/**

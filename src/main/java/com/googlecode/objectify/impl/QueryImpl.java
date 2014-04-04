@@ -19,6 +19,7 @@ import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.cmd.Query;
+import com.googlecode.objectify.impl.translate.ClassTranslator;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
@@ -72,7 +73,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		Subclass sub = clazz.getAnnotation(Subclass.class);
 		if (sub != null) {
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
-			this.actual.addFilter(PolymorphicEntityMetadata.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
+			this.actual.addFilter(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
 		}
 
 		// If the class is cacheable, hybridize

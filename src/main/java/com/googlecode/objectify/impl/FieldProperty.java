@@ -36,7 +36,7 @@ public class FieldProperty extends AbstractProperty
 
 		field.setAccessible(true);
 		
-		IfConditionGenerator ifGenerator = new IfConditionGenerator(fact, examinedClass);
+		IfConditionGenerator ifGenerator = new IfConditionGenerator(fact);
 
 		// Check @Index and @Unindex conditions
 		Index indexedAnn = field.getAnnotation(Index.class);

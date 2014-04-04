@@ -12,7 +12,6 @@ import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.impl.translate.CreateContext;
-import com.googlecode.objectify.impl.translate.EntityClassTranslator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.DatastoreUtils;

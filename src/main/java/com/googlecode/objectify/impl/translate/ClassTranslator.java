@@ -1,0 +1,180 @@
+package com.googlecode.objectify.impl.translate;
+
+import com.google.appengine.api.datastore.PropertyContainer;
+import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.impl.Path;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * <p>Some common code for Translators which know how to convert a POJO type into a PropertiesContainer.
+ * This might be polymorphic; we get polymorphism when @Subclasses are registered on this translator.</p>
+ *
+ * @author Jeff Schnitzer <jeff@infohazard.org>
+ */
+public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
+{
+	private static final Logger log = Logger.getLogger(ClassTranslator.class.getName());
+
+	/** Name of the out-of-band discriminator property in a PropertyContainer */
+	public static final String DISCRIMINATOR_PROPERTY = "^d";
+
+	/** Name of the list property which will hold all indexed discriminator values */
+	public static final String DISCRIMINATOR_INDEX_PROPERTY = "^i";
+
+	/** The declared class we are responsible for. */
+	private final Class<P> declaredClass;
+
+	/** Lets us construct the initial objects */
+	private final Creator<P> creator;
+
+	/** Does the heavy lifting of copying properties */
+	private final Populator<P> populator;
+
+	/**
+	 * The discriminator for this subclass, or null for the base class.
+	 */
+	private final String discriminator;
+
+	/**
+	 * The discriminators that will be indexed for this subclass.  Empty for the base class or any
+	 * subclasses for which all discriminators are unindexed.
+	 */
+	private final List<String> indexedDiscriminators = new ArrayList<>();
+
+	/** Keyed by discriminator value, including alsoload discriminators */
+	private Map<String, ClassTranslator<? extends P>> byDiscriminator = new HashMap<>();
+
+	/** Keyed by Class, includes the base class */
+	private Map<Class<? extends P>, ClassTranslator<? extends P>> byClass = new HashMap<>();
+
+	/** */
+	public ClassTranslator(Class<P> declaredClass, Path path, Creator<P> creator, Populator<P> populator) {
+		if (log.isLoggable(Level.FINEST))
+			log.finest("Creating class translator for " + declaredClass.getName() + " at path '"+ path + "'");
+
+		this.declaredClass = declaredClass;
+		this.creator = creator;
+		this.populator = populator;
+
+		Subclass sub = declaredClass.getAnnotation(Subclass.class);
+		if (sub != null) {
+			discriminator = (sub.name().length() > 0) ? sub.name() : declaredClass.getSimpleName();
+			addIndexedDiscriminators(declaredClass);
+		} else {
+			discriminator = null;
+		}
+	}
+
+	/**
+	 * @return the class we translate
+	 */
+	public Class<P> getDeclaredClass() {
+		return declaredClass;
+	}
+
+	/**
+	 * @return the discriminator for this class, or null if this is not a @Subclass
+	 */
+	public String getDiscriminator() {
+		return discriminator;
+	}
+
+	/**
+	 * Get the populator associated with this class.
+	 */
+	public Populator<P> getPopulator() {
+		return populator;
+	}
+
+	/**
+	 * Get the creator associated with this class.
+	 */
+	public Creator<P> getCreator() { return creator; }
+
+	/* */
+	@Override
+	public P loadSafe(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
+		// check if we need to redirect to a different translator
+		String containerDiscriminator = (String)container.getProperty(DISCRIMINATOR_PROPERTY);
+		if (containerDiscriminator != null) {
+			ClassTranslator<? extends P> translator = byDiscriminator.get(containerDiscriminator);
+			if (translator == null)
+				throw new IllegalStateException("Datastore object has discriminator value '" + containerDiscriminator + "' but no relevant @Subclass is registered");
+			else
+				return translator.load(container, ctx, path);
+		} else {
+			// This is a normal load
+			P into = creator.load(container, ctx, path);
+
+			populator.load(container, ctx, path, into);
+
+			return into;
+		}
+	}
+
+	/* */
+	@Override
+	public PropertyContainer saveSafe(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+		// check if we need to redirect to a different translator
+		if (pojo.getClass() != declaredClass) {
+			// Sometimes generics are more of a hindrance than a help
+			@SuppressWarnings("unchecked")
+			ClassTranslator<P> translator = (ClassTranslator<P>)byClass.get(pojo.getClass());
+			if (translator == null)
+				throw new IllegalStateException("Class '" + pojo.getClass() + "' is not a registered @Subclass");
+			else
+				return translator.save(pojo, index, ctx, path);
+		} else {
+			// This is a normal save
+			PropertyContainer into = creator.save(pojo, index, ctx, path);
+
+			populator.save(pojo, index, ctx, path, into);
+
+			if (discriminator != null) {
+				into.setUnindexedProperty(DISCRIMINATOR_PROPERTY, discriminator);
+
+				if (!indexedDiscriminators.isEmpty())
+					into.setProperty(DISCRIMINATOR_INDEX_PROPERTY, indexedDiscriminators);
+			}
+
+			return into;
+		}
+	}
+
+	/**
+	 * Recursively go through the class hierarchy adding any discriminators that are indexed
+	 */
+	private void addIndexedDiscriminators(Class<?> clazz) {
+		if (clazz == Object.class)
+			return;
+
+		this.addIndexedDiscriminators(clazz.getSuperclass());
+
+		Subclass sub = clazz.getAnnotation(Subclass.class);
+		if (sub != null && sub.index()) {
+			String disc = (sub.name().length() > 0) ? sub.name() : clazz.getSimpleName();
+			this.indexedDiscriminators.add(disc);
+		}
+	}
+
+	/**
+	 * Register a subclass translator with this class translator. That way if we get called upon
+	 * to translate an instance of the subclass, we will forward to the correct translator.
+	 */
+	public void registerSubclass(ClassTranslator<? extends P> translator) {
+		byDiscriminator.put(translator.getDiscriminator(), translator);
+
+		Subclass sub = translator.getDeclaredClass().getAnnotation(Subclass.class);
+		for (String alsoLoad: sub.alsoLoad())
+			byDiscriminator.put(alsoLoad, translator);
+
+		byClass.put(translator.getDeclaredClass(), translator);
+	}
+
+}

@@ -15,8 +15,8 @@ public class IfNotDefault extends ValueIf<Object> implements InitializeIf
 	IfDefault opposite = new IfDefault();
 	
 	@Override
-	public void init(ObjectifyFactory fact, Class<?> concreteClass, Field field) {
-		opposite.init(fact, concreteClass, field);
+	public void init(ObjectifyFactory fact, Field field) {
+		opposite.init(fact, field);
 	}
 	
 	@Override

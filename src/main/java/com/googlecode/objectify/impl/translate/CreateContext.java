@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
@@ -40,8 +41,8 @@ public class CreateContext
 		if (clazz.equals(Object.class)) {
 			return (Populator<P>)NullPopulator.INSTANCE;
 		} else {
-			HasPopulator<P> hasPopulator = (HasPopulator<P>)getTranslator(clazz, new Annotation[0], this, path);
-			return hasPopulator.getPopulator();
+			ClassTranslator<P> classTranslator = (ClassTranslator<P>)this.<P, PropertyContainer>getTranslator(clazz, new Annotation[0], this, path);
+			return classTranslator.getPopulator();
 		}
 	}
 }

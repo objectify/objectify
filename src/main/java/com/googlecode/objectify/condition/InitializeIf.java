@@ -14,11 +14,9 @@ public interface InitializeIf
 {
 	/**
 	 * Instructs the condition instance which field it lives on.
-	 * 
+	 *
 	 * @param fact is just handy to have around
-	 * @param concreteClass is the class that was registered when the field was discovered
-	 * @param field is the field which has the annotation with this condition.  The declaring class of
-	 *  the field might be different from the concreteClass if the field was declared on a superclass.
+	 * @param field is the field which has the annotation with this condition.
 	 */
-	void init(ObjectifyFactory fact, Class<?> concreteClass, Field field);
+	void init(ObjectifyFactory fact, Field field);
 }

@@ -22,6 +22,7 @@ import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
+import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
@@ -52,7 +53,7 @@ import com.googlecode.objectify.impl.translate.Translators;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyFactory
+public class ObjectifyFactory implements Forge
 {
 	/** Default memcache namespace; override getRawMemcacheService() to change */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
@@ -74,6 +75,7 @@ public class ObjectifyFactory
 	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other
 	 * dependency injection mechanisms.  By default it constructs with a simple no-args constructor.</p>
 	 */
+	@Override
 	public <T> T construct(Class<T> type) {
 		// We do this instead of calling newInstance directly because this lets us work around accessiblity
 		Constructor<T> ctor = TypeUtils.getNoArgConstructor(type);

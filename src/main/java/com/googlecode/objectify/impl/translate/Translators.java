@@ -67,7 +67,6 @@ public class Translators
 		// Magic inflection point at which we want to prioritize added normal translators
 		this.insertPoint = this.translatorFactories.size();
 
-		this.translatorFactories.add(new EntityClassTranslatorFactory<Object>());
 		this.translatorFactories.add(new StringTranslatorFactory());
 		this.translatorFactories.add(new TextTranslatorFactory());
 		this.translatorFactories.add(new NumberTranslatorFactory());
@@ -82,7 +81,7 @@ public class Translators
 		this.translatorFactories.add(new AsIsTranslatorFactory());
 
 		// LAST! It catches everything.
-		this.translatorFactories.add(new EmbeddedClassTranslatorFactory<Object>());
+		this.translatorFactories.add(new ClassTranslatorFactory<Object>());
 	}
 
 	/**
