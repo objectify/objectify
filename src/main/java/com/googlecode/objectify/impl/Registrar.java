@@ -74,74 +74,16 @@ public class Registrar
 			EntityMetadata<T> cmeta = new EntityMetadata<T>(this.fact, clazz);
 			this.byKind.put(kind, cmeta);
 			this.byClass.put(clazz, cmeta);
-			Keys.register(clazz, cmeta.getKeyMetadata());
 
 			if (cmeta.getCacheExpirySeconds() != null)
 				this.cacheEnabled = true;
 
-//		} else if (clazz.isAnnotationPresent(EntitySubclass.class)) {
-//			this.registerPolymorphicHierarchy(kind, clazz);
+		} else if (clazz.isAnnotationPresent(Subclass.class)) {
+			// We just need to make sure that a translator was created
+			fact.getTranslators().getRoot(clazz);
 
 		} else {
 			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @Subclass");
-		}
-	}
-
-	/**
-	 * Recursively register classes in the hierarchy which have @EntitySubclass
-	 * or @Entity.  Stops when arriving at the first @Entity.  Safely handles
-	 * classes that have already been registered, including @Entity classes
-	 * that were registered as non-polymorphic.
-	 *
-	 * It's damn near impossible to get the generics to line up properly, so
-	 * we just use rawtypes in this method.  Forgive me.
-	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	protected void registerPolymorphicHierarchy(String kind, Class clazz)
-	{
-		// If we are already registered, ignore
-		if (this.byClass.containsKey(clazz))
-			return;
-
-		if (clazz == Object.class)
-			throw new IllegalArgumentException("An @EntitySubclass hierarchy must have an @Entity superclass (direct or indirect)");
-
-		// First thing we do is climb and take care of the actual root @Entity
-		if (clazz.isAnnotationPresent(Entity.class))
-		{
-			this.register(clazz);
-		}
-		else
-		{
-			// First climb the hierarchy
-			registerPolymorphicHierarchy(kind, clazz.getSuperclass());
-
-			if (clazz.isAnnotationPresent(Subclass.class))
-			{
-				// Populate this one way or another
-				PolymorphicEntityMetadata polyMeta;
-
-				// Since we climbed to @Entity first, there will always be something here, possibly a ConcreteEntityMetadata
-				EntityMetadata meta = this.byKind.get(kind);
-
-				if (meta instanceof ConcreteEntityMetadata)
-				{
-					polyMeta = new PolymorphicEntityMetadata(meta.getEntityClass(), (ConcreteEntityMetadata)meta);
-					// reset the root byKind and byClass
-					byKind.put(kind, polyMeta);
-					byClass.put(meta.getEntityClass(), polyMeta);
-					Keys.register(clazz, polyMeta.getKeyMetadata());
-				}
-				else
-				{
-					polyMeta = (PolymorphicEntityMetadata)meta;
-				}
-
-				ConcreteEntityMetadata cmeta = new ConcreteEntityMetadata(this.fact, clazz);
-				polyMeta.addSubclass(clazz, cmeta);
-				byClass.put(clazz, polyMeta);
-				Keys.register(clazz, polyMeta.getKeyMetadata());
-			}
 		}
 	}
 
@@ -168,7 +110,7 @@ public class Registrar
 	public <T> EntityMetadata<T> getMetadataSafe(String kind) throws IllegalArgumentException {
 		EntityMetadata<T> metadata = this.getMetadata(kind);
 		if (metadata == null)
-			throw new IllegalArgumentException("No class has been registered which matches kind '" + kind + "'");
+			throw new IllegalArgumentException("No entity class has been registered which matches kind '" + kind + "'");
 		else
 			return metadata;
 	}

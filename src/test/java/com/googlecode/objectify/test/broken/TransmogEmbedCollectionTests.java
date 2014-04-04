@@ -13,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.impl.Transmog;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.FakeLoadContext;
 import com.googlecode.objectify.test.util.TransmogTestBase;
