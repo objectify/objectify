@@ -132,7 +132,25 @@ public class EmbedFormatTests extends TestBase
 		assert fetched.inner.get(0).stuff.equals(outer.inner.get(0).stuff);
 		assert fetched.inner.get(1).stuff.equals(outer.inner.get(1).stuff);
 	}
-	
+
+	/** */
+	@Test
+	public void readsV1Format_WithList() throws Exception {
+		fact().register(OuterWithList.class);
+		fact().setSaveWithNewEmbedFormat(false);
+
+		OuterWithList outer = new OuterWithList();
+		outer.inner.add(new Inner("stuff0"));
+		outer.inner.add(new Inner("stuff1"));
+
+		Key<OuterWithList> key = ofy().save().entity(outer).now();
+
+		ofy().clear();
+		OuterWithList fetched = ofy().load().key(key).now();
+		assert fetched.inner.get(0).stuff.equals(outer.inner.get(0).stuff);
+		assert fetched.inner.get(1).stuff.equals(outer.inner.get(1).stuff);
+	}
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
