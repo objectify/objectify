@@ -11,7 +11,6 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.test.RefTests.HasRef.Foo;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.BeforeMethod;
@@ -177,7 +176,7 @@ public class RefTests extends TestBase
 
 		ofy().save().entity(hr).now();
 		ofy().clear();
-		HasRef fetched = ofy().load().group(Foo.class).entity(hr).now();
+		HasRef fetched = ofy().load().group(HasRef.Foo.class).entity(hr).now();
 
 		// Now try to serialize it in memcache.
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
