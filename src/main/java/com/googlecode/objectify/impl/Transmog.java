@@ -208,7 +208,9 @@ public class Transmog<T>
 		for (Path path: embedCollectionPoints) {
 			Object value = fromEntity.getProperty(path.toPathString());
 			if (value != null && value instanceof Collection) {
-				return false;
+				for (Object thing: (Collection<?>)value)
+					if (thing instanceof EmbeddedEntity)
+						return false;
 			}
 		}
 
@@ -361,6 +363,10 @@ public class Transmog<T>
 	 */
 	private void modifyIntoTranslateFormat(Node thingsBefore) {
 		if (embedCollectionPoints.contains(thingsBefore.getPath())) {
+
+			// Hack to try to work around ambiguous case with nulls
+			if (thingsBefore.hasList())
+				return;
 
 			Node nullsNode = thingsBefore.remove(Path.NULL_INDEXES);	// take this out of the data model
 			Set<Integer> nulls = getNullIndexes(nullsNode);

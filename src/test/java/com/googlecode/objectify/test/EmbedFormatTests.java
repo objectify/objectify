@@ -11,8 +11,10 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -28,6 +30,11 @@ public class EmbedFormatTests extends TestBase
 		public Inner() { }
 		public Inner(String stuff) {
 			this.stuff = stuff;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return Objects.equals(stuff, ((Inner)obj).stuff);
 		}
 	}
 
@@ -292,4 +299,53 @@ public class EmbedFormatTests extends TestBase
 		assert fetched.inner.size() == 1;
 		assert fetched.inner.get(0).stuff.equals(inner.stuff);
 	}
+
+	/** */
+	@Embed
+	public static class Middle {
+		Inner inner;
+		public Middle() { }
+		public Middle(Inner inner) {
+			this.inner = inner;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj instanceof Middle)
+				return Objects.equals(this.inner, ((Middle)obj).inner);
+			else
+				return false;
+		}
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	public static class HasMiddle {
+		@Id Long id;
+
+		List<Middle> middles = new ArrayList<>();
+		public HasMiddle() { }
+		public HasMiddle(Middle middle) {
+			this.middles.add(middle);
+		}
+	}
+
+	/** */
+	@Test
+	public void withMiddleButNullInnerWorks() throws Exception {
+		fact().register(HasMiddle.class);
+		fact().setSaveWithNewEmbedFormat(false);
+
+		Middle middle = new Middle(null);
+		HasMiddle outer = new HasMiddle(middle);
+
+		Key<HasMiddle> key = ofy().save().entity(outer).now();
+
+		ofy().clear();
+
+		HasMiddle fetched = ofy().load().key(key).now();
+		assert fetched.middles.equals(outer.middles);
+	}
+
 }
