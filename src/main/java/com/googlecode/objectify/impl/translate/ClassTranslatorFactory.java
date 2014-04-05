@@ -36,7 +36,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	private static final Predicate<Property> NON_KEY_FIELDS = new Predicate<Property>() {
 		@Override
 		public boolean apply(Property prop) {
-			return prop.getAnnotation(Id.class) != null && prop.getAnnotation(Parent.class) != null;
+			return prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
 		}
 	};
 

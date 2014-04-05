@@ -45,7 +45,7 @@ public class EmbeddingFormatTests extends TestBase
 	
 	/** */
 	@Test
-	public void v2FormatIsCorrect() throws Exception {
+	public void simpleOneLayerEmbedding() throws Exception {
 		fact().register(Outer.class);
 
 		Inner inner = new Inner("stuff");
@@ -74,7 +74,7 @@ public class EmbeddingFormatTests extends TestBase
 	
 	/** */
 	@Test
-	public void v2FormatIsCorrect_WithList() throws Exception {
+	public void embeddedList() throws Exception {
 		fact().register(OuterWithList.class);
 
 		OuterWithList outer = new OuterWithList();
@@ -168,7 +168,7 @@ public class EmbeddingFormatTests extends TestBase
 	
 	/** */
 	@Test
-	public void v2IndexFormatIsCorrect() throws Exception {
+	public void indexFormatIsCorrect() throws Exception {
 		fact().register(OuterWithIndex.class);
 
 		InnerIndexed inner = new InnerIndexed("stuff");

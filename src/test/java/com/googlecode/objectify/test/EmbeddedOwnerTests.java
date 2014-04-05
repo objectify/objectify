@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -117,8 +118,23 @@ public class EmbeddedOwnerTests extends TestBase
 		BadEmbedMe embedMe;
 	}
 
-	@Test(expectedExceptions=IllegalStateException.class)
-	public void registeringBadOwnerFieldThrowsException() throws Exception {
+	/**
+	 * We can't consistently detect this on registration because any class only gets turned
+	 * into a translator once. It may be embedded in many other classes which don't have
+	 * the correct owner. So we just detect it on load.
+	 */
+	@Test//(expectedExceptions=IllegalStateException.class)
+	public void loadingBadOwnerThrowsException() throws Exception {
 		fact().register(BadHasEmbed.class);
+
+		BadHasEmbed bhe = new BadHasEmbed();
+		bhe.embedMe = new BadEmbedMe();
+		bhe.embedMe.foo = "bar";
+
+		Key<BadHasEmbed> key = ofy().save().entity(bhe).now();
+		ofy().clear();
+
+		// This should throw an exception
+		ofy().load().key(key).now();
 	}
 }

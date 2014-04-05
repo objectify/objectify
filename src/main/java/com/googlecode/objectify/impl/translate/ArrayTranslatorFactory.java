@@ -66,6 +66,10 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 
 			@Override
 			public Collection<Object> save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+				// Use same behavior as collections.
+				if (pojo == null)
+					throw new SkipException();
+
 				int len = Array.getLength(pojo);
 
 				// If it's empty, might as well skip it - the datastore doesn't store empty lists
