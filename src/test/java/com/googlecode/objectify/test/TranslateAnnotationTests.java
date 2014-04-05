@@ -13,14 +13,13 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -47,7 +46,7 @@ public class TranslateAnnotationTests extends TestBase
 		}
 
 		@Override
-		protected ValueTranslator<String, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+		protected ValueTranslator<String, String> createValueTranslator(TypeKey tk, CreateContext ctx, Path path) {
 			return new ValueTranslator<String, String>(String.class) {
 				@Override
 				protected String loadValue(String value, LoadContext ctx, Path path) throws SkipException {
@@ -65,11 +64,11 @@ public class TranslateAnnotationTests extends TestBase
 	/** Translates String collections to comma separated lists of strings, not really intended to be used (no escaping) */
 	public static class CommaSeparatedStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>, String> {
 		@Override
-		public Translator<Collection<String>, String> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-			if (!Collection.class.isAssignableFrom(GenericTypeReflector.erase(type)))
+		public Translator<Collection<String>, String> create(TypeKey tk, CreateContext ctx, Path path) {
+			if (!tk.isAssignableTo(Collection.class))
 				return null;
 
-			if (GenericTypeReflector.getTypeParameter(type, Collection.class.getTypeParameters()[0]) != String.class)
+			if (GenericTypeReflector.getTypeParameter(tk.getType(), Collection.class.getTypeParameters()[0]) != String.class)
 				return null;
 
 			return new ValueTranslator<Collection<String>, String>(String.class) {

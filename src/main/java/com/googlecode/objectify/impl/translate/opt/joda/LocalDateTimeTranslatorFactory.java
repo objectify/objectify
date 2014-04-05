@@ -5,12 +5,10 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import org.joda.time.LocalDateTime;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 /**
  * Stores LocalDateTime as a String in ISO8601 format (yyyy-MM-ddTHH:mm:ss.SSS) 
@@ -24,7 +22,7 @@ public class LocalDateTimeTranslatorFactory extends ValueTranslatorFactory<Local
 	}
 
 	@Override
-	protected ValueTranslator<LocalDateTime, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<LocalDateTime, String> createValueTranslator(TypeKey<LocalDateTime> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<LocalDateTime, String>(String.class) {
 			@Override
 			protected LocalDateTime loadValue(String value, LoadContext ctx, Path path) throws SkipException {

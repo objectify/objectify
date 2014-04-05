@@ -2,10 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.annotation.Owner;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.TypeUtils;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 
 /**
@@ -18,16 +14,15 @@ import java.lang.reflect.Type;
 public class OwnerTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	@Override
-	public Translator<Object, Object> create(final Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		final Owner owner = TypeUtils.getAnnotation(Owner.class, annotations);
+	public Translator<Object, Object> create(final TypeKey<Object> tk, CreateContext ctx, Path path) {
 
-		if (owner == null)
+		if (!tk.isAnnotationPresent(Owner.class))
 			return null;
 
 		return new Translator<Object, Object>() {
 			@Override
 			public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
-				return ctx.getOwner(type, path);
+				return ctx.getOwner(tk.getType(), path);
 			}
 
 			@Override

@@ -3,8 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,8 +11,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.Deflater;
@@ -32,9 +28,8 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 	private static final Logger log = Logger.getLogger(SerializeTranslatorFactory.class.getName());
 
 	@Override
-	public Translator<Object, Blob> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		final Class<?> clazz = (Class<?>)GenericTypeReflector.erase(type);
-		final Serialize serializeAnno = TypeUtils.getAnnotation(Serialize.class, annotations, clazz);
+	public Translator<Object, Blob> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
+		final Serialize serializeAnno = tk.getAnnotationAnywhere(Serialize.class);
 
 		// We only work with @Serialize classes
 		if (serializeAnno == null)

@@ -2,10 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.DataTypeUtils;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 
 /**
@@ -21,8 +17,8 @@ public class AsIsTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	/* */
 	@Override
-	public Translator<Object, Object> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		Class<?> clazz = (Class<?>)GenericTypeReflector.erase(type);
+	public Translator<Object, Object> create(TypeKey tk, CreateContext ctx, Path path) {
+		Class<?> clazz = tk.getTypeAsClass();
 
 		if (!(clazz == Object.class || DataTypeUtils.isSupportedType(clazz)))
 			return null;

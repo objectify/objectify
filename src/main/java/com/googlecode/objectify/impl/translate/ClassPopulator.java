@@ -79,7 +79,7 @@ public class ClassPopulator<P> implements Populator<P>
 		for (Property prop: getDeclaredProperties(ctx.getFactory(), clazz)) {
 			Path propPath = path.extend(prop.getName());
 			try {
-				Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, propPath);
+				Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
 				PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
 
 				if (include.apply(prop))

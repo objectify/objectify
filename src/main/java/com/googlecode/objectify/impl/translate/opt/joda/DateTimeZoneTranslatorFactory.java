@@ -5,12 +5,10 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import org.joda.time.DateTimeZone;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 
 /**
@@ -25,7 +23,7 @@ public class DateTimeZoneTranslatorFactory extends ValueTranslatorFactory<DateTi
 	}
 
 	@Override
-	protected ValueTranslator<DateTimeZone, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<DateTimeZone, String> createValueTranslator(TypeKey<DateTimeZone> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<DateTimeZone, String>(String.class) {
 			@Override
 			protected DateTimeZone loadValue(String value, LoadContext ctx, Path path) throws SkipException {

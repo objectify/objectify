@@ -4,8 +4,6 @@ import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -40,7 +38,7 @@ public class Translators
 	int earlyInsertPoint;
 
 	/** */
-	Map<TranslatorKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
+	Map<TypeKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
 
 	/**
 	 * Initialize the default set of converters in the proper order.
@@ -110,14 +108,12 @@ public class Translators
 	 * Obtains the Translator appropriate for this type and annotations. May be a cached
 	 * translator; if not, one will be discovered and cached.
 	 */
-	public <P, D> Translator<P, D> get(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	public <P, D> Translator<P, D> get(TypeKey tk, CreateContext ctx, Path path) {
 
-		TranslatorKey key = new TranslatorKey(type, annotations);
-
-		Translator<?, ?> translator = translators.get(key);
+		Translator<?, ?> translator = translators.get(tk);
 		if (translator == null) {
-			translator = create(type, annotations, ctx, path);
-			translators.put(key, translator);
+			translator = create(tk, ctx, path);
+			translators.put(tk, translator);
 		}
 
 		return (Translator<P, D>)translator;
@@ -127,19 +123,19 @@ public class Translators
 	 * Get the translator for a root entity class
 	 */
 	public <P> Translator<P, PropertyContainer> getRoot(Class<P> clazz) {
-		return get(clazz, new Annotation[0], new CreateContext(fact), Path.root());
+		return get(new TypeKey(clazz), new CreateContext(fact), Path.root());
 	}
 
 	/**
 	 * Create a translator from scratch by going through the discovery process.
 	 */
-	private Translator<?, ?> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	private Translator<?, ?> create(TypeKey tk, CreateContext ctx, Path path) {
 		for (TranslatorFactory<?, ?> trans: this.translatorFactories) {
-			Translator<?, ?> soFar = trans.create(type, annotations, ctx, path);
+			Translator<?, ?> soFar = trans.create(tk, ctx, path);
 			if (soFar != null)
 				return soFar;
 		}
 
-		throw new IllegalArgumentException("Don't know how to translate " + type + " with annotations " + Arrays.toString(annotations));
+		throw new IllegalArgumentException("Don't know how to translate " + tk.getType() + " with annotations " + Arrays.toString(tk.getAnnotations()));
 	}
 }

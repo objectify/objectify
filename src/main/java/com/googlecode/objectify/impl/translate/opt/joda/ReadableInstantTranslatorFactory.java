@@ -6,14 +6,12 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import org.joda.time.ReadableInstant;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Type;
 import java.util.Date;
 
 
@@ -29,8 +27,8 @@ public class ReadableInstantTranslatorFactory extends ValueTranslatorFactory<Rea
 	}
 
 	@Override
-	protected ValueTranslator<ReadableInstant, Date> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		final Class<?> clazz = GenericTypeReflector.erase(type);
+	protected ValueTranslator<ReadableInstant, Date> createValueTranslator(TypeKey<ReadableInstant> tk, CreateContext ctx, Path path) {
+		final Class<?> clazz = tk.getTypeAsClass();
 
 		return new ValueTranslator<ReadableInstant, Date>(Date.class) {
 			@Override

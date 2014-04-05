@@ -17,6 +17,7 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
@@ -24,8 +25,6 @@ import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.Arrays;
@@ -337,7 +336,7 @@ public class ValueTranslationTests extends TestBase
 	{
 		fact().getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
-			protected ValueTranslator<BigDecimal, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+			protected ValueTranslator<BigDecimal, String> createValueTranslator(TypeKey tk, CreateContext ctx, Path path) {
 				return new ValueTranslator<BigDecimal, String>(String.class) {
 					@Override
 					protected BigDecimal loadValue(String value, LoadContext ctx, Path path) throws SkipException {

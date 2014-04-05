@@ -3,9 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 
 /**
  * Translates a byte[] to Blob.  Make sure this translator gets registered *before* the normal ArrayTranslator
@@ -26,7 +23,7 @@ public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[],Bl
 
 	/* */
 	@Override
-	protected ValueTranslator<byte[], Blob> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<byte[], Blob> createValueTranslator(TypeKey<byte[]> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<byte[], Blob>(Blob.class) {
 			@Override
 			public byte[] loadValue(Blob node, LoadContext ctx, Path path) throws SkipException {

@@ -9,6 +9,7 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
 
@@ -73,7 +74,7 @@ public class KeyMetadata<P>
 					throw new IllegalStateException("@Id field '" + field.getName() + "' in " + inspect.getName() + " must be of type Long, long, or String");
 
 				Property prop = new FieldProperty(ctx.getFactory(), clazz, field);
-				Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, path.extend(prop.getName()));
+				Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, path.extend(prop.getName()));
 
 				this.idMeta = new PropertyPopulator<>(prop, translator);
 
@@ -85,7 +86,7 @@ public class KeyMetadata<P>
 					throw new IllegalStateException("@Parent fields must be Ref<?>, Key<?>, or datastore Key. Illegal parent: " + field);
 
 				Property prop = new FieldProperty(ctx.getFactory(), clazz, field);
-				Translator<Object, Object> translator = ctx.getTranslator(prop.getType(), prop.getAnnotations(), ctx, path.extend(prop.getName()));
+				Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, path.extend(prop.getName()));
 
 				this.parentMeta = new PropertyPopulator<>(prop, translator);
 			}

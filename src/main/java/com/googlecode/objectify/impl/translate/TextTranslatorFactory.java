@@ -3,9 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 
 /**
  * Knows how to convert Texts.  Aside from String and Text, will work with anything that's in the
@@ -20,7 +17,7 @@ public class TextTranslatorFactory extends ValueTranslatorFactory<Text, Object>
 	}
 
 	@Override
-	protected ValueTranslator<Text, Object> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<Text, Object> createValueTranslator(TypeKey<Text> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<Text, Object>(Object.class) {
 			@Override
 			protected Text loadValue(Object value, LoadContext ctx, Path path) throws SkipException {

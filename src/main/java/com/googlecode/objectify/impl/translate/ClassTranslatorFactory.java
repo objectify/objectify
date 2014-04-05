@@ -9,10 +9,6 @@ import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 
 /**
@@ -41,8 +37,8 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	};
 
 	@Override
-	public Translator<P, PropertyContainer> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		Class<P> clazz = (Class<P>)GenericTypeReflector.erase(type);
+	public Translator<P, PropertyContainer> create(TypeKey<P> tk, CreateContext ctx, Path path) {
+		Class<P> clazz = tk.getTypeAsClass();
 
 		// Entity is an inherited annotation; this checks up the hierarchy
 		ClassTranslator<P> classTranslator = (clazz.isAnnotationPresent(Entity.class))
@@ -50,7 +46,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 				: createEmbeddedClassTranslator(clazz, ctx, path);
 
 		if (clazz.isAnnotationPresent(Subclass.class))
-			registerSubclass(classTranslator, clazz.getSuperclass(), annotations, ctx, path);
+			registerSubclass(classTranslator, new TypeKey<>(clazz.getSuperclass(), tk), ctx, path);
 
 		return classTranslator;
 	}
@@ -77,13 +73,13 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	/**
 	 * Recursively register this subclass with all the superclass translators
 	 */
-	private void registerSubclass(ClassTranslator<P> translator, Class<? super P> superclass, Annotation[] annotations, CreateContext ctx, Path path) {
-		if (superclass == Object.class)
+	private void registerSubclass(ClassTranslator<P> translator, TypeKey<? super P> superclassTypeKey, CreateContext ctx, Path path) {
+		if (superclassTypeKey.getTypeAsClass() == Object.class)
 			return;
 
-		ClassTranslator<? super P> superTranslator = (ClassTranslator)ctx.getTranslator(superclass, annotations, ctx, path);
+		ClassTranslator<? super P> superTranslator = (ClassTranslator)ctx.getTranslator(superclassTypeKey, ctx, path);
 		superTranslator.registerSubclass(translator);
 
-		registerSubclass(translator, superclass.getSuperclass(), annotations, ctx, path);
+		registerSubclass(translator, new TypeKey<>(superclassTypeKey.getTypeAsClass().getSuperclass()), ctx, path);
 	}
 }

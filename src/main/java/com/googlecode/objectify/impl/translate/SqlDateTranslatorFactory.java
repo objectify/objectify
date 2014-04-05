@@ -2,10 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-import java.sql.Date;
-
 /**
  * The datastore can't store java.sql.Date, but it can do java.util.Date.
  * 
@@ -19,15 +15,15 @@ public class SqlDateTranslatorFactory extends ValueTranslatorFactory<java.sql.Da
 	}
 
 	@Override
-	protected ValueTranslator<Date, java.util.Date> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<java.sql.Date, java.util.Date> createValueTranslator(TypeKey<java.sql.Date> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<java.sql.Date, java.util.Date>(java.util.Date.class) {
 			@Override
-			protected Date loadValue(java.util.Date value, LoadContext ctx, Path path) throws SkipException {
+			protected java.sql.Date loadValue(java.util.Date value, LoadContext ctx, Path path) throws SkipException {
 				return new java.sql.Date(value.getTime());
 			}
 
 			@Override
-			protected java.util.Date saveValue(Date value, boolean index, SaveContext ctx, Path path) throws SkipException {
+			protected java.util.Date saveValue(java.sql.Date value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return new java.util.Date(value.getTime());
 			}
 		};

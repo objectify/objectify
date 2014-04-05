@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -28,14 +27,14 @@ import java.util.List;
 public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collection<Object>>
 {
 	@Override
-	public Translator<Object, Collection<Object>> create(Type type, Annotation[] annotations, final CreateContext ctx, final Path path) {
-		final Class<?> arrayType = (Class<?>)GenericTypeReflector.erase(type);
+	public Translator<Object, Collection<Object>> create(TypeKey<Object> tk, final CreateContext ctx, final Path path) {
+		final Class<?> arrayType = tk.getTypeAsClass();
 
 		if (!arrayType.isArray())
 			return null;
 
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object, Object> componentTranslator = ctx.getTranslator(componentType, annotations, ctx, path);
+		final Translator<Object, Object> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
 
 		return new Translator<Object, Collection<Object>>() {
 			@Override

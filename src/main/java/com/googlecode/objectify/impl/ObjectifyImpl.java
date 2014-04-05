@@ -15,8 +15,8 @@ import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.impl.translate.TypeKey;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -270,7 +270,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 				return meta.getRawKey(value);
 			} else {
 				// Run it through a translator
-				Translator<Object, Object> translator = factory().getTranslators().get(value.getClass(), new Annotation[0], new CreateContext(factory()), Path.root());
+				Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
 				return translator.save(value, false, new SaveContext(this), Path.root());
 			}
 		}

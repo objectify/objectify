@@ -4,14 +4,11 @@ import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.stringifier.NullStringifier;
 import com.googlecode.objectify.stringifier.Stringifier;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.GenericUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Map;
 
@@ -26,24 +23,24 @@ import java.util.Map;
 public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Object, Object>, EmbeddedEntity>
 {
 	@Override
-	public Translator<Map<Object, Object>, EmbeddedEntity> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	public Translator<Map<Object, Object>, EmbeddedEntity> create(TypeKey<Map<Object, Object>> tk, CreateContext ctx, Path path) {
 		@SuppressWarnings("unchecked")
-		final Class<? extends Map<?, ?>> mapType = (Class<? extends Map<?, ?>>)GenericTypeReflector.erase(type);
+		final Class<? extends Map<?, ?>> mapType = tk.getTypeAsClass();
 
 		// We apply to any Map
 		if (!Map.class.isAssignableFrom(mapType))
 			return null;
 
-		Stringify stringify = TypeUtils.getAnnotation(Stringify.class, annotations);
+		Stringify stringify = tk.getAnnotation(Stringify.class);
 
-		final Type keyType = GenericUtils.getMapKeyType(type);
+		final Type keyType = GenericUtils.getMapKeyType(tk.getType());
 		if (keyType != String.class && stringify == null)
 			throw new IllegalStateException("Embedded Map keys must be of type String or field must specify @Stringify");
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
 		Type componentType = GenericUtils.getMapValueType(mapType);
-		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
+		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(new TypeKey<>(componentType, tk), ctx, path);
 
 		// Default Stringifier is a null object so we don't have to have special logic
 		Class<? extends Stringifier> stringifierClass = stringify == null ? NullStringifier.class : stringify.value();

@@ -3,9 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 
 /**
  * Knows how to convert Key<?> objects to datastore-native Key objects and vice-versa.
@@ -20,7 +17,7 @@ public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Key<?>> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
 			@Override
 			protected Key<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {

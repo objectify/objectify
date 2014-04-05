@@ -2,10 +2,8 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.GenericUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,17 +25,17 @@ import java.util.List;
 public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>, Collection<Object>>
 {
 	@Override
-	public Translator<Collection<Object>, Collection<Object>> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	public Translator<Collection<Object>, Collection<Object>> create(TypeKey<Collection<Object>> tk, CreateContext ctx, Path path) {
 		@SuppressWarnings("unchecked")
-		final Class<? extends Collection<?>> collectionType = (Class<? extends Collection<?>>)GenericTypeReflector.erase(type);
+		final Class<? extends Collection<?>> collectionType = tk.getTypeAsClass();
 
 		if (!Collection.class.isAssignableFrom(collectionType))
 			return null;
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericUtils.getCollectionComponentType(type);
-		final Translator<Object, Object> componentTranslator = ctx.getTranslator(componentType, annotations, ctx, path);
+		Type componentType = GenericUtils.getCollectionComponentType(tk.getType());
+		final Translator<Object, Object> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
 
 		return new TranslatorRecycles<Collection<Object>, Collection<Object>>() {
 

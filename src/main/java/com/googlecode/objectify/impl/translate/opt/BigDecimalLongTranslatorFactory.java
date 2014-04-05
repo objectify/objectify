@@ -5,11 +5,10 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 
 /**
@@ -59,7 +58,7 @@ public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigD
 	}
 
 	@Override
-	protected ValueTranslator<BigDecimal, Long> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<BigDecimal, Long> createValueTranslator(TypeKey<BigDecimal> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<BigDecimal, Long>(Long.class) {
 			@Override
 			protected BigDecimal loadValue(Long value, LoadContext ctx, Path path) throws SkipException {

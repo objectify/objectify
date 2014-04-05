@@ -4,9 +4,6 @@ import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 /** 
  * The context while creating translator factories. Tracks important state as we navigate the class graph.
  * 
@@ -26,8 +23,8 @@ public class CreateContext
 	/**
 	 * Get the relevant translator, creating it if necessary.
 	 */
-	public <P, D> Translator<P, D> getTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		return factory.getTranslators().get(type, annotations, ctx, path);
+	public <P, D> Translator<P, D> getTranslator(TypeKey<P> tk, CreateContext ctx, Path path) {
+		return factory.getTranslators().get(tk, ctx, path);
 	}
 
 	/**
@@ -41,7 +38,7 @@ public class CreateContext
 		if (clazz.equals(Object.class)) {
 			return (Populator<P>)NullPopulator.INSTANCE;
 		} else {
-			ClassTranslator<P> classTranslator = (ClassTranslator<P>)this.<P, PropertyContainer>getTranslator(clazz, new Annotation[0], this, path);
+			ClassTranslator<P> classTranslator = (ClassTranslator<P>)this.<P, PropertyContainer>getTranslator(new TypeKey<P>(clazz), this, path);
 			return classTranslator.getPopulator();
 		}
 	}

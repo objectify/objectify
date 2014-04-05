@@ -3,8 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,7 +23,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 	}
 	
 	@Override
-	protected ValueTranslator<String, Object> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<String, Object> createValueTranslator(TypeKey<String> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<String, Object>(Object.class) {
 			@Override
 			protected String loadValue(Object value, LoadContext ctx, Path path) throws SkipException {

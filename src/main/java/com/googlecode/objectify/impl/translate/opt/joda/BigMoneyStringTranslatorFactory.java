@@ -5,12 +5,10 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import org.joda.money.BigMoney;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 /**
  * Stores BigMoney as its string representation.  Note that this does not index properly;
@@ -26,7 +24,7 @@ public class BigMoneyStringTranslatorFactory extends ValueTranslatorFactory<BigM
 	}
 	
 	@Override
-	protected ValueTranslator<BigMoney, String> createValueTranslator(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<BigMoney, String> createValueTranslator(TypeKey<BigMoney> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<BigMoney, String>(String.class) {
 			@Override
 			protected BigMoney loadValue(String value, LoadContext ctx, Path path) throws SkipException {

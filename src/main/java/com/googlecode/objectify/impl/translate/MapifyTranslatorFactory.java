@@ -3,12 +3,9 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.mapper.Mapper;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.GenericUtils;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,21 +21,21 @@ import java.util.Map;
 public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Object>, Collection<Object>>
 {
 	@Override
-	public Translator<Map<Object, Object>, Collection<Object>> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		Mapify mapify = TypeUtils.getAnnotation(Mapify.class, annotations);
+	public Translator<Map<Object, Object>, Collection<Object>> create(TypeKey<Map<Object, Object>> tk, CreateContext ctx, Path path) {
+		Mapify mapify = tk.getAnnotation(Mapify.class);
 		if (mapify == null)
 			return null;
 
 		@SuppressWarnings("unchecked")
-		final Class<? extends Map<?, ?>> mapType = (Class<? extends Map<?, ?>>)GenericTypeReflector.erase(type);
+		final Class<? extends Map<?, ?>> mapType = tk.getTypeAsClass();
 
 		if (!Map.class.isAssignableFrom(mapType))
 			return null;	// We might be here processing the component type of the mapify map!
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericUtils.getMapValueType(type);
-		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(componentType, annotations, ctx, path);
+		Type componentType = GenericUtils.getMapValueType(tk.getType());
+		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(new TypeKey(componentType, tk), ctx, path);
 
 		@SuppressWarnings("unchecked")
 		final Mapper<Object, Object> mapper = (Mapper<Object, Object>)fact.construct(mapify.value());

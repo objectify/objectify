@@ -2,10 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
 
 /**
  * <p>Numbers are funky in the datastore.  You can save numbers of any size, but they always retrieve as Long.
@@ -18,8 +14,8 @@ import java.lang.reflect.Type;
 public class NumberTranslatorFactory implements TranslatorFactory<Number, Object>
 {
 	@Override
-	public Translator<Number, Object> create(Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		final Class<?> clazz = GenericTypeReflector.erase(type);
+	public Translator<Number, Object> create(TypeKey<Number> tk, CreateContext ctx, Path path) {
+		final Class<?> clazz = tk.getTypeAsClass();
 
 		if (!TypeUtils.isAssignableFrom(Number.class, clazz))
 			return null;

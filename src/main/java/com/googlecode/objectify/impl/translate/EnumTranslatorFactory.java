@@ -2,15 +2,12 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 /**
  * Knows how to convert Enums to the datastore String
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EnumTranslatorFactory extends ValueTranslatorFactory<Enum<?>, String> {
+public class EnumTranslatorFactory<E extends Enum<E>> extends ValueTranslatorFactory<Enum<E>, String> {
 	
 	/** */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -19,17 +16,17 @@ public class EnumTranslatorFactory extends ValueTranslatorFactory<Enum<?>, Strin
 	}
 
 	@Override
-	protected ValueTranslator<Enum<?>, String> createValueTranslator(final Type type, Annotation[] annotations, CreateContext ctx, Path path) {
-		return new ValueTranslator<Enum<?>, String>(String.class) {
+	protected ValueTranslator<Enum<E>, String> createValueTranslator(final TypeKey<Enum<E>> tk, CreateContext ctx, Path path) {
+		return new ValueTranslator<Enum<E>, String>(String.class) {
 
 			@Override
 			@SuppressWarnings("unchecked")
-			protected Enum<?> loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-				return Enum.valueOf((Class<Enum>)type, value);
+			protected Enum<E> loadValue(String value, LoadContext ctx, Path path) throws SkipException {
+				return Enum.valueOf((Class)tk.getTypeAsClass(), value);
 			}
 
 			@Override
-			protected String saveValue(Enum<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
+			protected String saveValue(Enum<E> value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return value.name();
 			}
 		};

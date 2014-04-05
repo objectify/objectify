@@ -4,9 +4,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.impl.Path;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Type;
-
 
 /**
  * Knows how to convert Ref<?> objects to datastore-native Key objects and vice-versa.
@@ -21,7 +18,7 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(Type type, final Annotation[] annotations, CreateContext ctx, Path path) {
+	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Ref<?>> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
 
 			@Override
