@@ -34,7 +34,7 @@ public class EmbeddedMapTests extends TestBase
 		hml.primitives.put("one", 1L);
 		hml.primitives.put("two", 2L);
 
-		HasMapLong fetched = ofy().putClearGet(hml);
+		HasMapLong fetched = ofy().saveClearLoad(hml);
 
 		assert fetched.primitives.equals(hml.primitives);
 	}
@@ -46,7 +46,7 @@ public class EmbeddedMapTests extends TestBase
 		HasMapLong hml = new HasMapLong();
 		hml.primitives.put("legal.name", 123L);
 
-		HasMapLong fetched = ofy().putClearGet(hml);
+		HasMapLong fetched = ofy().saveClearLoad(hml);
 
 		assert fetched.primitives.equals(hml.primitives);
 	}
@@ -74,7 +74,7 @@ public class EmbeddedMapTests extends TestBase
 		HasMapLong hml = new HasMapLong();
 		hml.primitives.put("nullvalue", null);
 
-		HasMapLong fetched = ofy().putClearGet(hml);
+		HasMapLong fetched = ofy().saveClearLoad(hml);
 		assert (fetched.primitives.equals(hml.primitives));
 	}
 
@@ -97,7 +97,7 @@ public class EmbeddedMapTests extends TestBase
 		hml.primitives.put(Key.create(Trivial.class, 123L), 1L);
 		hml.primitives.put(Key.create(Trivial.class, 456L), 2L);
 
-		HasMapWithKeyKey fetched = ofy().putClearGet(hml);
+		HasMapWithKeyKey fetched = ofy().saveClearLoad(hml);
 
 		assert fetched.primitives.equals(hml.primitives);
 	}

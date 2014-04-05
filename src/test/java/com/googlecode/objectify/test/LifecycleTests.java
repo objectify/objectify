@@ -51,13 +51,12 @@ public class LifecycleTests extends TestBase
 
 	/** */
 	@Test
-	public void testLifecycle() throws Exception
-	{
+	public void testLifecycle() throws Exception {
 		fact().register(HasLifecycle.class);
 		fact().register(HasInheritedLifecycle.class);
 
 		HasLifecycle life1 = new HasLifecycle();
-		HasLifecycle fetched = ofy().putClearGet(life1);
+		HasLifecycle fetched = ofy().saveClearLoad(life1);
 
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
@@ -65,7 +64,7 @@ public class LifecycleTests extends TestBase
 		assert fetched.onLoadedWithObjectify;
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
-		fetched = ofy().putClearGet(life2);
+		fetched = ofy().saveClearLoad(life2);
 
 		assert fetched.onSaved;
 		assert fetched.onSavedWithObjectify;
@@ -89,7 +88,7 @@ public class LifecycleTests extends TestBase
 
 		try
 		{
-			ofy().putClearGet(new HasExceptionThrowingLifecycle());
+			ofy().saveClearLoad(new HasExceptionThrowingLifecycle());
 			assert false;
 		}
 		catch (UnsupportedOperationException ex)

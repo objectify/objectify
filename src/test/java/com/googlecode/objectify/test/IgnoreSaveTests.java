@@ -60,7 +60,7 @@ public class IgnoreSaveTests extends TestBase
 		CompletelyUnsaved fetched = ofy().load().key(key).now();
 		assert fetched.foo.equals(TEST_VALUE);
 
-		fetched = ofy().putClearGet(fetched);
+		fetched = ofy().saveClearLoad(fetched);
 		assert fetched.foo == null;	// this would fail without the session clear()
 	}
 
@@ -84,7 +84,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.foo = true;
 		thing.bar = true;
 
-		UnsavedWhenTrue fetched = ofy().putClearGet(thing);
+		UnsavedWhenTrue fetched = ofy().saveClearLoad(thing);
 		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}
@@ -109,7 +109,7 @@ public class IgnoreSaveTests extends TestBase
 		thing.foo = true;
 		thing.bar = true;
 
-		DeeperUnsavedWhenTrue fetched = ofy().putClearGet(thing);
+		DeeperUnsavedWhenTrue fetched = ofy().saveClearLoad(thing);
 		assert fetched.foo == false;	// would fail without the session clear()
 		assert fetched.bar == true;
 	}

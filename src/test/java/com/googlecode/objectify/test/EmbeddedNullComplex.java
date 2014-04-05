@@ -190,7 +190,7 @@ no problems.
 		Form form = new Form();
 		form.approvals = new Approval[] { approval0, approval1, approval2 };
 
-		Form fetched = ofy().putClearGet(form);
+		Form fetched = ofy().saveClearLoad(form);
 
 		assert fetched.approvals.length == 3;
 

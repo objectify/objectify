@@ -76,7 +76,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = ofy().putClearGet(he);
+		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 

@@ -70,7 +70,7 @@ public class LoadCollectionRefsTests extends TestBase
 		Thing thing = new Thing();
 		thing.others.add(Ref.create(other));
 
-		Thing fetched = ofy().putClearGet(thing);
+		Thing fetched = ofy().saveClearLoad(thing);
 		assert fetched.others.equals(thing.others);
 	}
 }

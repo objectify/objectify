@@ -90,13 +90,13 @@ public class PolymorphicAAATests extends TestBase
 
 		Animal a = new Animal();
 		a.name = "Bob";
-		Animal a2 = ofy().putClearGet(a);
+		Animal a2 = ofy().saveClearLoad(a);
 		assert a.name.equals(a2.name);
 
 		Mammal m = new Mammal();
 		m.name = "Bob";
 		m.longHair = true;
-		Mammal m2 = ofy().putClearGet(m);
+		Mammal m2 = ofy().saveClearLoad(m);
 		assert m.name.equals(m2.name);
 		assert m.longHair == m2.longHair;
 
@@ -104,7 +104,7 @@ public class PolymorphicAAATests extends TestBase
 		c.name = "Bob";
 		c.longHair = true;
 		c.hypoallergenic = true;
-		Cat c2 = ofy().putClearGet(c);
+		Cat c2 = ofy().saveClearLoad(c);
 		assert c.name.equals(c2.name);
 		assert c.longHair == c2.longHair;
 		assert c.hypoallergenic == c2.hypoallergenic;

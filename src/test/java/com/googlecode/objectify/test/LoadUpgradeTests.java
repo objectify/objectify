@@ -71,7 +71,7 @@ public class LoadUpgradeTests extends TestBase
 		HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		HasMulti fetched = ofy().putClearGet(hm);
+		HasMulti fetched = ofy().saveClearLoad(hm);
 
 		//Key<HasMulti> hmkey = fact().getKey(hm);
 

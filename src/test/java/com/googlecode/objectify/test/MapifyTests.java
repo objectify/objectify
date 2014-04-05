@@ -9,7 +9,6 @@ import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -72,7 +71,7 @@ public class MapifyTests extends TestBase
 		Thing thing1 = new Thing("bar", 456L);
 		hasMap.things.put(thing1.weight, thing1);
 
-		HasMapify fetched = ofy().putClearGet(hasMap);
+		HasMapify fetched = ofy().saveClearLoad(hasMap);
 
 		assert hasMap.things.equals(fetched.things);
 
@@ -163,7 +162,7 @@ public class MapifyTests extends TestBase
 		HasMapifyTrivial hasMap = new HasMapifyTrivial();
 		hasMap.trivials.put(trivKey, Ref.create(triv));
 
-		HasMapifyTrivial fetched = ofy().putClearGet(hasMap);
+		HasMapifyTrivial fetched = ofy().saveClearLoad(hasMap);
 
 		assert hasMap.trivials.get(trivKey).get().getSomeString().equals(fetched.trivials.get(trivKey).get().getSomeString());
 	}

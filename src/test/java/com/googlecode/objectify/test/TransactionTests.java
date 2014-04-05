@@ -158,7 +158,7 @@ public class TransactionTests extends TestBase
 		final Trivial triv = new Trivial("foo", 5);
 
 		// Make sure it's in the session (and memcache for that matter)
-		ofy().putClearGet(triv);
+		ofy().saveClearLoad(triv);
 
 		ofy().transact(new Work<Void>() {
 			@Override

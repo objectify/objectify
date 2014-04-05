@@ -156,7 +156,7 @@ public class RefTests extends TestBase
 		HasRef hr = new HasRef();
 		hr.triv = Ref.create(k1);
 
-		HasRef fetched = ofy().putClearGet(hr);
+		HasRef fetched = ofy().saveClearLoad(hr);
 
 		// Now try to serialize it in memcache.
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService();

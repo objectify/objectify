@@ -57,7 +57,7 @@ public class JodaTranslationTests extends TestBase
 		hj.dateTime = new DateTime();
 		hj.dateTimeZone = DateTimeZone.forID("America/Los_Angeles");
 
-		HasJoda fetched = ofy().putClearGet(hj);
+		HasJoda fetched = ofy().saveClearLoad(hj);
 		assert hj.localTime.equals(fetched.localTime);
 		assert hj.localDate.equals(fetched.localDate);
 		assert hj.localDateTime.equals(fetched.localDateTime);

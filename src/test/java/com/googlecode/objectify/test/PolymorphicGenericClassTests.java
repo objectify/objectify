@@ -51,7 +51,7 @@ public class PolymorphicGenericClassTests extends TestBase
 
 		Car car = new Car();
 		car.name = "Fast";
-		Car c2 = ofy().putClearGet(car);
+		Car c2 = ofy().saveClearLoad(car);
 		assert car.name.equals(c2.name);
 
 		@SuppressWarnings("rawtypes")

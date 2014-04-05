@@ -274,12 +274,12 @@ public class CollectionTests extends TestBase
 		fact().register(HasInitializedCollection.class);
 
 		HasInitializedCollection has = new HasInitializedCollection();
-		HasInitializedCollection fetched = ofy().putClearGet(has);
+		HasInitializedCollection fetched = ofy().saveClearLoad(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 
 		has = new HasInitializedCollection();
 		has.initialized.add("blah");
-		fetched = ofy().putClearGet(has);
+		fetched = ofy().saveClearLoad(has);
 		assert fetched.initialized == fetched.copyOf;	// should be same object
 	}
 
@@ -303,7 +303,7 @@ public class CollectionTests extends TestBase
 		HasRawCollection hrc = new HasRawCollection();
 		hrc.raw.add("foo");
 
-		HasRawCollection fetched = ofy().putClearGet(hrc);
+		HasRawCollection fetched = ofy().saveClearLoad(hrc);
 
 		assert hrc.raw.equals(fetched.raw);
 	}

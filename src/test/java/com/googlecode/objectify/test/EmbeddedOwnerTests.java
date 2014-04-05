@@ -35,7 +35,7 @@ public class EmbeddedOwnerTests extends TestBase
 		he.embedMe = new EmbedMe();
 		he.embedMe.foo = "bar";
 		
-		HasEmbed fetched = ofy().putClearGet(he);
+		HasEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.embedMe.owner == fetched;
 	}
 	
@@ -62,7 +62,7 @@ public class EmbeddedOwnerTests extends TestBase
 		he.embedMe = new SuperEmbedMe();
 		he.embedMe.foo = "bar";
 		
-		HasSuperEmbed fetched = ofy().putClearGet(he);
+		HasSuperEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.embedMe.owner == fetched;
 	}
 	
@@ -97,7 +97,7 @@ public class EmbeddedOwnerTests extends TestBase
 		he.nested.deep = new DeepEmbedMe();
 		he.nested.deep.foo = "bar";
 		
-		HasNestedEmbed fetched = ofy().putClearGet(he);
+		HasNestedEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.nested.rootOwner == fetched;
 		assert fetched.nested.deep.rootOwner == fetched;
 		assert fetched.nested.deep.nestedOwner == fetched.nested;

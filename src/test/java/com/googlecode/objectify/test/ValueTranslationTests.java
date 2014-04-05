@@ -151,7 +151,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasString has = new HasString();
 		has.string = BIG_STRING;
-		HasString fetched = ofy().putClearGet(has);
+		HasString fetched = ofy().saveClearLoad(has);
 
 		assert fetched.string.equals(BIG_STRING);
 	}
@@ -169,7 +169,7 @@ public class ValueTranslationTests extends TestBase
 		has.strings = new String[] { "Short", BIG_STRING, "AlsoShort" };
 
 		@SuppressWarnings("unused")
-		HasStringArray fetched = ofy().putClearGet(has);
+		HasStringArray fetched = ofy().saveClearLoad(has);
 
 		// When caching is enabled you get the same order back, but if caching is disabled,
 		// you get the Text moved to the end of the heterogenous collection.  Ick.
@@ -208,7 +208,7 @@ public class ValueTranslationTests extends TestBase
 
 		HasStringIndexInversion has = new HasStringIndexInversion();
 		has.string = BIG_STRING;
-		HasStringIndexInversion fetched = ofy().putClearGet(has);
+		HasStringIndexInversion fetched = ofy().saveClearLoad(has);
 
 		assert fetched.string.equals(BIG_STRING);
 	}
@@ -276,7 +276,7 @@ public class ValueTranslationTests extends TestBase
 		Blobby b = new Blobby();
 		b.stuff = new byte[] { 1, 2, 3 };
 
-		Blobby c = ofy().putClearGet(b);
+		Blobby c = ofy().saveClearLoad(b);
 
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
@@ -299,7 +299,7 @@ public class ValueTranslationTests extends TestBase
 		HasSqlDate hasDate = new HasSqlDate();
 		hasDate.when = new java.sql.Date(System.currentTimeMillis());
 
-		HasSqlDate fetched = ofy().putClearGet(hasDate);
+		HasSqlDate fetched = ofy().saveClearLoad(hasDate);
 
 		assert hasDate.when.equals(fetched.when);
 	}
@@ -324,7 +324,7 @@ public class ValueTranslationTests extends TestBase
 
 		try
 		{
-			ofy().putClearGet(hbd);
+			ofy().saveClearLoad(hbd);
 			assert false;	// shouldn't be possible without registering converter
 		}
 		catch (SaveException ex) {}
@@ -356,7 +356,7 @@ public class ValueTranslationTests extends TestBase
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 
-		HasBigDecimal fetched = ofy().putClearGet(hbd);
+		HasBigDecimal fetched = ofy().saveClearLoad(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 
@@ -370,7 +370,7 @@ public class ValueTranslationTests extends TestBase
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 
-		HasBigDecimal fetched = ofy().putClearGet(hbd);
+		HasBigDecimal fetched = ofy().saveClearLoad(hbd);
 		assert hbd.data.equals(fetched.data);
 	}
 
@@ -391,7 +391,7 @@ public class ValueTranslationTests extends TestBase
 		HasTimeZone htz = new HasTimeZone();
 		htz.tz = TimeZone.getDefault();
 
-		HasTimeZone fetched = ofy().putClearGet(htz);
+		HasTimeZone fetched = ofy().saveClearLoad(htz);
 		assert htz.tz.equals(fetched.tz);
 	}
 
@@ -412,7 +412,7 @@ public class ValueTranslationTests extends TestBase
 		HasURL hu = new HasURL();
 		hu.url = new URL("http://example.com/foo?bar=baz");
 
-		HasURL fetched = ofy().putClearGet(hu);
+		HasURL fetched = ofy().saveClearLoad(hu);
 		assert hu.url.equals(fetched.url);
 	}
 }

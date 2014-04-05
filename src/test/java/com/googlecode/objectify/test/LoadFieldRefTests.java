@@ -74,7 +74,7 @@ public class LoadFieldRefTests extends TestBase
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
 
-		HasEntities fetched = ofy().putClearGet(he);
+		HasEntities fetched = ofy().saveClearLoad(he);
 
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
@@ -95,7 +95,7 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(kNone1);
 		he.multi.add(Ref.create(kNone1));
 		he.multi.add(Ref.create(kNone2));
-		HasEntities fetched = ofy().putClearGet(he);
+		HasEntities fetched = ofy().saveClearLoad(he);
 
 		assert fetched.single.get() == null;
 
@@ -185,7 +185,7 @@ public class LoadFieldRefTests extends TestBase
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = ofy().putClearGet(he);
+		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
 
 		Key<HasEntitiesWithGroups> hekey = Key.create(he);
 

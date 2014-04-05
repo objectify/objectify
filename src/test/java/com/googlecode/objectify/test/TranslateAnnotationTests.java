@@ -119,7 +119,7 @@ public class TranslateAnnotationTests extends TestBase
 		HasTranslateLate ht = new HasTranslateLate();
 		ht.string = "bar";
 
-		HasTranslateLate fetched = ofy().putClearGet(ht);
+		HasTranslateLate fetched = ofy().saveClearLoad(ht);
 
 		assert fetched.string.equals(ht.string.toUpperCase());
 	}
@@ -145,7 +145,7 @@ public class TranslateAnnotationTests extends TestBase
 		HasTranslateEarly ht = new HasTranslateEarly();
 		ht.strings = Arrays.asList(new String[] { "foo", "bar" });
 
-		HasTranslateEarly fetched = ofy().putClearGet(ht);
+		HasTranslateEarly fetched = ofy().saveClearLoad(ht);
 
 		assert fetched.strings.get(0).equals(ht.strings.get(0).toUpperCase());
 		assert fetched.strings.get(1).equals(ht.strings.get(1).toUpperCase());

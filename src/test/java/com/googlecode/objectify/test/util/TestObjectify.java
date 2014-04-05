@@ -19,7 +19,7 @@ public class TestObjectify extends ObjectifyImpl<TestObjectify>
 	}
 
 	/** Utility methods that puts, clears the session, and immediately gets an entity */
-	public <T> T putClearGet(T saveMe) {
+	public <T> T saveClearLoad(T saveMe) {
 		Key<T> key = save().entity(saveMe).now();
 
 		try {

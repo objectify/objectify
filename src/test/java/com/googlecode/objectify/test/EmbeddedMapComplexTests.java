@@ -80,7 +80,7 @@ public class EmbeddedMapComplexTests extends TestBase
 		fact().register(HasMapEmbed.class);
 
 		HasMapEmbed hasMap = createHasMapEmbed(1);
-		HasMapEmbed fetched = ofy().putClearGet(hasMap);
+		HasMapEmbed fetched = ofy().saveClearLoad(hasMap);
 
 		assert hasMap.equals(fetched);
 	}
@@ -97,7 +97,7 @@ public class EmbeddedMapComplexTests extends TestBase
 		hasNested.nestedThings.put("one", hasMap1);
 		hasNested.nestedThings.put("two", hasMap2);
 
-		HasNestedMapEmbed fetched = ofy().putClearGet(hasNested);
+		HasNestedMapEmbed fetched = ofy().saveClearLoad(hasNested);
 
 		assert fetched.nestedThings.equals(hasNested.nestedThings);
 	}

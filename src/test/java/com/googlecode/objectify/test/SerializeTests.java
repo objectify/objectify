@@ -37,7 +37,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		HasSerialize fetched = ofy().putClearGet(hs);
+		HasSerialize fetched = ofy().saveClearLoad(hs);
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
@@ -62,7 +62,7 @@ public class SerializeTests extends TestBase
 		es.simple = new HasLongs();
 		es.simple.longs = new long[] { 1L, 2L, 3L };
 
-		EmbedSerialize fetched = ofy().putClearGet(es);
+		EmbedSerialize fetched = ofy().saveClearLoad(es);
 		assert Arrays.equals(es.simple.longs, fetched.simple.longs);
 	}
 
@@ -83,7 +83,7 @@ public class SerializeTests extends TestBase
 		hs.numbers.put(1L, 2L);
 		hs.numbers.put(3L, 4L);
 
-		HasSerializeZip fetched = ofy().putClearGet(hs);
+		HasSerializeZip fetched = ofy().saveClearLoad(hs);
 		assert fetched.numbers.equals(hs.numbers);
 	}
 

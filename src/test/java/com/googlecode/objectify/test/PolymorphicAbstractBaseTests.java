@@ -62,7 +62,7 @@ public class PolymorphicAbstractBaseTests extends TestBase
 		sub.foo = "foo";
 		sub.bar = true;
 
-		Subclass fetched = ofy().putClearGet(sub);
+		Subclass fetched = ofy().saveClearLoad(sub);
 		assert sub.foo.equals(fetched.foo);
 		assert sub.bar == fetched.bar;
 	}

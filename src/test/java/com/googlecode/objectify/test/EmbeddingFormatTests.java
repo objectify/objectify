@@ -115,7 +115,7 @@ public class EmbeddingFormatTests extends TestBase
 		h.normal = new EmbeddedEntity();
 		h.normal.setProperty("stuff", "stuff");
 		
-		HasEmbeddedEntity fetched = ofy().putClearGet(h);
+		HasEmbeddedEntity fetched = ofy().saveClearLoad(h);
 		assert fetched.normal.getProperty("stuff").equals("stuff");
 	}
 	
@@ -139,7 +139,7 @@ public class EmbeddingFormatTests extends TestBase
 		emb0.setProperty("stuff", "stuff0");
 		h.list.add(emb0);
 		
-		HasEmbeddedEntityList fetched = ofy().putClearGet(h);
+		HasEmbeddedEntityList fetched = ofy().saveClearLoad(h);
 		assert fetched.list.size() == 1;
 		assert fetched.list.get(0).getProperty("stuff").equals("stuff0");
 	}

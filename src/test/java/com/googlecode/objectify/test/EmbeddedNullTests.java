@@ -47,7 +47,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = null;
 		crim.moreAliases = null;
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 		assert fetched.aliases == null;
 		assert fetched.moreAliases == null;
 
@@ -87,7 +87,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[0];
 		crim.moreAliases = new ArrayList<Name>();
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 		assert fetched.aliases == null;	// not valid with caching objectify
 		assert fetched.moreAliases == null;
 
@@ -127,7 +127,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { null };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 1;
 		assert fetched.aliases[0] == null;
@@ -159,7 +159,7 @@ public class EmbeddedNullTests extends TestBase
 		Criminal crim = new Criminal();
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
@@ -177,7 +177,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 
 		assert fetched.aliases != null;
 		assert fetched.aliases.length == 3;
@@ -216,7 +216,7 @@ public class EmbeddedNullTests extends TestBase
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), new Name("Mojo", null), new Name("Ivan", "Stang") };
 		crim.aliasesSet = new HashSet<Name>(Arrays.asList(crim.aliases));
 
-		Criminal fetched = ofy().putClearGet(crim);
+		Criminal fetched = ofy().saveClearLoad(crim);
 
 		for (Name name: crim.aliases)
 			assert fetched.aliasesSet.contains(name);

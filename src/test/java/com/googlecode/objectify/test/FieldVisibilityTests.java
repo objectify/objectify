@@ -51,7 +51,7 @@ public class FieldVisibilityTests extends TestBase
 		ThingWithPrivates thing = new ThingWithPrivates();
 		//thing.stuff.add("foo");
 
-		ThingWithPrivates fetched = ofy().putClearGet(thing);
+		ThingWithPrivates fetched = ofy().saveClearLoad(thing);
 
 		assert fetched.id.equals(thing.id);
 	}
