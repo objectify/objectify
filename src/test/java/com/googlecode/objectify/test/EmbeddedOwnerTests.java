@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -123,7 +124,7 @@ public class EmbeddedOwnerTests extends TestBase
 	 * into a translator once. It may be embedded in many other classes which don't have
 	 * the correct owner. So we just detect it on load.
 	 */
-	@Test//(expectedExceptions=IllegalStateException.class)
+	@Test(expectedExceptions= LoadException.class)
 	public void loadingBadOwnerThrowsException() throws Exception {
 		fact().register(BadHasEmbed.class);
 

@@ -53,17 +53,19 @@ public class Translators
 		// Magic inflection point at which we want to prioritize added EARLY translators
 		this.earlyInsertPoint = this.translatorFactories.size();
 
+		// Annotation based translators go first
 		this.translatorFactories.add(new OwnerTranslatorFactory());
 		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
-		this.translatorFactories.add(new ByteArrayTranslatorFactory());
-		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
-		this.translatorFactories.add(new CollectionTranslatorFactory());
 		this.translatorFactories.add(new MapifyTranslatorFactory());
-		this.translatorFactories.add(new EmbeddedMapTranslatorFactory());
-		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 
 		// Magic inflection point at which we want to prioritize added normal translators
 		this.insertPoint = this.translatorFactories.size();
+
+		this.translatorFactories.add(new ByteArrayTranslatorFactory());
+		this.translatorFactories.add(new ArrayTranslatorFactory());		// AFTER byte array otherwise we will occlude it
+		this.translatorFactories.add(new CollectionTranslatorFactory());
+		this.translatorFactories.add(new EmbeddedMapTranslatorFactory());
+		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 
 		this.translatorFactories.add(new StringTranslatorFactory());
 		this.translatorFactories.add(new TextTranslatorFactory());

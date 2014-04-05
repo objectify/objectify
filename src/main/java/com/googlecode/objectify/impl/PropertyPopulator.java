@@ -6,6 +6,7 @@ import com.googlecode.objectify.impl.translate.Populator;
 import com.googlecode.objectify.impl.translate.Recycles;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.SkipException;
+import com.googlecode.objectify.impl.translate.Synthetic;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.LogUtils;
@@ -45,26 +46,46 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	@Override
 	public void load(PropertyContainer container, LoadContext ctx, Path containerPath, Object intoPojo) {
 		try {
-			D value = getPropertyFromContainer(container, containerPath);
-
 			if (translator instanceof Recycles)
 				ctx.recycle(property.get(intoPojo));
 
+			D value = (translator instanceof Synthetic)
+				? null
+				: getPropertyFromContainer(container, containerPath);	// will throw SkipException if property not present
+
 			setValue(intoPojo, value, ctx, containerPath);
-		} catch (SkipException ex) {
-			// No prob, skip this one
+		}
+		catch (SkipException ex) {
+			// Irrelevant
 		}
 	}
 
 	/**
-	 * Sets the property on the pojo to the value. The value should already be translated.
-	 * TODO: Sensitive to the value possibly being a Result<?> wrapper, in which case it enqueues the set operation until the loadcontext is done.
+	 * Gets the relevant property from the container, detecting alsoload collisions.
+	 *
+	 * @return the value obtained from the container
+	 * @throws IllegalStateException if there are multiple alsoload name matches
 	 */
-	private void setOnPojo(Object pojo, P value, LoadContext ctx, Path path) {
-		if (log.isLoggable(Level.FINEST))
-			log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
+	private D getPropertyFromContainer(PropertyContainer container, Path containerPath) {
+		String foundName = null;
+		D value = null;
 
-		property.set(pojo, value);
+		for (String name: property.getLoadNames()) {
+			if (container.hasProperty(name)) {
+				if (foundName != null)
+					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
+							+ property.getName() + "' at '" + containerPath.extend(foundName) + "' and '" + containerPath.extend(name) + "'");
+
+				//noinspection unchecked
+				value = (D)container.getProperty(name);
+				foundName = name;
+			}
+		}
+
+		if (foundName == null)
+			throw new SkipException();
+		else
+			return value;
 	}
 
 	/**
@@ -78,13 +99,14 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	}
 
 	/**
-	 * Get the value for the property and translate it into datastore format.
+	 * Sets the property on the pojo to the value. The value should already be translated.
+	 * TODO: Sensitive to the value possibly being a Result<?> wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
-	public D getValue(Object pojo, SaveContext ctx, Path containerPath) {
-		@SuppressWarnings("unchecked")
-		P value = (P)property.get(pojo);
+	private void setOnPojo(Object pojo, P value, LoadContext ctx, Path path) {
+		if (log.isLoggable(Level.FINEST))
+			log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
 
-		return translator.save(value, false, ctx, containerPath.extend(property.getName()));
+		property.set(pojo, value);
 	}
 
 	/**
@@ -117,30 +139,13 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	}
 
 	/**
-	 * Gets the relevant property from the container, detecting alsoload collisions.
-	 *
-	 * @return the value obtained from the container
-	 * @throws IllegalStateException if there are multiple alsoload name matches
+	 * Get the value for the property and translate it into datastore format.
 	 */
-	private D getPropertyFromContainer(PropertyContainer container, Path containerPath) {
-		String foundName = null;
-		D value = null;
+	public D getValue(Object pojo, SaveContext ctx, Path containerPath) {
+		@SuppressWarnings("unchecked")
+		P value = (P)property.get(pojo);
 
-		for (String name: property.getLoadNames()) {
-			if (container.hasProperty(name)) {
-				if (foundName != null)
-					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
-							+ property.getName() + "' at '" + containerPath.extend(foundName) + "' and '" + containerPath.extend(name) + "'");
-
-				//noinspection unchecked
-				value = (D)container.getProperty(name);
-				foundName = name;
-			}
-		}
-
-		if (foundName == null)
-			throw new SkipException();
-		else
-			return value;
+		return translator.save(value, false, ctx, containerPath.extend(property.getName()));
 	}
+
 }

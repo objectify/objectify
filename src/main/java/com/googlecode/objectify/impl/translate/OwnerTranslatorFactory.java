@@ -13,23 +13,31 @@ import com.googlecode.objectify.impl.Path;
  */
 public class OwnerTranslatorFactory implements TranslatorFactory<Object, Object>
 {
+	private static class OwnerTranslator implements Translator<Object, Object>, Synthetic {
+		private final TypeKey<Object> tk;
+
+		public OwnerTranslator(TypeKey<Object> tk) {
+			this.tk = tk;
+		}
+
+		@Override
+		public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
+			return ctx.getOwner(tk.getType(), path);
+		}
+
+		@Override
+		public Object save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			// We never save these
+			throw new SkipException();
+		}
+	}
+
 	@Override
-	public Translator<Object, Object> create(final TypeKey<Object> tk, CreateContext ctx, Path path) {
+	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
 
 		if (!tk.isAnnotationPresent(Owner.class))
 			return null;
 
-		return new Translator<Object, Object>() {
-			@Override
-			public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
-				return ctx.getOwner(tk.getType(), path);
-			}
-
-			@Override
-			public Object save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
-				// We never save these
-				throw new SkipException();
-			}
-		};
+		return new OwnerTranslator(tk);
 	}
 }

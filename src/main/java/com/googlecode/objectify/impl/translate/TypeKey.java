@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.common.base.Objects;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -110,5 +111,14 @@ public class TypeKey<T>
 	 */
 	public boolean isAssignableTo(Class<?> superclass) {
 		return superclass.isAssignableFrom(getTypeAsClass());
+	}
+
+	/* */
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("type", type)
+				.add("annotations", Arrays.toString(annotations))
+				.toString();
 	}
 }
