@@ -48,14 +48,15 @@ public class RegisterTests extends TestBase {
 		@Id
 		Long id;
 		BadStruct name;
-
 	}
 
 	@Test
 	public void testNoArgConstructor() {
 		assertRegisterSucceeds(NonPublicConstructor.class);
-		assertRegisterFails(NoNoargConstructors.class, IllegalStateException.class);
-		assertRegisterFails(HasEmbedded.class, IllegalStateException.class);
+
+		// We can't actually check this on registration anymore, unfortunately.
+//		assertRegisterFails(NoNoargConstructors.class, IllegalStateException.class);
+//		assertRegisterFails(HasEmbedded.class, IllegalStateException.class);
 	}
 
 	private void assertRegisterSucceeds(Class<?> entity) {

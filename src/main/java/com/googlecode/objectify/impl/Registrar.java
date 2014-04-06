@@ -39,10 +39,9 @@ public class Registrar
 	}
 
 	/**
-	 * @param fact is so that the conversions can be obtained
+	 * @param fact is so that the translations can be obtained
 	 */
-	public Registrar(ObjectifyFactory fact)
-	{
+	public Registrar(ObjectifyFactory fact) {
 		this.fact = fact;
 	}
 
