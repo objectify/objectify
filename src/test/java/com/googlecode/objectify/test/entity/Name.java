@@ -1,8 +1,7 @@
 package com.googlecode.objectify.test.entity;
 
-import com.googlecode.objectify.util.LangUtils;
-
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  */
@@ -26,8 +25,8 @@ public class Name implements Serializable
 	{
 		return o != null
 			&& o.getClass() == this.getClass()
-			&& LangUtils.objectsEqual(((Name)o).firstName, this.firstName)
-			&& LangUtils.objectsEqual(((Name)o).lastName, this.lastName);
+			&& Objects.equals(((Name)o).firstName, this.firstName)
+			&& Objects.equals(((Name)o).lastName, this.lastName);
 	}
 
 	@Override

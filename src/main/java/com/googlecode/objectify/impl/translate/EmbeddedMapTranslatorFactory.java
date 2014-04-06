@@ -39,7 +39,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericUtils.getMapValueType(mapType);
+		Type componentType = GenericUtils.getMapValueType(tk.getType());
 		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(new TypeKey<>(componentType, tk), ctx, path);
 
 		// Default Stringifier is a null object so we don't have to have special logic

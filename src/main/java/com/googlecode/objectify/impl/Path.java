@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.googlecode.objectify.util.LangUtils;
+import java.util.Objects;
 
 /**
  * Path represents the individual steps from the root object to the current property.
@@ -83,7 +83,7 @@ public class Path
 		if (!this.segment.equals(other.segment))
 			return false;
 		else
-			return LangUtils.objectsEqual(this.previous, other.previous);
+			return Objects.equals(this.previous, other.previous);
 	}
 
 	/** Generates hash code for complete path */

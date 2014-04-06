@@ -2,11 +2,11 @@ package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.util.LangUtils;
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -42,8 +42,8 @@ public class EmbeddedMapComplexTests extends TestBase
 		@Override
 		public boolean equals(Object obj) {
 			HasMapEmbed other = (HasMapEmbed)obj;
-			return LangUtils.objectsEqual(thing, other.thing)
-					&& LangUtils.objectsEqual(things, other.things);
+			return Objects.equals(thing, other.thing)
+					&& Objects.equals(things, other.things);
 		}
 	}
 
