@@ -92,7 +92,9 @@ public class EmbeddedMapComplexTests extends TestBase
 		HasNestedMapEmbed hasNested = new HasNestedMapEmbed();
 
 		HasMapEmbed hasMap1 = createHasMapEmbed(1);
+		hasMap1.id = 123L;
 		HasMapEmbed hasMap2 = createHasMapEmbed(2);
+		hasMap2.id = 456L;
 
 		hasNested.nestedThings.put("one", hasMap1);
 		hasNested.nestedThings.put("two", hasMap2);
