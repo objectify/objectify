@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -178,8 +179,8 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testEasyHasEmbedded() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
-		ent.setProperty("fieldUser.oldFoo", TEST_VALUE);
-		ent.setProperty("methodUser.oldFoo", TEST_VALUE);
+		ent.setProperty("fieldUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		ent.setProperty("methodUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
 		ds().put(ent);
 
 		Key<HasEmbedded> key = Key.create(ent.getKey());
@@ -193,8 +194,8 @@ public class AlsoLoadTests extends TestBase
 	@Test
 	public void testHarderHasEmbedded() throws Exception {
 		Entity ent = new Entity(Key.getKind(HasEmbedded.class));
-		ent.setProperty("oldFieldUser.oldFoo", TEST_VALUE);
-		ent.setProperty("oldMethodUser.oldFoo", TEST_VALUE);
+		ent.setProperty("oldFieldUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		ent.setProperty("oldMethodUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
 		ds().put(ent);
 
 		Key<HasEmbedded> key = Key.create(ent.getKey());
@@ -207,13 +208,16 @@ public class AlsoLoadTests extends TestBase
 	/** */
 	@Test
 	public void testEasyHasEmbeddedArray() throws Exception {
-		List<String> values = new ArrayList<String>();
+		List<String> values = new ArrayList<>();
 		values.add(TEST_VALUE);
 		values.add(TEST_VALUE);
 
 		Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
-		ent.setProperty("fieldUsers.oldFoo", values);
-		ent.setProperty("methodUsers.oldFoo", values);
+		List<EmbeddedEntity> list = new ArrayList<>();
+		list.add(makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		list.add(makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		ent.setProperty("fieldUsers", list);
+		ent.setProperty("methodUsers", list);
 		ds().put(ent);
 
 		Key<HasEmbeddedArray> key = Key.create(ent.getKey());
@@ -234,8 +238,11 @@ public class AlsoLoadTests extends TestBase
 		values.add(TEST_VALUE);
 
 		Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
-		ent.setProperty("oldFieldUsers.oldFoo", values);
-		ent.setProperty("oldMethodUsers.oldFoo", values);
+		List<EmbeddedEntity> list = new ArrayList<>();
+		list.add(makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		list.add(makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
+		ent.setProperty("oldFieldUsers", list);
+		ent.setProperty("oldMethodUsers", list);
 		ds().put(ent);
 
 		Key<HasEmbeddedArray> key = Key.create(ent.getKey());

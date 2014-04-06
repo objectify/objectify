@@ -82,17 +82,16 @@ public class AlsoLoadTests2 extends TestBase
 		@Id
 		Long id;
 		@AlsoLoad("alsoPrimitives")
-		Map<String, Long> primitives = new HashMap<String, Long>();
+		Map<String, Long> primitives = new HashMap<>();
 	}
 
 	@Test
-	public void testAlsoLoadMap() throws Exception
-	{
+	public void testAlsoLoadMap() throws Exception {
 		fact().register(HasMap.class);
 
 		Entity ent = new Entity(Key.getKind(HasMap.class));
-		ent.setProperty("alsoPrimitives.one", 1L);
-		ent.setProperty("primitives.two", 2L);
+		ent.setProperty("alsoPrimitives", makeEmbeddedEntityWithProperty("one", 1L));
+		ent.setProperty("primitives", makeEmbeddedEntityWithProperty("two", 2L));
 		ds().put(ent);
 
 		Key<HasMap> key = Key.create(ent.getKey());

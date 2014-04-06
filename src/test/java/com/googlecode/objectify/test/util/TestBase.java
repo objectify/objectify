@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test.util;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
@@ -49,4 +50,12 @@ public class TestBase
 
 		this.helper.tearDown();
 	}
+
+	/** */
+	protected EmbeddedEntity makeEmbeddedEntityWithProperty(String name, Object value) {
+		EmbeddedEntity emb = new EmbeddedEntity();
+		emb.setProperty(name, value);
+		return emb;
+	}
+
 }
