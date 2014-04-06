@@ -1,8 +1,9 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.TranslateException;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Stringify;
+import com.googlecode.objectify.stringifier.KeyStringifier;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
@@ -22,8 +23,7 @@ public class EmbeddedMapTests extends TestBase
 	public static class HasMapLong {
 		@Id
 		Long id;
-
-		Map<String, Long> primitives = new HashMap<String, Long>();
+		Map<String, Long> primitives = new HashMap<>();
 	}
 
 	@Test
@@ -51,20 +51,14 @@ public class EmbeddedMapTests extends TestBase
 		assert fetched.primitives.equals(hml.primitives);
 	}
 
-	@Test
+	@Test(expectedExceptions = NullPointerException.class)
 	public void nullKeysAreForbidden() {
 		fact().register(HasMapLong.class);
 
 		HasMapLong hml = new HasMapLong();
 		hml.primitives.put(null, 123L);
 
-		try {
-			ofy().save().entity(hml).now();
-			assert false;
-		}
-		catch (TranslateException e) {
-			// expected
-		}
+		ofy().save().entity(hml).now();
 	}
 
 	@Test
@@ -79,18 +73,19 @@ public class EmbeddedMapTests extends TestBase
 	}
 
 	/**
-	 * We should be able to store a Key<?> as the EmbedMap key
+	 * We should be able to store a Key<?> as the EmbedMap key using a Stringifier
 	 */
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasMapWithKeyKey {
 		@Id
 		Long id;
 
+		@Stringify(KeyStringifier.class)
 		Map<Key<Trivial>, Long> primitives = new HashMap<>();
 	}
 
 	@Test
-	public void keyKeyStoresOk() throws Exception {
+	public void keyStringifierWorks() throws Exception {
 		fact().register(HasMapWithKeyKey.class);
 
 		HasMapWithKeyKey hml = new HasMapWithKeyKey();
