@@ -178,23 +178,18 @@ public class ValueTranslationTests extends TestBase
 	}
 
 	/**
-	 * You should not be able to store a big string in an embedded collection
+	 * You should be able to store a big string in an embedded collection
 	 */
 	@Test
-	public void testBigStringsInEmbeddedCollections() throws Exception
+	public void bigStringsAreAllowedInEmbeddedCollections() throws Exception
 	{
 		fact().register(HasNames.class);
 
 		HasNames has = new HasNames();
 		has.names = new Name[] { new Name("Bob", BIG_STRING) };
 
-		try {
-			ofy().save().entity(has).now();
-			assert false : "You should not be able to put() embedded collections with big strings";
-		}
-		catch (SaveException ex) {
-			// Correct
-		}
+		HasNames fetched = ofy().saveClearLoad(has);
+		assert fetched.names[0].lastName.equals(BIG_STRING);
 	}
 
 	/**
