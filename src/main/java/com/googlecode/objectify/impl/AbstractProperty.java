@@ -71,7 +71,7 @@ abstract public class AbstractProperty implements Property
 	
 	@Override
 	public <A extends Annotation> A getAnnotation(Class<A> annoClass) {
-		return TypeUtils.getAnnotation(annoClass, annotations);
+		return TypeUtils.getAnnotation(annotations, annoClass);
 	}
 
 	@Override

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -102,7 +103,7 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 	public P loadSafe(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
 		// check if we need to redirect to a different translator
 		String containerDiscriminator = (String)container.getProperty(DISCRIMINATOR_PROPERTY);
-		if (containerDiscriminator != null) {
+		if (!Objects.equals(discriminator, containerDiscriminator)) {
 			ClassTranslator<? extends P> translator = byDiscriminator.get(containerDiscriminator);
 			if (translator == null)
 				throw new IllegalStateException("Datastore object has discriminator value '" + containerDiscriminator + "' but no relevant @Subclass is registered");

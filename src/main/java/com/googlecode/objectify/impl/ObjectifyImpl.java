@@ -9,6 +9,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -265,9 +266,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 			return result;
 		} else {
 			// Special case entity pojos that become keys
-			KeyMetadata<Object> meta = factory().keys().getMetadata(value);
-			if (meta != null) {
-				return meta.getRawKey(value);
+			if (value.getClass().isAnnotationPresent(Entity.class)) {
+				return factory().keys().getMetadataSafe(value).getRawKey(value);
 			} else {
 				// Run it through a translator
 				Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());

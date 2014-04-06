@@ -29,9 +29,6 @@ public class Registrar
 	/** This maps kind to EntityMetadata */
 	protected Map<String, EntityMetadata<?>> byKind = new HashMap<String, EntityMetadata<?>>();
 
-	/** This maps class to EntityMetadata for all registered classes */
-	protected Map<Class<?>, EntityMetadata<?>> byClass = new HashMap<Class<?>, EntityMetadata<?>>();
-
 	/** True if any @Cached entities have been registered */
 	protected boolean cacheEnabled;
 
@@ -63,26 +60,25 @@ public class Registrar
 		// 1) This might be a simple class with @Entity
 		// 2) This might be a class annotated with @Subclass
 
-		// If we are already registered, ignore
-		if (this.byClass.containsKey(clazz))
-			return;
+		// @Entity is inherited, but we only create entity metadata for the class with the @Entity declaration
+		if (TypeUtils.isDeclaredAnnotationPresent(clazz, Entity.class)) {
+			String kind = Key.getKind(clazz);
 
-		String kind = Key.getKind(clazz);
-
-		if (clazz.isAnnotationPresent(Entity.class)) {
+			// If we are already registered, ignore
+			if (this.byKind.containsKey(kind))
+				return;
 
 			EntityMetadata<T> cmeta = new EntityMetadata<T>(this.fact, clazz);
 			this.byKind.put(kind, cmeta);
-			this.byClass.put(clazz, cmeta);
 
 			if (cmeta.getCacheExpirySeconds() != null)
 				this.cacheEnabled = true;
-
-		} else if (clazz.isAnnotationPresent(Subclass.class)) {
+		}
+		else if (clazz.isAnnotationPresent(Subclass.class)) {
 			// We just need to make sure that a translator was created
 			fact.getTranslators().getRoot(clazz);
-
-		} else {
+		}
+		else {
 			throw new IllegalArgumentException(clazz + " must be annotated with either @Entity or @Subclass");
 		}
 	}
@@ -100,7 +96,7 @@ public class Registrar
 	 */
 	@SuppressWarnings("unchecked")
 	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) {
-		return (EntityMetadata<T>)this.byClass.get(clazz);
+		return getMetadata(Key.getKind(clazz));
 	}
 
 	/**

@@ -184,7 +184,7 @@ public class ClassPopulator<P> implements Populator<P>
 	 */
 	private  boolean isOfInterest(Method method) {
 		for (Annotation[] annos: method.getParameterAnnotations())
-			if (TypeUtils.getAnnotation(AlsoLoad.class, annos) != null)
+			if (TypeUtils.getAnnotation(annos, AlsoLoad.class) != null)
 				return true;
 
 		return false;

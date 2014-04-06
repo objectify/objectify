@@ -107,7 +107,7 @@ public class TypeUtils
 
 	/** Gets the annotation that has the specified type, or null if there isn't one */
 	@SuppressWarnings("unchecked")
-	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations) {
+	public static <A extends Annotation> A getAnnotation(Annotation[] annotations, Class<A> annotationType) {
 		for (Annotation anno: annotations)
 			if (annotationType.isAssignableFrom(anno.getClass()))
 				return (A)anno;
@@ -116,26 +116,16 @@ public class TypeUtils
 	}
 
 	/**
-	 * Checks both the annotations list and the annotations on the class for the type
-	 * @return null if annotation is not in list or on class.
+	 * Get the declared annotation, ignoring any inherited annotations
 	 */
-	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Property prop, Class<?> onClass) {
-		A anno = prop.getAnnotation(annotationType);
-		if (anno == null)
-			return onClass.getAnnotation(annotationType);
-		else
-			return anno;
+	public static <A extends Annotation> A getDeclaredAnnotation(Class<?> onClass, Class<A> annotationType) {
+		return getAnnotation(onClass.getDeclaredAnnotations(), annotationType);
 	}
 
 	/**
-	 * Checks both the annotations list and the annotations on the class for the type
-	 * @return null if annotation is not in list or on class.
+	 * Is the declared annotation present, ignoring any inherited annotations
 	 */
-	public static <A extends Annotation> A getAnnotation(Class<A> annotationType, Annotation[] annotations, Class<?> onClass) {
-		A anno = getAnnotation(annotationType, annotations);
-		if (anno == null)
-			return onClass.getAnnotation(annotationType);
-		else
-			return anno;
+	public static <A extends Annotation> boolean isDeclaredAnnotationPresent(Class<?> onClass, Class<A> annotationType) {
+		return getDeclaredAnnotation(onClass, annotationType) != null;
 	}
 }

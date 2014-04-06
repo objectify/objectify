@@ -2,6 +2,7 @@ package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.KeyFactory;
 import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.impl.TypeUtils;
 
 import java.io.Serializable;
 
@@ -263,7 +264,8 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Get the kind from the class if the class has an @Entity annotation, otherwise return null.
 	 */
 	private static String getKindHere(Class<?> clazz) {
-		Entity ourAnn = clazz.getAnnotation(Entity.class);
+		// @Entity is inherited so we have to be explicit about the declared annotations
+		Entity ourAnn = TypeUtils.getDeclaredAnnotation(clazz, Entity.class);
 		if (ourAnn != null)
 			if (ourAnn.name() != null && ourAnn.name().length() != 0)
 				return ourAnn.name();

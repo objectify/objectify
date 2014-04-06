@@ -9,7 +9,6 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.IgnoreSave;
 import com.googlecode.objectify.condition.IfDefault;
-import com.googlecode.objectify.condition.IfNull;
 import com.googlecode.objectify.condition.IfTrue;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
@@ -130,16 +129,6 @@ public class IgnoreSaveTests extends TestBase
 		@IgnoreSave(DeeperIfTrue.class) String foo;
 	}
 
-	/** Should not be registerable */
-	static class TryToEmbedMe { @IgnoreSave(IfNull.class) String bar; }
-
-	@com.googlecode.objectify.annotation.Entity
-	static class EmbeddedCollectionWithUnsaved
-	{
-		@Id Long id;
-		TryToEmbedMe[] stuff;
-	}
-
 	/** */
 	@Test
 	public void testBadFieldTypeNotRegisterable() throws Exception
@@ -157,17 +146,6 @@ public class IgnoreSaveTests extends TestBase
 	{
 		try {
 			fact().register(DeeperBadFieldType.class);
-			assert false;
-		}
-		catch (IllegalStateException ex) {}
-	}
-
-	/** */
-	@Test
-	public void testEmbeddedCollectionWithUnsavedNotRegisterable() throws Exception
-	{
-		try {
-			fact().register(EmbeddedCollectionWithUnsaved.class);
 			assert false;
 		}
 		catch (IllegalStateException ex) {}

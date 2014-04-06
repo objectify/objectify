@@ -74,6 +74,7 @@ public class LoadEngine
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
 			KeyMetadata<?> meta = ofy.factory().keys().getMetadata(key);
+			// Interesting, is this really possible?
 			if (meta != null) {
 				if (meta.shouldLoadParent(loader.getLoadGroups())) {
 					load(key.getParent());

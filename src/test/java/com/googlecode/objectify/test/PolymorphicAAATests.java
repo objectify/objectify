@@ -5,6 +5,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -64,8 +65,7 @@ public class PolymorphicAAATests extends TestBase
 
 	/** */
 	@Test
-	public void testRegistrationForwards() throws Exception
-	{
+	public void testRegistrationForwards() throws Exception {
 		fact().register(Animal.class);
 		fact().register(Mammal.class);
 		fact().register(Cat.class);
@@ -74,8 +74,7 @@ public class PolymorphicAAATests extends TestBase
 
 	/** */
 	@Test
-	public void testRegistrationBackwards() throws Exception
-	{
+	public void testRegistrationBackwards() throws Exception {
 		fact().register(Dog.class);
 		fact().register(Cat.class);
 		fact().register(Mammal.class);
@@ -84,8 +83,7 @@ public class PolymorphicAAATests extends TestBase
 
 	/** */
 	@Test
-	public void testBasicFetch() throws Exception
-	{
+	public void testBasicFetch() throws Exception {
 		this.testRegistrationForwards();
 
 		Animal a = new Animal();
@@ -114,8 +112,7 @@ public class PolymorphicAAATests extends TestBase
 	 * Issue #80:  http://code.google.com/p/objectify-appengine/issues/detail?id=80
 	 */
 	@Test
-	public void testNullFind() throws Exception
-	{
+	public void testNullFind() throws Exception {
 		this.testRegistrationForwards();
 
 		// This should produce null
@@ -131,8 +128,7 @@ public class PolymorphicAAATests extends TestBase
 	 * null folks would think the data wasn't in the db.
 	 */
 	@Test(expectedExceptions=ClassCastException.class)
-	public void testFetchMismatch() throws Exception
-	{
+	public void testFetchMismatch() throws Exception {
 		this.testRegistrationForwards();
 
 		Animal a = new Animal();
@@ -142,5 +138,14 @@ public class PolymorphicAAATests extends TestBase
 		// This should exclude the value
 		@SuppressWarnings("unused")
 		Mammal m = ofy().load().type(Mammal.class).id(a.id).now();
+	}
+
+	/**
+	 */
+	@Test
+	public void keyCreationFindsBaseKind() throws Exception {
+		Key<?> key = Key.create(Mammal.class, 123L);
+
+		assert key.getKind().equals("Animal");
 	}
 }

@@ -21,13 +21,6 @@ public class Keys
 		this.registrar = registrar;
 	}
 
-//	/**
-//	 * @return the Key<?> of the pojo entity
-//	 */
-//	public <T> Key<T> keyOf(T entity) {
-//		return Key.create(getMetadataForEntity(entity).getKeyMetadata().getRawKey(entity));
-//	}
-
 	/**
 	 * @return the Key<?> for a registered pojo entity.
 	 */
@@ -42,22 +35,14 @@ public class Keys
 		return getMetadataSafe(pojo).getRawKey(pojo);
 	}
 
-	/**
-	 * @return the metadata for the pojo, returning null if type is not registered
-	 */
-	@SuppressWarnings("unchecked")
-	public <T> KeyMetadata<T> getMetadata(T pojo) {
-		return (KeyMetadata<T>)getMetadata(pojo.getClass());
-	}
-
-	/**
-	 * @return the metadata for the pojo, returning null if type is not registered
-	 */
-	@SuppressWarnings("unchecked")
-	private <T> KeyMetadata<T> getMetadata(Class<T> clazz) {
-		EntityMetadata<T> em = registrar.getMetadata(clazz);
-		return em == null ? null : em.getKeyMetadata();
-	}
+//	/**
+//	 * @return the metadata for the pojo, returning null if type is not registered
+//	 */
+//	@SuppressWarnings("unchecked")
+//	private <T> KeyMetadata<T> getMetadata(Class<T> clazz) {
+//		EntityMetadata<T> em = registrar.getMetadata(clazz);
+//		return em == null ? null : em.getKeyMetadata();
+//	}
 
 	/**
 	 * @return the metadata for a registered pojo, or throw exception if none
