@@ -20,7 +20,7 @@ public class AsIsTranslatorFactory implements TranslatorFactory<Object, Object>
 	public Translator<Object, Object> create(TypeKey tk, CreateContext ctx, Path path) {
 		Class<?> clazz = tk.getTypeAsClass();
 
-		if (!(clazz == Object.class || DataTypeUtils.isSupportedType(clazz)))
+		if (!(clazz == Object.class || clazz.isPrimitive() || DataTypeUtils.isSupportedType(clazz)))
 			return null;
 
 		return new Translator<Object, Object>() {

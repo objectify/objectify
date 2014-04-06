@@ -1,17 +1,15 @@
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import com.googlecode.objectify.test.util.TestObjectify;
 import org.testng.annotations.Test;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
@@ -28,21 +26,10 @@ public class LifecycleTests extends TestBase
 	{
 		@Id Long id;
 		boolean onSaved;
-		boolean onSavedWithObjectify;
 		boolean onLoaded;
-		boolean onLoadedWithObjectify;
-		boolean onLoadedWithLoadContext;
 
 		@OnSave void onSave() { this.onSaved = true; }
-		@OnSave void onSave(Objectify ofy) { this.onSavedWithObjectify = true; }
 		@OnLoad void onLoad() { this.onLoaded = true; }
-		@OnLoad void onLoad(Objectify ofy) { this.onLoadedWithObjectify = true; }
-
-		@OnLoad void onLoad(LoadContext ctx) {
-			this.onLoadedWithLoadContext = true;
-			// Check to make sure that the correct wrapper made it through
-			assert ctx.getLoader().getObjectify() instanceof TestObjectify;
-		}
 	}
 
 	@com.googlecode.objectify.annotation.Entity
@@ -59,17 +46,13 @@ public class LifecycleTests extends TestBase
 		HasLifecycle fetched = ofy().saveClearLoad(life1);
 
 		assert fetched.onSaved;
-		assert fetched.onSavedWithObjectify;
 		assert fetched.onLoaded;	// would fail without session clear
-		assert fetched.onLoadedWithObjectify;
 
 		HasLifecycle life2 = new HasInheritedLifecycle();
 		fetched = ofy().saveClearLoad(life2);
 
 		assert fetched.onSaved;
-		assert fetched.onSavedWithObjectify;
 		assert fetched.onLoaded;	// would fail without session clear
-		assert fetched.onLoadedWithObjectify;
 	}
 
 	@com.googlecode.objectify.annotation.Entity
@@ -81,20 +64,10 @@ public class LifecycleTests extends TestBase
 	}
 
 	/** */
-	@Test
-	public void testExceptionInLifecycle() throws Exception
-	{
+	@Test(expectedExceptions = SaveException.class)
+	public void testExceptionInLifecycle() throws Exception {
 		fact().register(HasExceptionThrowingLifecycle.class);
-
-		try
-		{
-			ofy().saveClearLoad(new HasExceptionThrowingLifecycle());
-			assert false;
-		}
-		catch (UnsupportedOperationException ex)
-		{
-			// this is correct
-		}
+		ofy().saveClearLoad(new HasExceptionThrowingLifecycle());
 	}
 
 	/** */
@@ -113,8 +86,7 @@ public class LifecycleTests extends TestBase
 	 * Make sure that lifecycle methods are called after @Load happens
 	 */
 	@Test
-	public void testLifecycleLoadTiming() throws Exception
-	{
+	public void lifecycleMethodsAreCalledAfterLoadHappens() throws Exception {
 		fact().register(HasLoad.class);
 		fact().register(Trivial.class);
 
@@ -163,8 +135,7 @@ public class LifecycleTests extends TestBase
 	 * More complicated test of a more complicated structure
 	 */
 	@Test
-	public void testComplicatedLifecycle() throws Exception
-	{
+	public void testComplicatedLifecycle() throws Exception {
 		fact().register(ParentThing.class);
 		fact().register(HasParent.class);
 		fact().register(HasHasParent.class);

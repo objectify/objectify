@@ -17,6 +17,9 @@ public class LifecycleMethod
 	public LifecycleMethod(Method method) {
 		this.method = method;
 		this.method.setAccessible(true);
+
+		if (method.getParameterTypes().length > 0)
+			throw new IllegalArgumentException("Lifecycle methods cannot have parameters:  " + method);
 	}
 
 	/** */
