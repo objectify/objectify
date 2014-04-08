@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.PropertyContainer;
+import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.Populator;
 import com.googlecode.objectify.impl.translate.Recycles;
@@ -33,6 +34,9 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 
 	/** */
 	public Property getProperty() { return this.property; }
+
+	/** */
+	public LoadConditions getLoadConditions() { return new LoadConditions(property.getAnnotation(Load.class)); }
 
 	/** This is easier to debug if we have a string value */
 	@Override

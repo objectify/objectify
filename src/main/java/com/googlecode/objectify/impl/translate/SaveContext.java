@@ -4,9 +4,9 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.Reference;
+import com.googlecode.objectify.impl.SessionReference;
 import com.googlecode.objectify.util.IdentityMultimapList;
 
 import java.util.Collection;
@@ -31,7 +31,7 @@ public class SaveContext
 	 * Potential upgrades found during the save process; key is the pojo entity itself (its identity).
 	 * The problem is that when saving, the id may not be set yet, so we can't track keys.
 	 */
-	IdentityMultimapList<Object, Reference> references = new IdentityMultimapList<Object, Reference>();
+	IdentityMultimapList<Object, SessionReference> references = new IdentityMultimapList<Object, SessionReference>();
 	
 	/**
 	 * Track all indexed values here. We may need to use some of this data to create synthetic
@@ -53,13 +53,13 @@ public class SaveContext
 	}
 
 	/** */
-	public void registerReference(Property prop, Ref<?> ref) {
-		references.add(currentRoot, new Reference(prop, ref.key()));
+	public void registerReference(LoadConditions lc, Ref<?> ref) {
+		references.add(currentRoot, new SessionReference(ref.key(), lc));
 	}
 
 	/** @return an empty list if no upgrades found */
-	public List<Reference> getReferences(Object pojo) {
-		List<Reference> list = references.get(pojo);
+	public List<SessionReference> getReferences(Object pojo) {
+		List<SessionReference> list = references.get(pojo);
 		if (list == null)
 			return Collections.emptyList();
 		else

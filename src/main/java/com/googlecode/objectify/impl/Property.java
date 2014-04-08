@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Set;
 
 /** 
  * Basic interface so we can wrap fields and methods so they look more or less the same.
@@ -45,9 +44,4 @@ public interface Property
 	 * @return true if this field should be indexed, false if it should be unindexed, null is "no information, continue with defaults".
 	 */
 	Boolean getIndexInstruction(Object onPojo);
-	
-	/**
-	 * @return true if the property should be loaded when the given loadgroups are active
-	 */
-	boolean shouldLoad(Set<Class<?>> groups);
 }

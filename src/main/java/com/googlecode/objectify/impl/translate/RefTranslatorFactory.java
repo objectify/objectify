@@ -2,6 +2,8 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.Path;
 
 
@@ -19,20 +21,19 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 
 	@Override
 	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Ref<?>> tk, CreateContext ctx, Path path) {
+
+		final LoadConditions loadConditions = new LoadConditions(tk.getAnnotation(Load.class));
+
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
 
 			@Override
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {
-				//return ctx.makeRef(annotations, Key.create(value));
-				// TODO implement me
-				return Ref.create(Key.create(value));
+				return ctx.makeRef(Key.create(value), loadConditions);
 			}
 
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				//ctx.registerReference(property, value);
-				// TODO impelement me
-
+				ctx.registerReference(loadConditions, value);
 				return value.key().getRaw();
 			}
 		};

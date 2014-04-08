@@ -65,8 +65,7 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Test
-	public void testTargetsExist() throws Exception
-	{
+	public void testTargetsExist() throws Exception {
 		fact().register(HasEntities.class);
 
 		HasEntities he = new HasEntities();
@@ -76,8 +75,12 @@ public class LoadFieldRefTests extends TestBase
 
 		HasEntities fetched = ofy().saveClearLoad(he);
 
+		assert fetched.single.isLoaded();
 		assert fetched.single.get().getId().equals(t1.getId());
 		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
+
+		for (Ref<?> ref: fetched.multi)
+			assert ref.isLoaded();
 
 		assert fetched.multi.get(0).get() == fetched.single.get();
 
@@ -87,8 +90,7 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Test
-	public void testTargetsDontExist() throws Exception
-	{
+	public void testTargetsDontExist() throws Exception {
 		fact().register(HasEntities.class);
 
 		HasEntities he = new HasEntities();
@@ -97,7 +99,11 @@ public class LoadFieldRefTests extends TestBase
 		he.multi.add(Ref.create(kNone2));
 		HasEntities fetched = ofy().saveClearLoad(he);
 
+		assert fetched.single.isLoaded();
 		assert fetched.single.get() == null;
+
+		for (Ref<?> ref: fetched.multi)
+			assert ref.isLoaded();
 
 		assert fetched.multi.get(0).get() == null;
 		assert fetched.multi.get(1).get() == null;
@@ -113,8 +119,7 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Test
-	public void testTwoLevelsOfFetch() throws Exception
-	{
+	public void testTwoLevelsOfFetch() throws Exception {
 		fact().register(ListNode.class);
 
 		ListNode node3 = new ListNode();
@@ -135,8 +140,10 @@ public class LoadFieldRefTests extends TestBase
 		ListNode fetched = ofy().load().entity(node1).now();
 
 		assert fetched.foo.equals(node1.foo);
+		assert fetched.next.isLoaded();
 		assert fetched.next.get().id.equals(node2.id);
 		assert fetched.next.get().foo.equals(node2.foo);
+		assert fetched.next.get().next.isLoaded();
 		assert fetched.next.get().next.get().id.equals(node3.id);
 		assert fetched.next.get().next.get().foo.equals(node3.foo);
 		assert fetched.next.get().next.get().next == null;
@@ -144,8 +151,7 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Test
-	public void testMissingTail() throws Exception
-	{
+	public void testMissingTail() throws Exception {
 		fact().register(ListNode.class);
 
 		// Node2 should not exist but should have a concrete id for node1
@@ -177,8 +183,7 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Test
-	public void testGrouping() throws Exception
-	{
+	public void testGrouping() throws Exception {
 		fact().register(HasEntitiesWithGroups.class);
 
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();

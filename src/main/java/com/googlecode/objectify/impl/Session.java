@@ -18,7 +18,7 @@ public class Session
 	private static final Logger log = Logger.getLogger(Session.class.getName());
 
 	/** */
-	private Map<Key<?>, SessionValue<?>> map = new HashMap<Key<?>, SessionValue<?>>();
+	private Map<Key<?>, SessionValue<?>> map = new HashMap<>();
 
 	/**
 	 * Add/overwrite a SV.

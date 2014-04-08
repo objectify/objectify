@@ -6,7 +6,6 @@ import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
@@ -101,19 +100,17 @@ public class LoadEngine
 	 *
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
-	public <T> Ref<T> makeRef(Key<?> rootEntity, Property property, Key<T> key) {
+	public <T> Ref<T> makeRef(Key<?> rootEntity, LoadConditions loadConditions, Key<T> key) {
 		Ref<T> ref = new LiveRef<T>(key, ofy);
 
-		if (shouldLoad(property)) {
+		if (shouldLoad(loadConditions)) {
 			load(key);
 		} else {
-			// Only if there is any potential for upgrade
-			Load load = property.getAnnotation(Load.class);
-			if (load != null) {
+			if (loadConditions.isUpgradable()) {
 				// add it to the list of upgrades
 				SessionValue<?> sv = session.get(rootEntity);
 				if (sv != null) {	// can this ever be null?
-					sv.addReference(new Reference(property, key));
+					sv.addReference(new SessionReference(key, loadConditions));
 				}
 			}
 		}
@@ -124,8 +121,8 @@ public class LoadEngine
 	/**
 	 * @return true if the specified property should be loaded in this batch
 	 */
-	public boolean shouldLoad(Property property) {
-		return property.shouldLoad(loader.getLoadGroups());
+	public boolean shouldLoad(LoadConditions loadConditions) {
+		return loadConditions.shouldLoad(loader.getLoadGroups());
 	}
 
 	/**
@@ -149,8 +146,8 @@ public class LoadEngine
 		}
 
 		if (check) {
-			for (Reference reference: sv.getReferences()) {
-				if (shouldLoad(reference.getProperty())) {
+			for (SessionReference reference: sv.getReferences()) {
+				if (shouldLoad(reference.getLoadConditions())) {
 					load(reference.getKey());
 				}
 			}

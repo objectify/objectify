@@ -29,8 +29,8 @@ public class SessionValue<T>
 	Set<Class<?>> loadedGroups = new HashSet<Class<?>>();
 
 	/** Any remaining references that might need upgrading */
-	final List<Reference> references = new LinkedList<Reference>();
-	public List<Reference> getReferences() { return references; }
+	final List<SessionReference> references = new LinkedList<SessionReference>();
+	public List<SessionReference> getReferences() { return references; }
 
 	/** */
 	public SessionValue(Result<T> result) {
@@ -38,13 +38,13 @@ public class SessionValue<T>
 	}
 
 	/** */
-	public SessionValue(Result<T> result, List<Reference> references) {
+	public SessionValue(Result<T> result, List<SessionReference> references) {
 		this(result);
 		this.references.addAll(references);
 	}
 
 	/** */
-	public void addReference(Reference reference) {
+	public void addReference(SessionReference reference) {
 		references.add(reference);
 	}
 

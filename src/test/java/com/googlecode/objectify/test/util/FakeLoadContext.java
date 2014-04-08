@@ -3,14 +3,13 @@
 
 package com.googlecode.objectify.test.util;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
+import com.googlecode.objectify.impl.LoadConditions;
+import com.googlecode.objectify.impl.LoadEngine;
+import com.googlecode.objectify.impl.translate.LoadContext;
 import org.mockito.Matchers;
 
-import com.googlecode.objectify.impl.LoadEngine;
-import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.translate.LoadContext;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Simplifies the load context just for testing
@@ -21,7 +20,7 @@ public class FakeLoadContext extends LoadContext
 {
 	private static LoadEngine mockLoadEngine() {
 		LoadEngine mock = mock(LoadEngine.class);
-		when(mock.shouldLoad(Matchers.<Property>any())).thenReturn(false);
+		when(mock.shouldLoad(Matchers.<LoadConditions>any())).thenReturn(false);
 		return mock;
 	}
 

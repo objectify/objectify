@@ -7,19 +7,19 @@ import com.googlecode.objectify.Key;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class Reference
+public class SessionReference
 {
 	/** */
-	final Property property;
-	public Property getProperty() { return property; }
+	final LoadConditions loadConditions;
+	public LoadConditions getLoadConditions() { return loadConditions; }
 
 	/** */
 	final Key<?> key;
 	public Key<?> getKey() { return key; }
 
 	/** */
-	public Reference(Property property, Key<?> key) {
-		this.property = property;
+	public SessionReference(Key<?> key, LoadConditions loadConditions) {
 		this.key = key;
+		this.loadConditions = loadConditions;
 	}
 }

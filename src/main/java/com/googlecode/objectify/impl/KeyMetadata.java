@@ -209,7 +209,7 @@ public class KeyMetadata<P>
 		if (this.parentMeta == null)
 			return false;
 
-		return parentMeta.getProperty().shouldLoad(enabledGroups);
+		return parentMeta.getLoadConditions().shouldLoad(enabledGroups);
 	}
 
 	/**

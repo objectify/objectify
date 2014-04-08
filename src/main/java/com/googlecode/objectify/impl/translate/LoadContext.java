@@ -4,8 +4,8 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.impl.LoadEngine;
+import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 import java.lang.reflect.Type;
@@ -93,8 +93,8 @@ public class LoadContext
 	/**
 	 * Create a Ref for the key, and maybe start a load operation depending on current load groups.
 	 */
-	public <T> Ref<T> makeRef(Property property, Key<T> key) {
-		return engine.makeRef(currentRoot, property, key);
+	public <T> Ref<T> makeRef(Key<T> key, LoadConditions loadConditions) {
+		return engine.makeRef(currentRoot, loadConditions, key);
 	}
 
 	/**
