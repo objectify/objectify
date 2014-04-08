@@ -87,9 +87,6 @@ class Round {
 				log.finest("Adding to round (session hit): " + key);
 		}
 
-		// Check to see if we need to load any further references
-		loadEngine.checkReferences(sv);
-
 		return sv.getResult();
 	}
 

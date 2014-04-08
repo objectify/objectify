@@ -54,9 +54,4 @@ public class LoadConditions
 		
 		return false;
 	}
-
-	/** This is a rough approximation of the old logic. It should go away. */
-	public boolean isUpgradable() {
-		return loadGroups != null;
-	}
 }

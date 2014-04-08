@@ -105,14 +105,6 @@ public class LoadEngine
 
 		if (shouldLoad(loadConditions)) {
 			load(key);
-		} else {
-			if (loadConditions.isUpgradable()) {
-				// add it to the list of upgrades
-				SessionValue<?> sv = session.get(rootEntity);
-				if (sv != null) {	// can this ever be null?
-					sv.addReference(new SessionReference(key, loadConditions));
-				}
-			}
 		}
 
 		return ref;
@@ -133,26 +125,26 @@ public class LoadEngine
 		round.stuff(ent);
 	}
 
-	/**
-	 * Check to see if any of the references for a sessionvalue should be loaded based on current load
-	 * groups. Keeps track of load groups that have been seen so that we don't dup work or create cycles.
-	 */
-	public void checkReferences(SessionValue<?> sv) {
-		// First check if there is anything to do. There is only something to do if there are any load groups
-		// we haven't yet seen.
-		boolean check = false;
-		for (Class<?> loadGroup: loader.getLoadGroups()) {
-			check = check || sv.addLoadGroup(loadGroup);
-		}
-
-		if (check) {
-			for (SessionReference reference: sv.getReferences()) {
-				if (shouldLoad(reference.getLoadConditions())) {
-					load(reference.getKey());
-				}
-			}
-		}
-	}
+//	/**
+//	 * Check to see if any of the references for a sessionvalue should be loaded based on current load
+//	 * groups. Keeps track of load groups that have been seen so that we don't dup work or create cycles.
+//	 */
+//	public void checkReferences(SessionValue<?> sv) {
+//		// First check if there is anything to do. There is only something to do if there are any load groups
+//		// we haven't yet seen.
+//		boolean check = false;
+//		for (Class<?> loadGroup: loader.getLoadGroups()) {
+//			check = check || sv.addLoadGroup(loadGroup);
+//		}
+//
+//		if (check) {
+//			for (SessionReference reference: sv.getReferences()) {
+//				if (shouldLoad(reference.getLoadConditions())) {
+//					load(reference.getKey());
+//				}
+//			}
+//		}
+//	}
 
 	/**
 	 * Asynchronously translate raw to processed; might produce successive load operations as refs are filled in

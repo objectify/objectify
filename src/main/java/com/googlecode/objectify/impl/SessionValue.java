@@ -3,8 +3,6 @@ package com.googlecode.objectify.impl;
 import com.googlecode.objectify.Result;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -28,24 +26,9 @@ public class SessionValue<T>
 	 */
 	Set<Class<?>> loadedGroups = new HashSet<Class<?>>();
 
-	/** Any remaining references that might need upgrading */
-	final List<SessionReference> references = new LinkedList<SessionReference>();
-	public List<SessionReference> getReferences() { return references; }
-
 	/** */
 	public SessionValue(Result<T> result) {
 		this.result = result;
-	}
-
-	/** */
-	public SessionValue(Result<T> result, List<SessionReference> references) {
-		this(result);
-		this.references.addAll(references);
-	}
-
-	/** */
-	public void addReference(SessionReference reference) {
-		references.add(reference);
 	}
 
 	/** @return false if loadgroup has already been added */

@@ -33,7 +33,6 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				ctx.registerReference(loadConditions, value);
 				return value.key().getRaw();
 			}
 		};
