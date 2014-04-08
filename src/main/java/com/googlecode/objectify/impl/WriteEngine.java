@@ -60,7 +60,7 @@ public class WriteEngine
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
 
-		final SaveContext ctx = new SaveContext(ofy);
+		final SaveContext ctx = new SaveContext();
 
 		final List<Entity> entityList = new ArrayList<Entity>();
 		for (E obj: entities) {

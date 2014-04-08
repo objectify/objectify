@@ -28,12 +28,12 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 
 			@Override
 			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {
-				return ctx.makeRef(Key.create(value), loadConditions);
+				return ctx.loadRef(Key.create(value), loadConditions);
 			}
 
 			@Override
 			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.key().getRaw();
+				return ctx.saveRef(value, loadConditions);
 			}
 		};
 	}

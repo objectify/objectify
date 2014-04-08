@@ -41,7 +41,7 @@ public class TranslationTests extends TestBase
 		pojo.id = 123L;
 		pojo.foo = "bar";
 
-		SaveContext saveCtx = new SaveContext(ofy());
+		SaveContext saveCtx = new SaveContext();
 		Entity ent = (Entity)translator.save(pojo, false, saveCtx, Path.root());
 
 		assert ent.getKey().getKind().equals(SimpleEntityPOJO.class.getSimpleName());
@@ -66,7 +66,7 @@ public class TranslationTests extends TestBase
 		Thing thing = new Thing();
 		thing.foo = "bar";
 
-		SaveContext saveCtx = new SaveContext(ofy());
+		SaveContext saveCtx = new SaveContext();
 		EmbeddedEntity ent = (EmbeddedEntity)translator.save(thing, false, saveCtx, thingPath);
 
 		assert ent.getKey() == null;

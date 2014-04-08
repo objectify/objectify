@@ -34,21 +34,21 @@ public class LoadEngine
 	ObjectifyImpl<?> ofy;
 	AsyncDatastoreService ads;
 	Session session;
-	Set<Class<?>> loadGroups;
+	LoadArrangement loadArrangement;
 
 	/** The current round, replaced whenever the round executes */
 	Round round;
 
 	/**
 	 */
-	public LoadEngine(LoaderImpl<?> loader, ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, Set<Class<?>> loadGroups) {
+	public LoadEngine(LoaderImpl<?> loader, ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
 		this.loader = loader;
 		this.ofy = ofy;
 		this.session = session;
 		this.ads = ads;
-		this.loadGroups = loadGroups;
+		this.loadArrangement = loadArrangement;
 
-		this.round = new Round(this, session, 0);
+		this.round = new Round(this, 0);
 
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Starting load engine with groups " + loader.getLoadGroups());
@@ -125,27 +125,6 @@ public class LoadEngine
 		round.stuff(ent);
 	}
 
-//	/**
-//	 * Check to see if any of the references for a sessionvalue should be loaded based on current load
-//	 * groups. Keeps track of load groups that have been seen so that we don't dup work or create cycles.
-//	 */
-//	public void checkReferences(SessionValue<?> sv) {
-//		// First check if there is anything to do. There is only something to do if there are any load groups
-//		// we haven't yet seen.
-//		boolean check = false;
-//		for (Class<?> loadGroup: loader.getLoadGroups()) {
-//			check = check || sv.addLoadGroup(loadGroup);
-//		}
-//
-//		if (check) {
-//			for (SessionReference reference: sv.getReferences()) {
-//				if (shouldLoad(reference.getLoadConditions())) {
-//					load(reference.getKey());
-//				}
-//			}
-//		}
-//	}
-
 	/**
 	 * Asynchronously translate raw to processed; might produce successive load operations as refs are filled in
 	 */
@@ -207,5 +186,15 @@ public class LoadEngine
 			return (T)ent;
 		else
 			return meta.load(ent, ctx);
+	}
+
+	/** */
+	public Session getSession() {
+		return session;
+	}
+
+	/** */
+	public LoadArrangement getLoadArrangement() {
+		return loadArrangement;
 	}
 }

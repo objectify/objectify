@@ -7,8 +7,8 @@ import java.util.Set;
 
 /**
  * The information we maintain on behalf of an entity instance in the session cache.  Normally
- * this would just be a Result<?>, but we also need a list of references so that future loads
- * with groups will patch up further references.
+ * this would just be a Result<?>, but we also need to track the load arrangements so that
+ * we can decide whether to look for more Ref<?>s to load.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -19,20 +19,31 @@ public class SessionValue<T>
 	public Result<T> getResult() { return result; }
 
 	/**
-	 * Tracks the load groups which have been active when this session value was traversed during a reload
-	 * operation. If this value has already been loaded with LoadGroupA, then
-	 * we don't need to traverse the references again when LoadGroupA is active. Importantly, this
-	 * prevents cycles within a single load operation when there are cycles in the object graph.
+	 * <p>Keep track of every load group arrangement that has been seen so far. We know that if we see
+	 * a new arrangement, we will need to save() the POJO to an entity (which gets tossed) so that
+	 * we can look for any Ref<?>s and possibly load them with the new instructions.</p>
+	 *
+	 * <p>Also, this prevents cycles within a single load operation when there are cycles in the object graph.</p>
 	 */
-	Set<Class<?>> loadedGroups = new HashSet<Class<?>>();
+	Set<LoadArrangement> loadedWith = new HashSet<>();
 
-	/** */
+	/**
+	 * No load arrangement - in other words, this was a save operation
+	 */
 	public SessionValue(Result<T> result) {
 		this.result = result;
 	}
 
-	/** @return false if loadgroup has already been added */
-	public boolean addLoadGroup(Class<?> loadGroup) {
-		return loadedGroups.add(loadGroup);
+	/** */
+	public SessionValue(Result<T> result, LoadArrangement loadArrangement) {
+		this(result);
+		this.loadedWith.add(loadArrangement);
+	}
+
+	/**
+	 * @return false if the arrangement has already been added
+	 */
+	public boolean loadWith(LoadArrangement arrangement) {
+		return loadedWith.add(arrangement);
 	}
 }

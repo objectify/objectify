@@ -93,7 +93,7 @@ public class LoadContext
 	/**
 	 * Create a Ref for the key, and maybe start a load operation depending on current load groups.
 	 */
-	public <T> Ref<T> makeRef(Key<T> key, LoadConditions loadConditions) {
+	public <T> Ref<T> loadRef(Key<T> key, LoadConditions loadConditions) {
 		return engine.makeRef(currentRoot, loadConditions, key);
 	}
 

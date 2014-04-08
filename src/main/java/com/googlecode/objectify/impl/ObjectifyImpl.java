@@ -271,7 +271,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 			} else {
 				// Run it through a translator
 				Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
-				return translator.save(value, false, new SaveContext(this), Path.root());
+				return translator.save(value, false, new SaveContext(), Path.root());
 			}
 		}
 	}

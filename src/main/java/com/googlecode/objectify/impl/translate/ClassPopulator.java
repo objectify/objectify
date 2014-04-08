@@ -136,7 +136,7 @@ public class ClassPopulator<P> implements Populator<P>
 	@Override
 	public void save(P pojo, boolean index, SaveContext ctx, Path path, PropertyContainer into) {
 		// Must do @OnSave methods first
-		if (!onSaveMethods.isEmpty())
+		if (!ctx.skipLifecycle() && !onSaveMethods.isEmpty())
 			for (LifecycleMethod method: onSaveMethods)
 				method.execute(pojo);
 

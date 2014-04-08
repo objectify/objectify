@@ -237,8 +237,7 @@ public class KeyMetadata<P>
 		if (parentMeta == null)
 			return null;
 
-		// TODO: The null-ofy SaveContext is a little weird here. There must be a better way.
-		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo, new SaveContext(null), Path.root());
+		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo, new SaveContext(), Path.root());
 	}
 
 	/**

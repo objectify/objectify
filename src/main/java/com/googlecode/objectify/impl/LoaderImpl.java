@@ -18,7 +18,6 @@ import com.googlecode.objectify.util.ResultProxy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +36,12 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	protected ObjectifyImpl<?> ofy;
 
 	/** */
-	protected Set<Class<?>> loadGroups;
+	protected LoadArrangement loadArrangement = new LoadArrangement();
 
 	/** */
 	public LoaderImpl(ObjectifyImpl<?> ofy) {
 		super(null);
 		this.ofy = ofy;
-		this.loadGroups = Collections.<Class<?>>emptySet();
 	}
 
 	/* (non-Javadoc)
@@ -62,9 +60,9 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	public L group(Class<?>... groups) {
 		LoaderImpl<L> clone = this.clone();
 
-		Set<Class<?>> next = new HashSet<Class<?>>(Arrays.asList(groups));
-		next.addAll(this.loadGroups);
-		clone.loadGroups = Collections.unmodifiableSet(next);
+		clone.loadArrangement = new LoadArrangement();
+		clone.loadArrangement.addAll(Arrays.asList(groups));
+		clone.loadArrangement.addAll(this.loadArrangement);
 
 		return (L)clone;
 	}
@@ -216,8 +214,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public Set<Class<?>> getLoadGroups() {
-		// This is unmodifiable
-		return loadGroups;
+		return Collections.unmodifiableSet(loadArrangement);
 	}
 
 	/** */
@@ -230,7 +227,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	LoadEngine createLoadEngine() {
-		return new LoadEngine(this, ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadGroups);
+		return new LoadEngine(this, ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
 	}
 
 	/**

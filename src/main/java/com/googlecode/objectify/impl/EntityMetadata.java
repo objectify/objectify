@@ -83,9 +83,6 @@ public class EntityMetadata<P>
 	 */
 	public Entity save(P pojo, SaveContext ctx) {
 		try {
-			// The context needs to know the root entity for any given point
-			ctx.setCurrentRoot(pojo);
-
 			Entity ent = (Entity) translator.save(pojo, false, ctx, Path.root());
 			createSyntheticIndexes(ent, ctx);
 			return ent;

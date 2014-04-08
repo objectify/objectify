@@ -7,7 +7,9 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Multi;
 import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -22,7 +24,8 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
- * Tests the fetching system for simple parent values.
+ * Tests the fetching system for normal fields. This uses the session so we can experiment with
+ * loading and re-loading with different entity groups.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -64,12 +67,14 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		public @Id Long id;
 		public @Load(Single.class) Ref<Trivial> single;
 		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+
+		public @Ignore boolean onSaveFired = false;
+		@OnSave void onSave() { onSaveFired = true; }
 	}
 
 	/** */
 	@Test
-	public void testGrouping() throws Exception
-	{
+	public void loadGroupsSpecifiedOnCachedEntitiesStillLoad() throws Exception {
 		fact().register(HasEntitiesWithGroups.class);
 
 		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
@@ -122,5 +127,26 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
+	}
+
+	/**
+	 * Fragment of other test, just easier to debug.
+	 */
+	@Test
+	public void loadGroupsSpecifiedOnCachedEntitiesStillLoad_simplerCase() throws Exception {
+		fact().register(HasEntitiesWithGroups.class);
+
+		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
+		he.single = Ref.create(k1);
+
+		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
+		assert !fetched.single.isLoaded();
+
+		fetched = ofy().load().group(Single.class).entity(he).now();
+		assert fetched.single.isLoaded();
+
+		// The code internally performs a save to a throwaway Entity, but we want to make sure that doesn't have
+		// any public effects.
+		assert !fetched.onSaveFired;
 	}
 }

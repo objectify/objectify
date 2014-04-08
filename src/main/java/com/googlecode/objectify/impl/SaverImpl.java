@@ -68,8 +68,9 @@ public class SaverImpl implements Saver
 		if (pojo instanceof Entity) {
 			return (Entity)pojo;
 		} else {
-			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.<Object>getClass());
-			return meta.<Object>save(pojo, new SaveContext(ofy));
+			@SuppressWarnings("unchecked")
+			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());
+			return meta.save(pojo, new SaveContext());
 		}
 	}
 
