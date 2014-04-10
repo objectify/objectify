@@ -82,7 +82,7 @@ public class ObjectifyFactory implements Forge
 	public <T> T construct(Class<T> type) {
 		// We do this instead of calling newInstance directly because this lets us work around accessiblity
 		Constructor<T> ctor = TypeUtils.getNoArgConstructor(type);
-		return TypeUtils.newInstance(ctor, new Object[0]);
+		return TypeUtils.newInstance(ctor);
 	}
 
 	/**

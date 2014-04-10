@@ -6,6 +6,8 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.condition.If;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
@@ -15,6 +17,8 @@ import java.lang.reflect.Type;
 public class FieldProperty extends AbstractProperty
 {
 	Field field;
+	MethodHandle getter;
+	MethodHandle setter;
 	
 	/** These are authoritative */
 	If<?, ?>[] indexConditions;
@@ -30,11 +34,17 @@ public class FieldProperty extends AbstractProperty
 	 */
 	public FieldProperty(ObjectifyFactory fact, Class<?> examinedClass, Field field) {
 		super(field.getName(), field.getAnnotations(), field);
-		
-		this.field = field;
 
 		field.setAccessible(true);
-		
+		this.field = field;
+		try {
+			this.getter = MethodHandles.lookup().unreflectGetter(field);
+			this.setter = MethodHandles.lookup().unreflectSetter(field);
+		}
+		catch (ReflectiveOperationException e) {
+			throw new IllegalStateException(e);
+		}
+
 		IfConditionGenerator ifGenerator = new IfConditionGenerator(fact);
 
 		// Check @Index and @Unindex conditions
@@ -63,15 +73,23 @@ public class FieldProperty extends AbstractProperty
 	/** */
 	@Override
 	public void set(Object pojo, Object value) {
-		try { this.field.set(pojo, value); }
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+		try {
+			//this.field.set(pojo, value);
+			setter.invoke(pojo, value);
+		}
+		catch (RuntimeException ex) { throw ex; }
+		catch (Throwable ex) { throw new RuntimeException(ex); }
 	}
 	
 	/** */
 	@Override
 	public Object get(Object pojo) {
-		try { return this.field.get(pojo); }
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
+		try {
+			//return this.field.get(pojo);
+			return getter.invoke(pojo);
+		}
+		catch (RuntimeException ex) { throw ex; }
+		catch (Throwable ex) { throw new RuntimeException(ex); }
 	}
 
 	/** */

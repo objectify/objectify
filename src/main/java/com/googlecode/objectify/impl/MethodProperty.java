@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
@@ -12,15 +14,22 @@ public class MethodProperty extends AbstractProperty
 {
 	/** */
 	Method method;
+	MethodHandle methodHandle;
 
 	/** */
 	public MethodProperty(Method method) {
 		super(method.getName() + "()", method.getParameterAnnotations()[0], method);
-		
-		this.method = method;
 
 		method.setAccessible(true);
-		
+		this.method = method;
+
+		try {
+			this.methodHandle = MethodHandles.lookup().unreflect(method);
+		}
+		catch (IllegalAccessException e) {
+			throw new IllegalStateException(e);
+		}
+
 		// Method must have only one parameter
 		if (method.getParameterTypes().length != 1)
 			throw new IllegalStateException("@AlsoLoad methods must have a single parameter. Can't use " + method);
@@ -31,9 +40,12 @@ public class MethodProperty extends AbstractProperty
 
 	@Override
 	public void set(Object pojo, Object value) {
-		try { this.method.invoke(pojo, value); }
-		catch (IllegalAccessException ex) { throw new RuntimeException(ex); }
-		catch (InvocationTargetException ex) { throw new RuntimeException(ex); }
+		try {
+			//this.method.invoke(pojo, value);
+			methodHandle.invoke(pojo, value);
+		}
+		catch (RuntimeException ex) { throw ex; }
+		catch (Throwable ex) { throw new RuntimeException(ex); }
 	}
 	
 	@Override

@@ -13,7 +13,7 @@ import java.util.Map;
 public class TypeUtils
 {
 	/** A map of the primitive types to their wrapper types */
-	static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<Class<?>, Class<?>>();
+	private static final Map<Class<?>, Class<?>> PRIMITIVE_TO_WRAPPER = new HashMap<>();
 	static {
 		PRIMITIVE_TO_WRAPPER.put(boolean.class, Boolean.class);
 		PRIMITIVE_TO_WRAPPER.put(byte.class, Byte.class);
@@ -58,15 +58,6 @@ public class TypeUtils
 		}
 	}
 
-	/** Checked exceptions are LAME. By the way, don't use this since it causes security exceptions on private classes */
-	public static <T> T newInstance(Class<T> clazz) {
-		try {
-			return clazz.newInstance();
-		}
-		catch (InstantiationException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-	}
-
 	/** Checked exceptions are LAME. */
 	public static <T> T newInstance(Constructor<T> ctor, Object... params) {
 		try {
@@ -81,15 +72,6 @@ public class TypeUtils
 	public static Object field_get(Field field, Object obj) {
 		try {
 			return field.get(obj);
-		}
-		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-	}
-
-	/** Checked exceptions are LAME. */
-	public static void field_set(Field field, Object obj, Object value) {
-		try {
-			field.set(obj, value);
 		}
 		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e) { throw new RuntimeException(e); }
