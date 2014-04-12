@@ -136,12 +136,14 @@ public class Transmog<T>
 		// Look for anything with depth more than 1; these are embedded things
 		for (Map.Entry<Path, Collection<Object>> index: ctx.getIndexes().entrySet()) {
 			Path path = index.getKey();
-			Collection<Object> values = index.getValue();
+			Collection<Object> values = new ArrayList<>(index.getValue());
 			
 			if (path.isEmbedded()) {
 				entity.setProperty(path.toPathString(), values);
 			}
 		}
+
+		ctx.getIndexes().clear();
 	}
 
 	/** Public just for testing */
