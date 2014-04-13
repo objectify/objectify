@@ -106,13 +106,13 @@ public class ClassPopulator<P> implements Populator<P>
 	public void load(PropertyContainer node, LoadContext ctx, Path path, final P into) {
 		superPopulator.load(node, ctx, path, into);
 
-		ctx.enterOwnerContext(into);
+		ctx.enterContainerContext(into);
 		try {
 			for (PropertyPopulator<Object, Object> prop: props) {
 				prop.load(node, ctx, path, into);
 			}
 		} finally {
-			ctx.exitOwnerContext(into);
+			ctx.exitContainerContext(into);
 		}
 
 		// If there are any @OnLoad methods, call them after everything else

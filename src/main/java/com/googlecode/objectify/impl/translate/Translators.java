@@ -54,7 +54,7 @@ public class Translators
 		this.earlyInsertPoint = this.translatorFactories.size();
 
 		// Annotation based translators go first
-		this.translatorFactories.add(new OwnerTranslatorFactory());
+		this.translatorFactories.add(new ContainerTranslatorFactory());
 		this.translatorFactories.add(new SerializeTranslatorFactory());	// Serialize has priority over everything
 		this.translatorFactories.add(new MapifyTranslatorFactory());
 

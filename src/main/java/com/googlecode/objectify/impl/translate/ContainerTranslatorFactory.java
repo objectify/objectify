@@ -1,28 +1,28 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.annotation.Owner;
+import com.googlecode.objectify.annotation.Container;
 import com.googlecode.objectify.impl.Path;
 
 
 /**
- * <p>Translator factory which lets users create @Owner properties. This is a neat orthogonality
- * in the translation system; @Owner properties are just like any other translated property, except
+ * <p>Translator factory which lets users create @Container properties. This is a neat orthogonality
+ * in the translation system; @Container properties are just like any other translated property, except
  * that the value is pulled out of the load context instead of the datastore node.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class OwnerTranslatorFactory implements TranslatorFactory<Object, Object>
+public class ContainerTranslatorFactory implements TranslatorFactory<Object, Object>
 {
-	private static class OwnerTranslator implements Translator<Object, Object>, Synthetic {
+	private static class ContainerTranslator implements Translator<Object, Object>, Synthetic {
 		private final TypeKey<Object> tk;
 
-		public OwnerTranslator(TypeKey<Object> tk) {
+		public ContainerTranslator(TypeKey<Object> tk) {
 			this.tk = tk;
 		}
 
 		@Override
 		public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
-			return ctx.getOwner(tk.getType(), path);
+			return ctx.getContainer(tk.getType(), path);
 		}
 
 		@Override
@@ -35,9 +35,9 @@ public class OwnerTranslatorFactory implements TranslatorFactory<Object, Object>
 	@Override
 	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
 
-		if (!tk.isAnnotationPresent(Owner.class))
+		if (!tk.isAnnotationPresent(Container.class))
 			return null;
 
-		return new OwnerTranslator(tk);
+		return new ContainerTranslator(tk);
 	}
 }

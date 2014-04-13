@@ -3,9 +3,9 @@ package com.googlecode.objectify.test;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Container;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Owner;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
@@ -14,10 +14,11 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  */
-public class EmbeddedOwnerTests extends TestBase
+public class EmbeddedContainerTests extends TestBase
 {
 	public static class EmbedMe {
-		@Owner HasEmbed owner;
+		@Container
+		HasEmbed container;
 		String foo;
 	}
 	@Entity
@@ -28,7 +29,7 @@ public class EmbeddedOwnerTests extends TestBase
 	}
 	
 	@Test
-	public void embedClassOwnerPointsAtOwner() throws Exception {
+	public void embedClassContainerPointsAtContainer() throws Exception {
 		fact().register(HasEmbed.class);
 		
 		HasEmbed he = new HasEmbed();
@@ -36,7 +37,7 @@ public class EmbeddedOwnerTests extends TestBase
 		he.embedMe.foo = "bar";
 		
 		HasEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.embedMe.owner == fetched;
+		assert fetched.embedMe.container == fetched;
 	}
 	
 	//
@@ -44,7 +45,8 @@ public class EmbeddedOwnerTests extends TestBase
 	//
 	
 	public static class SuperEmbedMe {
-		@Owner Object owner;
+		@Container
+		Object container;
 		String foo;
 	}
 	@Entity
@@ -55,7 +57,7 @@ public class EmbeddedOwnerTests extends TestBase
 	}
 	
 	@Test
-	public void embedClassOwnerPointsAtOwnerWhenSpecifyingSuperclass() throws Exception {
+	public void embedClassContainerPointsAtContainerWhenSpecifyingSuperclass() throws Exception {
 		fact().register(HasSuperEmbed.class);
 		
 		HasSuperEmbed he = new HasSuperEmbed();
@@ -63,7 +65,7 @@ public class EmbeddedOwnerTests extends TestBase
 		he.embedMe.foo = "bar";
 		
 		HasSuperEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.embedMe.owner == fetched;
+		assert fetched.embedMe.container == fetched;
 	}
 	
 	//
@@ -71,12 +73,15 @@ public class EmbeddedOwnerTests extends TestBase
 	//
 	
 	public static class DeepEmbedMe {
-		@Owner NestedEmbedMe nestedOwner;
-		@Owner HasNestedEmbed rootOwner;
+		@Container
+		NestedEmbedMe nestedContainer;
+		@Container
+		HasNestedEmbed rootContainer;
 		String foo;
 	}
 	public static class NestedEmbedMe {
-		@Owner HasNestedEmbed rootOwner;
+		@Container
+		HasNestedEmbed rootContainer;
 		DeepEmbedMe deep;
 		String foo;
 	}
@@ -88,7 +93,7 @@ public class EmbeddedOwnerTests extends TestBase
 	}
 	
 	@Test
-	public void deepEmbedClassOwnerPointsAtOwner() throws Exception {
+	public void deepEmbedClassContainerPointsAtContainer() throws Exception {
 		fact().register(HasNestedEmbed.class);
 		
 		HasNestedEmbed he = new HasNestedEmbed();
@@ -98,9 +103,9 @@ public class EmbeddedOwnerTests extends TestBase
 		he.nested.deep.foo = "bar";
 		
 		HasNestedEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.nested.rootOwner == fetched;
-		assert fetched.nested.deep.rootOwner == fetched;
-		assert fetched.nested.deep.nestedOwner == fetched.nested;
+		assert fetched.nested.rootContainer == fetched;
+		assert fetched.nested.deep.rootContainer == fetched;
+		assert fetched.nested.deep.nestedContainer == fetched.nested;
 	}
 	
 	//
@@ -108,7 +113,8 @@ public class EmbeddedOwnerTests extends TestBase
 	//
 	
 	public static class BadEmbedMe {
-		@Owner HasEmbed owner;	// some other class!
+		@Container
+		HasEmbed container;	// some other class!
 		String foo;
 	}
 
@@ -122,10 +128,10 @@ public class EmbeddedOwnerTests extends TestBase
 	/**
 	 * We can't consistently detect this on registration because any class only gets turned
 	 * into a translator once. It may be embedded in many other classes which don't have
-	 * the correct owner. So we just detect it on load.
+	 * the correct container. So we just detect it on load.
 	 */
 	@Test(expectedExceptions= LoadException.class)
-	public void loadingBadOwnerThrowsException() throws Exception {
+	public void loadingBadContainerThrowsException() throws Exception {
 		fact().register(BadHasEmbed.class);
 
 		BadHasEmbed bhe = new BadHasEmbed();

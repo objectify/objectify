@@ -39,7 +39,7 @@ public class LoadContext
 	Key<?> currentRoot;
 	
 	/** As we enter and exit embedded contexts, track the objects */
-	Deque<Object> owners = new ArrayDeque<Object>();
+	Deque<Object> containers = new ArrayDeque<Object>();
 
 	/**
 	 * If a translator implements the marker interface Recycles, this will be populated with
@@ -118,41 +118,41 @@ public class LoadContext
 	}
 
 	/**
-	 * Get the owner object which is appropriate for the specified property. Go up the chain looking for a compatible
-	 * type; the first one found is the owner. If nothing found, throw an exception.
+	 * Get the container object which is appropriate for the specified property. Go up the chain looking for a compatible
+	 * type; the first one found is the container. If nothing found, throw an exception.
 	 */
-	public Object getOwner(Type ownerType, Path path) {
-		Class<?> ownerClass = GenericTypeReflector.erase(ownerType);
+	public Object getContainer(Type containerType, Path path) {
+		Class<?> containerClass = GenericTypeReflector.erase(containerType);
 		
-		Iterator<Object> ownersIt = owners.descendingIterator();
+		Iterator<Object> containersIt = containers.descendingIterator();
 
 		// We have always entered the current 'this' context when processing properties, so the first thing
 		// we get will always be 'this'. So skip that and the first matching owner should be what we want.
-		ownersIt.next();
+		containersIt.next();
 
-		while (ownersIt.hasNext()) {
-			Object potentialOwner = ownersIt.next();
+		while (containersIt.hasNext()) {
+			Object potentialContainer = containersIt.next();
 			
-			if (ownerClass.isAssignableFrom(potentialOwner.getClass()))
-				return potentialOwner;
+			if (containerClass.isAssignableFrom(potentialContainer.getClass()))
+				return potentialContainer;
 		}
 		
-		throw new IllegalStateException("No owner matching " + ownerType + " in " + owners + " at path " + path);
+		throw new IllegalStateException("No container matching " + containerType + " in " + containers + " at path " + path);
 	}
 	
 	/**
-	 * Enter an "owner" context; this is the context of the object that we are processing right now.
+	 * Enter a container context; this is the context of the object that we are processing right now.
 	 */
-	public void enterOwnerContext(Object owner) {
-		owners.addLast(owner);
+	public void enterContainerContext(Object container) {
+		containers.addLast(container);
 	}
 	
 	/**
-	 * Exit an "owner" context. The parameter is just a sanity check to make sure that the value popped off is the same
+	 * Exit a container context. The parameter is just a sanity check to make sure that the value popped off is the same
 	 * as the value we expect.
 	 */
-	public void exitOwnerContext(Object expectedOwner) {
-		Object popped = owners.removeLast();
-		assert popped == expectedOwner;
+	public void exitContainerContext(Object expectedContainer) {
+		Object popped = containers.removeLast();
+		assert popped == expectedContainer;
 	}
 }
