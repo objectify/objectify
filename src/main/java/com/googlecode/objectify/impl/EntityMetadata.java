@@ -13,6 +13,7 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
@@ -83,6 +84,8 @@ public class EntityMetadata<P>
 	 */
 	public Entity save(P pojo, SaveContext ctx) {
 		try {
+			ctx.startOneEntity();
+
 			Entity ent = (Entity) translator.save(pojo, false, ctx, Path.root());
 			createSyntheticIndexes(ent, ctx);
 			return ent;
@@ -125,7 +128,8 @@ public class EntityMetadata<P>
 			Collection<Object> values = index.getValue();
 
 			if (path.isEmbedded()) {
-				entity.setProperty(path.toPathString(), values);
+				// Need to copy the values list otherwise it will clear when we reset the context indexes
+				entity.setProperty(path.toPathString(), new ArrayList<>(values));
 			}
 		}
 	}

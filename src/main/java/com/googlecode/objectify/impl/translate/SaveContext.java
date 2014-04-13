@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Key;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.Path;
@@ -47,5 +46,12 @@ public class SaveContext
 	 */
 	public Key saveRef(Ref<?> value, LoadConditions loadConditions) {
 		return value.key().getRaw();
+	}
+
+	/**
+	 * Called at the beginning of each entity save. In a batch save, this will be called more than once.
+	 */
+	public void startOneEntity() {
+		indexes.clear();
 	}
 }

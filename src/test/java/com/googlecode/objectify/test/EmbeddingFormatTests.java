@@ -185,5 +185,23 @@ public class EmbeddingFormatTests extends TestBase
 		OuterWithIndex fetched = ofy().load().type(OuterWithIndex.class).filter("inner.stuff", "stuff").iterator().next();
 		assert fetched.inner.stuff.equals(inner.stuff);
 	}
-	
+
+	/** */
+	@Test
+	public void batchSaveDoesNotCrossContaminateIndexes() throws Exception {
+		fact().register(OuterWithIndex.class);
+
+		InnerIndexed inner0 = new InnerIndexed("stuff0");
+		OuterWithIndex outer0 = new OuterWithIndex(inner0);
+
+		InnerIndexed inner1 = new InnerIndexed("stuff1");
+		OuterWithIndex outer1 = new OuterWithIndex(inner1);
+
+		ofy().save().entities(outer0, outer1).now();
+
+		ofy().clear();
+		List<OuterWithIndex> fetched = ofy().load().type(OuterWithIndex.class).filter("inner.stuff", inner0.stuff).list();
+		assert fetched.size() == 1;
+		assert fetched.get(0).inner.stuff.equals(inner0.stuff);
+	}
 }
