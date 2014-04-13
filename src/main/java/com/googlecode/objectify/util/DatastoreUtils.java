@@ -37,8 +37,7 @@ public class DatastoreUtils
 		
 		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
 		
-		for (FilterPredicate filter: orig.getFilterPredicates())
-			copy.addFilter(filter.getPropertyName(), filter.getOperator(), filter.getValue());
+		copy.setFilter(orig.getFilter());
 		
 		for (SortPredicate sort: orig.getSortPredicates())
 			copy.addSort(sort.getPropertyName(), sort.getDirection());

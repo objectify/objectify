@@ -140,7 +140,7 @@ public class QueryCursorTestsSmall extends TestBase
 	/** */
 	@Test
 	public void cursorReverses() throws Exception {
-		Query<Trivial> q = ofy().load().type(Trivial.class).order("id");
+		Query<Trivial> q = ofy().load().type(Trivial.class).order("__key__");
 		QueryResultIterator<Trivial> it = q.iterator();
 
 		@SuppressWarnings("unused")

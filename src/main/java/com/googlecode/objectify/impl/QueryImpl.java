@@ -3,10 +3,10 @@ package com.googlecode.objectify.impl;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
+import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortDirection;
-import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.google.appengine.api.datastore.QueryResultIterable;
 import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
@@ -20,8 +20,6 @@ import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.ResultProxy;
 
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -55,7 +53,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	/** Need to know this so that we can force hybrid off when we get a multiquery (IN/NOT) or order */
 	boolean hasExplicitHybrid;
 	boolean hasMulti;
-	boolean hasNonKeyOrder;
 
 	/** */
 	QueryImpl(LoaderImpl<?> loader) {
@@ -73,7 +70,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		Subclass sub = clazz.getAnnotation(Subclass.class);
 		if (sub != null) {
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
-			this.actual.addFilter(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, FilterOperator.EQUAL, discriminator);
+			this.addFilter(FilterOperator.EQUAL.of(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, discriminator));
 		}
 
 		// If the class is cacheable, hybridize
@@ -98,6 +95,14 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	public QueryImpl<T> filter(String condition, Object value) {
 		QueryImpl<T> q = createQuery();
 		q.addFilter(condition, value);
+		return q;
+	}
+
+	/* */
+	@Override
+	public QueryImpl<T> filter(Filter filter) {
+		QueryImpl<T> q = createQuery();
+		q.addFilter(filter);
 		return q;
 	}
 
@@ -126,38 +131,38 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		String prop = parts[0].trim();
 		FilterOperator op = (parts.length == 2) ? this.translate(parts[1]) : FilterOperator.EQUAL;
 
-		// If we have a class restriction, check to see if the property is the @Parent or @Id
-		if (this.classRestriction != null)
-		{
+		// If we have a class restriction, check to see if the property is the @Parent or @Id. We used to try to convert
+		// filtering on the id field to a __key__ query, but that tended to confuse users about the real capabilities
+		// of GAE and Objectify. So let's force users to use filterKey() instead.
+		if (this.classRestriction != null) {
 			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (prop.equals(meta.getParentFieldName())) {
 				throw new IllegalArgumentException("@Parent fields cannot be filtered on. Perhaps you wish to use filterKey() or ancestor() instead?");
 			}
 			else if (prop.equals(meta.getIdFieldName())) {
-				if (meta.hasParentField())
-					throw new IllegalArgumentException("@Id fields cannot be filtered on classes that have @Parent fields. Perhaps you wish to use filterKey() instead?");
-
-				String kind = Key.getKind(this.classRestriction);
-
-				if (value instanceof Number) {
-					value = DatastoreUtils.createKey(null, kind, ((Number)value).longValue());	// accept non-long values
-				} else if (value instanceof String) {
-					value = DatastoreUtils.createKey(null, kind, value);
-				} else {
-					throw new IllegalArgumentException("Id filter values must be Long or String");
-				}
-
-				prop = "__key__";
+				throw new IllegalArgumentException("@Id fields cannot be filtered on. Perhaps you wish to use filterKey() instead?");
 			}
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys
 		value = loader.getObjectifyImpl().makeFilterable(value);
-		this.actual.addFilter(prop, op, value);
+
+		addFilter(op.of(prop, value));
 
 		if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
 			hasMulti = true;
+	}
+
+	/**
+	 * Add the filter as an AND to whatever is currently set as the actual filter.
+	 */
+	void addFilter(Filter filter) {
+		if (actual.getFilter() == null) {
+			actual.setFilter(filter);
+		} else {
+			actual.setFilter(CompositeFilterOperator.and(actual.getFilter(), filter));
+		}
 	}
 
 	/**
@@ -190,35 +195,24 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		condition = condition.trim();
 		SortDirection dir = SortDirection.ASCENDING;
 
-		if (condition.startsWith("-"))
-		{
+		if (condition.startsWith("-")) {
 			dir = SortDirection.DESCENDING;
 			condition = condition.substring(1).trim();
 		}
 
-		boolean isNonKeyOrder = true;
-
 		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
-		if (this.classRestriction != null)
-		{
+		if (this.classRestriction != null) {
 			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (condition.equals(meta.getParentFieldName()))
-				throw new IllegalStateException("You cannot order by @Parent field. Perhaps you wish to order by __key__ instead?");
+				throw new IllegalArgumentException("You cannot order by @Parent field. Perhaps you wish to order by __key__ instead?");
 
 			if (condition.equals(meta.getIdFieldName())) {
-				if (meta.hasParentField())
-					throw new IllegalStateException("You cannot order by @Id field if class has a @Parent field. Perhaps you wish to order by __key__ instead?");
-
-				condition = "__key__";
-				isNonKeyOrder = false;
+				throw new IllegalArgumentException("You cannot order by @Id field. Perhaps you wish to order by __key__ instead?");
 			}
 		}
 
 		this.actual.addSort(condition, dir);
-
-		if (isNonKeyOrder)
-			this.hasNonKeyOrder = true;
 	}
 
 	/** Modifies the instance */
@@ -288,52 +282,14 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		if (this.actual.getAncestor() != null)
 			bld.append(KeyFactory.keyToString(this.actual.getAncestor()));
 
-		// We need to sort filters to make a stable string value
-		FilterPredicate[] filters = this.actual.getFilterPredicates().toArray(new FilterPredicate[this.actual.getFilterPredicates().size()]);
-		Arrays.sort(filters, new Comparator<FilterPredicate>() {
-			@Override
-			public int compare(FilterPredicate o1, FilterPredicate o2) {
-				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
-				if (result != 0)
-					return result;
+		// Filter and sort don't necessarily produce stable values (ordering might be different), but this is not
+		// necessarily a fatal problem. Just a potential inefficiency if the query is being used as a cache key.
 
-				result = o1.getOperator().compareTo(o2.getOperator());
-				if (result != 0)
-					return result;
+		if (this.actual.getFilter() != null)
+			bld.append(",filter=").append(this.actual.getFilter());
 
-				if (o1.getValue() == null)
-					return o2.getValue() == null ? 0 : -1;
-				else if (o2.getValue() == null)
-					return 1;
-				else
-					return o1.getValue().toString().compareTo(o2.getValue().toString());	// not perfect, but probably as good as we can do
-			}
-		});
-		for (FilterPredicate filter: filters) {
-			bld.append(",filter=");
-			bld.append(filter.getPropertyName());
-			bld.append(filter.getOperator().name());
-			bld.append(filter.getValue());
-		}
-
-		// We need to sort sorts to make a stable string value
-		SortPredicate[] sorts = this.actual.getSortPredicates().toArray(new SortPredicate[this.actual.getSortPredicates().size()]);
-		Arrays.sort(sorts, new Comparator<SortPredicate>() {
-			@Override
-			public int compare(SortPredicate o1, SortPredicate o2) {
-				int result = o1.getPropertyName().compareTo(o2.getPropertyName());
-				if (result != 0)
-					return result;
-
-				// Actually, it should be impossible to have the same prop with multiple directions
-				return o1.getDirection().compareTo(o2.getDirection());
-			}
-		});
-		for (SortPredicate sort: this.actual.getSortPredicates()) {
-			bld.append(",sort=");
-			bld.append(sort.getPropertyName());
-			bld.append(sort.getDirection().name());
-		}
+		if (!this.actual.getSortPredicates().isEmpty())
+			bld.append(",sort=").append(this.actual.getSortPredicates());
 
 		if (this.limit > 0)
 			bld.append(",limit=").append(this.limit);
@@ -363,7 +319,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
 		Iterator<T> it = this.limit(1).resultIterable().iterator();
 
-		return new LoadResult<T>(null, new IteratorFirstResult<T>(it));
+		return new LoadResult<>(null, new IteratorFirstResult<>(it));
 	}
 
 	/* (non-Javadoc)
@@ -395,7 +351,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public List<T> list() {
-		return ResultProxy.create(List.class, new MakeListResult<T>(this.chunk(Integer.MAX_VALUE).iterable()));
+		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterable()));
 	}
 
 	/**
@@ -414,7 +370,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		if (!hasExplicitHybrid) {
 			// These are the special conditions we know about.  It may expand.
 
-			if (hasMulti && hasNonKeyOrder)
+			if (hasMulti)
 				hybridize = false;
 		}
 
@@ -427,7 +383,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({"unchecked", "CloneDoesntDeclareCloneNotSupportedException"})
 	public QueryImpl<T> clone() {
 		try {
 			QueryImpl<T> impl = (QueryImpl<T>)super.clone();

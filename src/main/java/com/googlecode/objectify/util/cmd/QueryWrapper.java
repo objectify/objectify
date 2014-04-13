@@ -1,5 +1,6 @@
 package com.googlecode.objectify.util.cmd;
 
+import com.google.appengine.api.datastore.Query.Filter;
 import com.googlecode.objectify.cmd.Query;
 
 /**
@@ -19,6 +20,13 @@ public class QueryWrapper<H extends QueryWrapper<H, T>, T> extends SimpleQueryWr
 	public H filter(String condition, Object value) {
 		H next = this.clone();
 		next.base = ((Query<T>)base).filter(condition, value);
+		return next;
+	}
+
+	@Override
+	public H filter(Filter filter) {
+		H next = this.clone();
+		next.base = ((Query<T>)base).filter(filter);
 		return next;
 	}
 

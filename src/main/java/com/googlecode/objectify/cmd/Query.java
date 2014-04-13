@@ -1,6 +1,7 @@
 package com.googlecode.objectify.cmd;
 
 import com.google.appengine.api.datastore.Cursor;
+import com.google.appengine.api.datastore.Query.Filter;
 
 
 /**
@@ -27,20 +28,32 @@ public interface Query<T> extends SimpleQuery<T>
 	 * Filtering a condition of {@code "age>="} will perform an <em>equality</em> test on an entity
 	 * property exactly named "age>=".  You can't create properties like this with Objectify, but you
 	 * can with the Low-Level API.</p>
+	 *
+	 * <p>Multiple calls to filter() will produce an AND (intersection) query.</p></p>
 	 * 
 	 * <p>See the Google documentation for 
 	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
 	 * for an explanation of what you can and cannot filter for.</p>
 	 * 
-	 * <p>In addition to filtering on indexed properties, you can filter on @Id properties
-	 * <strong>if</strong> this query is restricted to a Class<T> which has no @Parent. This
-	 * is a convenient alias for {@code filterKey()} which builds the key for you.</p>
-	 * 
-	 * <p>You can <strong>not</strong> filter on @Parent properties.  Use
+	 * <p>You can <strong>not</strong> filter on @Id or @Parent properties.  Use
 	 * {@code filterKey()} or {@code ancestor()} instead.</p>
 	 */
 	public Query<T> filter(String condition, Object value);
-	
+
+	/**
+	 * <p>Create a filter based on the raw low-level Filter. This is a very low-level operation; the values
+	 * in the Filter are not translated in any way. For example, this only understands native datastore
+	 * {@code Key} objects and not Objectify {@code Key<?>} objects.</p>
+	 *
+	 * <p>See the Google documentation for
+	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
+	 * for an explanation of what you can and cannot filter for.</p>
+	 *
+	 * <p>You can <strong>not</strong> filter on @Id or @Parent properties.  Use
+	 * {@code filterKey()} or {@code ancestor()} instead.</p>
+	 */
+	public Query<T> filter(Filter filter);
+
 	/**
 	 * <p>Sorts based on a property.  Examples:</p>
 	 * 
@@ -49,11 +62,7 @@ public interface Query<T> extends SimpleQuery<T>
 	 * <li>{@code order("-age")} (descending sort)</li>
 	 * </ul>
 	 * 
-	 * <p>You can sort on @Id properties <strong>if</strong> this query is
-	 * restricted to a Class<T> which has no @Parent.  Note that this is only important for
-	 * descending sorting; default iteration is key-ascending.</p>
-	 * 
-	 * <p>You can <strong>not</strong> sort on @Parent properties.</p>
+	 * <p>You can <strong>not</strong> sort on @Id or @Parent properties. Sort by __key__ or -__key__ instead.</p>
 	 */
 	public Query<T> order(String condition);
 	

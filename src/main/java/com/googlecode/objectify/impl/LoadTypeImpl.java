@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.appengine.api.datastore.Query.Filter;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.LoadIds;
@@ -45,7 +46,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	QueryImpl<T> createQuery() {
-		return new QueryImpl<T>(loader, type);
+		return new QueryImpl<>(loader, type);
 	}
 
 	/* (non-Javadoc)
@@ -55,6 +56,14 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	public Query<T> filter(String condition, Object value) {
 		QueryImpl<T> q = createQuery();
 		q.addFilter(condition, value);
+		return q;
+	}
+
+	/* */
+	@Override
+	public Query<T> filter(Filter filter) {
+		QueryImpl<T> q = createQuery();
+		q.addFilter(filter);
 		return q;
 	}
 
@@ -106,7 +115,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	@Override
 	public <S> Map<S, T> ids(Iterable<S> ids) {
 
-		final Map<Key<T>, S> keymap = new LinkedHashMap<Key<T>, S>();
+		final Map<Key<T>, S> keymap = new LinkedHashMap<>();
 		for (S id: ids)
 			keymap.put(DatastoreUtils.createKey(parent, type, id), id);
 
@@ -115,7 +124,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 		return ResultProxy.create(Map.class, new ResultCache<Map<S, T>>() {
 			@Override
 			protected Map<S, T> nowUncached() {
-				Map<S, T> proper = new LinkedHashMap<S, T>(loaded.size() * 2);
+				Map<S, T> proper = new LinkedHashMap<>(loaded.size() * 2);
 
 				for (Map.Entry<Key<T>, T> entry: loaded.entrySet())
 					proper.put(keymap.get(entry.getKey()), entry.getValue());
@@ -131,7 +140,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	@Override
 	public LoadIds<T> parent(Object keyOrEntity) {
 		Key<T> parentKey = loader.ofy.factory().keys().anythingToKey(keyOrEntity);
-		return new LoadTypeImpl<T>(loader, type, parentKey);
+		return new LoadTypeImpl<>(loader, type, parentKey);
 	}
 
 }

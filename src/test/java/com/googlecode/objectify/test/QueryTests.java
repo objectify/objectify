@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.Query.Filter;
+import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.Query;
@@ -44,8 +46,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
-	{
+	public void setUp() {
 		super.setUp();
 
 		fact().register(Trivial.class);
@@ -64,8 +65,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testKeysOnly() throws Exception
-	{
+	public void testKeysOnly() throws Exception {
 		Query<Trivial> q = ofy().load().type(Trivial.class);
 
 		int count = 0;
@@ -94,8 +94,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testNormalSorting() throws Exception
-	{
+	public void testNormalSorting() throws Exception {
 		Iterator<Trivial> it = ofy().load().type(Trivial.class).order("someString").iterator();
 
 		Trivial t1 = it.next();
@@ -107,8 +106,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testNormalReverseSorting() throws Exception
-	{
+	public void testNormalReverseSorting() throws Exception {
 		Iterator<Trivial> it = ofy().load().type(Trivial.class).order("-someString").iterator();
 
 		// t2 first
@@ -120,22 +118,14 @@ public class QueryTests extends TestBase
 	}
 
 	/** Unfortunately we can only test one way without custom index file */
-	@Test
-	public void testIdSorting() throws Exception
-	{
-		Iterator<Trivial> it = ofy().load().type(Trivial.class).order("id").iterator();
-
-		Trivial t1 = it.next();
-		Trivial t2 = it.next();
-
-		assert t1.getId().equals(triv1.getId());
-		assert t2.getId().equals(triv2.getId());
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void doNotAllowSortingByIdField() throws Exception {
+		ofy().load().type(Trivial.class).order("id").iterator();
 	}
 
 	/** */
 	@Test
-	public void testFiltering() throws Exception
-	{
+	public void testFiltering() throws Exception {
 		Iterator<Trivial> it = ofy().load().type(Trivial.class).filter("someString >", triv1.getSomeString()).iterator();
 
 		Trivial t2 = it.next();
@@ -145,9 +135,7 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testFilteringByNull() throws Exception
-	{
-
+	public void testFilteringByNull() throws Exception {
 		Trivial triv3 = new Trivial(null, 3);
 		ofy().save().entity(triv3).now();
 
@@ -160,10 +148,17 @@ public class QueryTests extends TestBase
 	}
 
 	/** */
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void doNotAllowFilteringOnIdProperties() throws Exception {
+		ofy().load().type(Trivial.class).filter("id >", triv1.getId()).iterator();
+	}
+
+	/** */
 	@Test
-	public void testIdFiltering() throws Exception
-	{
-		Iterator<Trivial> it = ofy().load().type(Trivial.class).filter("id >", triv1.getId()).iterator();
+	public void filterWithLowLevelFilterObject() throws Exception {
+		Filter filter = FilterOperator.GREATER_THAN.of("someString", triv1.getSomeString());
+
+		Iterator<Trivial> it = ofy().load().type(Trivial.class).filter(filter).iterator();
 
 		Trivial t2 = it.next();
 		assert !it.hasNext();
@@ -172,23 +167,10 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testIdFilteringTwoBounds() throws Exception
-	{
-		Query<Trivial> query = ofy().load().type(Trivial.class).filter("id >", triv1.getId()).filter("id <=", triv2.getId());
-		Iterator<Trivial> it = query.iterator();
-
-		Trivial t2 = it.next();
-		assert !it.hasNext();
-		assert t2.getId().equals(triv2.getId());
-	}
-
-	/** */
-	@Test
-	public void testQueryToString() throws Exception
-	{
-		Query<Trivial> q1 = ofy().load().type(Trivial.class).filter("id >", triv1.getId());
-		Query<Trivial> q2 = ofy().load().type(Trivial.class).filter("id <", triv1.getId());
-		Query<Trivial> q3 = ofy().load().type(Trivial.class).filter("id >", triv1.getId()).order("-id");
+	public void testQueryToString() throws Exception {
+		Query<Trivial> q1 = ofy().load().type(Trivial.class).filter("someString >", "blah");
+		Query<Trivial> q2 = ofy().load().type(Trivial.class).filter("someString <", "blah");
+		Query<Trivial> q3 = ofy().load().type(Trivial.class).filter("someString >", "blah").order("-__key__");
 
 		assert !q1.toString().equals(q2.toString());
 		assert !q1.toString().equals(q3.toString());
@@ -196,9 +178,8 @@ public class QueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testEmptySingleResult() throws Exception
-	{
-		Query<Trivial> q = ofy().load().type(Trivial.class).filter("id", 999999);	// no such entity
+	public void testEmptySingleResult() throws Exception {
+		Query<Trivial> q = ofy().load().type(Trivial.class).filter("someString", "nada");	// no such entity
 		LoadResult<Trivial> res = q.first();
 		Trivial value = res.now();
 		assert value == null;
