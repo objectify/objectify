@@ -350,4 +350,10 @@ public class QueryTests extends TestBase
 
 		assert trivs.size() == 1;
 	}
+
+	/** */
+	@Test(expectedExceptions = IllegalArgumentException.class)
+	public void queryForNonRegisteredEntity() throws Exception {
+		ofy().load().type(Employee.class).limit(1).list();
+	}
 }
