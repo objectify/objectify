@@ -7,11 +7,14 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.google.appengine.api.datastore.Blob;
+import com.googlecode.objectify.annotation.Index;
 import org.testng.annotations.Test;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
@@ -308,4 +311,26 @@ public class BasicTests extends TestBase
 		ofy().clear();
 		assert ofy().load().key(hpKey).now() == null;
 	}
+
+	@Entity
+	static class HasIndexedBlob {
+		@Id Long id;
+		@Index Blob blob;
+	}
+
+	@Test
+	public void indexSomethingThatCannotBeIndexed() throws Exception {
+		fact().register(HasIndexedBlob.class);
+
+		byte[] stuff = "asdf".getBytes();
+
+		HasIndexedBlob hib = new HasIndexedBlob();
+		hib.blob = new Blob(stuff);
+
+		HasIndexedBlob fetched = ofy().saveClearLoad(hib);
+		byte[] fetchedStuff = fetched.blob.getBytes();
+
+		assert Arrays.equals(fetchedStuff, stuff);
+	}
+
 }
