@@ -34,25 +34,27 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class CollectionTests extends TestBase
-{
+public class CollectionTests extends TestBase {
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(CollectionTests.class.getName());
 
 	/** */
-	public static class CustomSet extends HashSet<Integer>
-	{
+	public static class CustomSet extends HashSet<Integer> {
 		private static final long serialVersionUID = 1L;
-		public int tenTimesSize() { return this.size() * 10; }
+
+		public int tenTimesSize() {
+			return this.size() * 10;
+		}
 	}
 
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	static class HasCollections
-	{
-		public @Id Long id;
+	static class HasCollections {
+		public
+		@Id
+		Long id;
 
 		public List<Integer> integerList;
 		public LinkedList<Integer> integerLinkedList;
@@ -68,14 +70,15 @@ public class CollectionTests extends TestBase
 
 		public CustomSet customSet;
 
-		/** This should give the system a workout */
+		/**
+		 * This should give the system a workout
+		 */
 		public Set<Key<Trivial>> typedKeySet;
 	}
 
 	/** */
-	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass)
-	{
-		assert coll.getClass() == expectedClass;	// will fail with caching objectify, this is ok
+	private void assertContains123(Collection<Integer> coll, Class<?> expectedClass) {
+		assert coll.getClass() == expectedClass;    // will fail with caching objectify, this is ok
 
 		assert coll.size() == 3;
 		Iterator<Integer> it = coll.iterator();
@@ -86,8 +89,7 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@Test
-	public void testBasicLists() throws Exception
-	{
+	public void testBasicLists() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -107,8 +109,7 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@Test
-	public void testBasicSets() throws Exception
-	{
+	public void testBasicSets() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -134,8 +135,7 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@Test
-	public void testCustomSet() throws Exception
-	{
+	public void testCustomSet() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -152,8 +152,7 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@Test
-	public void testTypedKeySet() throws Exception
-	{
+	public void testTypedKeySet() throws Exception {
 		fact().register(HasCollections.class);
 
 		Key<Trivial> key7 = Key.create(Trivial.class, 7);
@@ -178,8 +177,7 @@ public class CollectionTests extends TestBase
 	}
 
 	@Test
-	public void testCollectionContainingNull() throws Exception
-	{
+	public void testCollectionContainingNull() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -204,8 +202,7 @@ public class CollectionTests extends TestBase
 	 * Rule: never store a null Collection, always leave it alone when loaded
 	 */
 	@Test
-	public void testNullCollections() throws Exception
-	{
+	public void testNullCollections() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -216,7 +213,7 @@ public class CollectionTests extends TestBase
 
 		ofy().save().entity(hc).now();
 		hc = ofy().load().key(key).now();
-		assert hc.integerList == null;	// not loaded
+		assert hc.integerList == null;    // not loaded
 
 		Entity e = ds().get(key.getRaw());
 		// rule : never store a null collection
@@ -227,8 +224,7 @@ public class CollectionTests extends TestBase
 	 * Test rule: never store an empty Collection, leaves value as null
 	 */
 	@Test
-	public void testEmptyCollections() throws Exception
-	{
+	public void testEmptyCollections() throws Exception {
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
@@ -253,14 +249,15 @@ public class CollectionTests extends TestBase
 
 	/** */
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasInitializedCollection
-	{
-		public @Id Long id;
+	public static class HasInitializedCollection {
+		public
+		@Id
+		Long id;
 		public List<String> initialized = new ArrayList<>();
-		@Ignore public List<String> copyOf;
+		@Ignore
+		public List<String> copyOf;
 
-		public HasInitializedCollection()
-		{
+		public HasInitializedCollection() {
 			this.copyOf = initialized;
 		}
 	}
@@ -269,18 +266,17 @@ public class CollectionTests extends TestBase
 	 * Make sure that Objectify doesn't overwrite an already initialized concrete collection
 	 */
 	@Test
-	public void testInitializedCollections() throws Exception
-	{
+	public void testInitializedCollections() throws Exception {
 		fact().register(HasInitializedCollection.class);
 
 		HasInitializedCollection has = new HasInitializedCollection();
 		HasInitializedCollection fetched = ofy().saveClearLoad(has);
-		assert fetched.initialized == fetched.copyOf;	// should be same object
+		assert fetched.initialized == fetched.copyOf;    // should be same object
 
 		has = new HasInitializedCollection();
 		has.initialized.add("blah");
 		fetched = ofy().saveClearLoad(has);
-		assert fetched.initialized == fetched.copyOf;	// should be same object
+		assert fetched.initialized == fetched.copyOf;    // should be same object
 	}
 
 	/**
@@ -288,16 +284,15 @@ public class CollectionTests extends TestBase
 	 */
 	@com.googlecode.objectify.annotation.Entity
 	@SuppressWarnings("rawtypes")
-	public static class HasRawCollection
-	{
-		@Id Long id;
+	public static class HasRawCollection {
+		@Id
+		Long id;
 		Set raw = new HashSet();
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testRawtypeSet()
-	{
+	public void testRawtypeSet() {
 		fact().register(HasRawCollection.class);
 
 		HasRawCollection hrc = new HasRawCollection();
@@ -306,5 +301,25 @@ public class CollectionTests extends TestBase
 		HasRawCollection fetched = ofy().saveClearLoad(hrc);
 
 		assert hrc.raw.equals(fetched.raw);
+	}
+
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasStringList {
+		@Id
+		Long id;
+		List<String> list = new ArrayList<>();
+	}
+
+	@Test
+	public void stringListWorks() {
+		fact().register(HasStringList.class);
+
+		HasStringList h = new HasStringList();
+		h.list.add("foo");
+		h.list.add("bar");
+
+		HasStringList fetched = ofy().saveClearLoad(h);
+
+		assert h.list.equals(fetched.list);
 	}
 }
