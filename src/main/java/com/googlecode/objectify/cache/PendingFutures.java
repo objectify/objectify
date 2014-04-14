@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 public class PendingFutures
 {
 	/** The thread local value will be removed (null) if there are none pending */
-	private static ThreadLocal<Pending> pending = new ThreadLocal<Pending>();
+	private static ThreadLocal<Pending> pending = new ThreadLocal<>();
 	
 	
 	/**

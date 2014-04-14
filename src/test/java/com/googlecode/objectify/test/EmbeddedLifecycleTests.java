@@ -1,15 +1,10 @@
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
-import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
-import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 

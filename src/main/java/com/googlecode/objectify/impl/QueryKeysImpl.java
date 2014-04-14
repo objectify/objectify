@@ -32,9 +32,9 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 	public LoadResult<Key<T>> first() {
 		// We are already keysonly
 		Iterator<Key<T>> it = impl.limit(1).keysIterable().iterator();
-		Result<Key<T>> result = new IteratorFirstResult<Key<T>>(it);
+		Result<Key<T>> result = new IteratorFirstResult<>(it);
 
-		return new LoadResult<Key<T>>(null, result);
+		return new LoadResult<>(null, result);
 	}
 
 	@Override
@@ -44,7 +44,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public List<Key<T>> list() {
-		return ResultProxy.create(List.class, new MakeListResult<Key<T>>(impl.chunk(Integer.MAX_VALUE).keysIterable()));
+		return ResultProxy.create(List.class, new MakeListResult<>(impl.chunk(Integer.MAX_VALUE).keysIterable()));
 	}
 
 	@Override

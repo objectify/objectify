@@ -24,7 +24,7 @@ public class MultimapList<K, V> extends HashMap<K, List<V>>
 
 		List<V> list = this.get(key);
 		if (list == null) {
-			list = new ArrayList<V>();
+			list = new ArrayList<>();
 			this.put(key, list);
 		}
 

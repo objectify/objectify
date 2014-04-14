@@ -34,7 +34,7 @@ public class EntityMemcacheStats implements MemcacheStats
 	}
 	
 	/** */
-	private ConcurrentHashMap<String, Stat> stats = new ConcurrentHashMap<String, Stat>();
+	private ConcurrentHashMap<String, Stat> stats = new ConcurrentHashMap<>();
 	
 	/**
 	 * Get the live statistics.  You can clear it if you want. 

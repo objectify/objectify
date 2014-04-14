@@ -9,10 +9,10 @@ import java.util.Iterator;
  */
 public class IterateFunction<T> implements Function<Iterable<T>, Iterator<T>>
 {
-	private static final IterateFunction<Object> INSTANCE = new IterateFunction<Object>();
+	private static final IterateFunction<Object> INSTANCE = new IterateFunction<>();
 
 	@SuppressWarnings("unchecked")
-	public static final <T> IterateFunction<T> instance() {
+	public static <T> IterateFunction<T> instance() {
 		return (IterateFunction<T>)INSTANCE;
 	}
 

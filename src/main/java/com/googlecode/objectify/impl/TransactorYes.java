@@ -34,7 +34,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
 		Future<Transaction> fut = parent.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
-		transaction = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<Transaction>(fut)) {
+		transaction = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<>(fut)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
@@ -59,7 +59,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	@Override
 	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent) {
 		ObjectifyImpl<O> next = parent.clone();
-		next.transactor = new TransactorNo<O>(parentTransactor.getSession());
+		next.transactor = new TransactorNo<>(parentTransactor.getSession());
 		return next;
 	}
 

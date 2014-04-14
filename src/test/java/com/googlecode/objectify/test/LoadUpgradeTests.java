@@ -59,7 +59,7 @@ public class LoadUpgradeTests extends TestBase
 		public static class Multi {}
 
 		public @Id Long id;
-		public @Load(Multi.class) List<Ref<Other>> multi = new ArrayList<Ref<Other>>();
+		public @Load(Multi.class) List<Ref<Other>> multi = new ArrayList<>();
 	}
 
 	/** */

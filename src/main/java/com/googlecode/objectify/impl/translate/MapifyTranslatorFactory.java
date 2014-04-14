@@ -47,6 +47,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 					throw new SkipException();
 
 				if (map == null)
+					//noinspection unchecked
 					map = (Map<Object, Object>)fact.constructMap(mapType);
 				else
 					map.clear();

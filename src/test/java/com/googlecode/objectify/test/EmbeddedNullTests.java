@@ -85,7 +85,7 @@ public class EmbeddedNullTests extends TestBase
 	{
 		Criminal crim = new Criminal();
 		crim.aliases = new Name[0];
-		crim.moreAliases = new ArrayList<Name>();
+		crim.moreAliases = new ArrayList<>();
 
 		Criminal fetched = ofy().saveClearLoad(crim);
 		assert fetched.aliases == null;	// not valid with caching objectify
@@ -214,7 +214,7 @@ public class EmbeddedNullTests extends TestBase
 	{
 		Criminal crim = new Criminal();
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), new Name("Mojo", null), new Name("Ivan", "Stang") };
-		crim.aliasesSet = new HashSet<Name>(Arrays.asList(crim.aliases));
+		crim.aliasesSet = new HashSet<>(Arrays.asList(crim.aliases));
 
 		Criminal fetched = ofy().saveClearLoad(crim);
 

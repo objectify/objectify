@@ -62,7 +62,7 @@ public class TransactionTests extends TestBase
 	@Cache
 	static class HasSimpleCollection {
 		@Id Long id;
-		List<String> stuff = new ArrayList<String>();
+		List<String> stuff = new ArrayList<>();
 	}
 
 	/** */
@@ -241,7 +241,7 @@ public class TransactionTests extends TestBase
 			public void vrun() {
 				// Test in _and out_ of a transaction
 				ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
-				assert txnlessImpl.getCache() == false;
+				assert !txnlessImpl.getCache();
 			}
 		});
 	}

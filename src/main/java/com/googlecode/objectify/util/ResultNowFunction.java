@@ -8,10 +8,10 @@ import com.googlecode.objectify.Result;
  */
 public class ResultNowFunction<T> implements Function<Result<T>, T>
 {
-	private static final ResultNowFunction<Object> INSTANCE = new ResultNowFunction<Object>();
+	private static final ResultNowFunction<Object> INSTANCE = new ResultNowFunction<>();
 
 	@SuppressWarnings("unchecked")
-	public static final <T> ResultNowFunction<T> instance() {
+	public static <T> ResultNowFunction<T> instance() {
 		return (ResultNowFunction<T>)INSTANCE;
 	}
 

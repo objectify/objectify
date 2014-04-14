@@ -39,7 +39,7 @@ public class LoadContext
 	Key<?> currentRoot;
 	
 	/** As we enter and exit embedded contexts, track the objects */
-	Deque<Object> containers = new ArrayDeque<Object>();
+	Deque<Object> containers = new ArrayDeque<>();
 
 	/**
 	 * If a translator implements the marker interface Recycles, this will be populated with
@@ -102,7 +102,7 @@ public class LoadContext
 	 */
 	public void defer(Runnable runnable) {
 		if (this.deferred == null)
-			this.deferred = new ArrayList<Runnable>();
+			this.deferred = new ArrayList<>();
 
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Deferring: " + runnable);

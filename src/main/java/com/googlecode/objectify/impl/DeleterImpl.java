@@ -54,7 +54,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> keys(Iterable<? extends Key<?>> keys) {
-		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<>();
 		for (Key<?> key: keys)
 			rawKeys.add(key.getRaw());
 
@@ -74,7 +74,7 @@ class DeleterImpl implements Deleter
 	 */
 	@Override
 	public Result<Void> entities(Iterable<?> entities) {
-		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
 		for (Object obj: entities)
 			keys.add(ofy.factory().keys().rawKeyOf(obj));
 

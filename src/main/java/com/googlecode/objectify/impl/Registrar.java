@@ -27,7 +27,7 @@ public class Registrar
 	protected ObjectifyFactory fact;
 
 	/** This maps kind to EntityMetadata */
-	protected Map<String, EntityMetadata<?>> byKind = new HashMap<String, EntityMetadata<?>>();
+	protected Map<String, EntityMetadata<?>> byKind = new HashMap<>();
 
 	/** True if any @Cached entities have been registered */
 	protected boolean cacheEnabled;
@@ -67,7 +67,7 @@ public class Registrar
 			if (this.byKind.containsKey(kind))
 				return;
 
-			EntityMetadata<T> cmeta = new EntityMetadata<T>(this.fact, clazz);
+			EntityMetadata<T> cmeta = new EntityMetadata<>(this.fact, clazz);
 			this.byKind.put(kind, cmeta);
 
 			if (cmeta.getCacheExpirySeconds() != null)

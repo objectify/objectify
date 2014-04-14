@@ -125,14 +125,14 @@ public class FieldProperty extends AbstractProperty
 			return false;
 		
 		Object value = this.get(onPojo);
-		
-		for (int i=0; i<conditions.length; i++) {
+
+		for (If<?, ?> condition: conditions) {
 			@SuppressWarnings("unchecked")
-			If<Object, Object> cond = (If<Object, Object>)conditions[i];
-			
+			If<Object, Object> cond = (If<Object, Object>)condition;
+
 			if (cond.matchesValue(value))
 				return true;
-			
+
 			if (cond.matchesPojo(onPojo))
 				return true;
 		}

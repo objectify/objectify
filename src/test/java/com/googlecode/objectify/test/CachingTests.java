@@ -72,7 +72,7 @@ public class CachingTests extends TestBase
 		Cached ca2 = new Cached();
 		ca2.stuff = "ca2 stuff";
 
-		List<Object> entities = new ArrayList<Object>();
+		List<Object> entities = new ArrayList<>();
 		entities.add(un1);
 		entities.add(ca1);
 		entities.add(un2);

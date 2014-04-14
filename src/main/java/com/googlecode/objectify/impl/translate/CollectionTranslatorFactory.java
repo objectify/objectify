@@ -47,6 +47,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					throw new SkipException();
 
 				if (collection == null)
+					//noinspection unchecked
 					collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
 				else
 					collection.clear();

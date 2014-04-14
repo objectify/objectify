@@ -27,7 +27,7 @@ public class Pending
 	 * ConcurrentModificationException.  We need to be able to iterate while Futures remove
 	 * themselves from the set. 
 	 */
-	ConcurrentHashMap<Future<?>, Future<?>> pendingFutures = new ConcurrentHashMap<Future<?>, Future<?>>(64, 0.75f, 1);
+	ConcurrentHashMap<Future<?>, Future<?>> pendingFutures = new ConcurrentHashMap<>(64, 0.75f, 1);
 	
 	/** 
 	 * True while we are iterating on the pendingFutures.  This prevents reentrancy problems.

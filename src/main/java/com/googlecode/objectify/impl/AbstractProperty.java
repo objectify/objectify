@@ -12,9 +12,9 @@ import java.util.Set;
  */
 abstract public class AbstractProperty implements Property
 {
-	String name;
-	String[] names;
-	Annotation[] annotations;
+	private String name;
+	private String[] names;
+	private Annotation[] annotations;
 	
 	/** */
 	public AbstractProperty(String name, Annotation[] annotations, Object thingForDebug) {
@@ -22,7 +22,7 @@ abstract public class AbstractProperty implements Property
 		this.annotations = annotations;
 
 		// Figure out names from the @IgnoreLoad and @AlsoLoad annotations
-		Set<String> nameSet = new LinkedHashSet<String>();
+		Set<String> nameSet = new LinkedHashSet<>();
 		
 		// If we have @IgnoreLoad, don't add priamry name to the names collection (which is used for loading)
 		if (this.getAnnotation(IgnoreLoad.class) == null)

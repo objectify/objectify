@@ -53,15 +53,14 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	private static final Logger log = Logger.getLogger(CachingAsyncDatastoreService.class.getName());
 	
 	/** The real datastore service objects - we need both */
-	AsyncDatastoreService rawAsync;
+	private AsyncDatastoreService rawAsync;
 	
 	/** */
-	EntityMemcache memcache;
+	private EntityMemcache memcache;
 	
 	/**
 	 */
-	public CachingAsyncDatastoreService(AsyncDatastoreService rawAsync, EntityMemcache memcache)
-	{
+	public CachingAsyncDatastoreService(AsyncDatastoreService rawAsync, EntityMemcache memcache) {
 		this.rawAsync = rawAsync;
 		this.memcache = memcache;
 	}
@@ -252,8 +251,8 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		{
 			Map<Key, Bucket> soFar = this.memcache.getAll(keys);
 
-			final List<Bucket> uncached = new ArrayList<Bucket>(soFar.size());
-			Map<Key, Entity> cached = new HashMap<Key, Entity>();
+			final List<Bucket> uncached = new ArrayList<>(soFar.size());
+			Map<Key, Entity> cached = new HashMap<>();
 			
 			for (Bucket buck: soFar.values())
 				if (buck.isEmpty())
@@ -285,11 +284,11 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 			// If there was nothing from the cache, don't need to merge!
 			if (cached.isEmpty())
 				if (pending == null)
-					return new FutureNow<Map<Key, Entity>>(cached);	// empty!
+					return new FutureNow<>(cached);	// empty!
 				else
 					return pending;
 			else
-				return new MergeFuture<Key, Entity>(cached, pending);
+				return new MergeFuture<>(cached, pending);
 		}
 	}
 
@@ -399,7 +398,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		// The best we can do is watch out for when there is a potential problem and warn the
 		// developer in the logs.
 		
-		final List<Key> inputKeys = new ArrayList<Key>();
+		final List<Key> inputKeys = new ArrayList<>();
 		boolean foundAutoGenKeys = false;
 		
 		for (Entity ent: entities)
@@ -424,7 +423,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				// negative cache entry.  We can detect when this is a potential case and log a warning.
 				// The only real solution to this is to allocate ids in advance.  Which maybe we should do.
 				
-				List<Key> keys = null;
+				List<Key> keys;
 				try {
 					keys = this.raw.get();
 				} catch (Exception ex) {

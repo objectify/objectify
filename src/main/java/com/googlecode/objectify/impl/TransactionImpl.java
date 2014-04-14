@@ -22,7 +22,7 @@ public class TransactionImpl extends TransactionWrapper {
 	 * before the transaction commits.  This is so that the session reaches a consistent state
 	 * before it is propagated to the parent session.
 	 */
-	private List<Result<?>> enlisted = new ArrayList<Result<?>>();
+	private List<Result<?>> enlisted = new ArrayList<>();
 
 	/** */
 	public TransactionImpl(Transaction raw, TransactorYes<?> transactor) {
@@ -55,7 +55,7 @@ public class TransactionImpl extends TransactionWrapper {
 		// that protects against concurrent modification exceptions
 		while (!enlisted.isEmpty()) {
 			List<Result<?>> last = enlisted;
-			enlisted = new ArrayList<Result<?>>();
+			enlisted = new ArrayList<>();
 
 			for (Result<?> result: last)
 				result.now();

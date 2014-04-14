@@ -52,7 +52,7 @@ public class QueryCursorTestsSmall extends TestBase
 
 		Map<Key<Trivial>, Trivial> saved = ofy().save().entities(triv1, triv2).now();
 
-		this.keys = new ArrayList<Key<Trivial>>(saved.keySet());
+		this.keys = new ArrayList<>(saved.keySet());
 	}
 
 	/** */

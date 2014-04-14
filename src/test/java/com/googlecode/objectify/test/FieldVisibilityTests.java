@@ -39,7 +39,7 @@ public class FieldVisibilityTests extends TestBase
 		private Long id;
 
 		@Index
-		private Set<String> stuff = new HashSet<String>();
+		private Set<String> stuff = new HashSet<>();
 	}
 
 	/** */

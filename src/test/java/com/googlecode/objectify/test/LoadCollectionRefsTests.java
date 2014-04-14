@@ -51,7 +51,7 @@ public class LoadCollectionRefsTests extends TestBase
 		public Thing(long id) { this.id = id; }
 
 		@Load
-		public List<Ref<Other>> others = new SpecialList<Other>();
+		public List<Ref<Other>> others = new SpecialList<>();
 	}
 
 	/** */

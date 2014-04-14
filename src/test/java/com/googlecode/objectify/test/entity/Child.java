@@ -18,16 +18,17 @@ import com.googlecode.objectify.annotation.Parent;
 @Cache
 public class Child
 {
-	@Id Long id;
+	@Id
+	private Long id;
 	public Long getId() { return this.id; }
 	public void setId(Long value) { this.id = value; }
 	
 	@Parent
-	Key<Trivial> parent;
+	private Key<Trivial> parent;
 	public Key<Trivial> getParent() { return this.parent; }
 	public void setParent(Key<Trivial> value) { this.parent = value; }
 	
-	String childString;
+	private String childString;
 	public String getChildString() { return this.childString; }
 	public void setChildString(String value) { this.childString = value; }
 	

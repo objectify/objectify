@@ -25,7 +25,7 @@ public class LoadCyclesCollectionTest extends TestBase {
 		public long id = 1;
 
 		@Load
-		public List<Ref<B>> b = new ArrayList<Ref<B>>();
+		public List<Ref<B>> b = new ArrayList<>();
 	}
 
 	@Entity

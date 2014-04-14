@@ -56,6 +56,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 					throw new SkipException();
 
 				if (into == null)
+					//noinspection unchecked
 					into = (Map<Object, Object>)fact.constructMap(mapType);
 				else
 					into.clear();

@@ -97,11 +97,11 @@ public class ObjectifyFactory implements Forge
 	@SuppressWarnings("unchecked")
 	public <T extends Collection<?>> T constructCollection(Class<T> type, int size) {
 		if ((Class<?>)type == List.class || (Class<?>)type == Collection.class)
-			return (T)new ArrayList<Object>(size);
+			return (T)new ArrayList<>(size);
 		else if ((Class<?>)type == Set.class)
-			return (T)new HashSet<Object>((int)(size * 1.5));
+			return (T)new HashSet<>((int)(size * 1.5));
 		else if ((Class<?>)type == SortedSet.class)
-			return (T)new TreeSet<Object>();
+			return (T)new TreeSet<>();
 		else
 			return construct(type);
 	}
@@ -117,9 +117,9 @@ public class ObjectifyFactory implements Forge
 	@SuppressWarnings("unchecked")
 	public <T extends Map<?, ?>> T constructMap(Class<T> type) {
 		if ((Class<?>)type == Map.class)
-			return (T)new HashMap<Object, Object>();
+			return (T)new HashMap<>();
 		else if ((Class<?>)type == SortedMap.class)
-			return (T)new TreeMap<Object, Object>();
+			return (T)new TreeMap<>();
 		else
 			return construct(type);
 	}
@@ -168,7 +168,7 @@ public class ObjectifyFactory implements Forge
 	 * @return a new Objectify instance
 	 */
 	public Objectify begin() {
-		return new ObjectifyImpl<Objectify>(this);
+		return new ObjectifyImpl<>(this);
 	}
 
 	/**
@@ -285,7 +285,7 @@ public class ObjectifyFactory implements Forge
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
 		String kind = Key.getKind(clazz);
-		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(kind, num));
+		return new KeyRange<>(DatastoreServiceFactory.getDatastoreService().allocateIds(kind, num));
 	}
 
 	/**
@@ -305,7 +305,7 @@ public class ObjectifyFactory implements Forge
 
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
-		return new KeyRange<T>(DatastoreServiceFactory.getDatastoreService().allocateIds(parent.getRaw(), kind, num));
+		return new KeyRange<>(DatastoreServiceFactory.getDatastoreService().allocateIds(parent.getRaw(), kind, num));
 	}
 
 	/**

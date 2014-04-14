@@ -102,8 +102,7 @@ public class EntityMemcache
 		}
 
 		/** Get the entity stored at this bucket, possibly the one that was set */
-		public Entity getEntity()
-		{
+		public Entity getEntity() {
 			if (iv != null && iv.getValue() instanceof Entity)
 				return (Entity)iv.getValue();
 			else
@@ -129,7 +128,7 @@ public class EntityMemcache
 
 		/** */
 		@Override
-		public boolean equals(Object obj) { return this.key.equals(obj); }
+		public boolean equals(Object obj) { return this.key.equals(((Bucket)obj).key); }
 
 		/** */
 		@Override
@@ -204,10 +203,10 @@ public class EntityMemcache
 	 */
 	public Map<Key, Bucket> getAll(Iterable<Key> keys)
 	{
-		Map<Key, Bucket> result = new HashMap<Key, Bucket>();
+		Map<Key, Bucket> result = new HashMap<>();
 
 		// Sort out the ones that are uncacheable
-		Set<Key> potentials = new HashSet<Key>();
+		Set<Key> potentials = new HashSet<>();
 
 		for (Key key: keys)
 		{
@@ -217,18 +216,18 @@ public class EntityMemcache
 				potentials.add(key);
 		}
 
-		Map<Key, IdentifiableValue> ivs = null;
+		Map<Key, IdentifiableValue> ivs;
 		try {
 			ivs = this.memcache.getIdentifiables(potentials);
 		} catch (Exception ex) {
 			// This should really only be a problem if the serialization format for an Entity changes,
 			// or someone put a badly-serializing object in the cache underneath us.
 			log.log(Level.WARNING, "Error obtaining cache for " + potentials, ex);
-			ivs = new HashMap<Key, IdentifiableValue>();
+			ivs = new HashMap<>();
 		}
 
 		// Figure out cold cache values
-		Map<Key, Object> cold = new HashMap<Key, Object>();
+		Map<Key, Object> cold = new HashMap<>();
 		for (Key key: potentials)
 			if (ivs.get(key) == null)
 				cold.put(key, null);
@@ -277,7 +276,7 @@ public class EntityMemcache
 			return;
 
 		// Figure out which ones were bad
-		List<Key> bad = new ArrayList<Key>();
+		List<Key> bad = new ArrayList<>();
 
 		for (Bucket bucket: updates)
 			if (!good.contains(bucket.getKey()))
@@ -311,7 +310,7 @@ public class EntityMemcache
 	 */
 	public void empty(Iterable<Key> keys)
 	{
-		Map<Key, Object> updates = new HashMap<Key, Object>();
+		Map<Key, Object> updates = new HashMap<>();
 
 		for (Key key: keys)
 			if (cacheControl.getExpirySeconds(key) != null)
@@ -326,7 +325,7 @@ public class EntityMemcache
 	 */
 	private Set<Key> cachePutIfUntouched(Iterable<Bucket> buckets)
 	{
-		Map<Key, CasValues> payload = new HashMap<Key, CasValues>();
+		Map<Key, CasValues> payload = new HashMap<>();
 
 		for (Bucket buck: buckets)
 		{
@@ -358,7 +357,7 @@ public class EntityMemcache
 
 			this.memcache.deleteAll(keys);
 
-			return new HashMap<Key, Object>();
+			return new HashMap<>();
 		}
 	}
 
@@ -367,7 +366,7 @@ public class EntityMemcache
 	 */
 	public static Set<Key> keysOf(Iterable<Bucket> buckets)
 	{
-		Set<Key> keys = new HashSet<Key>();
+		Set<Key> keys = new HashSet<>();
 
 		for (Bucket buck: buckets)
 			keys.add(buck.getKey());

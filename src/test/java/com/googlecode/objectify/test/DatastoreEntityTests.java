@@ -103,7 +103,7 @@ public class DatastoreEntityTests extends TestBase
 	public void testEmptyCollectionInEntity() throws Exception
 	{
 		Entity ent = new Entity("Test");
-		List<Object> empty = new ArrayList<Object>();
+		List<Object> empty = new ArrayList<>();
 		ent.setProperty("empty", empty);
 
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
@@ -125,7 +125,7 @@ public class DatastoreEntityTests extends TestBase
 	public void testCollectionContainingNullInEntity() throws Exception
 	{
 		Entity ent = new Entity("Test");
-		List<Object> hasNull = new ArrayList<Object>();
+		List<Object> hasNull = new ArrayList<>();
 		hasNull.add(null);
 		ent.setProperty("hasNull", hasNull);
 

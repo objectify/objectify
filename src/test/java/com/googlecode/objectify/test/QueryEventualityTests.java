@@ -47,13 +47,13 @@ public class QueryEventualityTests extends TestBaseInconsistent
 		this.triv1 = new Trivial("foo1", 1);
 		this.triv2 = new Trivial("foo2", 2);
 
-		List<Trivial> trivs = new ArrayList<Trivial>();
+		List<Trivial> trivs = new ArrayList<>();
 		trivs.add(this.triv1);
 		trivs.add(this.triv2);
 
 		Map<Key<Trivial>, Trivial> result = ofy().save().entities(trivs).now();
 
-		this.keys = new ArrayList<Key<Trivial>>(result.keySet());
+		this.keys = new ArrayList<>(result.keySet());
 
 		// This should apply the writes
 		Query q = new Query("Trivial");

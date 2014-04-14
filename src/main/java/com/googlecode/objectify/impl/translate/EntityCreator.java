@@ -23,7 +23,7 @@ public class EntityCreator<P> extends Creator<P>
 
 	/**
 	 */
-	public EntityCreator(Class<P> clazz, Forge forge, KeyMetadata keyMetadata) {
+	public EntityCreator(Class<P> clazz, Forge forge, KeyMetadata<P> keyMetadata) {
 		super(clazz, forge);
 
 		// We should never have gotten this far in the registration process

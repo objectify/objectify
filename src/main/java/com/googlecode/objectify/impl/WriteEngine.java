@@ -62,7 +62,7 @@ public class WriteEngine
 
 		final SaveContext ctx = new SaveContext();
 
-		final List<Entity> entityList = new ArrayList<Entity>();
+		final List<Entity> entityList = new ArrayList<>();
 		for (E obj: entities) {
 			if (obj == null)
 				throw new NullPointerException("Attempted to save a null entity");
@@ -77,14 +77,14 @@ public class WriteEngine
 
 		// The CachingDatastoreService needs its own raw transaction
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(getTransactionRaw(), entityList);
-		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<List<com.google.appengine.api.datastore.Key>>(raw);
+		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<>(raw);
 
 		Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<E>, E>>(adapted) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Map<Key<E>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
-				Map<Key<E>, E> result = new LinkedHashMap<Key<E>, E>(base.size() * 2);
+				Map<Key<E>, E> result = new LinkedHashMap<>(base.size() * 2);
 
 				// One pass through the translated pojos to patch up any generated ids in the original objects
 				// Iterator order should be exactly the same for keys and values
@@ -102,7 +102,7 @@ public class WriteEngine
 					result.put(key, obj);
 
 					// Also stuff this in the session
-					session.add(key, new SessionValue<Object>(new ResultNow<Object>(obj)));
+					session.add(key, new SessionValue<>(new ResultNow<Object>(obj)));
 				}
 
 				if (log.isLoggable(Level.FINEST))
@@ -123,14 +123,14 @@ public class WriteEngine
 	 */
 	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
 		Future<Void> fut = ads.delete(getTransactionRaw(), keys);
-		Result<Void> adapted = new ResultAdapter<Void>(fut);
+		Result<Void> adapted = new ResultAdapter<>(fut);
 		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(Key.create(key), new SessionValue<Object>(new ResultNow<Object>(null)));
+					session.add(Key.create(key), new SessionValue<>(new ResultNow<>(null)));
 
 				return orig;
 			}

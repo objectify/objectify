@@ -67,7 +67,7 @@ public class LoadFieldRefLifecycle extends TestBase
 		public static class Multi {}
 
 		public @Id Long id;
-		public @Load(Multi.class) List<Ref<End>> ends = new ArrayList<Ref<End>>();
+		public @Load(Multi.class) List<Ref<End>> ends = new ArrayList<>();
 	}
 
 	Key<End> ke0;

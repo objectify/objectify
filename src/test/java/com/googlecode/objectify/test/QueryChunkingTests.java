@@ -59,13 +59,13 @@ public class QueryChunkingTests extends TestBase
 		loadEngine = mock(LoadEngine.class);
 
 		for (Map.Entry<Key<Trivial>, Trivial> entry: values.entrySet())
-			when(loadEngine.load(entry.getKey())).thenReturn(new ResultNow<Trivial>(entry.getValue()));
+			when(loadEngine.load(entry.getKey())).thenReturn(new ResultNow<>(entry.getValue()));
 	}
 
 	/** */
 	@Test
 	public void testChunkIterator() throws Exception {
-		ChunkIterator<Trivial> chunkIt = new ChunkIterator<Trivial>(keysIt, BATCH_SIZE, loadEngine);
+		ChunkIterator<Trivial> chunkIt = new ChunkIterator<>(keysIt, BATCH_SIZE, loadEngine);
 
 		Chunk<Trivial> chunk;
 		ResultWithCursor<Trivial> rc;

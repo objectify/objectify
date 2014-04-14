@@ -28,18 +28,18 @@ public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	private QueryResultIterator<Key<T>> source;
 
 	/** As we process */
-	PeekingIterator<ResultWithCursor<T>> stream;
+	private PeekingIterator<ResultWithCursor<T>> stream;
 
 	/** Track the values for the next time we need to get this */
-	Cursor nextCursor;
-	int nextOffset;
+	private Cursor nextCursor;
+	private int nextOffset;
 
 	/** */
 	public ChunkingIterator(LoadEngine loadEngine, PreparedQuery pq, QueryResultIterator<Key<T>> source, int chunkSize) {
 		this.pq = pq;
 		this.source = source;
 
-		ChunkIterator<T> chunkIt = new ChunkIterator<T>(source, chunkSize, loadEngine);
+		ChunkIterator<T> chunkIt = new ChunkIterator<>(source, chunkSize, loadEngine);
 		this.stream = Iterators.peekingIterator(Iterators.concat(chunkIt));
 
 		// Always start with a cursor; there might actually be any results

@@ -77,7 +77,7 @@ class Round {
 				}
 			};
 
-			sv = new SessionValue<T>(result, getLoadArrangement());
+			sv = new SessionValue<>(result, getLoadArrangement());
 			getSession().add(key, sv);
 
 		} else {
@@ -155,7 +155,7 @@ class Round {
 		}
 
 		if (fetch.isEmpty()) {
-			return new ResultNow<Map<com.google.appengine.api.datastore.Key, Entity>>(combined);
+			return new ResultNow<>(combined);
 		} else {
 			final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = loadEngine.fetch(fetch);
 

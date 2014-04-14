@@ -23,7 +23,7 @@ public class IdentityMultimapList<K, V> extends IdentityHashMap<K, List<V>>
 
 		List<V> list = this.get(key);
 		if (list == null) {
-			list = new ArrayList<V>();
+			list = new ArrayList<>();
 			this.put(key, list);
 		}
 

@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Wouter Coekaerts <wouter@coekaerts.be>
  */
 class VarMap {
-	private final Map<TypeVariable<?>, Type> map = new HashMap<TypeVariable<?>, Type>();
+	private final Map<TypeVariable<?>, Type> map = new HashMap<>();
 	
 	/**
 	 * Creates an empty VarMap

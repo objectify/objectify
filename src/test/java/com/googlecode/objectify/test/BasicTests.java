@@ -116,12 +116,12 @@ public class BasicTests extends TestBase
 		Trivial triv1 = new Trivial("foo", 5);
 		Trivial triv2 = new Trivial("foo2", 6);
 
-		List<Trivial> objs = new ArrayList<Trivial>();
+		List<Trivial> objs = new ArrayList<>();
 		objs.add(triv1);
 		objs.add(triv2);
 
 		Map<Key<Trivial>, Trivial> map = ofy().save().entities(objs).now();
-		List<Key<Trivial>> keys = new ArrayList<Key<Trivial>>(map.keySet());
+		List<Key<Trivial>> keys = new ArrayList<>(map.keySet());
 
 		// Verify the put keys
 		assert keys.size() == objs.size();
@@ -152,7 +152,7 @@ public class BasicTests extends TestBase
 
 		Key<Employee> fredKey = Key.create(fred);
 
-		List<Employee> employees = new ArrayList<Employee>(100);
+		List<Employee> employees = new ArrayList<>(100);
 		for (int i = 0; i < 100; i++)
 		{
 			Employee emp = new Employee("foo" + i, fredKey);

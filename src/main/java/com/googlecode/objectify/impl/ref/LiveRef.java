@@ -71,7 +71,7 @@ public class LiveRef<T> extends Ref<T>
 	 * if the value is not loaded, it serializes as null.
 	 */
 	protected Object writeReplace() throws ObjectStreamException {
-		return new DeadRef<T>(key(), getValue());
+		return new DeadRef<>(key(), getValue());
 	}
 
 }

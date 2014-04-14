@@ -207,7 +207,7 @@ public class EmbeddedPolymorphismTests extends TestBase
 
 		List<BusyHandler> second = ofy().load().type(BusyHandler.class).filter("animals.hypoallergenic", true).list();
 		assert second.size() == 1;
-		assert second.get(0).id == handler2.id;
+		assert second.get(0).id == (long)handler2.id;
 	}
 
 }

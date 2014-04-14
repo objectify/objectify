@@ -53,7 +53,7 @@ public class ChunkIterator<T> implements Iterator<Chunk<T>> {
 
 		Iterable<T> materialized = Iterables.transform(results, ResultNowFunction.<T>instance());
 
-		return new Chunk<T>(cursor, materialized);
+		return new Chunk<>(cursor, materialized);
 	}
 
 	@Override

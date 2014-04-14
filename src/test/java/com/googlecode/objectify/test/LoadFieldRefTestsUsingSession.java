@@ -66,7 +66,7 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 
 		public @Id Long id;
 		public @Load(Single.class) Ref<Trivial> single;
-		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
 
 		public @Ignore boolean onSaveFired = false;
 		@OnSave void onSave() { onSaveFired = true; }

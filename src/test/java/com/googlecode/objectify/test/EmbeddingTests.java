@@ -201,7 +201,7 @@ public class EmbeddingTests extends TestBase
 		private Long id;
 		private Key<Trivial> orgKey;
 		private String listName;
-		private List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
+		private List<KensMailingListEntry> listMembers = new ArrayList<>();
 		public KensClientListName() {}
 	}
 
@@ -209,7 +209,7 @@ public class EmbeddingTests extends TestBase
 	public void kensTest() throws Exception {
 		fact().register(KensClientListName.class);
 
-		List<KensMailingListEntry> listMembers = new ArrayList<KensMailingListEntry>();
+		List<KensMailingListEntry> listMembers = new ArrayList<>();
 		KensMailingListEntry mle = new KensMailingListEntry();
 		listMembers.add(mle);
 

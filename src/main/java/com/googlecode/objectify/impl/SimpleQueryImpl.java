@@ -156,7 +156,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	{
 		QueryImpl<T> q = createQuery();
 		q.setKeysOnly();
-		return new QueryKeysImpl<T>(q);
+		return new QueryKeysImpl<>(q);
 	}
 	
 	 /* (non-Javadoc)

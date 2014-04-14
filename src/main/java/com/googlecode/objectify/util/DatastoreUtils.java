@@ -4,7 +4,6 @@ import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.google.appengine.api.datastore.Query.FilterPredicate;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
@@ -23,7 +22,7 @@ public class DatastoreUtils
 	 * Turn a list of refs into a list of raw keys.
 	 */
 	public static List<com.google.appengine.api.datastore.Key> getRawKeys(Iterable<? extends Ref<?>> refs) {
-		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<>();
 		for (Ref<?> ref: refs)
 			rawKeys.add(ref.getKey().getRaw());
 		
@@ -79,7 +78,7 @@ public class DatastoreUtils
 	 * @param ids must contain either Long or String
 	 */
 	public static List<com.google.appengine.api.datastore.Key> createKeys(com.google.appengine.api.datastore.Key parent, String kind, Iterable<?> ids) {
-		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<com.google.appengine.api.datastore.Key>();
+		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
 		
 		for (Object id: ids)
 			keys.add(createKey(parent, kind, id));
@@ -92,7 +91,7 @@ public class DatastoreUtils
 	 * @param ids must contain either Long or String
 	 */
 	public static <T> List<Key<T>> createKeys(Key<?> parent, Class<T> kind, Iterable<?> ids) {
-		List<Key<T>> keys = new ArrayList<Key<T>>();
+		List<Key<T>> keys = new ArrayList<>();
 		
 		for (Object id: ids)
 			keys.add(createKey(parent, kind, id));

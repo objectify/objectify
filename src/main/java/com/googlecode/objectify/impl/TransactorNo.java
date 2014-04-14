@@ -138,7 +138,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 */
 	Objectify startTransaction(ObjectifyImpl<O> parent) {
 		ObjectifyImpl<O> cloned = parent.clone();
-		cloned.transactor = new TransactorYes<O>(cloned, this);
+		cloned.transactor = new TransactorYes<>(cloned, this);
 		return cloned;
 	}
 }

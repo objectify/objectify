@@ -55,7 +55,7 @@ public class QueryBasicTests extends TestBase
 	public void testChunking() throws Exception {
 		fact().register(Trivial.class);
 
-		List<Trivial> trivs = new ArrayList<Trivial>(100);
+		List<Trivial> trivs = new ArrayList<>(100);
 		for (int i = 0; i < 100; i++) {
 			Trivial triv = new Trivial(1000L + i, "foo" + i, i);
 			trivs.add(triv);

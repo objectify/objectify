@@ -64,7 +64,7 @@ public class TranslateAnnotationTests extends TestBase
 	/** Translates String collections to comma separated lists of strings, not really intended to be used (no escaping) */
 	public static class CommaSeparatedStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>, String> {
 		@Override
-		public Translator<Collection<String>, String> create(TypeKey tk, CreateContext ctx, Path path) {
+		public Translator<Collection<String>, String> create(TypeKey<Collection<String>> tk, CreateContext ctx, Path path) {
 			if (!tk.isAssignableTo(Collection.class))
 				return null;
 

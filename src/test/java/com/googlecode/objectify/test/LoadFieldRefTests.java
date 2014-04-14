@@ -60,7 +60,7 @@ public class LoadFieldRefTests extends TestBase
 	public static class HasEntities {
 		public @Id Long id;
 		public @Load Ref<Trivial> single;
-		public @Load List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load List<Ref<Trivial>> multi = new ArrayList<>();
 	}
 
 	/** */
@@ -178,7 +178,7 @@ public class LoadFieldRefTests extends TestBase
 
 		public @Id Long id;
 		public @Load(Single.class) Ref<Trivial> single;
-		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<Ref<Trivial>>();
+		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
 	}
 
 	/** */

@@ -81,7 +81,7 @@ public class Translators
 		this.translatorFactories.add(new AsIsTranslatorFactory());
 
 		// LAST! It catches everything.
-		this.translatorFactories.add(new ClassTranslatorFactory<Object>());
+		this.translatorFactories.add(new ClassTranslatorFactory<>());
 	}
 
 	/**
@@ -118,6 +118,7 @@ public class Translators
 			translators.put(tk, translator);
 		}
 
+		//noinspection unchecked
 		return (Translator<P, D>)translator;
 	}
 
@@ -133,6 +134,7 @@ public class Translators
 	 */
 	private Translator<?, ?> create(TypeKey tk, CreateContext ctx, Path path) {
 		for (TranslatorFactory<?, ?> trans: this.translatorFactories) {
+			@SuppressWarnings("unchecked")
 			Translator<?, ?> soFar = trans.create(tk, ctx, path);
 			if (soFar != null)
 				return soFar;

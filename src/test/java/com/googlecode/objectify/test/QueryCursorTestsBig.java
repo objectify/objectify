@@ -51,12 +51,12 @@ public class QueryCursorTestsBig extends TestBase
 
 		fact().register(Trivial.class);
 
-		entities = new ArrayList<Trivial>();
+		entities = new ArrayList<>();
 		for (long i = 1; i <= MAX_ID; i++)
 			entities.add(new Trivial(i, "foo", i));
 
 		Map<Key<Trivial>, Trivial> saved = ofy().save().entities(entities).now();
-		keys = new ArrayList<Key<Trivial>>(saved.keySet());
+		keys = new ArrayList<>(saved.keySet());
 	}
 
 	/** */
@@ -140,7 +140,7 @@ public class QueryCursorTestsBig extends TestBase
 		// then search using that cursor
 		// then use get() and see if we get the object at cursor
 
-		List<Trivial> l1 = new ArrayList<Trivial>();
+		List<Trivial> l1 = new ArrayList<>();
 		Cursor cursor = null;
 
 		Query<Trivial> q1 = query().limit(20);
@@ -158,7 +158,7 @@ public class QueryCursorTestsBig extends TestBase
 
 		assert l1.size() == 20;
 
-		List<Trivial> l2 = new ArrayList<Trivial>();
+		List<Trivial> l2 = new ArrayList<>();
 
 		Query<Trivial> q2 = query().limit(20).startAt(cursor);
 		QueryResultIterator<Trivial> i2 = q2.iterator();

@@ -17,17 +17,17 @@ import java.util.concurrent.Future;
 class CachingTransaction extends TransactionWrapper
 {
 	/** */
-	EntityMemcache cache;
+	private EntityMemcache cache;
 	
 	/** Lazily constructed set of keys we will EMPTY if transaction commits */
-	Set<Key> deferred;
+	private Set<Key> deferred;
 	
 	/** 
 	 * All futures that have been enlisted in this transaction.  In the future, when we can
 	 * hook into the raw Future<?>, we shouldn't need this - the GAE SDK automatically calls
 	 * quietGet() on all the enlisted Futures before a transaction commits. 
 	 */
-	List<Future<?>> enlistedFutures = new ArrayList<Future<?>>();
+	private List<Future<?>> enlistedFutures = new ArrayList<>();
 	
 	/** */
 	public CachingTransaction(EntityMemcache cache, Transaction raw) {
@@ -49,7 +49,7 @@ class CachingTransaction extends TransactionWrapper
 		for (Future<?> fut: this.enlistedFutures)
 			FutureHelper.quietGet(fut);
 		
-		Future<Void> future = new TriggerFuture<Void>(super.commitAsync()) {
+		return new TriggerFuture<Void>(super.commitAsync()) {
 			@Override
 			protected void trigger()
 			{
@@ -72,8 +72,6 @@ class CachingTransaction extends TransactionWrapper
 				}
 			}
 		};
-		
-		return future;
 	}
 
 	/**
@@ -81,7 +79,7 @@ class CachingTransaction extends TransactionWrapper
 	 */
 	public void deferEmptyFromCache(Key key) {
 		if (this.deferred == null)
-			this.deferred = new HashSet<Key>();
+			this.deferred = new HashSet<>();
 		
 		this.deferred.add(key);
 	}

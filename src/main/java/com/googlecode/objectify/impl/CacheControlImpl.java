@@ -10,7 +10,7 @@ import com.googlecode.objectify.cache.CacheControl;
 public class CacheControlImpl implements CacheControl
 {
 	/** */
-	ObjectifyFactory fact;
+	private ObjectifyFactory fact;
 
 	/** */
 	public CacheControlImpl(ObjectifyFactory fact)

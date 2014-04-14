@@ -15,7 +15,6 @@ import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
 /**
  * Tests of the translators.

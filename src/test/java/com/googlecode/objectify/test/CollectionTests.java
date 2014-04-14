@@ -64,7 +64,7 @@ public class CollectionTests extends TestBase
 		public TreeSet<Integer> integerTreeSet;
 		public LinkedHashSet<Integer> integerLinkedHashSet;
 
-		public List<Integer> initializedList = new LinkedList<Integer>();
+		public List<Integer> initializedList = new LinkedList<>();
 
 		public CustomSet customSet;
 
@@ -93,8 +93,8 @@ public class CollectionTests extends TestBase
 		HasCollections hc = new HasCollections();
 		hc.integerList = Arrays.asList(1, 2, 3);
 
-		hc.integerArrayList = new ArrayList<Integer>(hc.integerList);
-		hc.integerLinkedList = new LinkedList<Integer>(hc.integerList);
+		hc.integerArrayList = new ArrayList<>(hc.integerList);
+		hc.integerLinkedList = new LinkedList<>(hc.integerList);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
 		ofy().clear();
@@ -112,15 +112,15 @@ public class CollectionTests extends TestBase
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
-		hc.integerSet = new HashSet<Integer>();
+		hc.integerSet = new HashSet<>();
 		hc.integerSet.add(1);
 		hc.integerSet.add(2);
 		hc.integerSet.add(3);
 
-		hc.integerSortedSet = new TreeSet<Integer>(hc.integerSet);
-		hc.integerHashSet = new HashSet<Integer>(hc.integerSet);
-		hc.integerTreeSet = new TreeSet<Integer>(hc.integerSet);
-		hc.integerLinkedHashSet = new LinkedHashSet<Integer>(hc.integerSet);
+		hc.integerSortedSet = new TreeSet<>(hc.integerSet);
+		hc.integerHashSet = new HashSet<>(hc.integerSet);
+		hc.integerTreeSet = new TreeSet<>(hc.integerSet);
+		hc.integerLinkedHashSet = new LinkedHashSet<>(hc.integerSet);
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
 		hc = ofy().load().key(key).now();
@@ -161,7 +161,7 @@ public class CollectionTests extends TestBase
 		Key<Trivial> key9 = Key.create(Trivial.class, 9);
 
 		HasCollections hc = new HasCollections();
-		hc.typedKeySet = new HashSet<Key<Trivial>>();
+		hc.typedKeySet = new HashSet<>();
 		hc.typedKeySet.add(key7);
 		hc.typedKeySet.add(key8);
 		hc.typedKeySet.add(key9);
@@ -232,7 +232,7 @@ public class CollectionTests extends TestBase
 		fact().register(HasCollections.class);
 
 		HasCollections hc = new HasCollections();
-		hc.integerList = new ArrayList<Integer>();
+		hc.integerList = new ArrayList<>();
 
 		Key<HasCollections> key = ofy().save().entity(hc).now();
 		ofy().clear();
@@ -256,7 +256,7 @@ public class CollectionTests extends TestBase
 	public static class HasInitializedCollection
 	{
 		public @Id Long id;
-		public List<String> initialized = new ArrayList<String>();
+		public List<String> initialized = new ArrayList<>();
 		@Ignore public List<String> copyOf;
 
 		public HasInitializedCollection()

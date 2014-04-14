@@ -25,7 +25,7 @@ public class SerializeTests extends TestBase
 	public static class HasSerialize
 	{
 		@Id public Long id;
-		@Serialize public Map<Long, Long> numbers = new HashMap<Long, Long>();
+		@Serialize public Map<Long, Long> numbers = new HashMap<>();
 	}
 
 	@Test
@@ -71,7 +71,7 @@ public class SerializeTests extends TestBase
 	public static class HasSerializeZip
 	{
 		@Id public Long id;
-		@Serialize(zip=true) public Map<Long, Long> numbers = new HashMap<Long, Long>();
+		@Serialize(zip=true) public Map<Long, Long> numbers = new HashMap<>();
 	}
 
 	@Test

@@ -21,7 +21,7 @@ public class EmbeddedCollectionTests extends TestBase
 	public static class HasSet
 	{
 		@Id Long id;
-		Set<HashableThing> someSet = new HashSet<HashableThing>();
+		Set<HashableThing> someSet = new HashSet<>();
 	}
 
 	public static class HashableThing
@@ -72,7 +72,7 @@ public class EmbeddedCollectionTests extends TestBase
 	@Entity
 	public static class HasDeepThings {
 		@Id Long id;
-		List<DeepThing> deeps = new ArrayList<DeepThing>();
+		List<DeepThing> deeps = new ArrayList<>();
 		@Override public String toString() { return this.getClass().getSimpleName() + "(" + deeps + ")"; }
 	}
 

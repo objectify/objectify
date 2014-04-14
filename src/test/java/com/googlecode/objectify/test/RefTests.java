@@ -122,7 +122,7 @@ public class RefTests extends TestBase
 		Ref<Trivial> ref2 = Ref.create(k2);
 		Ref<Trivial> refNone = Ref.create(kNone);
 
-		List<Ref<Trivial>> list = new ArrayList<Ref<Trivial>>();
+		List<Ref<Trivial>> list = new ArrayList<>();
 		list.add(ref1);
 		list.add(ref2);
 		list.add(refNone);

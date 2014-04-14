@@ -29,7 +29,7 @@ public class LoadCyclesComplexTest extends TestBase {
 
 	public static class AEm {
 		@Load
-		public List<Ref<B>> bs = new ArrayList<Ref<B>>();
+		public List<Ref<B>> bs = new ArrayList<>();
 	}
 
 	@Entity
@@ -42,7 +42,7 @@ public class LoadCyclesComplexTest extends TestBase {
 		public long id = 2;
 
 		@Load
-		public List<Ref<C>> cs = new ArrayList<Ref<C>>();
+		public List<Ref<C>> cs = new ArrayList<>();
 	}
 
 	@Entity

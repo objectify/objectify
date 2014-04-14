@@ -33,7 +33,7 @@ public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigD
 	public static final long DEFAULT_FACTOR = 1000;
 	
 	/** */
-	BigDecimal factor;
+	private BigDecimal factor;
 	
 	/**
 	 * Construct this converter with the default factor (1000), which can store three points of
@@ -50,8 +50,7 @@ public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigD
 	 * 
 	 * @param factor number multiplied by before storage and divided by on retrieval.
 	 */
-	public BigDecimalLongTranslatorFactory(long factor)
-	{
+	public BigDecimalLongTranslatorFactory(long factor) {
 		super(BigDecimal.class);
 		
 		this.factor = new BigDecimal(factor);

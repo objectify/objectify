@@ -101,7 +101,7 @@ public class LoadEngine
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
 	public <T> Ref<T> makeRef(Key<?> rootEntity, LoadConditions loadConditions, Key<T> key) {
-		Ref<T> ref = new LiveRef<T>(key, ofy);
+		Ref<T> ref = new LiveRef<>(key, ofy);
 
 		if (shouldLoad(loadConditions)) {
 			load(key);
@@ -137,7 +137,7 @@ public class LoadEngine
 			/** */
 			@Override
 			public Map<Key<?>, Object> nowUncached() {
-				Map<Key<?>, Object> result = new HashMap<Key<?>, Object>(raw.now().size() * 2);
+				Map<Key<?>, Object> result = new HashMap<>(raw.now().size() * 2);
 
 				ctx = new LoadContext(loader, LoadEngine.this);
 

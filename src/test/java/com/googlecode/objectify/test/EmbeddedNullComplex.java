@@ -56,8 +56,7 @@ public class EmbeddedNullComplex extends TestBase {
 
 	private Foo createFoo() {
 		Bar bar = new Bar();
-		Foo foo = new Foo(bar);
-		return foo;
+		return new Foo(bar);
 	}
 
 	public static class Bar {
@@ -74,7 +73,7 @@ public class EmbeddedNullComplex extends TestBase {
 	@Entity
 	public static class FooBar {
 		@Id Long id;
-		public List<Foo> foos = new ArrayList<Foo>();
+		public List<Foo> foos = new ArrayList<>();
 	}
 
 

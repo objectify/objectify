@@ -28,7 +28,7 @@ public class ObjectifyService
 	private static final ThreadLocal<Deque<Objectify>> STACK = new ThreadLocal<Deque<Objectify>>() {
 		@Override
 		protected Deque<Objectify> initialValue() {
-			return new ArrayDeque<Objectify>();
+			return new ArrayDeque<>();
 		}
 	};
 

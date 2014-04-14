@@ -8,9 +8,9 @@ import java.util.Iterator;
  * A single chunk during a query.
  */
 public class Chunk<T> implements Iterator<ResultWithCursor<T>> {
-	final Cursor cursor;
-	final Iterator<T> valueIt;
-	int offset = 0;
+	private final Cursor cursor;
+	private final Iterator<T> valueIt;
+	private int offset = 0;
 
 	public Chunk(Cursor cursor, Iterable<T> result) {
 		this.cursor = cursor;
@@ -25,7 +25,7 @@ public class Chunk<T> implements Iterator<ResultWithCursor<T>> {
 	@Override
 	public ResultWithCursor<T> next() {
 		T value = valueIt.next();
-		return new ResultWithCursor<T>(cursor, offset++, value, !valueIt.hasNext());
+		return new ResultWithCursor<>(cursor, offset++, value, !valueIt.hasNext());
 	}
 
 	@Override

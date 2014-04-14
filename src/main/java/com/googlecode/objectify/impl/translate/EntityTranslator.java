@@ -35,6 +35,7 @@ public class EntityTranslator implements Translator<Object, PropertyContainer>
 
 	@Override
 	public PropertyContainer save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+		@SuppressWarnings("unchecked")
 		EntityMetadata<Object> meta = (EntityMetadata<Object>)registrar.getMetadataSafe(pojo.getClass());
 
 		return meta.getTranslator().save(pojo, index, ctx, path);

@@ -84,8 +84,8 @@ public class IgnoreSaveTests extends TestBase
 		thing.bar = true;
 
 		UnsavedWhenTrue fetched = ofy().saveClearLoad(thing);
-		assert fetched.foo == false;	// would fail without the session clear()
-		assert fetched.bar == true;
+		assert !fetched.foo;	// would fail without the session clear()
+		assert fetched.bar;
 	}
 
 	/** */
@@ -109,8 +109,8 @@ public class IgnoreSaveTests extends TestBase
 		thing.bar = true;
 
 		DeeperUnsavedWhenTrue fetched = ofy().saveClearLoad(thing);
-		assert fetched.foo == false;	// would fail without the session clear()
-		assert fetched.bar == true;
+		assert !fetched.foo;	// would fail without the session clear()
+		assert fetched.bar;
 	}
 
 	/** Should not be registerable */

@@ -174,7 +174,7 @@ public class EvilMemcacheBugTests extends TestBase
 			assert ent2.getProperty("foo").equals("original");
 			ent2.setProperty("foo", "changed");
 	
-			Map<Object, Object> holder = new HashMap<Object, Object>();
+			Map<Object, Object> holder = new HashMap<>();
 			holder.put(childKey, ent2);
 			cs1.putAll(holder);
 	

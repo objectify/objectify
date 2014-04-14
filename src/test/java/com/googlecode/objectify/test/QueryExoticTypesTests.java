@@ -26,6 +26,7 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@SuppressWarnings("MagicConstant")
 public class QueryExoticTypesTests extends TestBase
 {
 	/** */
@@ -130,7 +131,7 @@ public class QueryExoticTypesTests extends TestBase
 	public static class HasFromThruDate
 	{
 		@Id Long id;
-		@Index List<Date> dateList = new ArrayList<Date>();
+		@Index List<Date> dateList = new ArrayList<>();
 	}
 
 	/**

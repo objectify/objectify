@@ -23,7 +23,7 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 		if (key == null)
 			throw new NullPointerException("Cannot create a Ref from a null key");
 
-		return new LiveRef<T>(key);
+		return new LiveRef<>(key);
 	}
 
 	/** Creates a Ref from a registered pojo entity */

@@ -42,7 +42,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected Double deadline;
 
 	/** */
-	protected Transactor<O> transactor = new TransactorNo<O>();
+	protected Transactor<O> transactor = new TransactorNo<>();
 
 	/**
 	 */
@@ -71,7 +71,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public Loader load() {
-		return new LoaderImpl<Loader>(this);
+		return new LoaderImpl<>(this);
 	}
 
 	/* (non-Javadoc)

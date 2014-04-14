@@ -20,7 +20,7 @@ public class ResultProxy<T> implements InvocationHandler, Serializable
 	 */
 	@SuppressWarnings("unchecked")
 	public static <S> S create(Class<? super S> interf, Result<S> result) {
-		return (S)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<S>(result));
+		return (S)Proxy.newProxyInstance(result.getClass().getClassLoader(), new Class[] { interf }, new ResultProxy<>(result));
 	}
 
 	Result<T> result;
@@ -35,7 +35,7 @@ public class ResultProxy<T> implements InvocationHandler, Serializable
 	}
 	
 	private Object writeReplace() throws ObjectStreamException {
-        return new NowProxy<T>(result.now());
+        return new NowProxy<>(result.now());
     }
 	
 }

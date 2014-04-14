@@ -233,7 +233,7 @@ public class AlsoLoadTests extends TestBase
 	/** */
 	@Test
 	public void testHarderHasEmbeddedArray() throws Exception {
-		List<String> values = new ArrayList<String>();
+		List<String> values = new ArrayList<>();
 		values.add(TEST_VALUE);
 		values.add(TEST_VALUE);
 

@@ -57,7 +57,7 @@ public class MapifyTests extends TestBase
 		@Id Long id;
 
 		@Mapify(ThingMapper.class)
-		Map<Long, Thing> things = new LinkedHashMap<Long, Thing>();
+		Map<Long, Thing> things = new LinkedHashMap<>();
 	}
 
 
@@ -85,7 +85,7 @@ public class MapifyTests extends TestBase
 		public @Id long id;
 
 		@Mapify(BottomMapper.class)
-		public Map<String, Bottom> bottoms = new HashMap<String, Bottom>();
+		public Map<String, Bottom> bottoms = new HashMap<>();
 
 		public Top() {}
 		public Top(long id) { this.id = id; }
@@ -147,7 +147,7 @@ public class MapifyTests extends TestBase
 
 		@Mapify(TrivialMapper.class)
 		@Load
-		Map<Key<Trivial>, Ref<Trivial>> trivials = new HashMap<Key<Trivial>, Ref<Trivial>>();
+		Map<Key<Trivial>, Ref<Trivial>> trivials = new HashMap<>();
 	}
 
 	/** Tests using mapify on entities */

@@ -54,7 +54,7 @@ public class IndexingPartialTests extends TestBase
 		// Should be able to query for it when true
 		thing.foo = true;
 		ofy().save().entity(thing).now();
-		assert thing.id == ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).first().now().id;
+		assert (long)thing.id == ofy().load().type(UnindexedWhenFalse.class).filter("foo", true).first().now().id;
 
 		// Should not be able to query for it when false
 		thing.foo = false;
@@ -95,7 +95,7 @@ public class IndexingPartialTests extends TestBase
 		// Should be able to query for bar when true
 		thing.indexBar = true;
 		ofy().save().entity(thing).now();
-		assert thing.id == ofy().load().type(IndexedOnOtherField.class).filter("bar", true).first().now().id;
+		assert (long)thing.id == ofy().load().type(IndexedOnOtherField.class).filter("bar", true).first().now().id;
 
 		// Should not be able to query for bar when false
 		thing.indexBar = false;

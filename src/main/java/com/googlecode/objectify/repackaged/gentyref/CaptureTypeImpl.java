@@ -29,7 +29,7 @@ class CaptureTypeImpl implements CaptureType {
 	 * This is needed for type variable bounds referring to each other: we need the capture of the argument.
 	 */
 	void init(VarMap varMap) {
-		ArrayList<Type> upperBoundsList = new ArrayList<Type>();
+		ArrayList<Type> upperBoundsList = new ArrayList<>();
 		upperBoundsList.addAll(Arrays.asList(varMap.map(variable.getBounds())));
 		
 		List<Type> wildcardUpperBounds = Arrays.asList(wildcard.getUpperBounds());

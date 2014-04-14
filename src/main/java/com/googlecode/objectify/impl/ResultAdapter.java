@@ -14,7 +14,7 @@ public class ResultAdapter<T> implements Result<T>
 {
 	/** Cuts out some typing */
 	public static <S> ResultAdapter<S> create(Future<S> fut) {
-		return new ResultAdapter<S>(fut);
+		return new ResultAdapter<>(fut);
 	}
 
 	/** */

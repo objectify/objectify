@@ -36,7 +36,7 @@ public class EmbeddedMapComplexTests extends TestBase
 	public static class HasMapEmbed {
 		@Id Long id;
 		Thing thing;
-		Map<String, Thing> things = new HashMap<String, Thing>();
+		Map<String, Thing> things = new HashMap<>();
 
 		/** Simplistic implementation, ignores id */
 		@Override
@@ -51,7 +51,7 @@ public class EmbeddedMapComplexTests extends TestBase
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasNestedMapEmbed {
 		@Id Long id;
-		Map<String, HasMapEmbed> nestedThings = new HashMap<String, HasMapEmbed>();
+		Map<String, HasMapEmbed> nestedThings = new HashMap<>();
 	}
 
 	/** Need to be able to create these easily */

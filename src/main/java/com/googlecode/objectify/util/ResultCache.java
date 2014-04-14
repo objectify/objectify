@@ -45,7 +45,7 @@ abstract public class ResultCache<T> implements Result<T>, Serializable
 	 * never happen.
 	 */
 	protected Object writeReplace() throws ObjectStreamException {
-		return new ResultNow<T>(now());
+		return new ResultNow<>(now());
 	}
 
 	/** We can get away with this because the subclass almost always provides concrete types */

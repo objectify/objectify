@@ -58,7 +58,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 		Creator<P> creator = new EntityCreator<>(clazz, ctx.getFactory(), keyMetadata);
 		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path, NON_KEY_FIELDS);
 
-		return new ClassTranslator<P>(clazz, path, creator, populator);
+		return new ClassTranslator<>(clazz, path, creator, populator);
 	}
 
 	/**
@@ -67,7 +67,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 		Creator<P> creator = new EmbeddedCreator<>(clazz, ctx.getFactory());
 		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path);
 
-		return new ClassTranslator<P>(clazz, path, creator, populator);
+		return new ClassTranslator<>(clazz, path, creator, populator);
 	}
 
 	/**
@@ -77,6 +77,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 		if (superclassTypeKey.getTypeAsClass() == Object.class)
 			return;
 
+		@SuppressWarnings("unchecked")
 		ClassTranslator<? super P> superTranslator = (ClassTranslator)ctx.getTranslator(superclassTypeKey, ctx, path);
 		superTranslator.registerSubclass(translator);
 

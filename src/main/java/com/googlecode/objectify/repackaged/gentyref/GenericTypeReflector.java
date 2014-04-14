@@ -412,7 +412,7 @@ public class GenericTypeReflector {
 		VarMap varMap = new VarMap();
 		// list of CaptureTypes we've created but aren't fully initialized yet
 		// we can only initialize them *after* we've fully populated varMap
-		List<CaptureTypeImpl> toInit = new ArrayList<CaptureTypeImpl>();
+		List<CaptureTypeImpl> toInit = new ArrayList<>();
 		
 		Class<?> clazz = (Class<?>)type.getRawType();
 		Type[] arguments = type.getActualTypeArguments();
@@ -467,9 +467,9 @@ public class GenericTypeReflector {
 	 *  The list contains no duplicates, and is ordered in the order the upper bounds are defined on the type.
 	 */
 	public static List<Class<?>> getUpperBoundClassAndInterfaces(Type type) {
-		LinkedHashSet<Class<?>> result = new LinkedHashSet<Class<?>>();
+		LinkedHashSet<Class<?>> result = new LinkedHashSet<>();
 		buildUpperBoundClassAndInterfaces(type, result);
-		return new ArrayList<Class<?>>(result);
+		return new ArrayList<>(result);
 	}
 	
 	/**

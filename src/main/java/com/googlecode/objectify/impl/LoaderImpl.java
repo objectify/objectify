@@ -49,7 +49,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	QueryImpl<Object> createQuery() {
-		return new QueryImpl<Object>(this);
+		return new QueryImpl<>(this);
 	}
 
 	/* (non-Javadoc)
@@ -72,7 +72,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public <E> LoadType<E> type(Class<E> type) {
-		return new LoadTypeImpl<E>(this, type);
+		return new LoadTypeImpl<>(this, type);
 	}
 
 	/* (non-Javadoc)
@@ -105,7 +105,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public <E> LoadResult<E> key(Key<E> key) {
-		return new LoadResult<E>(key, createLoadEngine().load(key));
+		return new LoadResult<>(key, createLoadEngine().load(key));
 	}
 
 	/* (non-Javadoc)
@@ -174,13 +174,13 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	public <E> Map<Key<E>, E> values(Iterable<?> values) {
 
 		// Do this in a separate pass so any errors converting keys will show up before we try loading something
-		List<Key<E>> keys = new ArrayList<Key<E>>();
+		List<Key<E>> keys = new ArrayList<>();
 		for (Object keyish: values)
 			keys.add((Key<E>)ofy.factory().keys().anythingToKey(keyish));
 
 		LoadEngine engine = createLoadEngine();
 
-		final Map<Key<E>, Result<E>> results = new LinkedHashMap<Key<E>, Result<E>>();
+		final Map<Key<E>, Result<E>> results = new LinkedHashMap<>();
 		for (Key<E> key: keys)
 			results.put(key, engine.load(key));
 

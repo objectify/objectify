@@ -42,7 +42,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 				if (node == null)
 					throw new SkipException();
 
-				List<Object> list = new ArrayList<Object>(node.size());
+				List<Object> list = new ArrayList<>(node.size());
 
 				for (Object componentNode: node) {
 					try {

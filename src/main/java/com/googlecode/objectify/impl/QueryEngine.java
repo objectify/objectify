@@ -46,7 +46,7 @@ public class QueryEngine
 		return new QueryResultIterable<Key<T>>() {
 			@Override
 			public QueryResultIterator<Key<T>> iterator() {
-				return new KeysOnlyIterator<T>(pq, fetchOpts);
+				return new KeysOnlyIterator<>(pq, fetchOpts);
 			}
 		};
 	}
@@ -65,7 +65,7 @@ public class QueryEngine
 		return new QueryResultIterable<T>() {
 			@Override
 			public QueryResultIterator<T> iterator() {
-				return new ChunkingIterator<T>(loader.createLoadEngine(), pq, new KeysOnlyIterator<T>(pq, fetchOpts), fetchOpts.getChunkSize());
+				return new ChunkingIterator<>(loader.createLoadEngine(), pq, new KeysOnlyIterator<T>(pq, fetchOpts), fetchOpts.getChunkSize());
 			}
 		};
 	}
@@ -83,7 +83,7 @@ public class QueryEngine
 		return new QueryResultIterable<T>() {
 			@Override
 			public QueryResultIterator<T> iterator() {
-				return new ChunkingIterator<T>(loadEngine, pq, new StuffingIterator<T>(pq, fetchOpts, loadEngine), fetchOpts.getChunkSize());
+				return new ChunkingIterator<>(loadEngine, pq, new StuffingIterator<T>(pq, fetchOpts, loadEngine), fetchOpts.getChunkSize());
 			}
 		};
 	}

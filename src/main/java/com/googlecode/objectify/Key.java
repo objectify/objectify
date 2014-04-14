@@ -21,27 +21,27 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		if (raw == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
 
-		return new Key<T>(raw);
+		return new Key<>(raw);
 	}
 
 	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
 	public static <T> Key<T> create(Class<? extends T> kindClass, long id) {
-		return new Key<T>(kindClass, id);
+		return new Key<>(kindClass, id);
 	}
 
 	/** Key.create(Blah.class, name) is easier to type than new Key<Blah>(Blah.class, name) */
 	public static <T> Key<T> create(Class<? extends T> kindClass, String name) {
-		return new Key<T>(kindClass, name);
+		return new Key<>(kindClass, name);
 	}
 
 	/** Key.create(parent, Blah.class, id) is easier to type than new Key<Blah>(parent, Blah.class, id) */
 	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, long id) {
-		return new Key<T>(parent, kindClass, id);
+		return new Key<>(parent, kindClass, id);
 	}
 
 	/** Key.create(parent, Blah.class, name) is easier to type than new Key<Blah>(parent, Blah.class, name) */
 	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, String name) {
-		return new Key<T>(parent, kindClass, name);
+		return new Key<>(parent, kindClass, name);
 	}
 
 	/** Key.create(webSafeString) is easier to type than new Key<Blah>(webSafeString) */
@@ -49,7 +49,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		if (webSafeString == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null String");
 
-		return new Key<T>(webSafeString);
+		return new Key<>(webSafeString);
 	}
 
 	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
@@ -187,7 +187,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** A type-safe equivalence comparison */
 	public boolean equivalent(Ref<T> other) {
-		return (other == null) ? false : equals(other.key());
+		return (other != null) && equals(other.key());
 	}
 
 	/** */
@@ -217,7 +217,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		if (raw == null)
 			return null;
 		else
-			return new Key<V>(raw);
+			return new Key<>(raw);
 	}
 
 	/**

@@ -63,9 +63,7 @@ public class TypeUtils
 		try {
 			return ctor.newInstance(params);
 		}
-		catch (InstantiationException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
-		catch (InvocationTargetException e) { throw new RuntimeException(e); }
+		catch (InstantiationException | IllegalAccessException | InvocationTargetException e) { throw new RuntimeException(e); }
 	}
 
 	/** Checked exceptions are LAME. */
@@ -73,8 +71,7 @@ public class TypeUtils
 		try {
 			return field.get(obj);
 		}
-		catch (IllegalArgumentException e) { throw new RuntimeException(e); }
-		catch (IllegalAccessException e) { throw new RuntimeException(e); }
+		catch (IllegalArgumentException | IllegalAccessException e) { throw new RuntimeException(e); }
 	}
 
 	/**
