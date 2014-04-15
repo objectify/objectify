@@ -76,7 +76,7 @@ class DeleterImpl implements Deleter
 	public Result<Void> entities(Iterable<?> entities) {
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
 		for (Object obj: entities)
-			keys.add(ofy.factory().keys().rawKeyOf(obj));
+			keys.add(ofy.factory().keys().anythingToRawKey(obj));
 
 		return ofy.createWriteEngine().delete(keys);
 	}
