@@ -223,6 +223,18 @@ public class BasicTests extends TestBase
 	}
 
 	/** */
+	@Test
+	public void loadWithManuallyCreatedKey() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv1 = new Trivial(123L, "foo5", 5);
+		ofy().save().entity(triv1).now();
+
+		Trivial fetched = ofy().load().key(Key.create(Trivial.class, 123L)).now();
+		assert fetched.toString().equals(triv1.toString());
+	}
+
+	/** */
 	@SuppressWarnings("unchecked")
 	@Test
 	public void loadNonexistant() throws Exception {
