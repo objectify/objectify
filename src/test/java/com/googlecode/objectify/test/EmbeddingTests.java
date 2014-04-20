@@ -5,6 +5,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
@@ -58,6 +59,17 @@ public class EmbeddingTests extends TestBase
 			this.indexed = indexed;
 			this.unindexed = unindexed;
 		}
+	}
+	
+	@Subclass
+	public static class PartiallyIndexedStructSubclass extends PartiallyIndexedStruct {
+
+		public PartiallyIndexedStructSubclass() { }
+
+		public PartiallyIndexedStructSubclass(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString) {
+			super(indexedPerson, unindexedPerson, indexedString, unidexedString);
+		}
+		
 	}
 
 	public static class Names {
@@ -124,6 +136,28 @@ public class EmbeddingTests extends TestBase
 						new Someone(new Name("c", "d"), 33), "3", "4")
 		);
 
+		checkUnindexed(obj);
+	}
+
+	@Test
+	public void testUnindexedPolymorphic() throws Exception {
+		fact().register(PartiallyIndexedEntity.class);
+		fact().register(PartiallyIndexedStructSubclass.class);
+		
+		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
+				new PartiallyIndexedStructSubclass(
+						new Someone(new Name("A", "B"), 30),
+						new Someone(new Name("C", "D"), 31), "1", "2"),
+				new PartiallyIndexedStructSubclass(
+						new Someone(new Name("a", "b"), 32),
+						new Someone(new Name("c", "d"), 33), "3", "4")
+		);
+		
+		checkUnindexed(obj);
+	}
+
+
+	private void checkUnindexed(PartiallyIndexedEntity obj) {
 		Key<PartiallyIndexedEntity> key = ofy().save().entity(obj).now();
 
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.firstName", "A");
