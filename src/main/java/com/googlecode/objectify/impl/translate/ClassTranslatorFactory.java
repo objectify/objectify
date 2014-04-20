@@ -10,6 +10,8 @@ import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 
+import java.util.List;
+import java.util.Set;
 
 /**
  * <p>Translator which maps classes, both normal embedded classes and Entity classes.</p>
@@ -45,10 +47,36 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 				? createEntityClassTranslator(clazz, ctx, path)
 				: createEmbeddedClassTranslator(clazz, ctx, path);
 
-		if (clazz.isAnnotationPresent(Subclass.class))
-			registerSubclass(classTranslator, new TypeKey<>(clazz.getSuperclass(), tk), ctx, path);
+		if (clazz.isAnnotationPresent(Subclass.class)) {
+			registerSubclassAndMaybeCreateDirectParent(tk, ctx, path, clazz, classTranslator);
+			registerSubclassForEveryAncestorTypeKey(ctx, path, clazz, classTranslator);
+		}
+		
+		ensureSubclassInterchangability(tk, ctx, path, clazz, classTranslator);
 
 		return classTranslator;
+	}
+
+	private void ensureSubclassInterchangability(TypeKey<P> tk, CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
+		// TODO this is a hack, but I need this translator to be registered before I can register its subclasses
+		ctx.factory.getTranslators().translators.put(tk, classTranslator);
+		
+		Set<Class<?>> registeredSubclasses = ctx.factory.getTranslators().listRegisteredSubclasses(clazz);
+		for (Class<?> subClass : registeredSubclasses) {
+			ctx.factory.getTranslators().get(new TypeKey<>(subClass, tk), ctx, path);
+		}
+	}
+
+	private void registerSubclassAndMaybeCreateDirectParent(TypeKey<P> tk, CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
+		registerSubclass(classTranslator, new TypeKey<>(clazz.getSuperclass(), tk), ctx, path);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private void registerSubclassForEveryAncestorTypeKey(CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
+		List<TypeKey> list = ctx.factory.getTranslators().listEveryTypeKeyForAncestors(clazz.getSuperclass());
+		for (TypeKey typeKey : list) {
+			registerSubclass(classTranslator, typeKey, ctx, path);
+		}
 	}
 
 	/**
