@@ -117,6 +117,31 @@ public class QueryTests extends TestBase
 		assert t2.getId().equals(triv2.getId());
 	}
 
+	/** */
+	@Test
+	public void testKeySorting() throws Exception {
+		Iterator<Trivial> it = ofy().load().type(Trivial.class).orderKey(false).iterator();
+
+		Trivial t1 = it.next();
+		Trivial t2 = it.next();
+
+		assert t1.getId().equals(triv1.getId());
+		assert t2.getId().equals(triv2.getId());
+	}
+
+	/** */
+	@Test
+	public void testKeyReverseSorting() throws Exception {
+		Iterator<Trivial> it = ofy().load().type(Trivial.class).orderKey(true).iterator();
+
+		// t2 first
+		Trivial t2 = it.next();
+		Trivial t1 = it.next();
+
+		assert t1.getId().equals(triv1.getId());
+		assert t2.getId().equals(triv2.getId());
+	}
+
 	/** Unfortunately we can only test one way without custom index file */
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void doNotAllowSortingByIdField() throws Exception {

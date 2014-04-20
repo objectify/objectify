@@ -35,6 +35,12 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	public SimpleQuery<T> filterKey(Object value);
 
 	/**
+	 * Orders results by the key.
+	 * @param descending if true, specifies a descending (aka reverse) sort
+	 */
+	public SimpleQuery<T> orderKey(boolean descending);
+
+	/**
 	 * Restricts result set only to objects which have the given ancestor
 	 * somewhere in the chain.  Doesn't need to be the immediate parent. The
 	 * specified ancestor itself will be included in the result set (if it

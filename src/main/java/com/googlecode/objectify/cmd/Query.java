@@ -54,24 +54,30 @@ public interface Query<T> extends SimpleQuery<T>
 	 */
 	public Query<T> filter(Filter filter);
 
-	/**
-	 * <p>Sorts based on a property.  Examples:</p>
-	 * 
-	 * <ul>
-	 * <li>{@code order("age")}</li>
-	 * <li>{@code order("-age")} (descending sort)</li>
-	 * </ul>
-	 * 
-	 * <p>You can <strong>not</strong> sort on @Id or @Parent properties. Sort by __key__ or -__key__ instead.</p>
-	 */
-	public Query<T> order(String condition);
-	
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#filterKey(java.lang.String, java.lang.Object)
 	 */
 	@Override
 	public Query<T> filterKey(String condition, Object value);
-	
+
+	/**
+	 * <p>Sorts based on a property.  Examples:</p>
+	 *
+	 * <ul>
+	 * <li>{@code order("age")}</li>
+	 * <li>{@code order("-age")} (descending sort)</li>
+	 * </ul>
+	 *
+	 * <p>You can <strong>not</strong> sort on @Id or @Parent properties. Sort by __key__ or -__key__ instead.</p>
+	 */
+	public Query<T> order(String condition);
+
+	/**
+	 * Shorthand for {@code order("__key__")} or {@code order("-__key__")}
+	 * @param descending if true, specifies a descending (aka reverse) sort
+	 */
+	public Query<T> orderKey(boolean descending);
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#ancestor(java.lang.Object)
 	 */

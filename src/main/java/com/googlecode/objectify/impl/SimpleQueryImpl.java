@@ -51,6 +51,15 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		return filterKey("=", value);
 	}
 
+	@Override
+	public QueryImpl<T> orderKey(boolean descending) {
+		String prefix = descending ? "-" : "";
+
+		QueryImpl<T> q = createQuery();
+		q.addOrder(prefix + Entity.KEY_RESERVED_PROPERTY);
+		return q;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Query#ancestor(java.lang.Object)
 	 */
