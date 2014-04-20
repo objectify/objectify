@@ -6,10 +6,8 @@ import com.googlecode.objectify.impl.Path;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -129,34 +127,6 @@ public class Translators
 	 */
 	public <P> Translator<P, PropertyContainer> getRoot(Class<P> clazz) {
 		return get(new TypeKey(clazz), new CreateContext(fact), Path.root());
-	}
-	
-	/**
-	 * Lists every TypeKey where this class could be assigned.
-	 */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public <P> List<TypeKey> listEveryTypeKeyForAncestors(Class<P> clazz) {
-		List<TypeKey> types = new ArrayList<>();
-		for (TypeKey type : translators.keySet()) {
-			if (type.getTypeAsClass().isAssignableFrom(clazz)) {
-				types.add(type);
-			}
-		}
-		return types;
-	}
-	
-	/**
-	 * Lists a class registered subclasses.
-	 */
-	@SuppressWarnings({ "rawtypes" })
-	public <P> Set<Class<?>> listRegisteredSubclasses(Class<P> clazz) {
-		Set<Class<?>> subclasses = new HashSet<>();
-		for (TypeKey type : translators.keySet()) {
-			if (clazz != type.getTypeAsClass() && clazz.isAssignableFrom(type.getTypeAsClass())) {
-				subclasses.add(type.getTypeAsClass());
-			}
-		}
-		return subclasses;
 	}
 
 	/**

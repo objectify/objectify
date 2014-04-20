@@ -210,4 +210,28 @@ public class EmbeddedPolymorphismTests extends TestBase
 		assert second.get(0).id == (long)handler2.id;
 	}
 
+	/** */
+	@Entity
+	public static class HandlerWithIndexedAnimal {
+		@Id Long id;
+		@Index Animal animal;
+
+		public HandlerWithIndexedAnimal() {}
+		public HandlerWithIndexedAnimal(Animal animal) {
+			this.animal = animal;
+		}
+	}
+
+	/** */
+	@Test
+	public void indexedFirstSubclassWorks() throws Exception {
+		fact().register(HandlerWithIndexedAnimal.class);
+		fact().register(Mammal.class);
+
+		HandlerWithIndexedAnimal handler = new HandlerWithIndexedAnimal(new Mammal("Bob", true));
+		HandlerWithIndexedAnimal fetched = ofy().saveClearLoad(handler);
+		assert handler.animal.name.equals(fetched.animal.name);
+		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
+	}
+
 }

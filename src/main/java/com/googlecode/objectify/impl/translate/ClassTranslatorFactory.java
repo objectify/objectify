@@ -10,8 +10,9 @@ import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 
-import java.util.List;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+
 
 /**
  * <p>Translator which maps classes, both normal embedded classes and Entity classes.</p>
@@ -26,6 +27,14 @@ import java.util.Set;
  * <p>Note that entities can be embedded in other objects; they are still entities. The
  * difference between an embedded class and an embedded entity is that the entity has a Key.</p>
  *
+ * <p>One noteworthy issue is that we must ensure there is only one classtranslator for any
+ * given class. Normally the discovery process creates a separate translator for each set of
+ * annotations, however, this screws up the subclass registration process, which needs to
+ * register at each parent class translator. Since field annotations are actually irrelevant to
+ * the internal function of a ClassTranslator, we can just cache class translators here
+ * in the factory. There will never be more than one translator for a given class, even
+ * though many TypeKeys may point at it.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyContainer>
@@ -38,45 +47,27 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 		}
 	};
 
+	/** Cache of existing translators, see the class javadoc */
+	private Map<Class<P>, ClassTranslator<P>> translators = new HashMap<>();
+
 	@Override
-	public Translator<P, PropertyContainer> create(TypeKey<P> tk, CreateContext ctx, Path path) {
+	public ClassTranslator<P> create(TypeKey<P> tk, CreateContext ctx, Path path) {
 		Class<P> clazz = tk.getTypeAsClass();
 
-		// Entity is an inherited annotation; this checks up the hierarchy
-		ClassTranslator<P> classTranslator = (clazz.isAnnotationPresent(Entity.class))
-				? createEntityClassTranslator(clazz, ctx, path)
-				: createEmbeddedClassTranslator(clazz, ctx, path);
+		ClassTranslator<P> classTranslator = translators.get(clazz);
+		if (classTranslator == null) {
+			// Entity is an inherited annotation; this checks up the hierarchy
+			classTranslator = (clazz.isAnnotationPresent(Entity.class))
+					? createEntityClassTranslator(clazz, ctx, path)
+					: createEmbeddedClassTranslator(clazz, ctx, path);
 
-		if (clazz.isAnnotationPresent(Subclass.class)) {
-			registerSubclassAndMaybeCreateDirectParent(tk, ctx, path, clazz, classTranslator);
-			registerSubclassForEveryAncestorTypeKey(ctx, path, clazz, classTranslator);
+			translators.put(clazz, classTranslator);
+
+			if (clazz.isAnnotationPresent(Subclass.class))
+				registerSubclass(classTranslator, new TypeKey<>(clazz.getSuperclass(), tk), ctx, path);
 		}
-		
-		ensureSubclassInterchangability(tk, ctx, path, clazz, classTranslator);
 
 		return classTranslator;
-	}
-
-	private void ensureSubclassInterchangability(TypeKey<P> tk, CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
-		// TODO this is a hack, but I need this translator to be registered before I can register its subclasses
-		ctx.factory.getTranslators().translators.put(tk, classTranslator);
-		
-		Set<Class<?>> registeredSubclasses = ctx.factory.getTranslators().listRegisteredSubclasses(clazz);
-		for (Class<?> subClass : registeredSubclasses) {
-			ctx.factory.getTranslators().get(new TypeKey<>(subClass, tk), ctx, path);
-		}
-	}
-
-	private void registerSubclassAndMaybeCreateDirectParent(TypeKey<P> tk, CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
-		registerSubclass(classTranslator, new TypeKey<>(clazz.getSuperclass(), tk), ctx, path);
-	}
-
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void registerSubclassForEveryAncestorTypeKey(CreateContext ctx, Path path, Class<P> clazz, ClassTranslator<P> classTranslator) {
-		List<TypeKey> list = ctx.factory.getTranslators().listEveryTypeKeyForAncestors(clazz.getSuperclass());
-		for (TypeKey typeKey : list) {
-			registerSubclass(classTranslator, typeKey, ctx, path);
-		}
 	}
 
 	/**
@@ -99,14 +90,15 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	}
 
 	/**
-	 * Recursively register this subclass with all the superclass translators
+	 * Recursively register this subclass with all the superclass translators. This works because we cache
+	 * translators uniquely in the factory.
 	 */
 	private void registerSubclass(ClassTranslator<P> translator, TypeKey<? super P> superclassTypeKey, CreateContext ctx, Path path) {
 		if (superclassTypeKey.getTypeAsClass() == Object.class)
 			return;
 
 		@SuppressWarnings("unchecked")
-		ClassTranslator<? super P> superTranslator = (ClassTranslator)ctx.getTranslator(superclassTypeKey, ctx, path);
+		ClassTranslator<? super P> superTranslator = create((TypeKey)superclassTypeKey, ctx, path);
 		superTranslator.registerSubclass(translator);
 
 		registerSubclass(translator, new TypeKey<>(superclassTypeKey.getTypeAsClass().getSuperclass()), ctx, path);
