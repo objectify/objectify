@@ -6,9 +6,11 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Mapify;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+
 import org.testng.annotations.Test;
 
 import java.util.HashMap;
@@ -44,6 +46,17 @@ public class MapifyTests extends TestBase
 			return "Thing(name=" + name + ", weight=" + weight + ")";
 		}
 	}
+	
+	@Subclass
+	public static class ThingSubclass extends Thing {
+		
+		public ThingSubclass() { }
+		
+		public ThingSubclass(String name, Long weight) {
+			super(name, weight);
+		}
+		
+	}
 
 	public static class ThingMapper implements Mapper<Long, Thing> {
 		@Override
@@ -71,6 +84,24 @@ public class MapifyTests extends TestBase
 		Thing thing1 = new Thing("bar", 456L);
 		hasMap.things.put(thing1.weight, thing1);
 
+		checkTestMapify(hasMap);
+	}
+
+	@Test
+	public void testMapifyPolymorphic() throws Exception {
+		fact().register(HasMapify.class);
+		fact().register(ThingSubclass.class);
+		
+		HasMapify hasMap = new HasMapify();
+		Thing thing0 = new ThingSubclass("foo", 123L);
+		hasMap.things.put(thing0.weight, thing0);
+		Thing thing1 = new ThingSubclass("bar", 456L);
+		hasMap.things.put(thing1.weight, thing1);
+		
+		checkTestMapify(hasMap);
+	}
+
+	private void checkTestMapify(HasMapify hasMap) {
 		HasMapify fetched = ofy().saveClearLoad(hasMap);
 
 		assert hasMap.things.equals(fetched.things);
