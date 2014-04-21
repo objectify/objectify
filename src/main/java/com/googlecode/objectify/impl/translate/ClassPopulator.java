@@ -2,13 +2,14 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.FieldProperty;
 import com.googlecode.objectify.impl.MethodProperty;
@@ -31,6 +32,8 @@ import java.util.logging.Logger;
  * translators, this does not create the POJO or container, it just copies translated properties
  * between them.</p>
  *
+ * <p>Always excludes the key fields, @Id and @Parent.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ClassPopulator<P> implements Populator<P>
@@ -39,6 +42,14 @@ public class ClassPopulator<P> implements Populator<P>
 
 	/** We do not persist fields with any of these modifiers */
 	private static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
+
+	/** We don't want to include the key fields in population */
+	private static final Predicate<Property> INCLUDED_FIELDS = new Predicate<Property>() {
+		@Override
+		public boolean apply(Property prop) {
+			return prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
+		}
+	};
 
 	/** */
 	private final Class<P> clazz;
@@ -57,14 +68,8 @@ public class ClassPopulator<P> implements Populator<P>
 	private final List<LifecycleMethod> onLoadMethods = new ArrayList<>();
 
 	/**
-	 * Includes every property
 	 */
 	public ClassPopulator(Class<P> clazz, CreateContext ctx, Path path) {
-		this(clazz, ctx, path, Predicates.<Property>alwaysTrue());
-	}
-
-	/** */
-	public ClassPopulator(Class<P> clazz, CreateContext ctx, Path path, Predicate<Property> include) {
 		this.clazz = clazz;
 
 		// Recursively climb the superclass chain
@@ -82,7 +87,7 @@ public class ClassPopulator<P> implements Populator<P>
 				Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
 				PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
 
-				if (include.apply(prop))
+				if (INCLUDED_FIELDS.apply(prop))
 					props.add(tprop);
 
 			} catch (Exception ex) {

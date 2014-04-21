@@ -1,14 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.PropertyContainer;
-import com.google.common.base.Predicate;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.annotation.Id;
-import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.Property;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,14 +35,6 @@ import java.util.Map;
  */
 public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyContainer>
 {
-	/** We don't want to include the key fields in normal population */
-	private static final Predicate<Property> NON_KEY_FIELDS = new Predicate<Property>() {
-		@Override
-		public boolean apply(Property prop) {
-			return prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
-		}
-	};
-
 	/** Cache of existing translators, see the class javadoc */
 	private Map<Class<P>, ClassTranslator<P>> translators = new HashMap<>();
 
@@ -75,7 +63,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, PropertyC
 	public static <P> ClassTranslator<P> createEntityClassTranslator(Class<P> clazz, CreateContext ctx, Path path) {
 		KeyMetadata<P> keyMetadata = new KeyMetadata<>(clazz, ctx, path);
 		Creator<P> creator = new EntityCreator<>(clazz, ctx.getFactory(), keyMetadata);
-		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path, NON_KEY_FIELDS);
+		Populator<P> populator = new ClassPopulator<>(clazz, ctx, path);
 
 		return new ClassTranslator<>(clazz, path, creator, populator);
 	}

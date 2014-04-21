@@ -6,7 +6,6 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.util.DatastoreUtils;
 
 
 /**
@@ -38,10 +37,10 @@ public class EntityCreator<P> extends Creator<P>
 	}
 
 	@Override
-	public P load(PropertyContainer node, LoadContext ctx, Path path) throws SkipException {
+	public P load(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
 		P pojo = construct(path);
 
-		keyMetadata.setKey(pojo, DatastoreUtils.getKey(node), ctx, path);
+		keyMetadata.setKey(pojo, container, ctx, path);
 
 		return pojo;
 	}

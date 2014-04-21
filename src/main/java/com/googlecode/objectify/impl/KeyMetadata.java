@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Id;
@@ -104,9 +105,23 @@ public class KeyMetadata<P>
 	}
 
 	/**
+	 * Sets the key (from the container) onto the POJO id/parent fields. Also doublechecks to make sure
+	 * that the key fields aren't present in the container, which means we're in a very bad state.
+	 */
+	public void setKey(P pojo, PropertyContainer container, LoadContext ctx, Path containerPath) {
+		if (container.hasProperty(idMeta.getProperty().getName()))
+			throw new IllegalStateException("Datastore has a property present for the id field " + idMeta.getProperty() + " which would conflict with the key: " + container);
+
+		if (parentMeta != null && container.hasProperty(parentMeta.getProperty().getName()))
+			throw new IllegalStateException("Datastore has a property present for the parent field " + parentMeta.getProperty() + " which would conflict with the key: " + container);
+
+		this.setKey(pojo, DatastoreUtils.getKey(container), ctx, containerPath);
+	}
+
+	/**
 	 * Sets the key onto the POJO id/parent fields
 	 */
-	public void setKey(P pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx, Path containerPath) {
+	private void setKey(P pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx, Path containerPath) {
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
