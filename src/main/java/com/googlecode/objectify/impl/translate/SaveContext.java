@@ -23,9 +23,14 @@ public class SaveContext
 	 */
 	private final SetMultimap<Path, Object> indexes = HashMultimap.create();
 
-	/** */
+	/**
+	 * @param object can be either a single thing or an iterable list of things to index at this path
+	 */
 	public void addIndex(Path path, Object object) {
-		indexes.put(path, object);
+		if (object instanceof Iterable<?>)
+			indexes.putAll(path, (Iterable<?>)object);
+		else
+			indexes.put(path, object);
 	}
 	
 	/** */
