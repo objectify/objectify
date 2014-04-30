@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl;
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
@@ -55,7 +56,7 @@ public class WriteEngine
 	/**
 	 * The fundamental put() operation.
 	 */
-	public <E> Result<Map<Key<E>, E>> save(final Iterable<? extends E> entities) {
+	public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
 
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Saving " + entities);
@@ -75,6 +76,9 @@ public class WriteEngine
 			}
 		}
 
+		// Need to make a copy of the original list because someone might clear it while we are async
+		final List<? extends E> original = Lists.newArrayList(entities);
+
 		// The CachingDatastoreService needs its own raw transaction
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(getTransactionRaw(), entityList);
 		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<>(raw);
@@ -89,7 +93,7 @@ public class WriteEngine
 				// One pass through the translated pojos to patch up any generated ids in the original objects
 				// Iterator order should be exactly the same for keys and values
 				Iterator<com.google.appengine.api.datastore.Key> keysIt = base.iterator();
-				for (E obj: entities)
+				for (E obj: original)
 				{
 					com.google.appengine.api.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
