@@ -24,10 +24,13 @@ public interface Objectify
 {
 	/**
 	 * <p>Start a load command chain.  This is where you begin for any request that fetches data from
-	 * the datastore: gets and queries.  Note that all command objects are immutable.</p>
+	 * the datastore: gets and queries.</p>
 	 *
 	 * <p>A quick example:
 	 * {@code Map<Key<Thing>, Thing> things = ofy.load().type(Thing.class).parent(par).ids(123L, 456L);}</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
 	 *
 	 * @return the next step in the immutable command chain.
 	 */
@@ -42,18 +45,23 @@ public interface Objectify
 	 * <p>A quick example:
 	 * {@code ofy.save().entities(e1, e2, e3).now();}</p>
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
 	 * @return the next step in the immutable command chain.
 	 */
 	Saver save();
 
 	/**
-	 * <p>Start a delete command chain.  Lets you delete entities or keys.  Note that all command chain
-	 * objects are immutable.</p>
+	 * <p>Start a delete command chain.  Lets you delete entities or keys.</p>
 	 *
 	 * <p>Deletes do NOT cascade; if you wish to delete an object graph, you must delete each individual entity.</p>
 	 *
 	 * <p>A quick example:
 	 * {@code ofy.delete().entities(e1, e2, e3).now();}</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
 	 *
 	 * @return the next step in the immutable command chain.
 	 */
@@ -64,7 +72,7 @@ public interface Objectify
 	 *
 	 * @return the ObjectifyFactory associated with this Objectify instance.
 	 */
-	public ObjectifyFactory factory();
+	ObjectifyFactory factory();
 
 	/**
 	 * <p>Provides a new Objectify instance with the specified Consistency.  Generally speaking, STRONG consistency
@@ -76,9 +84,12 @@ public interface Objectify
 	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
 	 * from this instance.</p>
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
 	 *  are faster.
-	 * @return a new Objectify instance with the consistency policy replaced
+	 * @return a new immutable Objectify instance with the consistency policy replaced
 	 */
 	Objectify consistency(Consistency policy);
 
@@ -89,8 +100,11 @@ public interface Objectify
 	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
 	 * from this instance.</p>
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param value - limit in seconds, or null to indicate no deadline (other than the standard whole request deadline of 30s/10m).
-	 * @return a new Objectify instance with the specified deadline
+	 * @return a new immutable Objectify instance with the specified deadline
 	 */
 	Objectify deadline(Double value);
 
@@ -104,7 +118,10 @@ public interface Objectify
 	 *
 	 * <p>Objectify instances are cache(true) by default.</p>
 	 *
-	 * @return a new Objectify instance which will (or won't) use the global cache
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable Objectify instance which will (or won't) use the global cache
 	 */
 	Objectify cache(boolean value);
 
@@ -119,7 +136,7 @@ public interface Objectify
 	 * @return the low-level transaction associated with this Objectify instance,
 	 *  or null if no transaction is associated with this instance.
 	 */
-	public Transaction getTransaction();
+	Transaction getTransaction();
 
 	/**
 	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
@@ -131,7 +148,10 @@ public interface Objectify
 	 * <p>This allows code to quickly "escape" a transactional context for the purpose of loading
 	 * manipulating data without creating or affecting XG transactions.</p>
 	 *
-	 * @return an Objectify instance outside of a transaction, with the session as it was before txn start.
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return an immutable Objectify instance outside of a transaction, with the session as it was before txn start.
 	 */
 	Objectify transactionless();
 

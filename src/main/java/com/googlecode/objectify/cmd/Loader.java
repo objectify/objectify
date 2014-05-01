@@ -32,6 +32,9 @@ public interface Loader extends SimpleQuery<Object>
 	 *
 	 * <p>Calling this method multiple times is the same as passing all the groups into one call.</p>
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param groups are one or more load groups to enable.  They can be any arbitrary class.
 	 * @return a continuation of the immutable command pattern, enabled for fetching this group.
 	 */
@@ -40,6 +43,9 @@ public interface Loader extends SimpleQuery<Object>
 	/**
 	 * <p>Restricts the find operation to entities of a particular type.  The type may be the
 	 * base of a polymorphic class hierarchy.  This is optional.</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
 	 *
 	 * @param type is the type of entity (or entities) to retrieve, possibly a base class for a polymorphic hierarchy
 	 * @return the next step in the immutable command chain, which allows you to start a query or define

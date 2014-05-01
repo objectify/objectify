@@ -26,17 +26,32 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * <p>See the Google documentation for
 	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
 	 * for an explanation of what you can and cannot filter for.</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that applies the filter
 	 */
 	public SimpleQuery<T> filterKey(String condition, Object value);
 
 	/**
 	 * An alias for {@code filterKey("=", value)}
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that applies the filter
 	 */
 	public SimpleQuery<T> filterKey(Object value);
 
 	/**
 	 * Orders results by the key.
 	 * @param descending if true, specifies a descending (aka reverse) sort
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that applies the sort order
 	 */
 	public SimpleQuery<T> orderKey(boolean descending);
 
@@ -46,14 +61,22 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * specified ancestor itself will be included in the result set (if it
 	 * exists).
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param keyOrEntity can be a Key, a Key<T>, or an Objectify entity object.
+	 * @return a new immutable query object that applies the ancestor filter
 	 */
 	public SimpleQuery<T> ancestor(Object keyOrEntity);
 
 	/**
 	 * Limit the fetched result set to a certain number of values.
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param value must be >= 0.  A value of 0 indicates no limit.
+	 * @return a new immutable query object that applies the limit
 	 */
 	public SimpleQuery<T> limit(int value);
 
@@ -62,7 +85,11 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * expensive because each skipped entity is billed as a "minor datastore operation".  If you
 	 * can, you probably want to use cursors instead.
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param value must be >= 0
+	 * @return a new immutable query object that applies the offset
 	 */
 	public SimpleQuery<T> offset(int value);
 
@@ -70,8 +97,13 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * Starts query results at the specified Cursor.  You can obtain a Cursor from
 	 * a QueryResultIterator by calling the getCursor() method.
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
 	 * on the results of the query after a cursor is established.
+	 *
+	 * @return a new immutable query object that applies the cursor
 	 */
 	public SimpleQuery<T> startAt(Cursor value);
 
@@ -79,8 +111,13 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * Ends query results at the specified Cursor.  You can obtain a Cursor from
 	 * a QueryResultIterator by calling the getCursor() method.
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * Note that limit() and offset() are NOT encoded within a cursor; they operate
 	 * on the results of the query after a cursor is established.
+	 *
+	 * @return a new immutable query object that applies the cursor
 	 */
 	public SimpleQuery<T> endAt(Cursor value);
 
@@ -88,7 +125,11 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * Sets the internal chunking and prefetching strategy within the low-level API.  Affects
 	 * performance only; the result set will be the same.
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param value must be >= 0
+	 * @return a new immutable query object that applies the chunk size
 	 */
 	public SimpleQuery<T> chunk(int value);
 
@@ -96,17 +137,32 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * <p>Sets the internal chunking and prefetching strategy within the low-level API to attempt to get all
 	 * results at once.  Affects performance only; the result set will be the same.</p>
 	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * <p>Same as chunk(Integer.MAX_VALUE).</p>
+	 *
+	 * @return a new immutable query object that applies the chunk size
 	 */
 	public SimpleQuery<T> chunkAll();
 
 	/**
 	 * Determines whether this is a SELECT DISTINCT query.
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that applies the distinct operator
 	 */
 	public SimpleQuery<T> distinct(boolean value);
 	
 	/**
 	 * Reverse the query, as described in the <a href="https://developers.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/Query#reverse()">GAE docs</a>.
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that reverses the order of results
 	 */
 	public SimpleQuery<T> reverse();
 
@@ -137,12 +193,22 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * actual results.  {@code hybrid(false)} will prevent this behavior.</p>
 	 *
 	 * <p>Note that in hybrid queries, the chunk size defines the batch size.</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that forces hybridization on or off
 	 */
 	public SimpleQuery<T> hybrid(boolean force);
 
 	/**
 	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
-	 * which are significantly cheaper (~7X) than fetching whole entities.
+	 * which are faster and free compared to fetching whole entities.
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable query object that returns keys rather than whole entities
 	 */
 	public QueryKeys<T> keys();
 
@@ -153,8 +219,8 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * <p>Immediately executes the query; there is no async version of this method.</p>
 	 *
-	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Counting large numbers
-	 * of entities can quickly create massive bills.</p>
+	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Even though these
+	 * are free, they may take significant time because they require an index walk.</p>
 	 */
 	public int count();
 

@@ -17,7 +17,10 @@ public interface DeleteType extends DeleteIds
 	/**
 	 * Defines the parent part of a key (or set of keys) when building a delete request.
 	 * After this you will define the id or ids to delete.
-	 * 
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param keyOrEntity - a Key<?>, datastore Key, or pojo entity of the parent
 	 * @return the next immutable step in the command build process
 	 */

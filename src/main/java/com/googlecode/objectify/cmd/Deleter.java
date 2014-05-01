@@ -20,9 +20,12 @@ public interface Deleter
 {
 	/**
 	 * Begin construction of a key or keys to delete by specifying a kind.
-	 * 
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
 	 * @param type is the kind of object to delete.
-	 * @return the next step in the command chain where you specify a parent and/or ids.
+	 * @return the next step in the immutable command chain where you specify a parent and/or ids.
 	 */
 	DeleteType type(Class<?> type);
 
