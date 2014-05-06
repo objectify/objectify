@@ -25,6 +25,9 @@ import java.util.concurrent.TimeoutException;
  * 
  * <p>Use the AsyncCacheFilter for normal requests. For situations where a filter is not appropriate
  * (ie, the remote api) be sure to call PendingFutures.completeAllPendingFutures() manually.</p>
+ *
+ * <p>Note that if you are using this with Objectify, you probably want to use ObjectifyFilter.complete()
+ * rather than PendingFutures or AsyncCacheFilter static methods.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -37,8 +40,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 	boolean triggered = false;
 	
 	/** Wrap a normal Future<?> */
-	public TriggerFuture(Future<T> raw)
-	{
+	public TriggerFuture(Future<T> raw) {
 		this.raw = raw;
 		
 		// We now need to register ourself so that we'll get checked at future API calls
@@ -55,9 +57,7 @@ abstract public class TriggerFuture<T> implements Future<T>
 	 * @see java.util.concurrent.Future#cancel(boolean)
 	 */
 	@Override
-	public boolean cancel(boolean mayInterruptIfRunning)
-	{
-		//return this.raw.cancel(mayInterruptIfRunning);
+	public boolean cancel(boolean mayInterruptIfRunning) {
 		throw new UnsupportedOperationException("This makes my head spin. Don't do it.");
 	}
 
@@ -77,12 +77,10 @@ abstract public class TriggerFuture<T> implements Future<T>
 	 * @see java.util.concurrent.Future#isDone()
 	 */
 	@Override
-	public boolean isDone()
-	{
+	public boolean isDone() {
 		boolean done = this.raw.isDone();
 		
-		if (!triggered && done)
-		{
+		if (!triggered && done) {
 			this.triggered = true;
 			PendingFutures.removePending(this);
 			

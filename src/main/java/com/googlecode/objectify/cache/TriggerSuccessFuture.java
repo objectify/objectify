@@ -32,8 +32,7 @@ abstract public class TriggerSuccessFuture<T> extends TriggerFuture<T>
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cache.NotifyFuture#execute()
 	 */
-	protected final void trigger()
-	{
+	protected final void trigger() {
 		try {
 			this.success(this.get());
 		} catch (Exception ex) {
