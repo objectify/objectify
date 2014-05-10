@@ -147,6 +147,22 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	public SimpleQuery<T> chunkAll();
 
 	/**
+	 * <p>Converts this query into a <a href="https://developers.google.com/appengine/docs/java/datastore/projectionqueries">projection query</a>.
+	 * Projection queries allow values to be selected directly out of an index rather than loading the whole entity. While this allows
+	 * data to be fetched quickly and cheaply, it is limited to selecting data that exists in an index.</p>
+	 *
+	 * <p>Entities returned from projection queries are NOT kept in the session cache. However, @Load annotations are
+	 * processed normally.</p>
+	 *
+	 * <p>This method can be called more than once; it will have the same effect as passing all the fields
+	 * in to a single call.</p>
+	 *
+	 * @param fields is one or more field names
+	 * @return a new immutable query object that projects the specified fields
+	 */
+	public SimpleQuery<T> project(String... fields);
+
+	/**
 	 * Determines whether this is a SELECT DISTINCT query.
 	 *
 	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the

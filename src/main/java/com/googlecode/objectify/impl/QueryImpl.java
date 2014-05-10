@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl;
 import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PropertyProjection;
 import com.google.appengine.api.datastore.Query.CompositeFilterOperator;
 import com.google.appengine.api.datastore.Query.Filter;
 import com.google.appengine.api.datastore.Query.FilterOperator;
@@ -256,7 +257,15 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Modifies the instance */
 	void setKeysOnly() {
+		if (!this.actual.getProjections().isEmpty())
+			throw new IllegalStateException("You cannot ask for both keys-only and projections in the same query. That makes no sense!");
+
 		this.actual.setKeysOnly();
+	}
+
+	/** Modifies the instance, switching directions */
+	void toggleReverse() {
+		this.actual = this.actual.reverse();
 	}
 
 	/** Modifies the instance */
@@ -264,9 +273,14 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		this.actual.setDistinct(value);
 	}
 
-	/** Modifies the instance, switching directions */
-	void toggleReverse() {
-		this.actual = this.actual.reverse();
+	/** Modifies the instance */
+	void addProjection(String... fields) {
+		if (this.actual.isKeysOnly())
+			throw new IllegalStateException("You cannot ask for both keys-only and projections in the same query. That makes no sense!");
+
+		for (String field: fields) {
+			this.actual.addProjection(new PropertyProjection(field, null));
+		}
 	}
 
 	/* (non-Javadoc)
@@ -305,6 +319,9 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 		if (this.actual.getDistinct())
 			bld.append(",distinct=true");
+
+		if (!this.actual.getProjections().isEmpty())
+			bld.append(",projections=").append(this.actual.getProjections());
 
 		bld.append('}');
 

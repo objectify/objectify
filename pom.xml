@@ -117,8 +117,7 @@
 				<version>2.17</version>
 				<configuration>
 					<includes>
-						<include>**/*Test.java</include>
-						<include>**/*Tests.java</include>
+						<include>**/*Test*.java</include>
 					</includes>
 				</configuration>
 			</plugin>

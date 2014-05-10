@@ -131,4 +131,16 @@ public interface Query<T> extends SimpleQuery<T>
 	 */
 	@Override
 	public Query<T> reverse();
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#project(String...)
+	 */
+	@Override
+	public Query<T> project(String... fields);
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#distinct()
+	 */
+	@Override
+	public Query<T> distinct(boolean value);
 }
