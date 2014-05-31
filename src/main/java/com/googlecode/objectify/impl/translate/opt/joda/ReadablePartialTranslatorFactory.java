@@ -9,39 +9,38 @@ import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
-import org.joda.time.ReadableInstant;
+import org.joda.time.ReadablePartial;
 
 import java.lang.invoke.MethodHandle;
-import java.util.Date;
 
 
 /**
- * Converts Joda ReadableInstants (DateTime, DateMidnight, etc) into java.util.Date 
+ * Converts Joda ReadablePartials (LocalDate, LocalDateTime, YearMonth, etc) into String (ISO-8601) representation
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ReadableInstantTranslatorFactory extends ValueTranslatorFactory<ReadableInstant, Date>
+public class ReadablePartialTranslatorFactory extends ValueTranslatorFactory<ReadablePartial, String>
 {
-	public ReadableInstantTranslatorFactory() {
-		super(ReadableInstant.class);
+	public ReadablePartialTranslatorFactory() {
+		super(ReadablePartial.class);
 	}
 
 	@Override
-	protected ValueTranslator<ReadableInstant, Date> createValueTranslator(TypeKey<ReadableInstant> tk, CreateContext ctx, Path path) {
+	protected ValueTranslator<ReadablePartial, String> createValueTranslator(TypeKey<ReadablePartial> tk, CreateContext ctx, Path path) {
 		final Class<?> clazz = tk.getTypeAsClass();
 
-		// All the Joda instants have a constructor that will accept a Date
+		// All the Joda partials have a constructor that will accept a String
 		final MethodHandle ctor = TypeUtils.getConstructor(clazz, Object.class);
 
-		return new ValueTranslator<ReadableInstant, Date>(Date.class) {
+		return new ValueTranslator<ReadablePartial, String>(String.class) {
 			@Override
-			protected ReadableInstant loadValue(Date value, LoadContext ctx, Path path) throws SkipException {
+			protected ReadablePartial loadValue(String value, LoadContext ctx, Path path) throws SkipException {
 				return TypeUtils.invoke(ctor, value);
 			}
 
 			@Override
-			protected Date saveValue(ReadableInstant value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.toInstant().toDate();
+			protected String saveValue(ReadablePartial value, boolean index, SaveContext ctx, Path path) throws SkipException {
+				return value.toString();
 			}
 		};
 	}

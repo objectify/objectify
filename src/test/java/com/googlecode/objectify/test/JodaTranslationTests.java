@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.repackaged.org.joda.time.YearMonth;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.translate.opt.joda.JodaTimeTranslators;
@@ -41,6 +42,7 @@ public class JodaTranslationTests extends TestBase
 		public LocalDateTime localDateTime;
 		public DateTime dateTime;
 		public DateTimeZone dateTimeZone;
+		public YearMonth yearMonth;
 	}
 
 	/** */
@@ -56,6 +58,7 @@ public class JodaTranslationTests extends TestBase
 		hj.localDateTime = new LocalDateTime();
 		hj.dateTime = new DateTime();
 		hj.dateTimeZone = DateTimeZone.forID("America/Los_Angeles");
+		hj.yearMonth = new YearMonth();
 
 		HasJoda fetched = ofy().saveClearLoad(hj);
 		assert hj.localTime.equals(fetched.localTime);

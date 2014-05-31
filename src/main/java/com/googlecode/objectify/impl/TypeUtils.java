@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl;
 
 import java.lang.annotation.Annotation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -47,14 +49,28 @@ public class TypeUtils
 	 * Gets a constructor that has the specified types of arguments.
 	 * Throw an IllegalStateException if the class does not have such a constructor.
 	 */
-	public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... args) {
+	public static MethodHandle getConstructor(Class<?> clazz, Class<?>... args) {
 		try {
-			Constructor<T> ctor = clazz.getDeclaredConstructor(args);
+			// We use unreflect so that we can make the constructor accessible
+			Constructor<?> ctor = clazz.getDeclaredConstructor(args);
 			ctor.setAccessible(true);
-			return ctor;
+			return MethodHandles.lookup().unreflectConstructor(ctor);
 		}
 		catch (NoSuchMethodException e) {
 			throw new IllegalStateException(clazz.getName() + " has no constructor with args " + Arrays.toString(args), e);
+		} catch (IllegalAccessException e) {
+			throw new IllegalStateException("Problem getting constructor for " + clazz.getName() + " with args " + Arrays.toString(args), e);
+		}
+	}
+
+	/** Wraps any non-runtime exceptions with a runtime exception */
+	public static <T> T invoke(MethodHandle methodHandle, Object... params) {
+		try {
+			return (T)methodHandle.invokeWithArguments(params);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Throwable throwable) {
+			throw new RuntimeException(throwable);
 		}
 	}
 
