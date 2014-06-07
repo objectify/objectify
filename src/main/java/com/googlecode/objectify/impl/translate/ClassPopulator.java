@@ -82,17 +82,16 @@ public class ClassPopulator<P> implements Populator<P>
 
 		// Find all the basic properties
 		for (Property prop: getDeclaredProperties(ctx.getFactory(), clazz)) {
-			Path propPath = path.extend(prop.getName());
-			try {
-				Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
-				PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
-
-				if (INCLUDED_FIELDS.apply(prop))
+			if (INCLUDED_FIELDS.apply(prop)) {
+				Path propPath = path.extend(prop.getName());
+				try {
+					Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
+					PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
 					props.add(tprop);
-
-			} catch (Exception ex) {
-				// Catch any errors during this process and wrap them in an exception that exposes more useful information.
-				propPath.throwIllegalState("Error registering " + clazz.getName(), ex);
+				} catch (Exception ex) {
+					// Catch any errors during this process and wrap them in an exception that exposes more useful information.
+					propPath.throwIllegalState("Error registering " + clazz.getName(), ex);
+				}
 			}
 		}
 
