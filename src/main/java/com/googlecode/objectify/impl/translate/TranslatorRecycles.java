@@ -13,7 +13,7 @@ abstract public class TranslatorRecycles<P, D> implements Translator<P, D>, Recy
 	@Override
 	final public P load(D node, LoadContext ctx, Path path) throws SkipException {
 		@SuppressWarnings("unchecked")
-		P into = (P)ctx.getRecycled();
+		P into = (P)ctx.useRecycled();
 
 		P loaded = loadInto(node, ctx, path, into);
 

@@ -53,9 +53,11 @@ public class LoadContext
 		this.engine = batch;
 	}
 
-	/** The most recently recycled value */
-	public Object getRecycled() {
-		return recycled;
+	/** The most recently recycled value. It can be used exactly once. */
+	public Object useRecycled() {
+		Object value = recycled;
+		recycled = null;
+		return value;
 	}
 
 	/** */

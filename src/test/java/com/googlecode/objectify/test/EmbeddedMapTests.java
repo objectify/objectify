@@ -1,15 +1,19 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.stringifier.KeyStringifier;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
@@ -95,5 +99,21 @@ public class EmbeddedMapTests extends TestBase
 		HasMapWithKeyKey fetched = ofy().saveClearLoad(hml);
 
 		assert fetched.primitives.equals(hml.primitives);
+	}
+
+	@Entity
+	public static class MapWithSetIssue {
+		@Id Long id;
+		@Index
+		private Map<String, Set<String>> mapWithSet = new HashMap<>();
+	}
+
+	@Test
+	public void testMapWithSet() throws Exception {
+		fact().register(MapWithSetIssue.class);
+
+		final MapWithSetIssue mws = new MapWithSetIssue();
+		mws.mapWithSet.put("key", Collections.singleton("value"));
+		ofy().saveClearLoad(mws); //failure here: java.util.HashMap cannot be cast to java.util.Collection
 	}
 }
