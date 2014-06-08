@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -42,16 +44,14 @@ public class QueryExoticTypesTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasDate
-	{
+	public static class HasDate {
 		@Id Long id;
 		@Index Date when;
 	}
 
 	/** */
 	@Test
-	public void testDateFiltering() throws Exception
-	{
+	public void testDateFiltering() throws Exception {
 		fact().register(HasDate.class);
 
 		long later = System.currentTimeMillis();
@@ -72,16 +72,14 @@ public class QueryExoticTypesTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasUser
-	{
+	public static class HasUser {
 		@Id Long id;
-		com.google.appengine.api.users.User who;
+		@Index com.google.appengine.api.users.User who;
 	}
 
 	/** */
 	@Test
-	public void testUserFiltering() throws Exception
-	{
+	public void testUserFiltering() throws Exception {
 		fact().register(HasUser.class);
 
 		HasUser hd = new HasUser();
@@ -93,18 +91,13 @@ public class QueryExoticTypesTests extends TestBase
 
 		List<HasUser> result = q.list();
 
-		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
-		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
-		assert result.size() == 0;
-
-//		assert result.size() == 1;
-//		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+		assert result.size() == 1;
+		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 
 	/** */
 	@Test
-	public void testBadlyNamedUserFiltering() throws Exception
-	{
+	public void testBadlyNamedUserFiltering() throws Exception {
 		fact().register(User.class);
 
 		User hd = new User();
@@ -116,20 +109,15 @@ public class QueryExoticTypesTests extends TestBase
 
 		List<User> result = q.list();
 
-		// This test doesn't work anymore because properties default to @Unindex as of Ofy4.
-		// TODO:  re-enable it when we have a @Metamodel annotation that lets us define indexing in a separate class.
-		assert result.size() == 0;
-
-//		assert result.size() == 1;
-//		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
+		assert result.size() == 1;
+		assert result.get(0).who.getEmail().equals(hd.who.getEmail());
 	}
 
 	/**
 	 * @author aswath satrasala
 	 */
 	@Entity
-	public static class HasFromThruDate
-	{
+	public static class HasFromThruDate {
 		@Id Long id;
 		@Index List<Date> dateList = new ArrayList<>();
 	}
@@ -138,8 +126,7 @@ public class QueryExoticTypesTests extends TestBase
 	 * @author aswath satrasala
 	 */
 	@Test
-	public void testFromThruDateFiltering() throws Exception
-	{
+	public void testFromThruDateFiltering() throws Exception {
 		fact().register(HasFromThruDate.class);
 
 		HasFromThruDate h1 = new HasFromThruDate();
@@ -177,5 +164,32 @@ public class QueryExoticTypesTests extends TestBase
 
 		List<HasFromThruDate> listresult = q.list();
 		assert listresult.size() == 2;
+	}
+
+	/** */
+	@Entity
+	public static class HasRef {
+		@Id Long id;
+		@Index Ref<HasRef> ref;
+	}
+
+	/** */
+	@Test
+	public void refsFilterAsKeys() throws Exception {
+		fact().register(HasRef.class);
+
+		Key<HasRef> someKey = Key.create(HasRef.class, 123L);
+
+		HasRef hr = new HasRef();
+		hr.ref = Ref.create(someKey);
+
+		ofy().save().entity(hr).now();
+
+		Query<HasRef> q = ofy().load().type(HasRef.class).filter("ref", someKey);
+
+		List<HasRef> result = q.list();
+
+		assert result.size() == 1;
+		assert result.get(0).ref.equivalent(someKey);
 	}
 }
