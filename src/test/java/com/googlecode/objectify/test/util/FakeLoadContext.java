@@ -25,6 +25,6 @@ public class FakeLoadContext extends LoadContext
 	}
 
 	public FakeLoadContext() {
-		super(null, mockLoadEngine());
+		super(mockLoadEngine());
 	}
 }

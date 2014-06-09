@@ -89,6 +89,25 @@ public class QueryEngine
 	}
 
 	/**
+	 * A projection query. Bypasses the session entirely.
+	 */
+	public <T> QueryResultIterable<T> queryProjection(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
+		assert !query.isKeysOnly();
+		assert !query.getProjections().isEmpty();
+		log.finest("Starting projection query");
+
+		final PreparedQuery pq = prepare(query);
+		final LoadEngine loadEngine = loader.createLoadEngine();
+
+		return new QueryResultIterable<T>() {
+			@Override
+			public QueryResultIterator<T> iterator() {
+				return new ProjectionIterator<>(pq.asQueryResultIterator(fetchOpts), loadEngine);
+			}
+		};
+	}
+
+	/**
 	 * The fundamental query count operation.  This is sufficiently different from normal query().
 	 */
 	public int queryCount(com.google.appengine.api.datastore.Query query, FetchOptions fetchOpts) {

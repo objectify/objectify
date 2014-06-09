@@ -3,6 +3,7 @@ package com.googlecode.objectify.util;
 import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Projection;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.appengine.api.datastore.Query.SortPredicate;
 import com.googlecode.objectify.Key;
@@ -37,9 +38,12 @@ public class DatastoreUtils
 		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
 		
 		copy.setFilter(orig.getFilter());
-		
+
 		for (SortPredicate sort: orig.getSortPredicates())
 			copy.addSort(sort.getPropertyName(), sort.getDirection());
+
+		for (Projection projection: orig.getProjections())
+			copy.addProjection(projection);
 		
 		if (orig.isKeysOnly())
 			copy.setKeysOnly();

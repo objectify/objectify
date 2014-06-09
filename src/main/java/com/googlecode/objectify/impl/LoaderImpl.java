@@ -227,7 +227,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	LoadEngine createLoadEngine() {
-		return new LoadEngine(this, ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
+		return new LoadEngine(ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	@Override
 	public <T> T fromEntity(Entity entity) {
 		LoadEngine engine = createLoadEngine();
-		return engine.load(entity, new LoadContext(this, engine));
+		return engine.load(entity, new LoadContext(engine));
 	}
 
 	/* (non-Javadoc)

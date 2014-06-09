@@ -30,7 +30,6 @@ public class LoadEngine
 	private static final Logger log = Logger.getLogger(LoadEngine.class.getName());
 
 	/** */
-	LoaderImpl<?> loader;
 	ObjectifyImpl<?> ofy;
 	AsyncDatastoreService ads;
 	Session session;
@@ -41,8 +40,7 @@ public class LoadEngine
 
 	/**
 	 */
-	public LoadEngine(LoaderImpl<?> loader, ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
-		this.loader = loader;
+	public LoadEngine(ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
 		this.ofy = ofy;
 		this.session = session;
 		this.ads = ads;
@@ -51,7 +49,7 @@ public class LoadEngine
 		this.round = new Round(this, 0);
 
 		if (log.isLoggable(Level.FINEST))
-			log.finest("Starting load engine with groups " + loader.getLoadGroups());
+			log.finest("Starting load engine with groups " + loadArrangement);
 	}
 
 	/**
@@ -75,7 +73,7 @@ public class LoadEngine
 			KeyMetadata<?> meta = ofy.factory().keys().getMetadata(key);
 			// Is it really possible for this to be null?
 			if (meta != null) {
-				if (meta.shouldLoadParent(loader.getLoadGroups())) {
+				if (meta.shouldLoadParent(loadArrangement)) {
 					load(key.getParent());
 				}
 			}
@@ -114,7 +112,7 @@ public class LoadEngine
 	 * @return true if the specified property should be loaded in this batch
 	 */
 	public boolean shouldLoad(LoadConditions loadConditions) {
-		return loadConditions.shouldLoad(loader.getLoadGroups());
+		return loadConditions.shouldLoad(loadArrangement);
 	}
 
 	/**
@@ -139,7 +137,7 @@ public class LoadEngine
 			public Map<Key<?>, Object> nowUncached() {
 				Map<Key<?>, Object> result = new HashMap<>(raw.now().size() * 2);
 
-				ctx = new LoadContext(loader, LoadEngine.this);
+				ctx = new LoadContext(LoadEngine.this);
 
 				for (Entity ent: raw.now().values()) {
 					Key<?> key = Key.create(ent.getKey());

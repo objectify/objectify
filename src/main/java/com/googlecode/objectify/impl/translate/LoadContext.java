@@ -2,9 +2,8 @@ package com.googlecode.objectify.impl.translate;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.cmd.Loader;
-import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.LoadConditions;
+import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,9 +23,6 @@ public class LoadContext
 {
 	/** */
 	private static final Logger log = Logger.getLogger(LoadContext.class.getName());
-
-	/** The loader instance */
-	Loader loader;
 
 	/** */
 	LoadEngine engine;
@@ -48,9 +43,8 @@ public class LoadContext
 	Object recycled;
 
 	/** */
-	public LoadContext(Loader loader, LoadEngine batch) {
-		this.loader = loader;
-		this.engine = batch;
+	public LoadContext(LoadEngine engine) {
+		this.engine = engine;
 	}
 
 	/** The most recently recycled value. It can be used exactly once. */
@@ -64,9 +58,6 @@ public class LoadContext
 	public void recycle(Object value) {
 		this.recycled = value;
 	}
-
-	/** */
-	public Loader getLoader() { return this.loader; }
 
 	/** Sets the current root entity */
 	public void setCurrentRoot(Key<?> rootEntity) {
@@ -110,13 +101,6 @@ public class LoadContext
 			log.finest("Deferring: " + runnable);
 
 		this.deferred.add(runnable);
-	}
-
-	/**
-	 * Gets the currently enabled set of load groups
-	 */
-	public Set<Class<?>> getLoadGroups() {
-		return loader.getLoadGroups();
 	}
 
 	/**

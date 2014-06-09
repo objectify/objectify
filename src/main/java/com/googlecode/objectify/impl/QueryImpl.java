@@ -49,10 +49,11 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	Cursor startAt;
 	Cursor endAt;
 	Integer chunk;
-	boolean hybrid;	// starts false
+
+	/** Three states; null is "figure it out automatically" */
+	Boolean hybrid;
 
 	/** Need to know this so that we can force hybrid off when we get a multiquery (IN/NOT) or order */
-	boolean hasExplicitHybrid;
 	boolean hasMulti;
 
 	/** */
@@ -73,10 +74,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
 			this.addFilter(FilterOperator.EQUAL.of(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, discriminator));
 		}
-
-		// If the class is cacheable, hybridize
-		if (loader.getObjectifyImpl().getCache() && fact().getMetadata(clazz).getCacheExpirySeconds() != null)
-			hybrid = true;
 
 		this.classRestriction = clazz;
 	}
@@ -252,7 +249,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	/** Modifies the instance */
 	void setHybrid(boolean force) {
 		this.hybrid = force;
-		this.hasExplicitHybrid = true;
 	}
 
 	/** Modifies the instance */
@@ -277,6 +273,9 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	void addProjection(String... fields) {
 		if (this.actual.isKeysOnly())
 			throw new IllegalStateException("You cannot ask for both keys-only and projections in the same query. That makes no sense!");
+
+		if (this.hybrid != null && this.hybrid)
+			throw new IllegalStateException("You cannot ask for both hybrid and projections in the same query. That makes no sense!");
 
 		for (String field: fields) {
 			this.actual.addProjection(new PropertyProjection(field, null));
@@ -382,19 +381,29 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Produces the basic iterable on results based on the current query.  Used to generate other iterables via transformation. */
 	private QueryResultIterable<T> resultIterable() {
-		boolean hybridize = hybrid;
-
-		if (!hasExplicitHybrid) {
-			// These are the special conditions we know about.  It may expand.
-
-			if (hasMulti)
-				hybridize = false;
-		}
-
-		if (hybridize)
+		if (!actual.getProjections().isEmpty())
+			return loader.createQueryEngine().queryProjection(this.getActualQuery(), this.fetchOptions());
+		else if (shouldHybridize())
 			return loader.createQueryEngine().queryHybrid(this.getActualQuery(), this.fetchOptions());
 		else
 			return loader.createQueryEngine().queryNormal(this.getActualQuery(), this.fetchOptions());
+	}
+
+	/**
+	 * @return true if we should hybridize this query
+	 */
+	private boolean shouldHybridize() {
+		if (hybrid != null)
+			return hybrid;
+
+		if (hasMulti)
+			return false;
+
+		// If the class is cacheable
+		if (classRestriction != null && loader.getObjectifyImpl().getCache() && fact().getMetadata(classRestriction).getCacheExpirySeconds() != null)
+			return true;
+
+		return false;
 	}
 
 	/* (non-Javadoc)
