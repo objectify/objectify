@@ -17,20 +17,20 @@ public class AsIsTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	/* */
 	@Override
-	public Translator<Object, Object> create(TypeKey tk, CreateContext ctx, Path path) {
-		Class<?> clazz = tk.getTypeAsClass();
+	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
+		Class<Object> clazz = tk.getTypeAsClass();
 
 		if (!(clazz == Object.class || clazz.isPrimitive() || DataTypeUtils.isSupportedType(clazz)))
 			return null;
 
-		return new Translator<Object, Object>() {
+		return new ProjectionSafeTranslator<Object, Object>(clazz) {
 			@Override
-			public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
-				return node;
+			protected Object loadSafe2(Object value, LoadContext ctx, Path path) throws SkipException {
+				return value;
 			}
 
 			@Override
-			public Object save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			protected Object saveSafe(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
 				return pojo;
 			}
 		};

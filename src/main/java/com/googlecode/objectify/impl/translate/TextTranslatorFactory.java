@@ -18,7 +18,9 @@ public class TextTranslatorFactory extends ValueTranslatorFactory<Text, Object>
 
 	@Override
 	protected ValueTranslator<Text, Object> createValueTranslator(TypeKey<Text> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<Text, Object>(Object.class) {
+		// Should never be part of a projection since Text cannot be indexed, but just in case someone is converting
+		// a String to a Text field. Unlikely but it doesn't hurt to pass the String.class here.
+		return new ValueTranslator<Text, Object>(Object.class, String.class) {
 			@Override
 			protected Text loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof Text)

@@ -20,7 +20,7 @@ public class NumberTranslatorFactory implements TranslatorFactory<Number, Object
 		if (!TypeUtils.isAssignableFrom(Number.class, clazz))
 			return null;
 
-		return new ValueTranslator<Number, Object>(Object.class) {
+		return new ValueTranslator<Number, Object>(Object.class, Number.class) {
 			@Override
 			protected Number loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof String) {

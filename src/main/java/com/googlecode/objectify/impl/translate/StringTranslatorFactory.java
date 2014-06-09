@@ -24,7 +24,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 	
 	@Override
 	protected ValueTranslator<String, Object> createValueTranslator(TypeKey<String> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<String, Object>(Object.class) {
+		return new ValueTranslator<String, Object>(Object.class, String.class) {
 			@Override
 			protected String loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
 				if (value instanceof Text)
