@@ -99,8 +99,8 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * Reconstitute a Key from a web safe string.  This can be generated with getString()
-	 * or KeyFactory.strongToKey().
+	 * Reconstitute a Key from a web safe string.  This can be generated with getString()/toWebSafeString()
+	 * or KeyFactory.stringToKey().
 	 */
 	private Key(String webSafe) {
 		this(KeyFactory.stringToKey(webSafe));
@@ -204,9 +204,18 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/**
 	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
-	 * constructor that takes a websafe string.
+	 * constructor that takes a websafe string. This is a javabeans-style alias for toWebSafeString().
 	 */
 	public String getString() {
+		return toWebSafeString();
+	}
+
+	/**
+	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
+	 * constructor that takes a websafe string. Note that toString() is only useful for debugging;
+	 * it cannot be used to create a key with Key.create(String).
+	 */
+	public String toWebSafeString() {
 		return KeyFactory.keyToString(this.raw);
 	}
 
