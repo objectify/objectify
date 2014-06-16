@@ -39,9 +39,9 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 		Stringify stringify = tk.getAnnotation(Stringify.class);
 
 		final Type keyType = GenericUtils.getMapKeyType(tk.getType());
+		Class<?> keyTypeErased = GenericTypeReflector.erase(keyType);
 
 		Class<? extends Stringifier> stringifierClass = null;
-		Class<?> keyTypeErased = GenericTypeReflector.erase(keyType);
 		if (stringify != null)
 			stringifierClass = stringify.value();
 		else if (keyTypeErased == String.class)
