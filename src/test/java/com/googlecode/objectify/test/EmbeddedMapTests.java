@@ -116,4 +116,32 @@ public class EmbeddedMapTests extends TestBase
 		mws.mapWithSet.put("key", Collections.singleton("value"));
 		ofy().saveClearLoad(mws); //failure here: java.util.HashMap cannot be cast to java.util.Collection
 	}
+
+
+	//
+	//
+	//
+
+	enum SomeEnum { ONE, TWO }
+
+	@com.googlecode.objectify.annotation.Entity
+	public static class HasEnumKeyMap {
+		@Id
+		Long id;
+		Map<SomeEnum, Long> primitives = new HashMap<>();
+	}
+
+	@Test
+	public void keyCanBeEnum() throws Exception {
+		fact().register(HasEnumKeyMap.class);
+
+		HasEnumKeyMap he = new HasEnumKeyMap();
+		he.primitives.put(SomeEnum.ONE, 1L);
+		he.primitives.put(SomeEnum.TWO, 2L);
+
+		HasEnumKeyMap fetched = ofy().saveClearLoad(he);
+
+		assert fetched.primitives.equals(he.primitives);
+	}
+
 }
