@@ -30,7 +30,7 @@ public class TestBase
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
 					// Our tests assume strong consistency
-					new LocalDatastoreServiceTestConfig().setAlternateHighRepJobPolicyClass(AlwaysApplyJobPolicy.class),
+					new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(),
 					new LocalMemcacheServiceTestConfig(),
 					new LocalTaskQueueTestConfig());
 	/** */
