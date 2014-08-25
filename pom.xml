@@ -171,15 +171,6 @@
 		</dependency>
 		-->
 
-		<!-- GWT -->
-		<dependency>
-			<groupId>com.google.gwt</groupId>
-			<artifactId>gwt-user</artifactId>
-			<version>2.5.0</version>
-			<scope>compile</scope>
-			<optional>true</optional>
-		</dependency>
-
 		<!-- Google App Engine -->
 		<dependency>
 			<groupId>com.google.appengine</groupId>
@@ -204,6 +195,13 @@
 			<artifactId>appengine-testing</artifactId>
 			<version>${gae.version}</version>
 			<scope>test</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- Testing -->
