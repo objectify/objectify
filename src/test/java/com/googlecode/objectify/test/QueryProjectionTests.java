@@ -4,13 +4,14 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
-
 import java.util.List;
 import java.util.logging.Logger;
-
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -58,5 +59,28 @@ public class QueryProjectionTests extends TestBase
 
 		Trivial fetched = ofy().load().key(trivKey).now();
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
+	}
+
+	@Entity
+	private static class HasIndexedNumber {
+		public @Id Long id;
+		@Index
+		public int number;
+	}
+
+	/** */
+	@Test
+	public void projectionOfNumbersWorks() throws Exception {
+		fact().register(HasIndexedNumber.class);
+
+		HasIndexedNumber hin = new HasIndexedNumber();
+		hin.number = 5;
+
+		ofy().save().entity(hin).now();
+		ofy().clear();
+
+		List<HasIndexedNumber> projected = ofy().load().type(HasIndexedNumber.class).project("number").list();
+		assert projected.size() == 1;
+		assert projected.get(0).number == hin.number;
 	}
 }
