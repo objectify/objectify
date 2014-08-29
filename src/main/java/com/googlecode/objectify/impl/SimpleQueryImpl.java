@@ -37,7 +37,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	@Override
 	public QueryImpl<T> filterKey(String condition, Object value) {
 		QueryImpl<T> q = createQuery();
-		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition, value);
+		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition.trim(), value);
 		return q;
 	}
 
