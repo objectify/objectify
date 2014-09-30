@@ -83,4 +83,24 @@ public class QueryProjectionTests extends TestBase
 		assert projected.size() == 1;
 		assert projected.get(0).number == hin.number;
 	}
+
+	/** */
+	@Test
+	public void distinctWorks() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv = new Trivial(123L, "foo", 12);
+		Trivial triv2 = new Trivial(456L, "foo", 12);
+		ofy().save().entities(triv, triv2).now();
+		ofy().clear();
+
+		List<Trivial> projected = ofy().load().type(Trivial.class).project("someString").distinct(true).list();
+		assert projected.size() == 1;
+
+		Trivial pt = projected.get(0);
+		assert pt.getId() == triv.getId();
+		assert pt.getSomeString().equals(triv.getSomeString());
+		assert pt.getSomeNumber() == 0;	// default value
+	}
+
 }
