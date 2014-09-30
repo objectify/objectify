@@ -47,6 +47,8 @@ public class DatastoreUtils
 		
 		if (orig.isKeysOnly())
 			copy.setKeysOnly();
+
+		copy.setDistinct(orig.getDistinct());
 		
 		return copy;
 	}
