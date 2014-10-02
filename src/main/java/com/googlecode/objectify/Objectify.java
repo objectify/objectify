@@ -2,6 +2,7 @@ package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
+import com.googlecode.objectify.cmd.Deferrer;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -27,7 +28,7 @@ public interface Objectify
 	 * the datastore: gets and queries.</p>
 	 *
 	 * <p>A quick example:
-	 * {@code Map<Key<Thing>, Thing> things = ofy.load().type(Thing.class).parent(par).ids(123L, 456L);}</p>
+	 * {@code Map<Key<Thing>, Thing> things = ofy().load().type(Thing.class).parent(par).ids(123L, 456L);}</p>
 	 *
 	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
 	 * current command object.</b></p>
@@ -43,7 +44,7 @@ public interface Objectify
 	 * <p>Saves do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
 	 *
 	 * <p>A quick example:
-	 * {@code ofy.save().entities(e1, e2, e3).now();}</p>
+	 * {@code ofy().save().entities(e1, e2, e3).now();}</p>
 	 *
 	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
 	 * current command object.</b></p>
@@ -58,7 +59,7 @@ public interface Objectify
 	 * <p>Deletes do NOT cascade; if you wish to delete an object graph, you must delete each individual entity.</p>
 	 *
 	 * <p>A quick example:
-	 * {@code ofy.delete().entities(e1, e2, e3).now();}</p>
+	 * {@code ofy().delete().entities(e1, e2, e3).now();}</p>
 	 *
 	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
 	 * current command object.</b></p>
@@ -66,6 +67,22 @@ public interface Objectify
 	 * @return the next step in the immutable command chain.
 	 */
 	Deleter delete();
+
+	/**
+	 * <p>Start a deferred command chain, which lets you make multiple save or delete calls on a single
+	 * entity without incurring multiple datastore operations. Deferred operations are executed at the
+	 * end of a unit-of-work (transaction, or http request if not in a transaction).</p>
+	 *
+	 * <p>Deferred operations are reflected in the session cache immediately. However query operations
+	 * may not reflect these changes. For example, newly indexed entities may not show up, even with
+	 * an otherwise strongly consistent ancestor query. This should not be surprising since the actual
+	 * save operation has not occurred yet.</p>
+	 *
+	 * <p>In the case of deferred save() and delete() operations on the same entity, the last one wins.</p>
+	 *
+	 * @return the next step in the immutable command chain.
+	 */
+	Deferrer defer();
 
 	/**
 	 * Obtain the ObjectifyFactory from which this Objectify instance was created.

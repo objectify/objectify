@@ -111,11 +111,12 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 * One attempt at executing a transaction
 	 */
 	private <R> R transactOnce(ObjectifyImpl<O> parent, Work<R> work) {
-		Objectify txnOfy = startTransaction(parent);
+		ObjectifyImpl<O> txnOfy = startTransaction(parent);
 		try {
 			ObjectifyService.push(txnOfy);
 
 			R result = work.run();
+			txnOfy.flush();
 			txnOfy.getTransaction().commit();
 			return result;
 		}
@@ -136,7 +137,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	/**
 	 * Create a new transactional session by cloning this instance and resetting the transactor component.
 	 */
-	Objectify startTransaction(ObjectifyImpl<O> parent) {
+	ObjectifyImpl<O> startTransaction(ObjectifyImpl<O> parent) {
 		ObjectifyImpl<O> cloned = parent.clone();
 		cloned.transactor = new TransactorYes<>(cloned, this);
 		return cloned;

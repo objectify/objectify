@@ -10,6 +10,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.cmd.Deferrer;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -17,7 +18,6 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
-
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +88,14 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	public Deleter delete() {
 		return new DeleterImpl(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#defer()
+	 */
+	@Override
+	public Deferrer defer() {
+		return new DeferrerImpl(this);
 	}
 
 	/* (non-Javadoc)
@@ -292,6 +300,13 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	public boolean isLoaded(Key<?> key) {
 		return transactor.getSession().contains(key);
+	}
+
+	/**
+	 * Flush any deferred operations
+	 */
+	void flush() {
+
 	}
 
 }
