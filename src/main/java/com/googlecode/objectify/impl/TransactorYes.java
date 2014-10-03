@@ -7,9 +7,7 @@ import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.util.DatastoreIntrospector;
 import com.googlecode.objectify.util.ResultWrapper;
-
 import java.util.concurrent.Future;
 
 /**
@@ -35,7 +33,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
-		Future<Transaction> fut = current.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(DatastoreIntrospector.SUPPORTS_XG));
+		Future<Transaction> fut = current.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(true));
 		transaction = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<>(fut)) {
 			private static final long serialVersionUID = 1L;
 
