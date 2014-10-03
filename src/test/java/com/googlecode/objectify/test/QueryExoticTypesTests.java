@@ -11,15 +11,12 @@ import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.User;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
-
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -34,13 +31,6 @@ public class QueryExoticTypesTests extends TestBase
 	/** */
 	@SuppressWarnings("unused")
 	private static Logger log = Logger.getLogger(QueryExoticTypesTests.class.getName());
-
-	/** */
-	@BeforeMethod
-	public void setUp()
-	{
-		super.setUp();
-	}
 
 	/** */
 	@Entity

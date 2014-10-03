@@ -102,10 +102,8 @@ public class IndexingInheritanceTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
-
 		fact().register(DefaultIndexedPojo.class);
 		fact().register(IndexedPojo.class);
 		fact().register(UnindexedPojo.class);

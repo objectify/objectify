@@ -1,8 +1,7 @@
 package com.googlecode.objectify.cache;
 
-import javax.servlet.Filter;
+import com.googlecode.objectify.util.AbstractFilter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -10,7 +9,7 @@ import java.io.IOException;
 
 /**
  * <p>This Filter is a companion to the CachingAsyncDatastoreService, and must be
- * installed any time the CachingAsyncDatastoreService is used.</p>
+ * installed any time the CachingAsyncDatastoreService is used without Objectify.</p>
  *
  * <p>This Filter is a temporary measure until Google provides a hook that lets
  * us intercept the raw Future<?> calls at the end of a request.  At that point
@@ -42,16 +41,8 @@ import java.io.IOException;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class AsyncCacheFilter implements Filter
+public class AsyncCacheFilter extends AbstractFilter
 {
-	@Override
-	public void init(FilterConfig config) throws ServletException {
-	}
-
-	@Override
-	public void destroy() {
-	}
-
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		try {

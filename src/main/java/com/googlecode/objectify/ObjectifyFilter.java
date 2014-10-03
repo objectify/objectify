@@ -3,8 +3,8 @@
 
 package com.googlecode.objectify;
 
-import com.googlecode.objectify.cache.AsyncCacheFilter;
-
+import com.googlecode.objectify.util.AbstractFilter;
+import com.googlecode.objectify.util.Closeable;
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -34,28 +34,18 @@ import java.io.IOException;
  *</pre>
  *
  * <p>If you use the Objectify outside of the context of a request (say, using the remote
- * API or from a unit test), then you should call {@code ObjectifyFilter.complete()} after every operation
- * that you consider a "request".  For example, after each test.</p>
+ * API or from a unit test), then you should use the ObjectifyService.run() method.</p>
  * 
  * @author Jeff Schnitzer
  */
-public class ObjectifyFilter extends AsyncCacheFilter
+public class ObjectifyFilter extends AbstractFilter
 {
 	/** */
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-		try {
-			super.doFilter(request, response, chain);
-		} finally {
-			ObjectifyService.reset();
-		}
-	}
 
-	/**
-	 * Perform the actions that are performed upon normal completion of a request.
-	 */
-	public static void complete() {
-		AsyncCacheFilter.complete();
-		ObjectifyService.reset();
+		try (Closeable closeable = ObjectifyService.begin()) {
+			chain.doFilter(request, response);
+		}
 	}
 }

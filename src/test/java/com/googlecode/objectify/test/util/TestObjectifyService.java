@@ -12,7 +12,7 @@ import com.googlecode.objectify.ObjectifyService;
  *
  * @author Jeff Schnitzer
  */
-public class TestObjectifyService
+public class TestObjectifyService extends ObjectifyService
 {
 	public static void initialize() {
 		ObjectifyService.setFactory(new TestObjectifyFactory());

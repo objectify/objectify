@@ -86,10 +86,8 @@ public class IndexingEmbeddedTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
-
 		fact().register(EmbeddedIndexedPojo.class);
 		fact().register(EntityWithEmbedded.class);
 	}

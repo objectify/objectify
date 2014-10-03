@@ -3,16 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Future;
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
@@ -21,6 +11,14 @@ import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.test.util.MockAsyncDatastoreService;
 import com.googlecode.objectify.test.util.TestBase;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 /**
  * Tests of the caching datastore directly, outside of the rest of Objectify. Tries to create as few
@@ -49,10 +47,8 @@ public class CachingDatastoreTests extends TestBase
 	/**
 	 */
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
-		
 		EntityMemcache mc = new EntityMemcache(null);
 		cads = new CachingAsyncDatastoreService(DatastoreServiceFactory.getAsyncDatastoreService(), mc);
 		nods = new CachingAsyncDatastoreService(new MockAsyncDatastoreService(), mc);

@@ -50,11 +50,9 @@ public class EnumTests extends TestBase
 	}
 
 	/** */
-	@Override
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
 		fact().register(HasEnums.class);
 	}
 

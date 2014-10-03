@@ -48,10 +48,8 @@ public class LoadAlsoLoadTests extends TestBase
 	/**
 	 */
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
-
 		fact().register(HasConcrete.class);
 		fact().register(Trivial.class);
 	}

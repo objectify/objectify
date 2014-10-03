@@ -124,9 +124,7 @@ public class AlsoLoadTests extends TestBase
 	 * Add an entry to the database that should never come back from null queries.
 	 */
 	@BeforeMethod
-	public void setUp() {
-		super.setUp();
-
+	public void setUpExtra() {
 		fact().register(HasAlsoLoads.class);
 		fact().register(HasEmbedded.class);
 		fact().register(HasEmbeddedArray.class);

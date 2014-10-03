@@ -42,9 +42,7 @@ public class QueryCursorTestsSmall extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp() {
-		super.setUp();
-
+	public void setUpExtra() {
 		fact().register(Trivial.class);
 
 		this.triv1 = new Trivial("foo1", 1);

@@ -3,22 +3,18 @@
 
 package com.googlecode.objectify.test;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.logging.Logger;
-
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-
 import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceConfig;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.test.util.TestObjectifyFactory;
-
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.util.logging.Logger;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -57,13 +53,11 @@ public class QueryPerformanceTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp() {
-		super.setUp();
-
+	public void setUpExtra() {
 		getCount = 0;
 
 		// throw away the current factory and replace it with one that tracks calls
-		ObjectifyService.setFactory(new TestObjectifyFactory() {
+		setUpObjectifyFactory(new TestObjectifyFactory() {
 			@Override
 			protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
 				return (AsyncDatastoreService)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { AsyncDatastoreService.class }, new CountingProxy(super.createRawAsyncDatastoreService(cfg)));

@@ -8,10 +8,9 @@ import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestC
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
 import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
-import com.googlecode.objectify.ObjectifyFilter;
+import com.googlecode.objectify.util.Closeable;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
-
 import java.util.logging.Logger;
 
 /**
@@ -33,22 +32,34 @@ public class TestBase
 					new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(),
 					new LocalMemcacheServiceTestConfig(),
 					new LocalTaskQueueTestConfig());
+
+	/** Tear down every method */
+	private Closeable rootService;
+
 	/** */
 	@BeforeMethod
 	public void setUp() {
 		this.helper.setUp();
 
-		// Initialize a new factory each time.
-		TestObjectifyService.initialize();
+		this.setUpObjectifyFactory(new TestObjectifyFactory());
 	}
 
 	/** */
 	@AfterMethod
 	public void tearDown() {
 		// This is normally done in ObjectifyFilter but that doesn't exist for tests
-		ObjectifyFilter.complete();
+		rootService.close();
+		rootService = null;
 
 		this.helper.tearDown();
+	}
+
+	protected void setUpObjectifyFactory(TestObjectifyFactory factory) {
+		if (rootService != null)
+			rootService.close();
+
+		TestObjectifyService.setFactory(factory);
+		rootService = TestObjectifyService.begin();
 	}
 
 	/** */

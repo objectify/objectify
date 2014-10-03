@@ -38,10 +38,8 @@ public class PolymorphicQueryTests extends TestBase
 
 	/** */
 	@BeforeMethod
-	public void setUp()
+	public void setUpExtra()
 	{
-		super.setUp();
-
 		fact().register(Animal.class);
 		fact().register(Mammal.class);
 		fact().register(Cat.class);

@@ -3,6 +3,8 @@
 
 package com.googlecode.objectify;
 
+import com.googlecode.objectify.cache.PendingFutures;
+import com.googlecode.objectify.util.Closeable;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -37,8 +39,11 @@ public class ObjectifyService
 	 */
 	public static Objectify ofy() {
 		Deque<Objectify> stack = STACK.get();
+
 		if (stack.isEmpty())
-			stack.add(factory.begin());
+			throw new IllegalStateException("You have not started an Objectify context. You are probably missing the " +
+					"ObjectifyFilter. If you are not running in the context of an http request, see the " +
+					"ObjectifyService.run() method.");
 
 		return stack.getLast();
 	}
@@ -58,7 +63,53 @@ public class ObjectifyService
 	public static void register(Class<?> clazz) {
 		factory().register(clazz); 
 	}
-	
+
+	/**
+	 * <p>Runs one unit of work, making the root Objectify context available. This does not start a transaction,
+	 * but it makes the static ofy() method return an appropriate object.</p>
+	 *
+	 * <p>Normally you do not need to use this method. When servicing a normal request, the ObjectifyFilter
+	 * will run this for you. This method is useful for using Objectify outside of a normal request -
+	 * using the remote api, for example.</p>
+	 *
+	 * <p>Alternatively, you can use the begin() method and close the session manually.</p>
+	 *
+	 * @return the result of the work.
+	 */
+	public static <R> R run(Work<R> work) {
+		try (Closeable closeable = begin()) {
+			return work.run();
+		}
+	}
+
+	/**
+	 * <p>An alternative to run() which is somewhat easier to use with testing (ie, @Before and @After) frameworks.
+	 * You must close the return value at the end of the request in a finally block. It's better/safer to use run().</p>
+	 *
+	 * <p>This method is not typically necessary - in a normal request, the ObjectifyFilter takes care of this housekeeping
+	 * for you. However, in unit tests or remote API calls it can be useful.</p>
+	 */
+	public static Closeable begin() {
+		final Deque<Objectify> stack = STACK.get();
+
+		if (!stack.isEmpty())
+			throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
+
+		stack.add(factory.begin());
+
+		return new Closeable() {
+			@Override
+			public void close() {
+				if (stack.isEmpty())
+					throw new IllegalStateException("You have already destroyed the Objectify context.");
+
+				PendingFutures.completeAllPendingFutures();
+
+				stack.removeLast();
+			}
+		};
+	}
+
 	/** Pushes new context onto stack when a transaction starts */
 	public static void push(Objectify ofy) {
 		STACK.get().add(ofy);
@@ -67,10 +118,5 @@ public class ObjectifyService
 	/** Pops context off of stack after a transaction completes */
 	public static void pop() {
 		STACK.get().removeLast();
-	}
-
-	/** Clear the stack of any leftover Objectify instances */
-	public static void reset() {
-		STACK.get().clear();
 	}
 }
