@@ -26,14 +26,14 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 
 	/**
 	 */
-	public TransactorNo() {
-		super();
+	public TransactorNo(Objectify ofy) {
+		super(ofy);
 	}
 
 	/**
 	 */
-	public TransactorNo(Session session) {
-		super(session);
+	public TransactorNo(Objectify ofy, Session session) {
+		super(ofy, session);
 	}
 
 	/* (non-Javadoc)
@@ -112,9 +112,9 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 */
 	private <R> R transactOnce(ObjectifyImpl<O> parent, Work<R> work) {
 		ObjectifyImpl<O> txnOfy = startTransaction(parent);
-		try {
-			ObjectifyService.push(txnOfy);
+		ObjectifyService.push(txnOfy);
 
+		try {
 			R result = work.run();
 			txnOfy.flush();
 			txnOfy.getTransaction().commit();
@@ -122,8 +122,6 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 		}
 		finally
 		{
-			ObjectifyService.pop();
-
 			if (txnOfy.getTransaction().isActive()) {
 				try {
 					txnOfy.getTransaction().rollback();
@@ -131,6 +129,8 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
 				}
 			}
+
+			ObjectifyService.pop();
 		}
 	}
 

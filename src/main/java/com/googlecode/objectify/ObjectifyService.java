@@ -95,13 +95,22 @@ public class ObjectifyService
 		if (!stack.isEmpty())
 			throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
 
-		stack.add(factory.begin());
+		final Objectify ofy = factory.begin();
+
+		stack.add(ofy);
 
 		return new Closeable() {
 			@Override
 			public void close() {
 				if (stack.isEmpty())
 					throw new IllegalStateException("You have already destroyed the Objectify context.");
+
+				if (stack.size() > 1)
+					throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
+
+				// The order of these three operations is significant
+
+				ofy.flush();
 
 				PendingFutures.completeAllPendingFutures();
 
@@ -110,12 +119,12 @@ public class ObjectifyService
 		};
 	}
 
-	/** Pushes new context onto stack when a transaction starts */
+	/** Pushes new context onto stack when a transaction starts. For internal housekeeping only. */
 	public static void push(Objectify ofy) {
 		STACK.get().add(ofy);
 	}
 
-	/** Pops context off of stack after a transaction completes */
+	/** Pops context off of stack after a transaction completes. For internal housekeeping only. */
 	public static void pop() {
 		STACK.get().removeLast();
 	}

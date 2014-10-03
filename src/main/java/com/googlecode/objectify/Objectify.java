@@ -2,7 +2,7 @@ package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.google.appengine.api.datastore.Transaction;
-import com.googlecode.objectify.cmd.Deferrer;
+import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -82,7 +82,7 @@ public interface Objectify
 	 *
 	 * @return the next step in the immutable command chain.
 	 */
-	Deferrer defer();
+	Deferred defer();
 
 	/**
 	 * Obtain the ObjectifyFactory from which this Objectify instance was created.
@@ -230,6 +230,14 @@ public interface Objectify
 	 * @return the result of the work
 	 */
 	<R> R execute(TxnType txnType, Work<R> work);
+
+	/**
+	 * Synchronously flushes any deferred operations to the datastore. Objectify does this for you at the end
+	 * of transactions and requests, but if you need data to be written immediately - say, you're about to perform
+	 * a strongly-consistent ancestor query and you need to see the updated indexes immediately - you can call this
+	 * method. If there are no deferred operations, this does nothing.
+	 */
+	void flush();
 
 	/**
 	 * <p>Clears the session; all subsequent requests (or Ref<?>.get() calls) will go to the datastore/memcache

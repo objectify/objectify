@@ -9,6 +9,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * A trivial entity with some basic data.
@@ -52,5 +53,17 @@ public class Trivial implements Serializable
 	@Override
 	public String toString() {
 		return this.getClass().getSimpleName() + "(id=" + id + ", someString=" + someString + ", someNumber=" + someNumber + ")";
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null || !(obj instanceof Trivial))
+			return false;
+
+		Trivial other = (Trivial)obj;
+
+		return Objects.equals(id, other.id)
+				&& Objects.equals(someNumber, other.someNumber)
+				&& Objects.equals(someString, other.someString);
 	}
 }

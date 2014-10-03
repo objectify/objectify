@@ -3,9 +3,6 @@ package com.googlecode.objectify.impl;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.DeferredDeleteType;
 import com.googlecode.objectify.cmd.DeferredDeleter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 /**
@@ -30,35 +27,35 @@ class DeferredDeleterImpl implements DeferredDeleter
 
 	@Override
 	public void key(Key<?> key) {
-		this.keys(key);
+		ofy.deferDelete(key);
 	}
 
 	@Override
 	public void keys(Key<?>... keys) {
-		this.keys(Arrays.asList(keys));
+		for (Key<?> key: keys)
+			key(key);
 	}
 
 	@Override
 	public void keys(Iterable<? extends Key<?>> keys) {
-		this.entities(keys);
+		for (Key<?> key: keys)
+			key(key);
 	}
 
 	@Override
 	public void entity(Object entity) {
-		this.entities(entity);
+		key(ofy.factory().keys().anythingToKey(entity));
 	}
 
 	@Override
 	public void entities(Iterable<?> entities) {
-		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
-		for (Object obj: entities)
-			keys.add(ofy.factory().keys().anythingToRawKey(obj));
-
-		//return ofy.createWriteEngine().delete(keys);
+		for (Object entity: entities)
+			entity(entity);
 	}
 
 	@Override
 	public void entities(Object... entities) {
-		this.entities(Arrays.asList(entities));
+		for (Object entity: entities)
+			entity(entity);
 	}
 }

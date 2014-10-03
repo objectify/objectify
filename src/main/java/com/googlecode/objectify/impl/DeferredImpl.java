@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.DeferredDeleter;
 import com.googlecode.objectify.cmd.DeferredSaver;
-import com.googlecode.objectify.cmd.Deferrer;
 
 
 /**
@@ -10,13 +10,13 @@ import com.googlecode.objectify.cmd.Deferrer;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class DeferrerImpl implements Deferrer
+public class DeferredImpl implements Deferred
 {
 	/** */
 	ObjectifyImpl<?> ofy;
 
 	/** */
-	public DeferrerImpl(ObjectifyImpl<?> ofy) {
+	public DeferredImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
 	}
 

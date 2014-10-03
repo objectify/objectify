@@ -7,9 +7,7 @@ import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.util.ResultNow;
 import com.googlecode.objectify.util.ResultWrapper;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -106,7 +104,7 @@ public class WriteEngine
 					result.put(key, obj);
 
 					// Also stuff this in the session
-					session.add(key, new SessionValue<>(new ResultNow<Object>(obj)));
+					session.addValue(key, obj);
 				}
 
 				if (log.isLoggable(Level.FINEST))
@@ -134,7 +132,7 @@ public class WriteEngine
 			@Override
 			protected Void wrap(Void orig) {
 				for (com.google.appengine.api.datastore.Key key: keys)
-					session.add(Key.create(key), new SessionValue<>(new ResultNow<>(null)));
+					session.addValue(Key.create(key), null);
 
 				return orig;
 			}

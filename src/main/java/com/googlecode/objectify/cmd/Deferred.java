@@ -5,7 +5,7 @@ package com.googlecode.objectify.cmd;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Deferrer {
+public interface Deferred {
 	/**
 	 * <p>Start a deferred save command chain.  Allows you to save (or re-save) entity objects.  Note that all command
 	 * chain objects are immutable.</p>

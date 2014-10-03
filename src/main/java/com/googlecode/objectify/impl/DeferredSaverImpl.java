@@ -1,8 +1,6 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.cmd.DeferredSaver;
-import java.util.Arrays;
-import java.util.Collections;
 
 
 /**
@@ -22,16 +20,18 @@ public class DeferredSaverImpl implements DeferredSaver
 
 	@Override
 	public void entity(Object entity) {
-		this.entities(Collections.singleton(entity));
+		ofy.deferSave(entity);
 	}
 
 	@Override
 	public void entities(Object... entities) {
-		this.entities(Arrays.asList(entities));
+		for (Object entity: entities)
+			entity(entity);
 	}
 
 	@Override
 	public void entities(final Iterable<?> entities) {
-		//return ofy.createWriteEngine().<E>save(entities);
+		for (Object entity: entities)
+			entity(entity);
 	}
 }

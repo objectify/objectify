@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Key;
-
+import com.googlecode.objectify.util.ResultNow;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -28,6 +28,13 @@ public class Session
 			log.finest("Adding to session: " + key + " -> " + value.getResult());
 
 		map.put(key, value);
+	}
+
+	/**
+	 * Convenience method
+	 */
+	public void addValue(Key<?> key, Object value) {
+		add(key, new SessionValue<>(new ResultNow<Object>(value)));
 	}
 
 	/** Add all entries in the other session to this one */

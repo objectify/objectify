@@ -15,18 +15,22 @@ abstract public class Transactor<O extends Objectify>
 	/** Our session */
 	protected Session session;
 
+	/** Any deferred operations */
+	protected Deferrer deferrer;
+
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	public Transactor() {
-		this(new Session());
+	public Transactor(Objectify ofy) {
+		this(ofy, new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	public Transactor(Session session) {
+	public Transactor(Objectify ofy, Session session) {
 		this.session = session;
+		this.deferrer = new Deferrer(ofy, session);
 	}
 
 	/**
@@ -34,6 +38,13 @@ abstract public class Transactor<O extends Objectify>
 	 */
 	public Session getSession() {
 		return session;
+	}
+
+	/**
+	 * @return the deferred operations in this context
+	 */
+	public Deferrer getDeferrer() {
+		return deferrer;
 	}
 
 	/**

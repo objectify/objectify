@@ -10,7 +10,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
-import com.googlecode.objectify.cmd.Deferrer;
+import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
@@ -42,7 +42,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected Double deadline;
 
 	/** */
-	protected Transactor<O> transactor = new TransactorNo<>();
+	protected Transactor<O> transactor = new TransactorNo<>(this);
 
 	/**
 	 */
@@ -94,8 +94,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#defer()
 	 */
 	@Override
-	public Deferrer defer() {
-		return new DeferrerImpl(this);
+	public Deferred defer() {
+		return new DeferredImpl(this);
 	}
 
 	/* (non-Javadoc)
@@ -302,11 +302,23 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		return transactor.getSession().contains(key);
 	}
 
-	/**
-	 * Flush any deferred operations
-	 */
-	void flush() {
+	@Override
+	public void flush() {
+		transactor.getDeferrer().flush();
+	}
 
+	/**
+	 * Defer the saving of one entity. Updates the session cache with this new value.
+	 */
+	void deferSave(Object entity) {
+		transactor.getDeferrer().deferSave(factory().keys().keyOf(entity), entity);
+	}
+
+	/**
+	 * Defer the deletion of one entity. Updates the session cache with this new value.
+	 */
+	void deferDelete(Key<?> key) {
+		transactor.getDeferrer().deferDelete(key);
 	}
 
 }
