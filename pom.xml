@@ -9,7 +9,7 @@
 
 	<groupId>com.googlecode.objectify</groupId>
 	<artifactId>objectify</artifactId>
-	<version>5.1.0-SNAPSHOT</version>
+	<version>5.1.1-SNAPSHOT</version>
 
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
