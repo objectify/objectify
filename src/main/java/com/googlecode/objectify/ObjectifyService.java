@@ -92,8 +92,12 @@ public class ObjectifyService
 	public static Closeable begin() {
 		final Deque<Objectify> stack = STACK.get();
 
-		if (!stack.isEmpty())
-			throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
+		// Request forwarding in the container runs all the filters again, including the ObjectifyFilter. Since we
+		// have established a context already, we can't just throw an exception. We can't even really warn. Let's
+		// just give them a new context; the bummer is that if programmers screw up and fail to close the context,
+		// we have no way of warning them about the leak.
+//		if (!stack.isEmpty())
+//			throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
 
 		final Objectify ofy = factory.begin();
 
