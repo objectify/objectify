@@ -96,8 +96,8 @@ public class ObjectifyService
 		// have established a context already, we can't just throw an exception. We can't even really warn. Let's
 		// just give them a new context; the bummer is that if programmers screw up and fail to close the context,
 		// we have no way of warning them about the leak.
-//		if (!stack.isEmpty())
-//			throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
+		//if (!stack.isEmpty())
+		//	throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
 
 		final Objectify ofy = factory.begin();
 
@@ -109,8 +109,9 @@ public class ObjectifyService
 				if (stack.isEmpty())
 					throw new IllegalStateException("You have already destroyed the Objectify context.");
 
-				if (stack.size() > 1)
-					throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
+				// Same comment as above - we can't make claims about the state of the stack beacuse of dispatch forwarding
+				//if (stack.size() > 1)
+				//	throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
 
 				// The order of these three operations is significant
 
