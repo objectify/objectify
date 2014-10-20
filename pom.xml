@@ -176,7 +176,11 @@
 			<scope>compile</scope>
 			<optional>true</optional>
 		</dependency>
-
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>2.6.0</version>
+		</dependency>
 		<!--  Not using this for compile currently
 		<dependency>
 			<groupId>org.eclipse.jdt.core.compiler</groupId>
