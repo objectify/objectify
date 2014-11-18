@@ -139,12 +139,13 @@ public class ClassPopulator<P> implements Populator<P>
 	/* */
 	@Override
 	public void save(P pojo, boolean index, SaveContext ctx, Path path, PropertyContainer into) {
-		// Must do @OnSave methods first
+
+		superPopulator.save(pojo, index, ctx, path, into);
+
+		// Must do @OnSave methods after superclass but before actual population
 		if (!ctx.skipLifecycle() && !onSaveMethods.isEmpty())
 			for (LifecycleMethod method: onSaveMethods)
 				method.execute(pojo);
-
-		superPopulator.save(pojo, index, ctx, path, into);
 
 		if (indexInstruction != null)
 			index = indexInstruction;

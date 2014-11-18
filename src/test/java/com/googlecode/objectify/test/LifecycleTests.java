@@ -3,6 +3,7 @@ package com.googlecode.objectify.test;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
@@ -11,7 +12,6 @@ import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
-
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -20,7 +20,7 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  */
 public class LifecycleTests extends TestBase
 {
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasLifecycle
 	{
@@ -32,7 +32,7 @@ public class LifecycleTests extends TestBase
 		@OnLoad void onLoad() { this.onLoaded = true; }
 	}
 
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasInheritedLifecycle extends HasLifecycle {}
 
@@ -55,7 +55,7 @@ public class LifecycleTests extends TestBase
 		assert fetched.onLoaded;	// would fail without session clear
 	}
 
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasExceptionThrowingLifecycle
 	{
@@ -71,7 +71,7 @@ public class LifecycleTests extends TestBase
 	}
 
 	/** */
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasLoad
 	{
@@ -101,7 +101,7 @@ public class LifecycleTests extends TestBase
 	}
 
 	/** */
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class ParentThing
 	{
@@ -110,7 +110,7 @@ public class LifecycleTests extends TestBase
 	}
 
 	/** */
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasParent
 	{
@@ -119,7 +119,7 @@ public class LifecycleTests extends TestBase
 	}
 
 	/** */
-	@com.googlecode.objectify.annotation.Entity
+	@Entity
 	@Cache
 	public static class HasHasParent
 	{
@@ -154,4 +154,31 @@ public class LifecycleTests extends TestBase
 
 		ofy().load().entity(hhp).now();
 	}
+
+
+	@Entity
+	@Cache
+	public static class HasInheritedAndClassLifecycle extends HasLifecycle {
+		@OnLoad void onLoadSubclass() {
+			// The base class should have gotten called first
+			assert onLoaded;
+		}
+		@OnSave void onSaveSubclass() {
+			// The base class should have gotten called first
+			assert onSaved;
+		}
+	}
+
+	/** */
+	@Test
+	public void inheritedLifecycleMethodsAreCalledInTheRightOrder() throws Exception {
+		fact().register(HasInheritedAndClassLifecycle.class);
+
+		HasInheritedAndClassLifecycle life1 = new HasInheritedAndClassLifecycle();
+		HasInheritedAndClassLifecycle fetched = ofy().saveClearLoad(life1);
+
+		assert fetched.onSaved;
+		assert fetched.onLoaded;	// would fail without session clear
+	}
+
 }
