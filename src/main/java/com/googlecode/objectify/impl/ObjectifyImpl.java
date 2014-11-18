@@ -311,7 +311,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * Defer the saving of one entity. Updates the session cache with this new value.
 	 */
 	void deferSave(Object entity) {
-		transactor.getDeferrer().deferSave(factory().keys().keyOf(entity), entity);
+		transactor.getDeferrer().deferSave(entity);
 	}
 
 	/**
