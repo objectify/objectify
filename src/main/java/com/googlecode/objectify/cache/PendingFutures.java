@@ -1,5 +1,6 @@
 package com.googlecode.objectify.cache;
 
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -22,9 +23,9 @@ public class PendingFutures
 	 * ConcurrentModificationException.  We need to be able to iterate while Futures remove
 	 * themselves from the set. A Set is just a Map of key to key.
 	 */
-	private static ThreadLocal<ConcurrentHashMap<Future<?>, Future<?>>> pending = new ThreadLocal<ConcurrentHashMap<Future<?>, Future<?>>>() {
+	private static ThreadLocal<Map<Future<?>, Future<?>>> pending = new ThreadLocal<Map<Future<?>, Future<?>>>() {
 		@Override
-		protected ConcurrentHashMap<Future<?>, Future<?>> initialValue() {
+		protected Map<Future<?>, Future<?>> initialValue() {
 			return new ConcurrentHashMap<>(64, 0.75f, 1);
 		}
 	};

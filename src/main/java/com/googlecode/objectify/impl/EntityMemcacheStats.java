@@ -2,7 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Key;
 import com.googlecode.objectify.cache.MemcacheStats;
-
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,14 +34,14 @@ public class EntityMemcacheStats implements MemcacheStats
 	}
 	
 	/** */
-	private ConcurrentHashMap<String, Stat> stats = new ConcurrentHashMap<>();
+	private Map<String, Stat> stats = new ConcurrentHashMap<>();
 	
 	/**
 	 * Get the live statistics.  You can clear it if you want. 
 	 *  
 	 * @return the live map, but you can iterate through it just fine 
 	 */
-	public ConcurrentHashMap<String, Stat> getStats() { return this.stats; }
+	public Map<String, Stat> getStats() { return this.stats; }
 
 	/** */
 	@Override
