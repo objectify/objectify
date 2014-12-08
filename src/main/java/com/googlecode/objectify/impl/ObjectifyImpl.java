@@ -226,7 +226,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
 	 */
 	protected WriteEngine createWriteEngine() {
-		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession());
+		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
 	}
 
 	/**

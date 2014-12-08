@@ -30,20 +30,24 @@ public class WriteEngine
 	private static final Logger log = Logger.getLogger(WriteEngine.class.getName());
 
 	/** */
-	protected ObjectifyImpl<?> ofy;
+	protected final ObjectifyImpl<?> ofy;
 
 	/** */
-	protected AsyncDatastoreService ads;
+	protected final AsyncDatastoreService ads;
 
 	/** */
-	protected Session session;
+	protected final Session session;
+
+	/** */
+	protected final Deferrer deferrer;
 
 	/**
 	 */
-	public WriteEngine(ObjectifyImpl<?> ofy, AsyncDatastoreService ads, Session session) {
+	public WriteEngine(ObjectifyImpl<?> ofy, AsyncDatastoreService ads, Session session, Deferrer deferrer) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;
+		this.deferrer = deferrer;
 	}
 
 	/** @return the transaction, or null if not */
@@ -65,6 +69,8 @@ public class WriteEngine
 		for (E obj: entities) {
 			if (obj == null)
 				throw new NullPointerException("Attempted to save a null entity");
+
+			deferrer.undefer(obj);
 
 			if (obj instanceof Entity) {
 				entityList.add((Entity)obj);
@@ -124,6 +130,9 @@ public class WriteEngine
 	 * The fundamental delete() operation.
 	 */
 	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
+		for (com.google.appengine.api.datastore.Key key: keys)
+			deferrer.undefer(Key.create(key));
+
 		Future<Void> fut = ads.delete(getTransactionRaw(), keys);
 		Result<Void> adapted = new ResultAdapter<>(fut);
 		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
