@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
@@ -18,6 +19,8 @@ import java.util.logging.Logger;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.core.Is.is;
 
 /**
  * Tests of basic query operations
@@ -71,5 +74,17 @@ public class QueryBasicTests extends TestBase
 			count++;
 		}
 		assert count == 100;
+	}
+
+	/** */
+	@Test
+	public void loadByKindWorks() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		ofy().save().entities(triv1).now();
+
+		Trivial fetched1 = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).id(triv1.getId()).now();
+		assertThat(fetched1, is(triv1));
 	}
 }

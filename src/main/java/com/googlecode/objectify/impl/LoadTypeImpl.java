@@ -9,7 +9,6 @@ import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;
-
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -23,21 +22,25 @@ import java.util.Map;
 class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 {
 	/** */
-	Class<T> type;
+	private final String kind;
+
+	/** Might be null; perhaps we specified a raw kind only */
+	private final Class<T> type;
 
 	/** Possible parent */
-	Key<T> parent;
+	private final Key<T> parent;
 
 	/**
 	 */
-	LoadTypeImpl(LoaderImpl<?> loader, Class<T> type) {
-		super(loader);
-		this.type = type;
+	LoadTypeImpl(LoaderImpl<?> loader, String kind, Class<T> type) {
+		this(loader, kind, type, null);
 	}
 
 	/** */
-	LoadTypeImpl(LoaderImpl<?> loader, Class<T> type, Key<T> parent) {
-		this(loader, type);
+	LoadTypeImpl(LoaderImpl<?> loader, String kind, Class<T> type, Key<T> parent) {
+		super(loader);
+		this.kind = kind;
+		this.type = type;
 		this.parent = parent;
 	}
 
@@ -46,7 +49,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	QueryImpl<T> createQuery() {
-		return new QueryImpl<>(loader, type);
+		return new QueryImpl<>(loader, kind, type);
 	}
 
 	/* (non-Javadoc)
@@ -82,7 +85,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public LoadResult<T> id(long id) {
-		return loader.key(Key.create(parent, type, id));
+		return loader.key(this.<T>makeKey(id));
 	}
 
 	/* (non-Javadoc)
@@ -90,7 +93,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public LoadResult<T> id(String id) {
-		return loader.key(Key.create(parent, type, id));
+		return loader.key(this.<T>makeKey(id));
 	}
 
 	/* (non-Javadoc)
@@ -117,7 +120,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 
 		final Map<Key<T>, S> keymap = new LinkedHashMap<>();
 		for (S id: ids)
-			keymap.put(DatastoreUtils.createKey(parent, type, id), id);
+			keymap.put(this.<T>makeKey(id), id);
 
 		final Map<Key<T>, T> loaded = loader.keys(keymap.keySet());
 
@@ -134,13 +137,20 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 		});
 	}
 
+	/**
+	 * Make a key for the given id
+	 */
+	private <T> Key<T> makeKey(Object id) {
+		return DatastoreUtils.createKey(parent, kind, id);
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadType#parent(java.lang.Object)
 	 */
 	@Override
 	public LoadIds<T> parent(Object keyOrEntity) {
 		Key<T> parentKey = loader.ofy.factory().keys().anythingToKey(keyOrEntity);
-		return new LoadTypeImpl<>(loader, type, parentKey);
+		return new LoadTypeImpl<>(loader, kind, type, parentKey);
 	}
 
 }

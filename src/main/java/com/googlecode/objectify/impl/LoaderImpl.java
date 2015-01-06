@@ -72,7 +72,12 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public <E> LoadType<E> type(Class<E> type) {
-		return new LoadTypeImpl<>(this, type);
+		return new LoadTypeImpl<>(this, Key.getKind(type), type);
+	}
+
+	@Override
+	public <E> LoadType<E> kind(String kind) {
+		return new LoadTypeImpl<>(this, kind, null);
 	}
 
 	/* (non-Javadoc)

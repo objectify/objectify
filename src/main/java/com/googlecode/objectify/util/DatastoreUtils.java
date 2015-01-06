@@ -67,6 +67,15 @@ public class DatastoreUtils
 	}
 
 	/**
+	 * Construct a Key<?> from a Long or String id
+	 * @param id must be either Long or String
+	 */
+	public static <T> Key<T> createKey(Key<?> parent, String kind, Object id) {
+		com.google.appengine.api.datastore.Key key = createKey(parent == null ? null : parent.getRaw(), kind, id);
+		return Key.create(key);
+	}
+
+	/**
 	 * Construct a Key from a Long or String id
 	 * @param id must be either Long or String
 	 */

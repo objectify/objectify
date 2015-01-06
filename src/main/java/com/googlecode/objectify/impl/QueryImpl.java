@@ -60,10 +60,10 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	}
 
 	/** */
-	QueryImpl(LoaderImpl<?> loader, Class<T> clazz) {
+	QueryImpl(LoaderImpl<?> loader, String kind, Class<T> clazz) {
 		super(loader);
 
-		this.actual = new com.google.appengine.api.datastore.Query(Key.getKind(clazz));
+		this.actual = new com.google.appengine.api.datastore.Query(kind);
 
 		// If this is a polymorphic subclass, add an extra filter
 		Subclass sub = clazz.getAnnotation(Subclass.class);
@@ -192,7 +192,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			condition = condition.substring(1).trim();
 		}
 
-		// Check for @Id or @Parent fields.  Any setting adjusts the key order.  We only enforce that they are both set the same direction.
+		// Prevent ordering by @Id or @Parent fields, which are really part of the key
 		if (this.classRestriction != null) {
 			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
 

@@ -54,6 +54,20 @@ public interface Loader extends SimpleQuery<Object>
 	<E> LoadType<E> type(Class<E> type);
 
 	/**
+	 * <p>Restricts the find operation to entities of a particular kind. This is similar to type()
+	 * but lets you specify any arbitrary kind string. You'll typically only use this if you are
+	 * also working with the low level api directly.</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @param kind is the kind of entity (or entities) to retrieve
+	 * @return the next step in the immutable command chain, which allows you to start a query or define
+	 *  keys for a batch get.
+	 */
+	<E> LoadType<E> kind(String kind);
+
+	/**
 	 * <p>Load a single entity ref.  This starts an asynchronous fetch operation.</p>
 	 *
 	 * <p>Since fetching is asynchronous,
