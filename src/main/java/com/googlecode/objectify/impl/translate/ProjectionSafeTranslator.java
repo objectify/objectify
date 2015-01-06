@@ -23,8 +23,12 @@ abstract public class ProjectionSafeTranslator<P, D> extends NullSafeTranslator<
 	final protected P loadSafe(D value, LoadContext ctx, Path path) throws SkipException {
 		// Projection queries produce RawValue because the index data is not self-describing.
 		// Here we have the expected datastore type, so we can obtain it right away.
-		if (value instanceof RawValue)
+		if (value instanceof RawValue) {
 			value = (D)((RawValue)value).asType(projectionClass);
+
+			if (value == null)
+				return null;
+		}
 
 		return loadSafe2(value, ctx, path);
 	}
