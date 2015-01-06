@@ -14,9 +14,12 @@ import org.testng.annotations.Test;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  * Tests of various queries
@@ -98,5 +101,43 @@ public class QueryPerformanceTests extends TestBase
 
 		assert count == 1;
 		assert getCount == 0;
+	}
+
+	/**
+	 * At one point you couldn't have an IN query with keysonly and sort.
+	 */
+	@Test
+	public void hybridQueryWithSortAndIN() throws Exception {
+		Query<Trivial> q = ofy().load()
+				.type(Trivial.class)
+				.filter("someString in", Arrays.asList("foo1", "foo2"))
+				.order("someString");
+
+		int count = 0;
+		for (@SuppressWarnings("unused") Trivial t: q) {
+			count++;
+		}
+
+		assertThat(count, equalTo(1));
+		assertThat(getCount, equalTo(1));
+	}
+
+	/**
+	 * At one point you couldn't have a NOT query with keysonly and sort.
+	 */
+	@Test
+	public void hybridQueryWithSortAndNOT() throws Exception {
+		Query<Trivial> q = ofy().load()
+				.type(Trivial.class)
+				.filter("someString !=", "foo2")
+				.order("someString");
+
+		int count = 0;
+		for (@SuppressWarnings("unused") Trivial t: q) {
+			count++;
+		}
+
+		assertThat(count, equalTo(1));
+		assertThat(getCount, equalTo(1));
 	}
 }

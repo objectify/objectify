@@ -53,9 +53,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	/** Three states; null is "figure it out automatically" */
 	Boolean hybrid;
 
-	/** Need to know this so that we can force hybrid off when we get a multiquery (IN/NOT) or order */
-	boolean hasMulti;
-
 	/** */
 	QueryImpl(LoaderImpl<?> loader) {
 		super(loader);
@@ -147,9 +144,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		value = loader.getObjectifyImpl().makeFilterable(value);
 
 		addFilter(op.of(prop, value));
-
-		if (op == FilterOperator.IN || op == FilterOperator.NOT_EQUAL)
-			hasMulti = true;
 	}
 
 	/**
@@ -395,9 +389,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	private boolean shouldHybridize() {
 		if (hybrid != null)
 			return hybrid;
-
-		if (hasMulti)
-			return false;
 
 		// If the class is cacheable
 		if (classRestriction != null && loader.getObjectifyImpl().getCache() && fact().getMetadata(classRestriction).getCacheExpirySeconds() != null)

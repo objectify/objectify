@@ -26,6 +26,7 @@ abstract public class ProjectionSafeTranslator<P, D> extends NullSafeTranslator<
 		if (value instanceof RawValue) {
 			value = (D)((RawValue)value).asType(projectionClass);
 
+			// Annoyingly, null values still come back as a RawValue but the content is null
 			if (value == null)
 				return null;
 		}
