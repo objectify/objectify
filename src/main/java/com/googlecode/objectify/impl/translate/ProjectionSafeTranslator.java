@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.RawValue;
+import com.google.common.primitives.Primitives;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -16,7 +17,8 @@ abstract public class ProjectionSafeTranslator<P, D> extends NullSafeTranslator<
 
 	/** */
 	public ProjectionSafeTranslator(Class<? extends D> projectionClass) {
-		this.projectionClass = projectionClass;
+		// Projection fails if we do not use the wrapper type
+		this.projectionClass = Primitives.wrap(projectionClass);
 	}
 
 	@Override

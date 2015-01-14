@@ -103,4 +103,25 @@ public class QueryProjectionTests extends TestBase
 		assert pt.getSomeNumber() == 0;	// default value
 	}
 
+	@Entity
+	private static class HasBool {
+		@Id public Long id;
+		@Index public boolean t = true;
+		@Index public boolean f = false;
+	}
+
+	/**
+	 * This causes a LoadException in 5.1.4
+	 */
+	@Test
+	public void projectBooleanPrimitiveFields() throws Exception {
+		fact().register(HasBool.class);
+
+		ofy().save().entity(new HasBool()).now();
+		ofy().clear();
+
+		HasBool fetched = ofy().load().type(HasBool.class).project("t").first().now();
+		assert fetched.t;
+		assert !fetched.f;
+	}
 }
