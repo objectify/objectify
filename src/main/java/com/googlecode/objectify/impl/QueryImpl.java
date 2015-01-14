@@ -66,13 +66,15 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		this.actual = new com.google.appengine.api.datastore.Query(kind);
 
 		// If this is a polymorphic subclass, add an extra filter
-		Subclass sub = clazz.getAnnotation(Subclass.class);
-		if (sub != null) {
-			String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
-			this.addFilter(FilterOperator.EQUAL.of(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, discriminator));
-		}
+		if (clazz != null) {
+			Subclass sub = clazz.getAnnotation(Subclass.class);
+			if (sub != null) {
+				String discriminator = sub.name().length() > 0 ? sub.name() : clazz.getSimpleName();
+				this.addFilter(FilterOperator.EQUAL.of(ClassTranslator.DISCRIMINATOR_INDEX_PROPERTY, discriminator));
+			}
 
-		this.classRestriction = clazz;
+			this.classRestriction = clazz;
+		}
 	}
 
 	/* (non-Javadoc)

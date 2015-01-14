@@ -20,6 +20,8 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 
 /**
@@ -83,8 +85,23 @@ public class QueryBasicTests extends TestBase
 
 		Trivial triv1 = new Trivial(123L, "foo1", 12);
 		ofy().save().entities(triv1).now();
+		ofy().clear();
 
 		Trivial fetched1 = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).id(triv1.getId()).now();
 		assertThat(fetched1, is(triv1));
+	}
+
+	/** */
+	@Test
+	public void queryByKindWorks() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		ofy().save().entities(triv1).now();
+		ofy().clear();
+
+		List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).list();
+		assertThat(fetched, hasSize(1));
+		assertThat(fetched.get(0).getSomeString(), equalTo(triv1.getSomeString()));
 	}
 }
