@@ -104,4 +104,18 @@ public class QueryBasicTests extends TestBase
 		assertThat(fetched, hasSize(1));
 		assertThat(fetched.get(0).getSomeString(), equalTo(triv1.getSomeString()));
 	}
+
+	/** */
+	@Test
+	public void queryByKindWithFilterWorks() throws Exception {
+		fact().register(Trivial.class);
+
+		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		ofy().save().entities(triv1).now();
+		ofy().clear();
+
+		List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).filter("someString", "foo1").list();
+		assertThat(fetched, hasSize(1));
+		assertThat(fetched.get(0).getSomeString(), equalTo(triv1.getSomeString()));
+	}
 }
