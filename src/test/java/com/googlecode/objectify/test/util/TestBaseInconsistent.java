@@ -8,7 +8,6 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import com.googlecode.objectify.util.Closeable;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -24,8 +23,7 @@ public class TestBaseInconsistent
 	private final LocalServiceTestHelper helper =
 			new LocalServiceTestHelper(
 					new LocalDatastoreServiceTestConfig().setAlternateHighRepJobPolicyClass(NeverApplyJobPolicy.class),
-					new LocalMemcacheServiceTestConfig(),
-					new LocalTaskQueueTestConfig());
+					new LocalMemcacheServiceTestConfig());
 
 	/** Tear down every method */
 	private Closeable rootService;
