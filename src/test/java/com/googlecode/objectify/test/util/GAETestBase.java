@@ -7,7 +7,6 @@ import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.google.appengine.tools.development.testing.LocalDatastoreServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalMemcacheServiceTestConfig;
 import com.google.appengine.tools.development.testing.LocalServiceTestHelper;
-import com.google.appengine.tools.development.testing.LocalTaskQueueTestConfig;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 
@@ -24,8 +23,7 @@ public class GAETestBase
 			new LocalServiceTestHelper(
 					// Our tests assume strong consistency
 					new LocalDatastoreServiceTestConfig().setApplyAllHighRepJobPolicy(),
-					new LocalMemcacheServiceTestConfig(),
-					new LocalTaskQueueTestConfig());
+					new LocalMemcacheServiceTestConfig());
 
 	/** */
 	@BeforeMethod
