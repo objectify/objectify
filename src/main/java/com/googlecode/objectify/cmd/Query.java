@@ -60,6 +60,12 @@ public interface Query<T> extends SimpleQuery<T>
 	@Override
 	public Query<T> filterKey(String condition, Object value);
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#filterKey(java.lang.Object)
+	 */
+	@Override
+	public Query<T> filterKey(Object value);
+
 	/**
 	 * <p>Sorts based on a property.  Examples:</p>
 	 *
