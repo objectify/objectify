@@ -255,8 +255,11 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	@Override
 	public <T> T fromEntity(Entity entity) {
 		LoadEngine engine = createLoadEngine();
-		return engine.load(entity, new LoadContext(this, engine));
-	}
+		LoadContext context = new LoadContext(this, engine);
+		T result = engine.load(entity, context);
+		context.done();
+		return result;
+        }
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
