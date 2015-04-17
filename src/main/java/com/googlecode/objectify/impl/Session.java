@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import java.util.HashMap;
+import java.util.Set;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -62,4 +63,10 @@ public class Session
 	public String toString() {
 		return map.toString();
 	}
+
+	/**
+	 * @return all the keys currently in the session. If you really want this data, subclass ObjectifyImpl and
+	 * use the protected getSession() method.
+	 */
+	public Set<Key<?>> keys() { return map.keySet(); }
 }
