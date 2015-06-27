@@ -196,6 +196,14 @@
 			<scope>test</scope>
 		</dependency>
 
+		<!-- lombok -->
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.16.4</version>
+			<scope>provided</scope> <!-- excluded from manifest classpath, and excluded from WEB-INF/lib -->
+		</dependency>
+
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.testng</groupId>
