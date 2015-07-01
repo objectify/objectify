@@ -35,7 +35,7 @@ public class CreateContext
 	 */
 	@SuppressWarnings("unchecked")
 	public <P> Populator<P> getPopulator(Class<P> clazz, Path path) {
-		if (clazz.equals(Object.class)) {
+		if (clazz == null || clazz.equals(Object.class)) {
 			return (Populator<P>)NullPopulator.INSTANCE;
 		} else {
 			ClassTranslator<P> classTranslator = (ClassTranslator<P>)this.<P, PropertyContainer>getTranslator(new TypeKey<P>(clazz), this, path);
