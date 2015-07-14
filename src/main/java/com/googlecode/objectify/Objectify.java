@@ -208,6 +208,7 @@ public interface Objectify
 	 *
 	 * <p>Within {@code Work.run()}, obtain the new transactional {@code Objectify} instance by calling {@code ObjectifyService.ofy()}</p>
 	 *
+	 * @param limitTries is the max # of tries. Must be > 0. A value of 1 means "try only once".
 	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
 	 * @return the result of the work
 	 */

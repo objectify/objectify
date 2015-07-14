@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.appengine.labs.repackaged.com.google.common.base.Preconditions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
@@ -90,11 +91,13 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 */
 	@Override
 	public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work) {
+		Preconditions.checkArgument(limitTries >= 1);
+
 		while (true) {
 			try {
 				return transactOnce(parent, work);
 			} catch (ConcurrentModificationException ex) {
-				if (limitTries-- > 0) {
+				if (--limitTries > 0) {
 					if (log.isLoggable(Level.WARNING))
 						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
 

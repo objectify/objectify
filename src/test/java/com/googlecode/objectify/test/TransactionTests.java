@@ -257,4 +257,28 @@ public class TransactionTests extends TestBase
 			}
 		});
 	}
+
+	public static class Counter {
+		public int counter = 0;
+	}
+
+	/**
+	 */
+	@Test
+	public void limitsTries() throws Exception {
+		final Counter counter = new Counter();
+
+		try {
+			ofy().transactNew(3, new VoidWork() {
+				@Override
+				public void vrun() {
+					counter.counter++;
+					throw new ConcurrentModificationException();
+				}
+			});
+		} catch (ConcurrentModificationException e) {}
+
+		assert counter.counter == 3;
+	}
+
 }
