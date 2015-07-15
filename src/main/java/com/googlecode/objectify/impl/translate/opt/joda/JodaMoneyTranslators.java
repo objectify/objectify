@@ -8,6 +8,8 @@ import com.googlecode.objectify.ObjectifyFactory;
  * whether they use it or not.  To enable, call this:</p>
  * 
  * <p>{@code JodaMoneyConverters.add(ObjectifyService.factory());}
+ *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

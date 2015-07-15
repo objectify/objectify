@@ -24,7 +24,9 @@ import java.math.BigDecimal;
  * 
  * <p>The default factor of 1,000 is good for currency, which usually has 0-3 digits of precision past
  * the decimal point.  But you can pick any other factor appropriate to your application.</p>
- * 
+ *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigDecimal, Long>

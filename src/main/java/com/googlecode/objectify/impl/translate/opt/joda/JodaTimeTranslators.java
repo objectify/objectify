@@ -9,6 +9,8 @@ import com.googlecode.objectify.ObjectifyFactory;
  *
  * <p>{@code JodaTimeTranslators.add(ObjectifyService.factory());}
  *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class JodaTimeTranslators

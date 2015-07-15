@@ -12,8 +12,10 @@ import org.joda.time.DateTimeZone;
 
 
 /**
- * Stores a joda DateTimeZone as its String id. 
- * 
+ * Stores a joda DateTimeZone as its String id.
+ *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class DateTimeZoneTranslatorFactory extends ValueTranslatorFactory<DateTimeZone, String>

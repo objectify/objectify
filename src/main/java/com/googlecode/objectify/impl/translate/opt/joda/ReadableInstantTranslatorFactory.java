@@ -16,7 +16,9 @@ import java.util.Date;
 
 
 /**
- * Converts Joda ReadableInstants (DateTime, DateMidnight, etc) into java.util.Date 
+ * Converts Joda ReadableInstants (DateTime, DateMidnight, etc) into java.util.Date
+ *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

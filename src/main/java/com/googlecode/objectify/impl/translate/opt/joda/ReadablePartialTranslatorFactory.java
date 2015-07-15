@@ -16,7 +16,9 @@ import java.lang.invoke.MethodHandle;
 
 /**
  * Converts Joda ReadablePartials (LocalDate, LocalDateTime, YearMonth, etc) into String (ISO-8601) representation
- * 
+ *
+ * <p>All custom translators must be registered *before* entity classes are registered.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ReadablePartialTranslatorFactory extends ValueTranslatorFactory<ReadablePartial, String>
