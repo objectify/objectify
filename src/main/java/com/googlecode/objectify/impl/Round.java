@@ -136,6 +136,13 @@ class Round {
 
 			Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
 			translated = loadEngine.translate(fetched);
+
+			// This should force all subsequent rounds to complete. This effectively means that only
+			// the first round can be asynchronous; all other rounds are materialized immediately.
+			// The reason for this is that there are some nasty edge cases with @Load annotations
+			// in transactions getting called after the transaction closes. This is possibly not the
+			// best solution to the problem, but it solves the problem now.
+			translated.now();
 		}
 	}
 
