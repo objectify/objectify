@@ -9,13 +9,12 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
-
+import lombok.extern.java.Log;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
@@ -24,16 +23,14 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Log
 public class LoadEngine
 {
 	/** */
-	private static final Logger log = Logger.getLogger(LoadEngine.class.getName());
-
-	/** */
-	ObjectifyImpl<?> ofy;
-	AsyncDatastoreService ads;
-	Session session;
-	LoadArrangement loadArrangement;
+	final ObjectifyImpl<?> ofy;
+	private final AsyncDatastoreService ads;
+	private final Session session;
+	private final LoadArrangement loadArrangement;
 
 	/** The current round, replaced whenever the round executes */
 	Round round;
