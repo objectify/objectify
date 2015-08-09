@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.labs.repackaged.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-
 import java.util.ConcurrentModificationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
