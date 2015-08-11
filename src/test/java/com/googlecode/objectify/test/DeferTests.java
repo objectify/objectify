@@ -6,11 +6,15 @@ package com.googlecode.objectify.test;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.VoidWork;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.GAETestBase;
 import com.googlecode.objectify.test.util.TestObjectifyFactory;
 import com.googlecode.objectify.test.util.TestObjectifyService;
 import com.googlecode.objectify.util.Closeable;
+import lombok.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
@@ -146,4 +150,29 @@ public class DeferTests extends GAETestBase
 			}
 		}
 	}
+
+	@Entity
+	@Data
+	static class HasOnSave {
+		@Id private Long id;
+		private String data;
+
+		@OnSave void changeData() {
+			data = "onsaved";
+		}
+	}
+
+	/** */
+	@Test
+	public void deferredSaveTriggersOnSaveMethods() throws Exception {
+		fact().register(HasOnSave.class);
+		final HasOnSave hos = new HasOnSave();
+
+		try (Closeable root = TestObjectifyService.begin()) {
+			ofy().defer().save().entity(hos);
+		}
+
+		assertThat(hos.getData(), equalTo("onsaved"));
+	}
+
 }
