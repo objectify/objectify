@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class DeleterImpl implements Deleter
+public class DeleterImpl implements Deleter
 {
 	/** */
 	ObjectifyImpl<?> ofy;
