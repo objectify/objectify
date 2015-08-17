@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
@@ -281,4 +282,20 @@ public class TransactionTests extends TestBase
 		assert counter.counter == 3;
 	}
 
+	@Test
+	public void retriesOnDatastoreTimeoutException() throws Exception {
+		final Counter counter = new Counter();
+
+		try {
+			ofy().transactNew(3, new VoidWork() {
+				@Override
+				public void vrun() {
+					counter.counter++;
+					throw new DatastoreTimeoutException("message");
+				}
+			});
+		} catch (DatastoreTimeoutException e) {}
+
+		assert counter.counter == 3;
+	}
 }
