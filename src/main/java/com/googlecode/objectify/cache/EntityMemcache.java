@@ -138,7 +138,7 @@ public class EntityMemcache
 	/**
 	 * The value stored in the memcache for a negative cache result.
 	 */
-	private static final String NEGATIVE = "NEGATIVE";
+	public static final String NEGATIVE = "NEGATIVE";
 
 	/** */
 	KeyMemcacheService memcache;
