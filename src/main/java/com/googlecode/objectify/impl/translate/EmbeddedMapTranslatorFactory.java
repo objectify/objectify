@@ -19,9 +19,11 @@ import java.util.Map;
 
 
 /**
- * <p>Translator which turns a Map<String, ?> into an EmbeddedEntity. As keys in
+ * <p>Translator which turns a Map&lt;String, ?&gt; into an EmbeddedEntity. As keys in
  * EmbeddedEntity, the map keys must be String or something that can be converted to/from String via a
  * Stringifier. The value can be any normal translated value.</p>
+ *
+ * <p>This automatically stringifies Enums and objectify Key&lt;?&gt;s</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
