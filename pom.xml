@@ -13,10 +13,10 @@
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
 	<packaging>jar</packaging>
-	<url>http://code.google.com/p/objectify-appengine/</url>
+	<url>https://github.com/objectify/objectify</url>
 	<scm>
-		<url>scm:git:https://code.google.com/p/objectify-appengine/</url>
-		<developerConnection>scm:git:https://code.google.com/p/objectify-appengine/</developerConnection>
+		<url>scm:git:https://github.com/objectify/objectify</url>
+		<developerConnection>scm:git:https://github.com/objectify/objectify</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 	<licenses>
