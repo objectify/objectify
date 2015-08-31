@@ -125,6 +125,10 @@ public class KeyMetadata<P>
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
+		// If no key, don't need to do anything
+		if (key == null)
+			return;
+
 		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx, containerPath);
 
 		com.google.appengine.api.datastore.Key parentKey = key.getParent();
@@ -169,22 +173,38 @@ public class KeyMetadata<P>
 	 * Gets a key composed of the relevant id and parent fields in the object.
 	 *
 	 * @param pojo must be of the entityClass type for this metadata.
-	 * @throws IllegalArgumentException if pojo has a null id
+	 * @return null if the id is null (ie, null Long)
 	 */
-	public com.google.appengine.api.datastore.Key getRawKey(P pojo) {
+	public com.google.appengine.api.datastore.Key getRawKeyOrNull(P pojo) {
 		if (log.isLoggable(Level.FINEST))
 			log.finest("Getting key from " + pojo);
 
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to get key of " + pojo.getClass().getName());
 
-		com.google.appengine.api.datastore.Key parent = getParentRaw(pojo);
-		Object id = getId(pojo);
+		final Object id = getId(pojo);
 
 		if (id == null)
-			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
+			return null;
+
+		final com.google.appengine.api.datastore.Key parent = getParentRaw(pojo);
 
 		return DatastoreUtils.createKey(parent, kind, id);
+	}
+
+	/**
+	 * Gets a key composed of the relevant id and parent fields in the object.
+	 *
+	 * @param pojo must be of the entityClass type for this metadata.
+	 * @throws IllegalArgumentException if pojo has a null id
+	 */
+	public com.google.appengine.api.datastore.Key getRawKey(P pojo) {
+		final com.google.appengine.api.datastore.Key key = getRawKeyOrNull(pojo);
+
+		if (key == null)
+			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
+		else
+			return key;
 	}
 
 	/** @return the name of the parent field, or null if there wasn't one */

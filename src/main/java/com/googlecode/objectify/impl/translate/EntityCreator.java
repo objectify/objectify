@@ -51,7 +51,7 @@ public class EntityCreator<P> extends Creator<P>
 			return keyMetadata.initEntity(pojo);
 		} else {
 			EmbeddedEntity ent = new EmbeddedEntity();
-			ent.setKey(keyMetadata.getRawKey(pojo));
+			ent.setKey(keyMetadata.getRawKeyOrNull(pojo));
 			return ent;
 		}
 	}
