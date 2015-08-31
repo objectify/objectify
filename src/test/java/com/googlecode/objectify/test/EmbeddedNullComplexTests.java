@@ -22,7 +22,7 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  * Hey, this should work now! These used to break in the old embedded format. In the new EmbeddedEntity-based
  * solution, weird pathological situations are fine.
  */
-public class EmbeddedNullComplex extends TestBase {
+public class EmbeddedNullComplexTests extends TestBase {
 
 	/**
 	 * @author Brian Chapman
