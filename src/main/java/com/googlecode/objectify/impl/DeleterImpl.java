@@ -21,7 +21,7 @@ public class DeleterImpl implements Deleter
 	ObjectifyImpl<?> ofy;
 
 	/** */
-	DeleterImpl(ObjectifyImpl<?> ofy) {
+	public DeleterImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
 	}
 
