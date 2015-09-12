@@ -243,12 +243,12 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * <p>Determines the kind for a Class, as understood by the datastore.  The first class in a
 	 * hierarchy that has @Entity defines the kind (either explicitly or as that class' simplename).</p>
 	 *
-	 * @throws IllegalArgumentException if a kind cannot be determined (ie no @Entity in hierarchy).
+	 * <p>If no @Entity annotation is found, just uses the simplename as is.</p>
 	 */
 	public static String getKind(Class<?> clazz) {
 		String kind = getKindRecursive(clazz);
 		if (kind == null)
-			throw new IllegalArgumentException("Class hierarchy for " + clazz + " has no @Entity annotation");
+			return clazz.getSimpleName();
 		else
 			return kind;
 	}
