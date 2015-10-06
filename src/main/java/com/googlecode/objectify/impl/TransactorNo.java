@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.appengine.api.datastore.DatastoreTimeoutException;
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyService;
@@ -95,13 +96,13 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 		while (true) {
 			try {
 				return transactOnce(parent, work);
-			} catch (ConcurrentModificationException ex) {
+			} catch (ConcurrentModificationException | DatastoreTimeoutException ex) {
 				if (--limitTries > 0) {
 					if (log.isLoggable(Level.WARNING))
-						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
+						log.warning("Transaction failure for " + work + " (retrying): " + ex);
 
 					if (log.isLoggable(Level.FINEST))
-						log.log(Level.FINEST, "Details of optimistic concurrency failure", ex);
+						log.log(Level.FINEST, "Details of Transaction failure", ex);
 				} else {
 					throw ex;
 				}
