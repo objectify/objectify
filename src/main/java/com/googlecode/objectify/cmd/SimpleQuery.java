@@ -171,7 +171,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @return a new immutable query object that applies the distinct operator
 	 */
 	public SimpleQuery<T> distinct(boolean value);
-	
+
 	/**
 	 * Reverse the query, as described in the <a href="https://developers.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/Query#reverse()">GAE docs</a>.
 	 *

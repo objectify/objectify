@@ -46,16 +46,16 @@ public class MapifyTests extends TestBase
 			return "Thing(name=" + name + ", weight=" + weight + ")";
 		}
 	}
-	
+
 	@Subclass
 	public static class ThingSubclass extends Thing {
-		
+
 		public ThingSubclass() { }
-		
+
 		public ThingSubclass(String name, Long weight) {
 			super(name, weight);
 		}
-		
+
 	}
 
 	public static class ThingMapper implements Mapper<Long, Thing> {
@@ -91,13 +91,13 @@ public class MapifyTests extends TestBase
 	public void testMapifyPolymorphic() throws Exception {
 		fact().register(HasMapify.class);
 		fact().register(ThingSubclass.class);
-		
+
 		HasMapify hasMap = new HasMapify();
 		Thing thing0 = new ThingSubclass("foo", 123L);
 		hasMap.things.put(thing0.weight, thing0);
 		Thing thing1 = new ThingSubclass("bar", 456L);
 		hasMap.things.put(thing1.weight, thing1);
-		
+
 		checkTestMapify(hasMap);
 	}
 

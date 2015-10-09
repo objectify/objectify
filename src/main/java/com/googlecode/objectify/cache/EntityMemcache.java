@@ -186,7 +186,7 @@ public class EntityMemcache
 	public void setErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
 		this.memcache.setErrorHandler(handler);
 	}
-	
+
 	/**
 	 * <p>Gets the Buckets for the specified keys.  A bucket is built around an IdentifiableValue so you can
 	 * putAll() them without the risk of overwriting other threads' changes.  Buckets also hide the

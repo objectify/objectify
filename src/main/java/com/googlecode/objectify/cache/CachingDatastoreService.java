@@ -22,14 +22,14 @@ import java.util.Map;
 /**
  * <p>A synchronous facade for the CachingAsyncDatastoreService.  Please see the documentation
  * for that class for details.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CachingDatastoreService implements DatastoreService
 {
 	DatastoreService ds;
 	CachingAsyncDatastoreService async;
-	
+
 	/**
 	 */
 	public CachingDatastoreService(DatastoreService ds, CachingAsyncDatastoreService async)
@@ -37,7 +37,7 @@ public class CachingDatastoreService implements DatastoreService
 		this.ds = ds;
 		this.async = async;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.DatastoreService#allocateIds(java.lang.String, long)
 	 */

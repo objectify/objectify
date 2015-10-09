@@ -146,7 +146,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		q.setKeysOnly();
 		return new QueryKeysImpl<>(q);
 	}
-	
+
 	 /* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#reverse()
 	 */

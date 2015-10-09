@@ -21,29 +21,30 @@ public class EmbeddedContainerTests extends TestBase
 		HasEmbed container;
 		String foo;
 	}
+
 	@Entity
 	@Cache
 	public static class HasEmbed {
 		@Id Long id;
 		EmbedMe embedMe;
 	}
-	
+
 	@Test
 	public void embedClassContainerPointsAtContainer() throws Exception {
 		fact().register(HasEmbed.class);
-		
+
 		HasEmbed he = new HasEmbed();
 		he.embedMe = new EmbedMe();
 		he.embedMe.foo = "bar";
-		
+
 		HasEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.embedMe.container == fetched;
 	}
-	
+
 	//
 	//
 	//
-	
+
 	public static class SuperEmbedMe {
 		@Container
 		Object container;
@@ -55,23 +56,23 @@ public class EmbeddedContainerTests extends TestBase
 		@Id Long id;
 		SuperEmbedMe embedMe;
 	}
-	
+
 	@Test
 	public void embedClassContainerPointsAtContainerWhenSpecifyingSuperclass() throws Exception {
 		fact().register(HasSuperEmbed.class);
-		
+
 		HasSuperEmbed he = new HasSuperEmbed();
 		he.embedMe = new SuperEmbedMe();
 		he.embedMe.foo = "bar";
-		
+
 		HasSuperEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.embedMe.container == fetched;
 	}
-	
+
 	//
 	//
 	//
-	
+
 	public static class DeepEmbedMe {
 		@Container
 		NestedEmbedMe nestedContainer;
@@ -91,27 +92,27 @@ public class EmbeddedContainerTests extends TestBase
 		@Id Long id;
 		NestedEmbedMe nested;
 	}
-	
+
 	@Test
 	public void deepEmbedClassContainerPointsAtContainer() throws Exception {
 		fact().register(HasNestedEmbed.class);
-		
+
 		HasNestedEmbed he = new HasNestedEmbed();
 		he.nested = new NestedEmbedMe();
 		he.nested.foo = "bar";
 		he.nested.deep = new DeepEmbedMe();
 		he.nested.deep.foo = "bar";
-		
+
 		HasNestedEmbed fetched = ofy().saveClearLoad(he);
 		assert fetched.nested.rootContainer == fetched;
 		assert fetched.nested.deep.rootContainer == fetched;
 		assert fetched.nested.deep.nestedContainer == fetched.nested;
 	}
-	
+
 	//
 	//
 	//
-	
+
 	public static class BadEmbedMe {
 		@Container
 		HasEmbed container;	// some other class!

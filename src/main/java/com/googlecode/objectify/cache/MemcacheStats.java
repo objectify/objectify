@@ -4,8 +4,8 @@ import com.google.appengine.api.datastore.Key;
 
 
 /**
- * Interface for tracking hit rates of the entity memcache. 
- * 
+ * Interface for tracking hit rates of the entity memcache.
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface MemcacheStats

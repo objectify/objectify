@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional
  * and nontransactional sessions.</p>
- * 
+ *
  * <ul>
  * <li>Caches negative results as well as positive results.</li>
  * <li>Queries do not affect the cache in any way.</li>
@@ -38,33 +38,33 @@ import java.util.logging.Logger;
  * <li>This cache has near-transactional integrity.  As long as DeadlineExceededException is not hit, cache should
  * not go out of sync even under heavy contention.</li>
  * </ul>
- * 
+ *
  * <p>Note:  Until Google adds a hook that lets us wrap native Future<?> implementations,
  * you muse install the {@code AsyncCacheFilter} to use this cache asynchronously.  This
  * is not necessary for synchronous use of {@code CachingDatastoreService}, but asynchronous
  * operation requires an extra hook for the end of a request when fired-and-forgotten put()s
  * and delete()s get processed.  <strong>If you use this cache asynchronously, and you do not
  * use the {@code AsyncCacheFilter}, your cache will go out of sync.</strong></p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CachingAsyncDatastoreService implements AsyncDatastoreService
 {
 	private static final Logger log = Logger.getLogger(CachingAsyncDatastoreService.class.getName());
-	
+
 	/** The real datastore service objects - we need both */
 	private AsyncDatastoreService rawAsync;
-	
+
 	/** */
 	private EntityMemcache memcache;
-	
+
 	/**
 	 */
 	public CachingAsyncDatastoreService(AsyncDatastoreService rawAsync, EntityMemcache memcache) {
 		this.rawAsync = rawAsync;
 		this.memcache = memcache;
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.AsyncDatastoreService#allocateIds(java.lang.String, long)
 	 */
@@ -82,7 +82,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	{
 		return this.rawAsync.allocateIds(parent, kind, num);
 	}
-	
+
 	/**
 	 * Need this for beingTransaction()
 	 */
@@ -100,7 +100,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		{
 			if (xact == null)
 				xact = new CachingTransaction(memcache, t);
-			
+
 			return xact;
 		}
 	}
@@ -122,7 +122,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	{
 		return new TransactionFutureWrapper(this.rawAsync.beginTransaction(options));
 	}
-	
+
 	/**
 	 * We don't allow implicit transactions, so throw an exception if the user is trying to use one.
 	 */
@@ -139,7 +139,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Void> delete(Key... keys)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.delete(null, keys);
 	}
 
@@ -150,7 +150,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Void> delete(Iterable<Key> keys)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.delete(null, keys);
 	}
 
@@ -186,10 +186,10 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				}
 			}
 		};
-		
+
 		if (txn instanceof CachingTransaction)
 			((CachingTransaction)txn).enlist(future);
-		
+
 		return future;
 	}
 
@@ -200,7 +200,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Entity> get(Key key)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.get(null, key);
 	}
 
@@ -211,7 +211,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Map<Key, Entity>> get(Iterable<Key> keys)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.get(null, keys);
 	}
 
@@ -222,7 +222,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Entity> get(Transaction txn, final Key key)
 	{
 		Future<Map<Key, Entity>> bulk = this.get(txn, Collections.singleton(key));
-		
+
 		return new SimpleFutureWrapper<Map<Key, Entity>, Entity>(bulk) {
 			@Override
 			protected Entity wrap(Map<Key, Entity> entities) throws Exception
@@ -253,7 +253,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 
 			final List<Bucket> uncached = new ArrayList<>(soFar.size());
 			Map<Key, Entity> cached = new HashMap<>();
-			
+
 			for (Bucket buck: soFar.values())
 				if (buck.isEmpty())
 					uncached.add(buck);
@@ -275,12 +275,12 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 							if (value != null)
 								buck.setNext(value);
 						}
-						
+
 						memcache.putAll(uncached);
 					}
 				};
 			}
-			
+
 			// If there was nothing from the cache, don't need to merge!
 			if (cached.isEmpty())
 				if (pending == null)
@@ -329,7 +329,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public PreparedQuery prepare(Query query)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.rawAsync.prepare(query);
 	}
 
@@ -349,7 +349,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Key> put(Entity entity)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.put(null, entity);
 	}
 
@@ -360,7 +360,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<List<Key>> put(Iterable<Entity> entities)
 	{
 		this.checkForImplicitTransaction();
-		
+
 		return this.put(null, entities);
 	}
 
@@ -371,7 +371,7 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 	public Future<Key> put(final Transaction txn, final Entity entity)
 	{
 		Future<List<Key>> bulk = this.put(txn, Collections.singleton(entity));
-		
+
 		return new SimpleFutureWrapper<List<Key>, Key>(bulk) {
 			@Override
 			protected Key wrap(List<Key> keys) throws Exception
@@ -392,21 +392,21 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 		// exception (eg timeout) even though it succeeded in the backend.  Thus we wrote
 		// an entity in the datastore but we don't know what the key was, so we can't empty
 		// out any negative cache entry that might exist.
-		
+
 		// The solution to this is that we need to allocate ids ourself before put()ing the entity.
 		// Unfortunately there is no Entity.setKey() method or Key.setId() method, so we can't do this
 		// The best we can do is watch out for when there is a potential problem and warn the
 		// developer in the logs.
-		
+
 		final List<Key> inputKeys = new ArrayList<>();
 		boolean foundAutoGenKeys = false;
-		
+
 		for (Entity ent: entities)
 			if (ent.getKey() != null)
 				inputKeys.add(ent.getKey());
 			else
 				foundAutoGenKeys = true;
-		
+
 		final boolean hasAutoGenKeys = foundAutoGenKeys;
 
 		// Always trigger, even on failure - the delete might have succeeded even though a timeout
@@ -422,19 +422,19 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				// This must be pretty rare:  A timeout on a autogenerated key when there was already a
 				// negative cache entry.  We can detect when this is a potential case and log a warning.
 				// The only real solution to this is to allocate ids in advance.  Which maybe we should do.
-				
+
 				List<Key> keys;
 				try {
 					keys = this.raw.get();
 				} catch (Exception ex) {
 					keys = inputKeys;
-					
+
 					if (hasAutoGenKeys)
 						log.log(Level.WARNING, "A put() for an Entity with an autogenerated key threw an exception. Because the write" +
 								" might have succeeded and there might be a negative cache entry for the (generated) id, there" +
 								" is a small potential for cache to be incorrect.");
 				}
-				
+
 				if (txn != null)
 				{
 					for (Key key: keys)
@@ -446,10 +446,10 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 				}
 			}
 		};
-		
+
 		if (txn instanceof CachingTransaction)
 			((CachingTransaction)txn).enlist(future);
-		
+
 		return future;
 	}
 

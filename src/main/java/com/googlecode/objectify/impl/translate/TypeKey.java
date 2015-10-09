@@ -11,7 +11,7 @@ import java.util.Arrays;
 /**
  * <p>Unique identifier for a translator instance. Important so we can re-use translators
  * as we navigate the tree, allowing us to store recursive structures.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TypeKey<T>

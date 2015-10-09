@@ -8,7 +8,7 @@ import com.googlecode.objectify.impl.Path;
  * Unlike a translator, it doesn't create the POJO or container.</p>
  *
  * <p>P is the pojo type.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Populator<P>

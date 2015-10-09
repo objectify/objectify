@@ -26,17 +26,17 @@ public class DatastoreUtils
 		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<>();
 		for (Ref<?> ref: refs)
 			rawKeys.add(ref.getKey().getRaw());
-		
+
 		return rawKeys;
 	}
-		
+
 	/**
-	 * Make a new Query object that is exactly like the old.  Too bad Query isn't Cloneable. 
+	 * Make a new Query object that is exactly like the old.  Too bad Query isn't Cloneable.
 	 */
 	public static com.google.appengine.api.datastore.Query cloneQuery(com.google.appengine.api.datastore.Query orig) {
-		
+
 		com.google.appengine.api.datastore.Query copy = new com.google.appengine.api.datastore.Query(orig.getKind(), orig.getAncestor());
-		
+
 		copy.setFilter(orig.getFilter());
 
 		for (SortPredicate sort: orig.getSortPredicates())
@@ -44,12 +44,12 @@ public class DatastoreUtils
 
 		for (Projection projection: orig.getProjections())
 			copy.addProjection(projection);
-		
+
 		if (orig.isKeysOnly())
 			copy.setKeysOnly();
 
 		copy.setDistinct(orig.getDistinct());
-		
+
 		return copy;
 	}
 
@@ -94,10 +94,10 @@ public class DatastoreUtils
 	 */
 	public static List<com.google.appengine.api.datastore.Key> createKeys(com.google.appengine.api.datastore.Key parent, String kind, Iterable<?> ids) {
 		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
-		
+
 		for (Object id: ids)
 			keys.add(createKey(parent, kind, id));
-		
+
 		return keys;
 	}
 
@@ -107,10 +107,10 @@ public class DatastoreUtils
 	 */
 	public static <T> List<Key<T>> createKeys(Key<?> parent, Class<T> kind, Iterable<?> ids) {
 		List<Key<T>> keys = new ArrayList<>();
-		
+
 		for (Object id: ids)
 			keys.add(createKey(parent, kind, id));
-		
+
 		return keys;
 	}
 

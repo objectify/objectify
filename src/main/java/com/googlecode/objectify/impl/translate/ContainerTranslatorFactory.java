@@ -8,7 +8,7 @@ import com.googlecode.objectify.impl.Path;
  * <p>Translator factory which lets users create @Container properties. This is a neat orthogonality
  * in the translation system; @Container properties are just like any other translated property, except
  * that the value is pulled out of the load context instead of the datastore node.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ContainerTranslatorFactory implements TranslatorFactory<Object, Object>

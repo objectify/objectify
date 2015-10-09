@@ -5,11 +5,11 @@ package com.googlecode.objectify.cmd;
 /**
  * <p>After a type is specified, the next step in a delete chain is to specify an optional parent
  * or a set of ids.  This is part of </p>
- * 
+ *
  * <p>Deletes do NOT cascade; you must delete each individual entity in an object graph.</p>
- * 
+ *
  * <p>All command objects are immutable.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface DeleteType extends DeleteIds

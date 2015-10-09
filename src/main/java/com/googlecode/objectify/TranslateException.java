@@ -8,7 +8,7 @@ package com.googlecode.objectify;
 public class TranslateException extends RuntimeException
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	public TranslateException(String message, Throwable cause) {
 		super(message, cause);
 	}

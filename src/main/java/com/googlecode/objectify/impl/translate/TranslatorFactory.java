@@ -7,7 +7,7 @@ import com.googlecode.objectify.impl.Path;
  * is registered, the known TranslatorFactories are queried to produce a translator for that class; this translator
  * will in turn be composed of translators for all of the fields, etc. These translators become a static metamodel
  * that can efficiently convert back and forth between the formats with minimal runtime overhead.</p>
- * 
+ *
  * <p>P is the pojo type, D is the datastore type.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>

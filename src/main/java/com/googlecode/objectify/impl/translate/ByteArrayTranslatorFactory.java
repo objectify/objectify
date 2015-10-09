@@ -7,7 +7,7 @@ import com.googlecode.objectify.impl.Path;
 /**
  * Translates a byte[] to Blob.  Make sure this translator gets registered *before* the normal ArrayTranslator
  * otherwise it won't get used.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[],Blob> {

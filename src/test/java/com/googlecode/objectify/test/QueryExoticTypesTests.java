@@ -145,7 +145,7 @@ public class QueryExoticTypesTests extends TestBase
 
 		cal1.set(2010, 7, 26);
 		Date thruDate = cal1.getTime();
-		
+
 //		List<com.google.appengine.api.datastore.Entity> ents = new ArrayList<>(ds().prepare(new com.google.appengine.api.datastore.Query()).asList(FetchOptions.Builder.withDefaults()));
 
 		Query<HasFromThruDate> q =

@@ -6,20 +6,20 @@ import com.googlecode.objectify.impl.Path;
 
 /**
  * <p>Translator factory which lets users define a custom translator for a field.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TranslateTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	boolean earlyOnly;
-	
+
 	/**
 	 * @param earlyOnly determines whether this instance ignores @Translate annotations with early=false
 	 */
 	public TranslateTranslatorFactory(boolean earlyOnly) {
 		this.earlyOnly = earlyOnly;
 	}
-	
+
 	@Override
 	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
 		final Translate translateAnno = tk.getAnnotation(Translate.class);
