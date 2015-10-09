@@ -71,7 +71,7 @@ public class KeyMemcacheService
 	public Map<Key, IdentifiableValue> getIdentifiables(Collection<Key> keys) {
 		if (keys.isEmpty())
 			return Collections.emptyMap();
-		
+
 		Map<String, IdentifiableValue> map = service.getIdentifiables(stringify(keys));
 		return keyify(map);
 	}
@@ -79,7 +79,7 @@ public class KeyMemcacheService
 	public Map<Key, Object> getAll(Collection<Key> keys) {
 		if (keys.isEmpty())
 			return Collections.emptyMap();
-			
+
 		Map<String, Object> map = service.getAll(stringify(keys));
 		return keyify(map);
 	}
@@ -87,14 +87,14 @@ public class KeyMemcacheService
 	public void putAll(Map<Key, Object> map) {
 		if (map.isEmpty())
 			return;
-		
+
 		service.putAll(stringify(map));
 	}
 
 	public Set<Key> putIfUntouched(Map<Key, CasValues> map) {
 		if (map.isEmpty())
 			return Collections.emptySet();
-		
+
 		Set<String> result = service.putIfUntouched(stringify(map));
 		return keyify(result);
 	}
@@ -102,7 +102,7 @@ public class KeyMemcacheService
 	public void deleteAll(Collection<Key> keys) {
 		if (keys.isEmpty())
 			return;
-		
+
 		service.deleteAll(stringify(keys));
 	}
 

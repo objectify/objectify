@@ -72,7 +72,7 @@ public class ObjectifyFactory implements Forge
 
 	/** Manages caching of entities at a low level */
 	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
-	
+
 	/**
 	 * <p>Construct an instance of the specified type.  Objectify uses this method whenever possible to create
 	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other

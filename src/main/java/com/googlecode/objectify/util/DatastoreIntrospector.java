@@ -13,7 +13,7 @@ import com.google.appengine.api.utils.SystemProperty;
 
 /**
  * <p>Lets us probe for certain datastore capabilities which may vary depending on dev/production/ms/hrd/etc</p>
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class DatastoreIntrospector
@@ -25,7 +25,7 @@ public class DatastoreIntrospector
 		// But that doesn't work in development mode.  So in that case, we actually try an XG transaction and
 		// see if it fails.
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		
+
 		if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Production) {
 			SUPPORTS_XG = ds.getDatastoreAttributes().getDatastoreType().equals(DatastoreType.HIGH_REPLICATION);
 		} else {

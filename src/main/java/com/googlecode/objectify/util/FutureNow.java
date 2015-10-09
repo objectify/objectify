@@ -8,14 +8,14 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * A simple Future impl that provides some already-obtained static data.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class FutureNow<T> implements Future<T>
 {
 	/** */
 	T value;
-	
+
 	/**
 	 */
 	public FutureNow(T value)

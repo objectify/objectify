@@ -34,11 +34,11 @@ import java.io.IOException;
  *</pre>
  *
  * <p>Note that you do not need to configure this filter if you use the {@code ObjectifyFilter}.</p>
- * 
+ *
  * <p>If you use the CachingAsyncDatastoreService outside of the context of a request (say, using the remote
  * API or from a unit test), then you should call {@code AsyncCacheFilter.complete()} after every operation
  * that you consider a "request".  For example, after each test.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class AsyncCacheFilter extends AbstractFilter
@@ -51,7 +51,7 @@ public class AsyncCacheFilter extends AbstractFilter
 			complete();
 		}
 	}
-	
+
 	/**
 	 * Perform the actions that are performed upon normal completion of a request.
 	 */

@@ -6,7 +6,7 @@ import com.googlecode.objectify.impl.Path;
 
 /**
  * Knows how to convert Key<?> objects to datastore-native Key objects and vice-versa.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.google.appengine.api.datastore.Key>

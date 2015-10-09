@@ -10,13 +10,13 @@ import java.lang.reflect.Method;
 class NowProxy<T> implements InvocationHandler, Serializable
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	T thing;
-	
+
 	public NowProxy(T thing) {
 		this.thing = thing;
 	}
-	
+
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 		return method.invoke(thing, args);

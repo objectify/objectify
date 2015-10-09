@@ -320,5 +320,4 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	void deferDelete(Key<?> key) {
 		transactor.getDeferrer().deferDelete(key);
 	}
-
 }

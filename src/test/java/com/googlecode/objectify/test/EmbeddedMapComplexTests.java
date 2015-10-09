@@ -47,7 +47,6 @@ public class EmbeddedMapComplexTests extends TestBase
 		}
 	}
 
-
 	@com.googlecode.objectify.annotation.Entity
 	public static class HasNestedMapEmbed {
 		@Id Long id;

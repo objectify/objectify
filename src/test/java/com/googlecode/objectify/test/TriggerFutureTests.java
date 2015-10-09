@@ -32,27 +32,27 @@ public class TriggerFutureTests extends TestBase
 	public void testSimpleAsyncGetWithDatastore() throws Exception
 	{
 		AsyncDatastoreService ads = DatastoreServiceFactory.getAsyncDatastoreService();
-		
+
 		Entity ent = new Entity("thing");
 		ent.setUnindexedProperty("foo", "bar");
-		
+
 		// Without the null txn (ie, using implicit transactions) we get a "handle 0 not found" error
 		Future<Key> fut = ads.put(null, ent);
 		fut.get();
 	}
-	
+
 	/** Some weird race condition on listenable future */
 	@Test
 	public void testRaceCondition() throws Exception
 	{
 		AsyncDatastoreService ads = DatastoreServiceFactory.getAsyncDatastoreService();
-		
+
 		for (int i=0; i<100; i++)
 		{
 			final int which = i;
 			final Entity ent = new Entity("thing");
 			ent.setUnindexedProperty("foo", "bar" + i);
-			
+
 			@SuppressWarnings("unused")
 			TriggerFuture<Key> fut = new TriggerFuture<Key>(ads.put(null, ent)) {
 				@Override
@@ -62,12 +62,12 @@ public class TriggerFutureTests extends TestBase
 					// we get what looks like some sort of race condition - the error
 					// happens at varying iterations.
 					FutureHelper.quietGet(this);
-					
+
 					Key k = ent.getKey();
 					if (!k.isComplete())
 						throw new IllegalStateException("Failed completeness at " + which);
 				}
 			};
-		} 
+		}
 	}
 }

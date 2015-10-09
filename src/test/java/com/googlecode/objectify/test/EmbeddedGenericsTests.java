@@ -45,5 +45,4 @@ public class EmbeddedGenericsTests extends TestBase
 //		Type t = f.getGenericType();
 //		System.out.println(t.toString());
 //	}
-
 }

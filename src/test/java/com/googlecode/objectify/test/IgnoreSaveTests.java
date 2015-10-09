@@ -176,5 +176,4 @@ public class IgnoreSaveTests extends TestBase
 		Entity ent = ds().get(null, key.getRaw());
 		assert ent.getProperties().isEmpty();
 	}
-
 }

@@ -4,7 +4,7 @@ import com.googlecode.objectify.annotation.Load;
 
 import java.util.Set;
 
-/** 
+/**
  * A 'brain' class that determines whether or not refs should be loaded.
  */
 public class LoadConditions
@@ -22,7 +22,7 @@ public class LoadConditions
 		// Get @Load groups
 		if (load != null) {
 			loadGroups = load.value();
-			
+
 			if (load.unless().length > 0)
 				loadUnlessGroups = load.unless();
 		}
@@ -34,7 +34,7 @@ public class LoadConditions
 	public boolean shouldLoad(Set<Class<?>> groups) {
 		if (loadGroups == null)
 			return false;
-		
+
 		if (loadGroups.length > 0 && !matches(groups, loadGroups))
 			return false;
 
@@ -51,7 +51,7 @@ public class LoadConditions
 			for (Class<?> enabledGroup: groups)
 				if (propertyGroup.isAssignableFrom(enabledGroup))
 					return true;
-		
+
 		return false;
 	}
 }

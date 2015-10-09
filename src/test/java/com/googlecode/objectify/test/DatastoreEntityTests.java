@@ -22,7 +22,7 @@ import com.googlecode.objectify.test.util.TestBase;
  * This is a set of tests that clarify exactly what happens when you put different
  * kinds of entities into the datastore.  They aren't really tests of Objectify,
  * they just help us understand the underlying behavior.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class DatastoreEntityTests extends TestBase
@@ -36,12 +36,12 @@ public class DatastoreEntityTests extends TestBase
 		public String name;
 		public int age;
 	}
-	
+
 	@SuppressWarnings("serial")
 	public static class SerializableThing extends Thing implements Serializable
 	{
 	}
-	
+
 	/**
 	 * What happens when you put an object in an Entity?
 	 */
@@ -62,7 +62,7 @@ public class DatastoreEntityTests extends TestBase
 
 //		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 //		ds.put(ent);
-//		
+//
 //		Entity fetched = ds.get(ent.getKey());
 //		Thing fetchedThing = (Thing)fetched.getProperty("thing");
 //		assert thing.name.equals(fetchedThing.name);
@@ -78,7 +78,7 @@ public class DatastoreEntityTests extends TestBase
 		SerializableThing thing = new SerializableThing();
 		thing.name = "foo";
 		thing.age = 10;
-		
+
 		Entity ent = new Entity("Test");
 		try
 		{
@@ -86,10 +86,10 @@ public class DatastoreEntityTests extends TestBase
 			assert false;
 		}
 		catch (IllegalArgumentException ex) {}
-		
+
 //		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 //		ds.put(ent);
-//		
+//
 //		Entity fetched = ds.get(ent.getKey());
 //		SerializableThing fetchedThing = (SerializableThing)fetched.getProperty("thing");
 //		assert thing.name.equals(fetchedThing.name);
@@ -108,11 +108,11 @@ public class DatastoreEntityTests extends TestBase
 
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		ds.put(ent);
-		
+
 		Entity fetched = ds.get(ent.getKey());
-		
+
 		System.out.println(fetched);
-		
+
 		Object whatIsIt = fetched.getProperty("empty");
 		assert whatIsIt == null;
 	}
@@ -131,11 +131,11 @@ public class DatastoreEntityTests extends TestBase
 
 		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
 		ds.put(ent);
-		
+
 		Entity fetched = ds.get(ent.getKey());
-		
+
 		System.out.println(fetched);
-		
+
 		Collection<Object> whatIsIt = (Collection<Object>)fetched.getProperty("hasNull");
 		assert whatIsIt != null;
 		assert whatIsIt.size() == 1;

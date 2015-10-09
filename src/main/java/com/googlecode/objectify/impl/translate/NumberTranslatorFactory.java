@@ -7,9 +7,9 @@ import com.googlecode.objectify.impl.TypeUtils;
 /**
  * <p>Numbers are funky in the datastore.  You can save numbers of any size, but they always retrieve as Long.
  * For the hell of it, we also handle String in the datastore by trying to parse it.</p>
- * 
+ *
  * <p>Not a ValueTranslatorFactory because Numbers are not assignable to primitives.  Java lame.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class NumberTranslatorFactory implements TranslatorFactory<Number, Object>

@@ -19,7 +19,6 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  */
 public class EmbeddedMapFormatTests extends TestBase
 {
-	
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -27,7 +26,7 @@ public class EmbeddedMapFormatTests extends TestBase
 		@Id Long id;
 		Map<String, Long> map = Maps.newLinkedHashMap();
 	}
-	
+
 	/** */
 	@Test
 	public void v2EmbedMapFormatIsCorrect() throws Exception {
@@ -35,14 +34,14 @@ public class EmbeddedMapFormatTests extends TestBase
 
 		OuterWithMap outer = new OuterWithMap();
 		outer.map.put("asdf", 123L);
-		
+
 		Key<OuterWithMap> key = ofy().save().entity(outer).now();
-		
+
 		Entity entity = ds().get(key.getRaw());
-		
+
 		EmbeddedEntity entityInner = (EmbeddedEntity)entity.getProperty("map");
 		assert entityInner.getProperty("asdf").equals(123L);
-		
+
 		ofy().clear();
 		OuterWithMap fetched = ofy().load().key(key).now();
 		assert fetched.map.equals(outer.map);

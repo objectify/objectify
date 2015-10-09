@@ -6,9 +6,9 @@ import java.util.TimeZone;
 
 
 /**
- * Converts java.util.TimeZone 
- * 
- * @author Jeff Schnitzer <jeff@infohazard.org> 
+ * Converts java.util.TimeZone
+ *
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class TimeZoneTranslatorFactory extends ValueTranslatorFactory<TimeZone, String>
 {

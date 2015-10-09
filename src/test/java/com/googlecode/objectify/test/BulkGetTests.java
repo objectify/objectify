@@ -38,7 +38,6 @@ public class BulkGetTests extends TestBase
 		// get k2, then k1
 		map = ofy().load().keys(Arrays.asList(k2, k1));
 		assert sameList(Arrays.asList(k2, k1), map.keySet());
-
 	}
 
 	private boolean sameList(List<Key<Trivial>> l1, Collection<Key<Trivial>> l2) {

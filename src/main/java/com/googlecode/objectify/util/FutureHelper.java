@@ -11,9 +11,9 @@ import java.util.concurrent.Future;
 
 /**
  * This provides some of the methods of Google's (package-private) FutureHelper
- * 
+ *
  * @see com.google.appengine.api.datastore.FutureHelper
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class FutureHelper
@@ -31,7 +31,7 @@ public class FutureHelper
 			return null;	// just to make the compiler happy
 		}
 	}
-	
+
 	/**
 	 * Properly unwraps ExecutionException, throwing the relevant original cause.  Otherwise
 	 * RuntimeExceptions get thrown and checked exceptions get wrapped in a RuntimeException.

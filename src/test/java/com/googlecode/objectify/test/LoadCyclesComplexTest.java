@@ -55,8 +55,6 @@ public class LoadCyclesComplexTest extends TestBase {
 		public long id = 3;
 	}
 
-
-
 	@Test
 	public void loadCycles() {
 		fact().register(A.class);

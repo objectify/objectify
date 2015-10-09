@@ -12,7 +12,7 @@ class CaptureTypeImpl implements CaptureType {
 	private final TypeVariable<?> variable;
 	private final Type[] lowerBounds;
 	private Type[] upperBounds;
-	
+
 	/**
 	 * Creates an uninitialized CaptureTypeImpl. Before using this type, {@link #init(VarMap)} must be called.
 	 * @param wildcard The wildcard this is a capture of
@@ -23,7 +23,7 @@ class CaptureTypeImpl implements CaptureType {
 		this.variable = variable;
 		this.lowerBounds = wildcard.getLowerBounds();
 	}
-	
+
 	/**
 	 * Initialize this CaptureTypeImpl.
 	 * This is needed for type variable bounds referring to each other: we need the capture of the argument.
@@ -31,7 +31,7 @@ class CaptureTypeImpl implements CaptureType {
 	void init(VarMap varMap) {
 		ArrayList<Type> upperBoundsList = new ArrayList<>();
 		upperBoundsList.addAll(Arrays.asList(varMap.map(variable.getBounds())));
-		
+
 		List<Type> wildcardUpperBounds = Arrays.asList(wildcard.getUpperBounds());
 		if (wildcardUpperBounds.size() > 0 && wildcardUpperBounds.get(0) == Object.class) {
 			// skip the Object bound, we already have a first upper bound from 'variable'
@@ -39,7 +39,7 @@ class CaptureTypeImpl implements CaptureType {
 		} else {
 			upperBoundsList.addAll(wildcardUpperBounds);
 		}
-		upperBounds = new Type[upperBoundsList.size()]; 
+		upperBounds = new Type[upperBoundsList.size()];
 		upperBoundsList.toArray(upperBounds);
 	}
 
@@ -57,7 +57,7 @@ class CaptureTypeImpl implements CaptureType {
 		assert upperBounds != null;
 		return upperBounds.clone();
 	}
-	
+
 	@Override
 	public String toString() {
 		return "capture of " + wildcard;

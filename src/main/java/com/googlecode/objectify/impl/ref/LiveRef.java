@@ -73,5 +73,4 @@ public class LiveRef<T> extends Ref<T>
 	protected Object writeReplace() throws ObjectStreamException {
 		return new DeadRef<>(key(), getValue());
 	}
-
 }

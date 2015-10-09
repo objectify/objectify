@@ -11,14 +11,14 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 abstract public class TranslatingQueryResultIterable<F, T> implements QueryResultIterable<T>
 {
 	QueryResultIterable<F> base;
-	
+
 	/** */
 	public TranslatingQueryResultIterable(QueryResultIterable<F> base) {
 		this.base = base;
 	}
-	
+
 	/** You implement this - convert from one object to the other */
-	abstract protected T translate(F from); 
+	abstract protected T translate(F from);
 
 	/* (non-Javadoc)
 	 * @see com.google.appengine.api.datastore.QueryResultIterable#iterator()

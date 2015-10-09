@@ -58,12 +58,12 @@ public class BasicTests extends TestBase
 		assert fetched.getSomeNumber() == triv.getSomeNumber();
 		assert fetched.getSomeString().equals(triv.getSomeString());
 	}
-	
+
 	/** */
 	@Test(expectedExceptions=SaveException.class)
 	public void savingNullNamedIdThrowsException() throws Exception {
 		fact().register(NamedTrivial.class);
-		
+
 		NamedTrivial triv = new NamedTrivial(null, "foo", 5);
 		ofy().save().entity(triv).now();
 	}
@@ -295,24 +295,24 @@ public class BasicTests extends TestBase
 
 		assert fetched.getSomeString().equals(triv1.getSomeString());
 	}
-	
-	
+
+
 	@Entity
 	static class HasParent {
 		@Parent Key<Trivial> parent;
 		@Id long id;
 	}
-	
+
 	/** Simply delete an entity which has a parent */
 	@Test
 	public void deleteAnEntityWithAParent() throws Exception {
 		fact().register(Trivial.class);
 		fact().register(HasParent.class);
-		
+
 		HasParent hp = new HasParent();
 		hp.parent = Key.create(Trivial.class, 123L);
 		hp.id = 456L;
-		
+
 		Key<HasParent> hpKey = ofy().save().entity(hp).now();
 		ofy().clear();
 		assert ofy().load().key(hpKey).now() != null;
@@ -341,5 +341,4 @@ public class BasicTests extends TestBase
 
 		assert Arrays.equals(fetchedStuff, stuff);
 	}
-
 }

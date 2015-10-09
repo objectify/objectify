@@ -15,7 +15,7 @@ public class QueryResultIteratorWrapper<T> implements QueryResultIterator<T>
 {
 	/** */
 	QueryResultIterator<T> base;
-	
+
 	/** */
 	public QueryResultIteratorWrapper(QueryResultIterator<T> base) {
 		this.base = base;

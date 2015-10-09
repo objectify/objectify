@@ -32,7 +32,7 @@ public class LoadContext
 
 	/** The key of the current root entity; will change as multiple entities are loaded */
 	Key<?> currentRoot;
-	
+
 	/** As we enter and exit embedded contexts, track the objects */
 	Deque<Object> containers = new ArrayDeque<>();
 
@@ -109,7 +109,7 @@ public class LoadContext
 	 */
 	public Object getContainer(Type containerType, Path path) {
 		Class<?> containerClass = GenericTypeReflector.erase(containerType);
-		
+
 		Iterator<Object> containersIt = containers.descendingIterator();
 
 		// We have always entered the current 'this' context when processing properties, so the first thing
@@ -118,21 +118,21 @@ public class LoadContext
 
 		while (containersIt.hasNext()) {
 			Object potentialContainer = containersIt.next();
-			
+
 			if (containerClass.isAssignableFrom(potentialContainer.getClass()))
 				return potentialContainer;
 		}
-		
+
 		throw new IllegalStateException("No container matching " + containerType + " in " + containers + " at path " + path);
 	}
-	
+
 	/**
 	 * Enter a container context; this is the context of the object that we are processing right now.
 	 */
 	public void enterContainerContext(Object container) {
 		containers.addLast(container);
 	}
-	
+
 	/**
 	 * Exit a container context. The parameter is just a sanity check to make sure that the value popped off is the same
 	 * as the value we expect.

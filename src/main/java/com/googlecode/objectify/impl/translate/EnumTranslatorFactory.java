@@ -4,11 +4,11 @@ import com.googlecode.objectify.impl.Path;
 
 /**
  * Knows how to convert Enums to the datastore String
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EnumTranslatorFactory<E extends Enum<E>> extends ValueTranslatorFactory<Enum<E>, String> {
-	
+
 	/** */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public EnumTranslatorFactory() {
@@ -18,7 +18,6 @@ public class EnumTranslatorFactory<E extends Enum<E>> extends ValueTranslatorFac
 	@Override
 	protected ValueTranslator<Enum<E>, String> createValueTranslator(final TypeKey<Enum<E>> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<Enum<E>, String>(String.class) {
-
 			@Override
 			@SuppressWarnings("unchecked")
 			protected Enum<E> loadValue(String value, LoadContext ctx, Path path) throws SkipException {

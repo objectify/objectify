@@ -6,7 +6,7 @@ import java.util.concurrent.Future;
 
 /**
  * Slightly more convenient than the GAE SDK version.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract public class SimpleFutureWrapper<K, V> extends FutureWrapper<K, V>

@@ -5,13 +5,13 @@ import com.google.appengine.api.datastore.Transaction;
 import java.util.concurrent.Future;
 
 /**
- * Simple pass-through to the base methods. 
+ * Simple pass-through to the base methods.
  */
 public class TransactionWrapper implements Transaction
 {
 	/** The real implementation */
 	Transaction raw;
-	
+
 	/** */
 	public TransactionWrapper(Transaction raw) {
 		this.raw = raw;
@@ -21,7 +21,7 @@ public class TransactionWrapper implements Transaction
 	public Transaction getRaw() {
 		return this.raw;
 	}
-	
+
 	@Override
 	public void commit() {
 		this.raw.commit();

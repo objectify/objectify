@@ -11,18 +11,18 @@ import java.util.logging.Logger;
 
 /**
  * <p>Dynamic proxy which wraps a MemcacheService and adds retries when an exception occurs.
- * It logs and masks exceptions on complete failure.</p> 
- * 
+ * It logs and masks exceptions on complete failure.</p>
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class MemcacheServiceRetryProxy implements InvocationHandler
 {
 	/** */
 	private static final Logger log = Logger.getLogger(MemcacheServiceRetryProxy.class.getName());
-	
+
 	/** */
 	private static final int DEFAULT_RETRIES = 4;
-	
+
 	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
@@ -30,26 +30,26 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	{
 		return createProxy(raw, DEFAULT_RETRIES);
 	}
-	
+
 	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
 	public static MemcacheService createProxy(MemcacheService raw, int retryCount)
 	{
 		raw.setErrorHandler(ErrorHandlers.getStrict());
-		
+
 		return (MemcacheService)java.lang.reflect.Proxy.newProxyInstance(
 			raw.getClass().getClassLoader(),
 			raw.getClass().getInterfaces(),
 			new MemcacheServiceRetryProxy(raw, retryCount));
 	}
-	
+
 	/** */
 	private MemcacheService raw;
-	
+
 	/** */
 	private int retries;
-	
+
 	/** */
 	public MemcacheServiceRetryProxy(MemcacheService raw, int retries)
 	{
@@ -73,9 +73,8 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 					log.log(Level.WARNING, "Error performing memcache operation, retrying: " + meth, ex);
 			}
 		}
-		
+
 		// Will reach this point of we have exhausted our retries.
 		return null;
 	}
-
 }

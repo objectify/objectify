@@ -5,8 +5,8 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 
-/** 
- * Property which encapsulates a method with an @AlsoLoad parameter. 
+/**
+ * Property which encapsulates a method with an @AlsoLoad parameter.
  * If you try to get() the value it is always null.
  */
 public class MethodProperty extends AbstractProperty
@@ -33,7 +33,7 @@ public class MethodProperty extends AbstractProperty
 		if (method.getParameterTypes().length != 1)
 			throw new IllegalStateException("@AlsoLoad methods must have a single parameter. Can't use " + method);
 	}
-	
+
 	@Override
 	public Type getType() { return this.method.getGenericParameterTypes()[0]; }
 
@@ -46,12 +46,12 @@ public class MethodProperty extends AbstractProperty
 		catch (RuntimeException ex) { throw ex; }
 		catch (Throwable ex) { throw new RuntimeException(ex); }
 	}
-	
+
 	@Override
 	public Object get(Object pojo) {
 		return null;	// can't get values from methods
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.method.toString();

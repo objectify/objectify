@@ -10,7 +10,7 @@ import com.googlecode.objectify.impl.Path;
  *
  * <p>Also handles the case of a field declared Object; we leave it unmolested.</p>
  * <p>Also - this fixes the boolean.class vs Boolean.class mismatch.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class AsIsTranslatorFactory implements TranslatorFactory<Object, Object>

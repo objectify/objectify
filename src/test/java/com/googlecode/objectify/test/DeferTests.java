@@ -174,5 +174,4 @@ public class DeferTests extends GAETestBase
 
 		assertThat(hos.getData(), equalTo("onsaved"));
 	}
-
 }

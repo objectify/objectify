@@ -4,8 +4,8 @@ import com.googlecode.objectify.impl.Path;
 
 /**
  * The datastore can't store java.sql.Date, but it can do java.util.Date.
- * 
- * @author Jeff Schnitzer <jeff@infohazard.org> 
+ *
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class SqlDateTranslatorFactory extends ValueTranslatorFactory<java.sql.Date, java.util.Date>
 {

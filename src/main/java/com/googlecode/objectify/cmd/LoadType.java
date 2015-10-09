@@ -6,7 +6,7 @@ package com.googlecode.objectify.cmd;
  * Once you have narrowed your interest to a type (via {@code load().type(SomeType.class)}), the command
  * pattern can diverge into two directions:  Either defining a parent or ids (which corresponds to a
  * batch get) or calling query-related methods (which will produce a query).
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface LoadType<T> extends LoadIds<T>, Query<T>

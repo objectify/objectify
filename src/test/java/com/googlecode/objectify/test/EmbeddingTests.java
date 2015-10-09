@@ -60,7 +60,7 @@ public class EmbeddingTests extends TestBase
 			this.unindexed = unindexed;
 		}
 	}
-	
+
 	@Subclass
 	public static class PartiallyIndexedStructSubclass extends PartiallyIndexedStruct {
 
@@ -69,7 +69,6 @@ public class EmbeddingTests extends TestBase
 		public PartiallyIndexedStructSubclass(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString) {
 			super(indexedPerson, unindexedPerson, indexedString, unidexedString);
 		}
-		
 	}
 
 	public static class Names {
@@ -122,7 +121,6 @@ public class EmbeddingTests extends TestBase
 		assert t2.mayor.age == 30;
 	}
 
-
 	@Test
 	public void testUnindexed() throws Exception {
 		fact().register(PartiallyIndexedEntity.class);
@@ -143,7 +141,7 @@ public class EmbeddingTests extends TestBase
 	public void testUnindexedPolymorphic() throws Exception {
 		fact().register(PartiallyIndexedEntity.class);
 		fact().register(PartiallyIndexedStructSubclass.class);
-		
+
 		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
 				new PartiallyIndexedStructSubclass(
 						new Someone(new Name("A", "B"), 30),
@@ -152,10 +150,9 @@ public class EmbeddingTests extends TestBase
 						new Someone(new Name("a", "b"), 32),
 						new Someone(new Name("c", "d"), 33), "3", "4")
 		);
-		
+
 		checkUnindexed(obj);
 	}
-
 
 	private void checkUnindexed(PartiallyIndexedEntity obj) {
 		Key<PartiallyIndexedEntity> key = ofy().save().entity(obj).now();

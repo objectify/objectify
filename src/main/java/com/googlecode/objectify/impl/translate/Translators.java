@@ -33,7 +33,7 @@ public class Translators
 
 	/** Where we should insert new translators */
 	int insertPoint;
-	
+
 	/** Where we should insert new early translators */
 	int earlyInsertPoint;
 
@@ -95,7 +95,7 @@ public class Translators
 		this.translatorFactories.add(insertPoint, trans);
 		insertPoint++;
 	}
-	
+
 	/**
 	 * <p>Add a new translator to the beginning of the list, before all other translators
 	 * except other translators that have been added early.</p>

@@ -10,7 +10,7 @@ import com.googlecode.objectify.annotation.Unindex;
 
 /**
  * A trivial entity with some basic data.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Entity
@@ -20,11 +20,11 @@ public class NamedTrivial
 	@Id String name;
 	public String getName() { return this.name; }
 	public void setId(String value) { this.name = value; }
-	
+
 	String someString;
 	public String getSomeString() { return this.someString; }
 	public void setSomeString(String value) { this.someString = value; }
-	
+
 	@Unindex
 	long someNumber;
 	public long getSomeNumber() { return this.someNumber; }
@@ -32,7 +32,7 @@ public class NamedTrivial
 
 	/** Default constructor must always exist */
 	public NamedTrivial() {}
-	
+
 	/** You cannot autogenerate a name */
 	public NamedTrivial(String id, String someString, long someNumber)
 	{

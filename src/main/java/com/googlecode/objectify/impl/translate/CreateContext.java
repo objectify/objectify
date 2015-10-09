@@ -4,9 +4,9 @@ import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
-/** 
+/**
  * The context while creating translator factories. Tracks important state as we navigate the class graph.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CreateContext
@@ -14,7 +14,7 @@ public class CreateContext
 	/** The objectify factory instance */
 	ObjectifyFactory factory;
 	public ObjectifyFactory getFactory() { return this.factory; }
-	
+
 	/** */
 	public CreateContext(ObjectifyFactory fact) {
 		this.factory = fact;

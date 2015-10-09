@@ -8,22 +8,22 @@ import java.util.Iterator;
 /**
  * <p>This is a typesafe version of the KeyRange object.  It represents a number
  * of ids preallocated with {@code ObjectifyFactory#allocateIds(Class, long)}.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class KeyRange<T> implements Iterable<Key<T>>, Serializable
 {
 	private static final long serialVersionUID = 1L;
-	
+
 	/** */
 	com.google.appengine.api.datastore.KeyRange raw;
-	
+
 	/** */
 	public KeyRange(com.google.appengine.api.datastore.KeyRange raw)
 	{
 		this.raw = raw;
 	}
-	
+
 	/**
 	 * Get the raw datastore keyrange.
 	 */

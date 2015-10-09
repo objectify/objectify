@@ -207,7 +207,7 @@ public class ValueTranslationTests extends TestBase
 
 		assert fetched.string.equals(BIG_STRING);
 	}
-	
+
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache

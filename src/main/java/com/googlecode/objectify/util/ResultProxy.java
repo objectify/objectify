@@ -33,9 +33,9 @@ public class ResultProxy<T> implements InvocationHandler, Serializable
 	public Object invoke(Object obj, Method meth, Object[] params) throws Throwable {
 		return meth.invoke(result.now(), params);
 	}
-	
+
 	private Object writeReplace() throws ObjectStreamException {
         return new NowProxy<>(result.now());
     }
-	
+
 }

@@ -11,19 +11,19 @@ import java.util.logging.Logger;
  * completion of the Future.  This prevents, for example, cache put()s
  * from firing when concurrency exceptions are thrown.
  * </p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract public class TriggerSuccessFuture<T> extends TriggerFuture<T>
 {
 	private static final Logger log = Logger.getLogger(TriggerSuccessFuture.class.getName());
-	
+
 	/** Wrap a normal Future<?> */
 	public TriggerSuccessFuture(Future<T> raw)
 	{
 		super(raw);
 	}
-	
+
 	/**
 	 * This method will be called ONCE upon successful completion of the future.
 	 */

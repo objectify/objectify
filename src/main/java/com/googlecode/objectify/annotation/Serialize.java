@@ -10,7 +10,7 @@ import java.util.zip.Deflater;
  * <p>When placed on an entity field, the field will be written as a single Blob
  * property using java serialization.  Can also be placed on a class to indicate
  * that all fields of that type should be serialized.</p>
- * 
+ *
  * <ul>
  * <li>The field can contain an arbitrary object graph.</li>
  * <li>All classes in the graph must follow Java serialization rules (ie, implement Serializable).</li>
@@ -20,7 +20,7 @@ import java.util.zip.Deflater;
  * <li>{@code @Serialize} collections <em>can</em> be nested inside {@code @Embed} collections.</li>
  * <li>Java serialization is opaque to the datastore viewer and other languages (ie gae/python).</li>
  * </ul>
- * 
+ *
  * <p>You are <strong>strongly</strong> advised to place {@code serialVersionUID} on all classes
  * that you intend to store as {@code @Serialize}.  Without this, <strong>any</strong> change to your
  * classes will prevent stored objects from being deserialized on fetch.</p>
@@ -31,12 +31,12 @@ import java.util.zip.Deflater;
 @Target({ElementType.TYPE, ElementType.FIELD})
 public @interface Serialize
 {
-	/** 
+	/**
 	 * If true, the data stream will be compressed on write using a DeflatorInputStream.  This only affects
-	 * writes; on read, Objectify will understand both compressed and uncompressed data. 
+	 * writes; on read, Objectify will understand both compressed and uncompressed data.
 	 */
 	boolean zip() default false;
-	
+
 	/**
 	 * If zip is true, sets the compression level of the Deflater.
 	 */

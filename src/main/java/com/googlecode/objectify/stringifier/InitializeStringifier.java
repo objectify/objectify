@@ -7,7 +7,7 @@ import java.lang.reflect.Type;
 /**
  * <p>If a Stringifier<?> implements this interface, it will be called once just after construction
  * with the actual Type of the key to stringify.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface InitializeStringifier

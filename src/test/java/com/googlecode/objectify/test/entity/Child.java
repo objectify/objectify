@@ -11,7 +11,7 @@ import com.googlecode.objectify.annotation.Parent;
 
 /**
  * A child entity which references a parent in the same entity group.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Entity
@@ -22,19 +22,19 @@ public class Child
 	private Long id;
 	public Long getId() { return this.id; }
 	public void setId(Long value) { this.id = value; }
-	
+
 	@Parent
 	private Key<Trivial> parent;
 	public Key<Trivial> getParent() { return this.parent; }
 	public void setParent(Key<Trivial> value) { this.parent = value; }
-	
+
 	private String childString;
 	public String getChildString() { return this.childString; }
 	public void setChildString(String value) { this.childString = value; }
-	
+
 	/** Default constructor must always exist */
 	public Child() {}
-	
+
 	/** Constructor to use when autogenerating an id */
 	public Child(Key<Trivial> parent, String childString)
 	{

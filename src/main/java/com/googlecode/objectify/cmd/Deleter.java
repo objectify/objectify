@@ -6,14 +6,14 @@ import com.googlecode.objectify.Result;
 
 /**
  * <p>The top element in the command chain for deleting entities from the datastore.</p>
- * 
+ *
  * <p>You can delete entities by either passing in the POJO or their keys.  Note that deletes do NOT cascade;
  * you must delete each individual entity in an object graph.</p>
- * 
+ *
  * <p>The {@code type()} method allows you to construct keys fluently.</p>
- * 
+ *
  * <p>Note that all command objects are immutable.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Deleter
@@ -32,8 +32,8 @@ public interface Deleter
 	/**
 	 * <p>Begin asynchronous deletion of a specific entity.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
-	 * 
-	 * @param key defines which entity to delete 
+	 *
+	 * @param key defines which entity to delete
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
 	Result<Void> key(Key<?> key);
@@ -41,12 +41,12 @@ public interface Deleter
 	/**
 	 * <p>Begin asynchronous deletion of specific entities.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
-	 * 
-	 * @param keys defines which entities to delete 
+	 *
+	 * @param keys defines which entities to delete
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
 	Result<Void> keys(Iterable<? extends Key<?>> keys);
-	
+
 	/**
 	 * Convenient substitute for keys(Iterable)
 	 */
@@ -55,8 +55,8 @@ public interface Deleter
 	/**
 	 * <p>Begin asynchronous deletion of a specific entity.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
-	 * 
-	 * @param entity can be an entity or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
+	 *
+	 * @param entity can be an entity or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields.
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
 	Result<Void> entity(Object entity);
@@ -64,12 +64,12 @@ public interface Deleter
 	/**
 	 * <p>Begin asynchronous deletion of specific entities.</p>
 	 * <p>To force synchronous delete, call now() on the returned Result.</p>
-	 * 
-	 * @param entities can be entity instances or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields. 
+	 *
+	 * @param entities can be entity instances or any key-like structure; a Key<?>, a native datastore Key, or an entity object with valid id/parent fields.
 	 * @return an asynchronous Result.  Call now() to force synchronous deletion.
 	 */
 	Result<Void> entities(Iterable<?> entities);
-	
+
 	/**
 	 * Convenient substitute for entities(Iterable)
 	 */

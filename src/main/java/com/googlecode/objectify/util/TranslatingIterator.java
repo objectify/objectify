@@ -11,17 +11,17 @@ abstract public class TranslatingIterator<F, T> implements Iterator<T>
 {
 	/** */
 	protected Iterator<F> base;
-	
+
 	/** */
-	public TranslatingIterator(Iterator<F> base) 
+	public TranslatingIterator(Iterator<F> base)
 	{
 		this.base = base;
 	}
-	
+
 	/**
 	 * You implement this - convert from one object to the other
 	 */
-	abstract protected T translate(F from); 
+	abstract protected T translate(F from);
 
 	@Override
 	public boolean hasNext()
