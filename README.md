@@ -1,20 +1,24 @@
+# Objectify
+
 Objectify is a Java data access API specifically designed for the Google App Engine datastore.  It occupies a
 "middle ground"; easier to use and more transparent than JDO or JPA, but significantly more convenient than
 the Low-Level API.  Objectify is designed to make novices immediately productive yet also expose the full power
 of the GAE datastore.
 
+## Features
+
   * Objectify lets you persist, retrieve, delete, and query your own **typed objects**.
-```
-@Entity
-class Car {
-    @Id String vin; // Can be Long, long, or String
-    String color;
-}
-  
-ofy().save().entity(new Car("123123", "red")).now();
-Car c = ofy().load().type(Car.class).id("123123").now();
-ofy().delete().entity(c);
-```
+  ```
+  @Entity
+  class Car {
+      @Id String vin; // Can be Long, long, or String
+      String color;
+  }
+    
+  ofy().save().entity(new Car("123123", "red")).now();
+  Car c = ofy().load().type(Car.class).id("123123").now();
+  ofy().delete().entity(c);
+  ```
   * Objectify surfaces **all native datastore features**, including batch operations, queries, transactions, asynchronous operations, and partial indexes.
   * Objectify provides **type-safe key and query classes** using Java generics.
   * Objectify provides a **human-friendly query interface**.
@@ -25,16 +29,16 @@ ofy().delete().entity(c);
   * Objectify provides **thorough documentation** of concepts as well as use cases.
   * Objectify has an **extensive test suite** to prevent regressions.
 
-# Documentation
+## Documentation
 
 Full documentation is availble in the [Objectify Wiki](https://github.com/objectify/objectify/wiki).
 
-# Downloads
+## Downloads
 
 Objectify is released to the [Maven Central Repository](https://github.com/objectify/objectify/wiki/MavenRepository)
 and can be downloaded directly from there.
 
-# Help
+## Help
 
 Help is provided in the
 [Objectify App Engine User Group](https://groups.google.com/forum/?fromgroups#!forum/objectify-appengine)
