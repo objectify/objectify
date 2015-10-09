@@ -102,5 +102,4 @@ public class IndexingPartialTests extends TestBase
 		ofy().save().entity(thing).now();
 		assert !ofy().load().type(IndexedOnOtherField.class).filter("bar", true).iterator().hasNext();
 	}
-
 }

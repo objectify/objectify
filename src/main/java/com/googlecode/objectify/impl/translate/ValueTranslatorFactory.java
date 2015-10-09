@@ -5,14 +5,14 @@ import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 /**
  * Provides a little boilerplate for translators that work on simple atomic types.
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 abstract public class ValueTranslatorFactory<P, D> implements TranslatorFactory<P, D>
 {
 	/** */
 	Class<? extends P> pojoType;
-	
+
 	/** */
 	protected ValueTranslatorFactory(Class<? extends P> pojoType) {
 		this.pojoType = pojoType;

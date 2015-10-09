@@ -169,15 +169,15 @@ public class EvilMemcacheBugTests extends TestBase
 		Transaction txn = ds.beginTransaction();
 		try {
 			Entity ent2 = ds.get(txn, childKey);
-	
+
 			//Entity ent2 = (Entity)cs1.get(childKey);
 			assert ent2.getProperty("foo").equals("original");
 			ent2.setProperty("foo", "changed");
-	
+
 			Map<Object, Object> holder = new HashMap<>();
 			holder.put(childKey, ent2);
 			cs1.putAll(holder);
-	
+
 			Map<Object, Object> fetched = cs1.getAll((Collection)Collections.singleton(childKey));
 			Entity ent3 = (Entity)fetched.get(childKey);
 			assert ent3.getProperty("foo").equals("changed");

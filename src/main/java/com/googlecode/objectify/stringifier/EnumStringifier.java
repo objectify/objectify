@@ -8,7 +8,7 @@ import java.lang.reflect.Type;
 
 /**
  * <p>Converts Enums back and forth with their string representation
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class EnumStringifier<E extends Enum> implements Stringifier<E>, InitializeStringifier

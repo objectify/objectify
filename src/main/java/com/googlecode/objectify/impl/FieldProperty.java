@@ -11,23 +11,23 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 
-/** 
- * Property which encapsulates a simple field. 
+/**
+ * Property which encapsulates a simple field.
  */
 public class FieldProperty extends AbstractProperty
 {
 	Field field;
 	MethodHandle getter;
 	MethodHandle setter;
-	
+
 	/** These are authoritative */
 	If<?, ?>[] indexConditions;
 	If<?, ?>[] unindexConditions;
 	If<?, ?>[] ignoreSaveConditions;
-	
+
 	/** If we have an @IgnoreSave and it isn't Always */
 	boolean hasIgnoreSaveConditions;
-	
+
 	/**
 	 * @param examinedClass is the actual top level concrete class we are examining; the field might
 	 * be declared on a superclass of this class so it's not the same as field.getDeclaringClass()
@@ -53,19 +53,19 @@ public class FieldProperty extends AbstractProperty
 
 		if (indexedAnn != null && unindexedAnn != null)
 			throw new IllegalStateException("Cannot have @Indexed and @Unindexed on the same field: " + field);
-		
+
 		if (indexedAnn != null)
 			this.indexConditions = ifGenerator.generateIfConditions(indexedAnn.value(), field);
-		
+
 		if (unindexedAnn != null)
 			this.unindexConditions = ifGenerator.generateIfConditions(unindexedAnn.value(), field);
-		
+
 		// Now watch out for @IgnoreSave conditions
 		IgnoreSave ignoreSave = field.getAnnotation(IgnoreSave.class);
 		if (ignoreSave != null)
 			ignoreSaveConditions = ifGenerator.generateIfConditions(ignoreSave.value(), field);
 	}
-	
+
 	/** */
 	@Override
 	public Type getType() { return this.field.getGenericType(); }
@@ -80,7 +80,7 @@ public class FieldProperty extends AbstractProperty
 		catch (RuntimeException ex) { throw ex; }
 		catch (Throwable ex) { throw new RuntimeException(ex); }
 	}
-	
+
 	/** */
 	@Override
 	public Object get(Object pojo) {
@@ -114,16 +114,16 @@ public class FieldProperty extends AbstractProperty
 		else
 			return null;
 	}
-	
+
 	/**
 	 * Tests whether a set of conditions match.
 	 * @param conditions can be null; this always matches false
-	 * @return true if we match the conditions, false if we do not 
+	 * @return true if we match the conditions, false if we do not
 	 */
 	private boolean matches(Object onPojo, If<?, ?>[] conditions) {
 		if (conditions == null)
 			return false;
-		
+
 		Object value = this.get(onPojo);
 
 		for (If<?, ?> condition: conditions) {

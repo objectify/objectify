@@ -9,11 +9,11 @@ import java.lang.annotation.Target;
  * <p>Annotation which helps migrate schemas by loading one of several possible properties
  * in the entity into fields or methods.  This is typically used when a field is renamed,
  * allowing the field to be populated by both its current name and any prior names.</p>
- * 
+ *
  * <ul>
  * <li>When placed on a field, the additional names (entity properties) will be checked
  * when this field is loaded.  If the entity contains data for more than one of the names,
- * an exception will be thrown. 
+ * an exception will be thrown.
  * <li>When placed on a parameter to a method that takes a single parameter, the method
  * will be called with the data value.  As with fields, any ambiguity in the data (multiple
  * properties that would cause the method to be called) will produce an exception.  However,
@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  * value that would otherwise have been set on a field.  This can be useful when changing the
  * type of a field.</li>
  * </ul>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Retention(RetentionPolicy.RUNTIME)

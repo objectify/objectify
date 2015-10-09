@@ -7,8 +7,8 @@ import java.net.URL;
 
 /**
  * The datastore can't store URL, so translate it to a String and back.
- * 
- * @author Jeff Schnitzer <jeff@infohazard.org> 
+ *
+ * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class URLTranslatorFactory extends ValueTranslatorFactory<URL, String>
 {
@@ -16,7 +16,7 @@ public class URLTranslatorFactory extends ValueTranslatorFactory<URL, String>
 	public URLTranslatorFactory() {
 		super(URL.class);
 	}
-	
+
 	@Override
 	protected ValueTranslator<URL, String> createValueTranslator(TypeKey<URL> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<URL, String>(String.class) {

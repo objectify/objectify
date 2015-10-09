@@ -5,7 +5,7 @@ import com.googlecode.objectify.Key;
 
 /**
  * <p>Converts Objectify Key<?>s to String.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class KeyStringifier implements Stringifier<Key<?>>

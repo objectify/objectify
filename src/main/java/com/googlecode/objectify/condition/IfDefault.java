@@ -11,16 +11,16 @@ import java.lang.reflect.Field;
  * is placed upon, <strong>whatever that default may be</strong>.  If you
  * initialize the field with a value, this condition will use that value
  * as the comparison.  For example, if you have a class like this:</p>
- * 
+ *
  * <blockquote><pre>
  * public class MyEntity {
  *     &#64;Id Long id;
  *     &#64;IgnoreSave(IfDefault.class) String foo = "defaultFoo";
  * }
  * </pre></blockquote>
- * 
+ *
  * <p>The {@code foo} field will be left unsaved when it has the value "defaultFoo".</p>
- * 
+ *
  * <p>Specifically, this conditional constructs an instance of <i>the class in which
  * the field is declared</i> and stores the default field value for later comparison.
  * Note that if you initialize the field in your default constructor, this counts!</p>
@@ -48,13 +48,13 @@ import java.lang.reflect.Field;
 public class IfDefault extends ValueIf<Object> implements InitializeIf
 {
 	Object defaultValue;
-	
+
 	@Override
 	public void init(ObjectifyFactory fact, Field field) {
 		Object pojo = fact.construct(field.getDeclaringClass());
 		this.defaultValue = TypeUtils.field_get(field, pojo);
 	}
-	
+
 	@Override
 	public boolean matchesValue(Object value) {
 		if (this.defaultValue == null)

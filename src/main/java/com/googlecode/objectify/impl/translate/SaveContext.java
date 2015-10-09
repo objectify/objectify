@@ -32,7 +32,7 @@ public class SaveContext
 		else
 			indexes.put(path, object);
 	}
-	
+
 	/** */
 	public Map<Path, Collection<Object>> getIndexes() {
 		return indexes.asMap();

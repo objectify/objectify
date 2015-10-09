@@ -1,5 +1,5 @@
 /**
- * 
+ *
  */
 package com.googlecode.objectify.repackaged.gentyref;
 
@@ -13,18 +13,18 @@ import java.util.Map;
 
 /**
  * Mapping between type variables and actual parameters.
- * 
+ *
  * @author Wouter Coekaerts <wouter@coekaerts.be>
  */
 class VarMap {
 	private final Map<TypeVariable<?>, Type> map = new HashMap<>();
-	
+
 	/**
 	 * Creates an empty VarMap
 	 */
 	VarMap() {
 	}
-	
+
 	/**
 	 * Creates a VarMap mapping the type parameters of the class used in <tt>type</tt> to their actual value.
 	 */
@@ -34,38 +34,38 @@ class VarMap {
 			Class<?> clazz = (Class<?>)type.getRawType();
 			Type[] arguments = type.getActualTypeArguments();
 			TypeVariable<?>[] typeParameters = clazz.getTypeParameters();
-			
+
 			// since we're looping over two arrays in parallel, just to be sure check they have the same size
 			if (arguments.length != typeParameters.length) {
 				throw new IllegalStateException("The given type [" + type + "] is inconsistent: it has " +
 						arguments.length + " arguments instead of " + typeParameters.length);
 			}
 
-			
+
 			for (int i = 0; i < arguments.length; i++) {
 				add(typeParameters[i], arguments[i]);
 			}
-			
+
 			Type owner = type.getOwnerType();
 			type = (owner instanceof ParameterizedType) ? (ParameterizedType)owner : null;
 		} while (type != null);
 	}
-	
+
 	void add(TypeVariable<?> variable, Type value) {
 		map.put(variable, value);
 	}
-	
+
 	void addAll(TypeVariable<?>[] variables, Type[] values) {
 		assert variables.length == values.length;
 		for (int i = 0; i < variables.length; i++) {
 			map.put(variables[i], values[i]);
 		}
 	}
-	
+
 	VarMap(TypeVariable<?>[] variables, Type[] values) {
 		addAll(variables, values);
 	}
-	
+
 	Type map(Type type) {
 		if (type instanceof Class) {
 			return type;
@@ -87,7 +87,7 @@ class VarMap {
 			throw new RuntimeException("not implemented: mapping " + type.getClass() + " (" + type + ")");
 		}
 	}
-	
+
 	Type[] map(Type[] types) {
 		Type[] result = new Type[types.length];
 		for (int i = 0; i < types.length; i++) {

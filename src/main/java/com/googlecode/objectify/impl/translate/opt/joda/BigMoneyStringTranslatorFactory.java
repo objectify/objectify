@@ -24,7 +24,7 @@ public class BigMoneyStringTranslatorFactory extends ValueTranslatorFactory<BigM
 	public BigMoneyStringTranslatorFactory() {
 		super(BigMoney.class);
 	}
-	
+
 	@Override
 	protected ValueTranslator<BigMoney, String> createValueTranslator(TypeKey<BigMoney> tk, CreateContext ctx, Path path) {
 		return new ValueTranslator<BigMoney, String>(String.class) {

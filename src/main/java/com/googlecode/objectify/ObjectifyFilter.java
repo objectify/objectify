@@ -14,7 +14,7 @@ import java.io.IOException;
 /**
  * Configure this filter to use Objectify in your application.  It works in concert with {@code ObjectifyService}
  * to provide the correct {@code Objectify} instance when {@code ObjectifyService.ofy()} is called.
- * 
+ *
  * In your web.xml:
  *<pre>
  *       &lt;filter&gt;
@@ -35,7 +35,7 @@ import java.io.IOException;
  *
  * <p>If you use the Objectify outside of the context of a request (say, using the remote
  * API or from a unit test), then you should use the ObjectifyService.run() method.</p>
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class ObjectifyFilter extends AbstractFilter

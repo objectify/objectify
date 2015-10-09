@@ -7,7 +7,7 @@ import com.googlecode.objectify.impl.Path;
 /**
  * Knows how to convert Texts.  Aside from String and Text, will work with anything that's in the
  * datastore just by calling toString() on what we get back; convenient for converting between
- * say Number and the Text representation, possibly dangerous otherwise. 
+ * say Number and the Text representation, possibly dangerous otherwise.
  */
 public class TextTranslatorFactory extends ValueTranslatorFactory<Text, Object>
 {

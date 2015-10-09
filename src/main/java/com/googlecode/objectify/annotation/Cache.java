@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 /**
  * <p>Place this on any POJO entity class to cause it to be cached in the memcache.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Retention(RetentionPolicy.RUNTIME)

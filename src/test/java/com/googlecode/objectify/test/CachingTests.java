@@ -83,7 +83,7 @@ public class CachingTests extends TestBase
 		assert fetched.containsKey(Key.create(ca1));
 		assert fetched.containsKey(Key.create(ca2));
 	}
-	
+
 	/** */
 	@Entity
 	@Cache(expirationSeconds=1)
@@ -96,21 +96,21 @@ public class CachingTests extends TestBase
 	@Test
 	public void cacheExpirationWorks() throws Exception {
 		fact().register(Expires.class);
-		
+
 		Expires exp = new Expires();
 		exp.stuff = "foo";
-		
+
 		Key<Expires> key = ofy().save().entity(exp).now();
 		ofy().clear();
 		ofy().load().key(key).now();	// cached now
-		
+
 		MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
-		
+
 		Object thing = ms.get(key.getString());
 		assert thing != null;
-		
+
 		Thread.sleep(2000);
-		
+
 		Object thing2 = ms.get(key.getString());
 		assert thing2 == null;
 	}

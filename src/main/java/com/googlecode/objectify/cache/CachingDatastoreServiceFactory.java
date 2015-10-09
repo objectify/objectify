@@ -13,21 +13,21 @@ import com.googlecode.objectify.ObjectifyFactory;
  * and AsyncDatastoreService.  These are just shortcuts for common cases - do not be afraid to
  * use the constructors of CachingDatastoreService or CachingAsyncDatastoreService to create
  * an interface tailored exactly to your caching needs.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class CachingDatastoreServiceFactory
 {
 	private static String defaultMemcacheNamespace = ObjectifyFactory.MEMCACHE_NAMESPACE;
-	
-	/** 
+
+	/**
 	 * The default namespace is the one used by Objectify for its cache.  You can reset it.
 	 */
 	public static void setDefaultMemcacheNamespace(String value) { defaultMemcacheNamespace = value; }
-	
+
 	/** The memcache snamespace used by default for most of these factory methods */
 	public static String getDefaultMemcacheNamespace() { return defaultMemcacheNamespace; }
-	
+
 	/**
 	 * Get a caching DatastoreService with no pre-set expiration on cache values.
 	 */
@@ -36,7 +36,7 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getDatastoreService(em);
 	}
-	
+
 	/**
 	 * Get a caching DatastoreService with no pre-set expiration on cache values.
 	 */
@@ -54,7 +54,7 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getAsyncDatastoreService(em);
 	}
-	
+
 	/**
 	 * Get a caching AsyncDatastoreService with no pre-set expiration on cache values.
 	 */
@@ -63,7 +63,7 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = new EntityMemcache(defaultMemcacheNamespace);
 		return getAsyncDatastoreService(cfg, em);
 	}
-	
+
 	/**
 	 * Get a caching DatastoreService with a specific expiration on all cached items.
 	 */
@@ -72,7 +72,7 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = getCacheControlled(expirySeconds);
 		return getDatastoreService(em);
 	}
-	
+
 	/**
 	 * Get a caching DatastoreService with a specific expiration on all cached items.
 	 */
@@ -90,7 +90,7 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = getCacheControlled(expirySeconds);
 		return getAsyncDatastoreService(em);
 	}
-	
+
 	/**
 	 * Get a caching AsyncDatastoreService with a specific expiration on all cached items.
 	 */
@@ -99,9 +99,9 @@ public class CachingDatastoreServiceFactory
 		EntityMemcache em = getCacheControlled(expirySeconds);
 		return getAsyncDatastoreService(cfg, em);
 	}
-	
+
 	/**
-	 * Get a caching DatastoreService that uses a particular EntityMemcache configuration. 
+	 * Get a caching DatastoreService that uses a particular EntityMemcache configuration.
 	 * Ignores the default memcacheService for this factory; that is set when you construct
 	 * your EntityMemcache.
 	 */

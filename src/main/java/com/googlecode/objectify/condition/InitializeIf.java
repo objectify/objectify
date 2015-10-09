@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 /**
  * <p>If an If<?, ?> condition class implements this interface, it will be called once just after construction.
  * This is a poor-man's injection system.</p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface InitializeIf

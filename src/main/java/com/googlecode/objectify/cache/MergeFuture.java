@@ -11,7 +11,7 @@ import java.util.concurrent.TimeoutException;
  * A Future which merges some previously loaded values with the results of another
  * Future that is in progress.  It can apply to any key/value pair type; typically
  * it will be for Key/Entity or Key<T>/T
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class MergeFuture<K, V> implements Future<Map<K, V>>
@@ -21,10 +21,10 @@ public class MergeFuture<K, V> implements Future<Map<K, V>>
 	 * then when the pending is complete the values get appended to this collection.
 	 */
 	Map<K, V> loaded;
-	
+
 	/** Pending requests - if null, this Future is complete and all values are in loaded */
 	Future<Map<K, V>> pending;
-	
+
 	/**
 	 * @param preloaded is a collection of entities that have already been obtained, say
 	 * from the memcache.  TAKES OWNERSHIP OF THE MAP OBJECT - it will be modified later.
@@ -58,7 +58,7 @@ public class MergeFuture<K, V> implements Future<Map<K, V>>
 	}
 
 	/**
-	 * 
+	 *
 	 * @see java.util.concurrent.Future#isDone()
 	 */
 	@Override
@@ -81,7 +81,7 @@ public class MergeFuture<K, V> implements Future<Map<K, V>>
 			this.loaded.putAll(this.pending.get());
 			this.pending = null;
 		}
-		
+
 		return this.loaded;
 	}
 
@@ -96,7 +96,7 @@ public class MergeFuture<K, V> implements Future<Map<K, V>>
 			this.loaded.putAll(this.pending.get(timeout, unit));
 			this.pending = null;
 		}
-		
+
 		return this.loaded;
 	}
 }

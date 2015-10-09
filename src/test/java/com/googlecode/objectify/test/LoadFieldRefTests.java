@@ -227,7 +227,6 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 
-
 		ofy().clear();
 		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).now();
 		assert fetched.single.isLoaded();
@@ -239,6 +238,5 @@ public class LoadFieldRefTests extends TestBase
 		assert fetched.multi.get(1).get().getId().equals(t2.getId());
 		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
 		assert fetched.single.get() == fetched.multi.get(0).get();
-
 	}
 }

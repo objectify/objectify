@@ -13,7 +13,7 @@ import java.util.Map;
  * <li>java.util.Map</li>
  * <li>java array of any kind</li>
  * </ul>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public class IfEmpty extends ValueIf<Object>
@@ -23,16 +23,16 @@ public class IfEmpty extends ValueIf<Object>
 	{
 		if (value == null)
 			return true;
-		
+
 		if (value instanceof String)
 			return ((String)value).isEmpty();
-		
+
 		if (value instanceof Collection<?>)
 			return ((Collection<?>)value).isEmpty();
-		
+
 		if (value instanceof Map<?, ?>)
 			return ((Map<?, ?>)value).isEmpty();
-		
+
 		if (value.getClass().isArray())
 			return Array.getLength(value) == 0;
 

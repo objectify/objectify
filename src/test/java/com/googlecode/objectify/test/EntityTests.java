@@ -272,5 +272,4 @@ public class EntityTests extends TestBase
 		assert converted.getSomeString().equals(triv.getSomeString());
 		assert converted.getSomeNumber() == triv.getSomeNumber();
 	}
-
 }

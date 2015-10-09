@@ -7,7 +7,7 @@ import java.lang.annotation.Annotation;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/** 
+/**
  * Some common behavior of properties
  */
 abstract public class AbstractProperty implements Property
@@ -15,7 +15,7 @@ abstract public class AbstractProperty implements Property
 	private String name;
 	private String[] names;
 	private Annotation[] annotations;
-	
+
 	/** */
 	public AbstractProperty(String name, Annotation[] annotations, Object thingForDebug) {
 		this.name = name;
@@ -23,11 +23,11 @@ abstract public class AbstractProperty implements Property
 
 		// Figure out names from the @IgnoreLoad and @AlsoLoad annotations
 		Set<String> nameSet = new LinkedHashSet<>();
-		
+
 		// If we have @IgnoreLoad, don't add priamry name to the names collection (which is used for loading)
 		if (this.getAnnotation(IgnoreLoad.class) == null)
 			nameSet.add(name);
-		
+
 		// Now any additional names
 		AlsoLoad alsoLoad = this.getAnnotation(AlsoLoad.class);
 		if (alsoLoad != null)
@@ -39,7 +39,7 @@ abstract public class AbstractProperty implements Property
 						throw new IllegalStateException("Illegal empty value in @AlsoLoad for " + thingForDebug);
 					else
 						nameSet.add(value);
-		
+
 		names = nameSet.toArray(new String[nameSet.size()]);
 	}
 
@@ -47,12 +47,12 @@ abstract public class AbstractProperty implements Property
 	public String getName() {
 		return name;
 	}
-	
+
 	@Override
 	public String[] getLoadNames() {
 		return names;
 	}
-	
+
 	@Override
 	public <A extends Annotation> A getAnnotation(Class<A> annoClass) {
 		return TypeUtils.getAnnotation(annotations, annoClass);

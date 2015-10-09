@@ -245,7 +245,7 @@ public class TransactionTests extends TestBase
 			}
 		});
 	}
-	
+
 	/**
 	 */
 	@Test
@@ -280,5 +280,4 @@ public class TransactionTests extends TestBase
 
 		assert counter.counter == 3;
 	}
-
 }

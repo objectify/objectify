@@ -95,5 +95,4 @@ public class LoadBidrectionalTests extends TestBase
 
 		assert topFetched.bottom.top.get().id == top.id;
 	}
-
 }

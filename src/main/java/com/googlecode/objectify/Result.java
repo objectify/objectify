@@ -11,7 +11,7 @@ package com.googlecode.objectify;
  * automatically unwrap ExecutionExceptions (checked exceptions will be wrapped in a
  * new RuntimeException).
  * </p>
- * 
+ *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 public interface Result<T>
@@ -19,7 +19,7 @@ public interface Result<T>
 	/**
 	 * Waits if necessary for the computation to complete, and then retrieves
 	 * its result.  If the computation produced an exception, it will be thrown here.
-	 * 
+	 *
 	 * @return the computed result
 	 */
 	T now();

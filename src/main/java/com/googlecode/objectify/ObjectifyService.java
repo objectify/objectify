@@ -11,7 +11,7 @@ import java.util.Deque;
 /**
  * Holder of the master ObjectifyFactory and provider of the current thread-local Objectify instance.
  * Call {@code ofy()} at any point to get the current Objectify with the correct transaction context.
- * 
+ *
  * @author Jeff Schnitzer
  */
 public class ObjectifyService
@@ -57,11 +57,11 @@ public class ObjectifyService
 
 	/**
 	 * A shortcut for {@code ObjectifyFactory.register()}
-	 *  
-	 * @see ObjectifyFactory#register(Class) 
+	 *
+	 * @see ObjectifyFactory#register(Class)
 	 */
 	public static void register(Class<?> clazz) {
-		factory().register(clazz); 
+		factory().register(clazz);
 	}
 
 	/**

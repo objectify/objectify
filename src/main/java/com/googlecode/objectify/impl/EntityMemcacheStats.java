@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/** 
- * Tracks hit/miss statistics for the memcache. 
+/**
+ * Tracks hit/miss statistics for the memcache.
  */
 public class EntityMemcacheStats implements MemcacheStats
 {
@@ -16,7 +16,7 @@ public class EntityMemcacheStats implements MemcacheStats
 	{
 		private AtomicLong hits = new AtomicLong();
 		private AtomicLong misses = new AtomicLong();
-		
+
 		public long getHits() { return this.hits.get(); }
 		public long getMisses() { return this.misses.get(); }
 
@@ -25,21 +25,21 @@ public class EntityMemcacheStats implements MemcacheStats
 			long h = this.getHits();
 			long m = this.getMisses();
 			long total = h + m;
-			
+
 			if (total == 0)
 				return 0;
 			else
 				return (float)h / (float)total;
 		}
 	}
-	
+
 	/** */
 	private Map<String, Stat> stats = new ConcurrentHashMap<>();
-	
+
 	/**
-	 * Get the live statistics.  You can clear it if you want. 
-	 *  
-	 * @return the live map, but you can iterate through it just fine 
+	 * Get the live statistics.  You can clear it if you want.
+	 *
+	 * @return the live map, but you can iterate through it just fine
 	 */
 	public Map<String, Stat> getStats() { return this.stats; }
 
@@ -69,7 +69,7 @@ public class EntityMemcacheStats implements MemcacheStats
 			stat = new Stat();
 			this.stats.put(kind, stat);
 		}
-		
+
 		return stat;
 	}
 }
