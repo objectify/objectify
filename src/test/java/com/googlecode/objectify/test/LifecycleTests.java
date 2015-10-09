@@ -155,7 +155,6 @@ public class LifecycleTests extends TestBase
 		ofy().load().entity(hhp).now();
 	}
 
-
 	@Entity
 	@Cache
 	public static class HasInheritedAndClassLifecycle extends HasLifecycle {

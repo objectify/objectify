@@ -117,7 +117,6 @@ public class EmbeddedMapTests extends TestBase
 		ofy().saveClearLoad(mws); //failure here: java.util.HashMap cannot be cast to java.util.Collection
 	}
 
-
 	//
 	//
 	//

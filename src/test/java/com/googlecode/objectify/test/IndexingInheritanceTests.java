@@ -63,7 +63,6 @@ public class IndexingInheritanceTests extends TestBase
 		private boolean def = true;
 	}
 
-
 	@SuppressWarnings("unused")
 	@Entity
 	@Cache
@@ -132,7 +131,6 @@ public class IndexingInheritanceTests extends TestBase
 		assert ofy().load().type(UnindexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(UnindexedPojo.class).filter("def =", true).iterator().hasNext();
 		assert !ofy().load().type(UnindexedPojo.class).filter("unindexed =", true).iterator().hasNext();
-
 	}
 	/** */
 	@Test
@@ -143,7 +141,6 @@ public class IndexingInheritanceTests extends TestBase
 		assert ofy().load().type(DefaultIndexedPojo.class).filter("indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(DefaultIndexedPojo.class).filter("def =", true).iterator().hasNext();
 		assert !ofy().load().type(DefaultIndexedPojo.class).filter("unindexed =", true).iterator().hasNext();
-
 	}
 
 	@Test

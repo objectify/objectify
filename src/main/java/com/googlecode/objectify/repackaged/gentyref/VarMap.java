@@ -41,7 +41,6 @@ class VarMap {
 						arguments.length + " arguments instead of " + typeParameters.length);
 			}
 
-
 			for (int i = 0; i < arguments.length; i++) {
 				add(typeParameters[i], arguments[i]);
 			}

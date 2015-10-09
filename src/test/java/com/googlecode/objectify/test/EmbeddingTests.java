@@ -69,7 +69,6 @@ public class EmbeddingTests extends TestBase
 		public PartiallyIndexedStructSubclass(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString) {
 			super(indexedPerson, unindexedPerson, indexedString, unidexedString);
 		}
-
 	}
 
 	public static class Names {
@@ -122,7 +121,6 @@ public class EmbeddingTests extends TestBase
 		assert t2.mayor.age == 30;
 	}
 
-
 	@Test
 	public void testUnindexed() throws Exception {
 		fact().register(PartiallyIndexedEntity.class);
@@ -155,7 +153,6 @@ public class EmbeddingTests extends TestBase
 
 		checkUnindexed(obj);
 	}
-
 
 	private void checkUnindexed(PartiallyIndexedEntity obj) {
 		Key<PartiallyIndexedEntity> key = ofy().save().entity(obj).now();

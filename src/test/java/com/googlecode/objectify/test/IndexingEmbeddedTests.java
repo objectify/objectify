@@ -57,7 +57,6 @@ public class IndexingEmbeddedTests extends TestBase
 		private boolean def = true;
 	}
 
-
 	@Entity
 	public static class EmbeddedIndexedPojo
 	{
@@ -107,7 +106,6 @@ public class IndexingEmbeddedTests extends TestBase
 		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.unindexed =", true).iterator().hasNext();
 		assert  ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.indexed =", true).iterator().hasNext();
 		assert !ofy().load().type(EmbeddedIndexedPojo.class).filter("unindexed.def =", true).iterator().hasNext();
-
 	}
 	/** */
 	@Test

@@ -76,7 +76,6 @@ public class EmbeddedNullComplexTests extends TestBase {
 		public List<Foo> foos = new ArrayList<>();
 	}
 
-
 	/**
 	 * This is a test case submitted on the objectify google group:
 	 * https://groups.google.com/forum/#!topic/objectify-appengine/sITmXfBgOxI

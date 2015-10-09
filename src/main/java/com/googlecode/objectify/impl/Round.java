@@ -79,7 +79,6 @@ class Round {
 
 			sv = new SessionValue<>(result, getLoadArrangement());
 			getSession().add(key, sv);
-
 		} else {
 			if (log.isLoggable(Level.FINEST))
 				log.finest("Adding to round (session hit): " + key);

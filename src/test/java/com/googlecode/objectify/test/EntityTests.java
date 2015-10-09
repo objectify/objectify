@@ -198,7 +198,6 @@ public class EntityTests extends TestBase
 		{
 			return this.thing;
 		}
-
 	}
 
 	/** */

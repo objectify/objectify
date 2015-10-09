@@ -8,4 +8,16 @@
         <property name="format" value="\s+$"/>
         <property name="message" value="trailing whitespace"/>
     </module>
+    <module name="RegexpMultiline">
+        <property name="format" value="\n *(?!package )(?!import )[^\n]+\n{3,}"/>
+        <property name="message" value="two or more consecutive empty lines"/>
+    </module>
+    <module name="RegexpMultiline">
+        <property name="format" value="\n\n\s+\}[^\n]{0,10}\n"/>
+        <property name="message" value="an empty line before '}'"/>
+    </module>
+    <module name="RegexpMultiline">
+        <property name="format" value="\n\s+[^\n]{1,10}\{\n\n"/>
+        <property name="message" value="an empty line after a short line that ends with '{'"/>
+    </module>
 </module>

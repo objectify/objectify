@@ -49,13 +49,11 @@ public class MapifyTests extends TestBase
 
 	@Subclass
 	public static class ThingSubclass extends Thing {
-
 		public ThingSubclass() { }
 
 		public ThingSubclass(String name, Long weight) {
 			super(name, weight);
 		}
-
 	}
 
 	public static class ThingMapper implements Mapper<Long, Thing> {
@@ -72,7 +70,6 @@ public class MapifyTests extends TestBase
 		@Mapify(ThingMapper.class)
 		Map<Long, Thing> things = new LinkedHashMap<>();
 	}
-
 
 	@Test
 	public void testMapify() throws Exception {
@@ -108,7 +105,6 @@ public class MapifyTests extends TestBase
 
 		assert fetched.things instanceof LinkedHashMap;
 	}
-
 
 	/** */
 	@Entity

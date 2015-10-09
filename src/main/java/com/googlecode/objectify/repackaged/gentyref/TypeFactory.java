@@ -140,7 +140,6 @@ public class TypeFactory {
 				// replace type variables in the bound by their value
 				Type replacedBound = varMap.map(bound);
 
-
 				if (arguments[i] instanceof WildcardType) {
 					WildcardType wildcardTypeParameter = (WildcardType) arguments[i];
 
