@@ -47,6 +47,12 @@ public class TransactionImpl extends TransactionWrapper {
 		listeners.add(listener);
 	}
 
+	public void runCommitListeners() {
+		for (Runnable listener : listeners) {
+			listener.run();
+		}
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.util.cmd.TransactionWrapper#commit()
 	 */
@@ -75,9 +81,6 @@ public class TransactionImpl extends TransactionWrapper {
 			@Override
 			protected Void wrap(Void nothing) throws Exception {
 				transactor.committed();
-				for (Runnable listener : listeners) {
-					listener.run();
-				}
 				return nothing;
 			}
 		};

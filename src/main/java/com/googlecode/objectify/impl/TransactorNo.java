@@ -124,6 +124,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 		}
 		finally
 		{
+			boolean committedSuccessfully = false;
 			if (txnOfy.getTransaction().isActive()) {
 				try {
 					txnOfy.getTransaction().rollback();
@@ -131,8 +132,15 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
 				}
 			}
+			else {
+				committedSuccessfully = true;
+			}
 
 			ObjectifyService.pop();
+
+			if (committedSuccessfully) {
+				txnOfy.getTransaction().runCommitListeners();
+			}
 		}
 	}
 
