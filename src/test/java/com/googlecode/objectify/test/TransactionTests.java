@@ -299,8 +299,6 @@ public class TransactionTests extends TestBase
 	 */
 	@Test
 	public void transactionListeners() {
-		fact().register(Trivial.class);
-
 		final SimpleCommitListener listener = new SimpleCommitListener();
 
 		ofy().transact(new VoidWork() {
@@ -309,8 +307,6 @@ public class TransactionTests extends TestBase
 				TransactionImpl txn = ofy().getTransaction();
 				txn.listenForCommit(listener);
 
-				Trivial triv = new Trivial("foo", 5);
-				ofy().save().entity(triv).now();
 				assert !listener.hasRun();
 			}
 		});
@@ -318,4 +314,25 @@ public class TransactionTests extends TestBase
 		assert listener.hasRun();
 	}
 
+	/**
+	 */
+	@Test
+	public void listenerDontRunIfTransactionFails() {
+		final SimpleCommitListener listener = new SimpleCommitListener();
+
+		try {
+			ofy().transactNew(1, new VoidWork() {
+				@Override
+				public void vrun() {
+					TransactionImpl txn = ofy().getTransaction();
+					txn.listenForCommit(listener);
+
+					throw new ConcurrentModificationException();
+				}
+			});
+		} catch (ConcurrentModificationException e) {}
+
+
+		assert !listener.hasRun();
+	}
 }
