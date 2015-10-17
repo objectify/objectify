@@ -24,6 +24,9 @@ public class TransactionImpl extends TransactionWrapper {
 	 */
 	private List<Result<?>> enlisted = new ArrayList<>();
 
+
+	private List<Runnable> listeners = new ArrayList<>();
+
 	/** */
 	public TransactionImpl(Transaction raw, TransactorYes<?> transactor) {
 		super(raw);
@@ -35,6 +38,19 @@ public class TransactionImpl extends TransactionWrapper {
 	 */
 	public void enlist(Result<?> result) {
 		enlisted.add(result);
+	}
+
+	/**
+	 * Add a listener to be called after the transaction commits.
+	 */
+	public void listenForCommit(Runnable listener) {
+		listeners.add(listener);
+	}
+
+	public void runCommitListeners() {
+		for (Runnable listener : listeners) {
+			listener.run();
+		}
 	}
 
 	/* (non-Javadoc)

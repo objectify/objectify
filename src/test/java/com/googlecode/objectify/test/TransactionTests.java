@@ -11,6 +11,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.ObjectifyImpl;
+import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
@@ -281,4 +282,57 @@ public class TransactionTests extends TestBase
 		assert counter.counter == 3;
 	}
 
+	public static class SimpleCommitListener implements Runnable {
+		private boolean run = false;
+
+		@Override
+		public void run() {
+			run = true;
+		}
+
+		public boolean hasRun() {
+			return run;
+		}
+	}
+
+	/**
+	 */
+	@Test
+	public void transactionListeners() {
+		final SimpleCommitListener listener = new SimpleCommitListener();
+
+		ofy().transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				TransactionImpl txn = ofy().getTransaction();
+				txn.listenForCommit(listener);
+
+				assert !listener.hasRun();
+			}
+		});
+
+		assert listener.hasRun();
+	}
+
+	/**
+	 */
+	@Test
+	public void listenerDontRunIfTransactionFails() {
+		final SimpleCommitListener listener = new SimpleCommitListener();
+
+		try {
+			ofy().transactNew(1, new VoidWork() {
+				@Override
+				public void vrun() {
+					TransactionImpl txn = ofy().getTransaction();
+					txn.listenForCommit(listener);
+
+					throw new ConcurrentModificationException();
+				}
+			});
+		} catch (ConcurrentModificationException e) {}
+
+
+		assert !listener.hasRun();
+	}
 }
