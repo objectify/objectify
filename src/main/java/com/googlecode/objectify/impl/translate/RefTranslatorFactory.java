@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.Path;
 
@@ -22,7 +23,7 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 	@Override
 	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Ref<?>> tk, CreateContext ctx, Path path) {
 
-		final LoadConditions loadConditions = new LoadConditions(tk.getAnnotation(Load.class));
+		final LoadConditions loadConditions = new LoadConditions(tk.getAnnotation(Load.class), tk.getAnnotation(Parent.class));
 
 		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
 

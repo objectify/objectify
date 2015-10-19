@@ -109,7 +109,7 @@ public class LoadEngine
 	 * @return true if the specified property should be loaded in this batch
 	 */
 	public boolean shouldLoad(LoadConditions loadConditions) {
-		return loadConditions.shouldLoad(loadArrangement);
+		return loadConditions.shouldLoad(loadArrangement, ofy.getTransaction() != null);
 	}
 
 	/**

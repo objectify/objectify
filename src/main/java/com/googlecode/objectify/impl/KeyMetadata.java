@@ -244,7 +244,7 @@ public class KeyMetadata<P>
 		if (this.parentMeta == null)
 			return false;
 
-		return parentMeta.getLoadConditions().shouldLoad(enabledGroups);
+		return parentMeta.getLoadConditions().shouldLoad(enabledGroups, false);
 	}
 
 	/**

@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.annotation.Load;
+import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.Populator;
 import com.googlecode.objectify.impl.translate.Recycles;
@@ -11,7 +12,6 @@ import com.googlecode.objectify.impl.translate.Synthetic;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.LogUtils;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,7 +36,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	public Property getProperty() { return this.property; }
 
 	/** */
-	public LoadConditions getLoadConditions() { return new LoadConditions(property.getAnnotation(Load.class)); }
+	public LoadConditions getLoadConditions() { return new LoadConditions(property.getAnnotation(Load.class), property.getAnnotation(Parent.class)); }
 
 	/** This is easier to debug if we have a string value */
 	@Override

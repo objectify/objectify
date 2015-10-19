@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.annotation.Load;
-
+import com.googlecode.objectify.annotation.Parent;
 import java.util.Set;
 
 /** 
@@ -15,10 +15,14 @@ public class LoadConditions
 	/** This will never be empty - either null or have some values */
 	Class<?>[] loadUnlessGroups;
 
+	/** Whether or not this field is a @Parent field */
+	boolean parent;
+
 	/**
 	 * @param load can be null; it's "whatever was specified on the field", possibly nothing
+	 * @param parent will be null for nonparent fields
 	 */
-	public LoadConditions(Load load) {
+	public LoadConditions(Load load, Parent parent) {
 		// Get @Load groups
 		if (load != null) {
 			loadGroups = load.value();
@@ -26,12 +30,14 @@ public class LoadConditions
 			if (load.unless().length > 0)
 				loadUnlessGroups = load.unless();
 		}
+
+		this.parent = parent != null;
 	}
 
 	/**
 	 * @return true if the property should be loaded when the given loadgroups are active
 	 */
-	public boolean shouldLoad(Set<Class<?>> groups) {
+	public boolean shouldLoad(Set<Class<?>> groups, boolean inTransaction) {
 		if (loadGroups == null)
 			return false;
 		
@@ -41,7 +47,16 @@ public class LoadConditions
 		if (loadUnlessGroups != null && matches(groups, loadUnlessGroups))
 			return false;
 
-		return true;
+		if (inTransaction) {
+			if (parent) {
+				return true;	// even in transactions, it's always safe to load the parent - same entity group
+			} else {
+				// Let explicitly specified load groups work in transactions, otherwise not at all - too dangerous
+				return loadGroups.length > 0;
+			}
+		} else {
+			return true;
+		}
 	}
 
 	/**
