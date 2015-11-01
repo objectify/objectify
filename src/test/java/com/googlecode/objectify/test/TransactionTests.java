@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
@@ -334,5 +335,25 @@ public class TransactionTests extends TestBase
 
 
 		assert !listener.hasRun();
+	}
+
+	/**
+	 */
+	@Test
+	public void executeWithRequiresNewCreatesNewTransaction() {
+		ofy().transact(new VoidWork() {
+			@Override
+			public void vrun() {
+
+				final Transaction txn = ofy().getTransaction();
+
+				ofy().execute(TxnType.REQUIRES_NEW, new VoidWork() {
+					@Override
+					public void vrun() {
+						assert txn != ofy().getTransaction();
+					}
+				});
+			}
+		});
 	}
 }
