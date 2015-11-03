@@ -116,24 +116,22 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 		ObjectifyImpl<O> txnOfy = startTransaction(parent);
 		ObjectifyService.push(txnOfy);
 
+		boolean committedSuccessfully = false;
 		try {
 			R result = work.run();
 			txnOfy.flush();
 			txnOfy.getTransaction().commit();
+			committedSuccessfully = true;
 			return result;
 		}
 		finally
 		{
-			boolean committedSuccessfully = false;
 			if (txnOfy.getTransaction().isActive()) {
 				try {
 					txnOfy.getTransaction().rollback();
 				} catch (RuntimeException ex) {
 					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
 				}
-			}
-			else {
-				committedSuccessfully = true;
 			}
 
 			ObjectifyService.pop();
