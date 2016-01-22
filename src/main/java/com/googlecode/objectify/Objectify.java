@@ -190,6 +190,12 @@ public interface Objectify
 	<R> R transact(Work<R> work);
 
 	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transact(Runnable work);
+
+	/**
 	 * <p>Executes work in a new transaction.  Note that this is equivalent to {@code transactNew(Integer.MAX_VALUE, work);}</p>
 	 *
 	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to

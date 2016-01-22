@@ -18,6 +18,7 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
+
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
@@ -176,6 +177,17 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	public <R> R transact(Work<R> work) {
 		return transactor.transact(this, work);
+	}
+
+	@Override
+	public void transact(final Runnable work) {
+		transact(new Work<Void>() {
+			@Override
+			public Void run() {
+				work.run();
+				return null;
+			}
+		});
 	}
 
 	/* (non-Javadoc)
