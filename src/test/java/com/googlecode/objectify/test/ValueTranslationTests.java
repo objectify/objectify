@@ -5,6 +5,7 @@ package com.googlecode.objectify.test;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.ShortBlob;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
@@ -49,8 +50,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasString
-	{
+	public static class HasString {
 		public @Id Long id;
 		public String string;
 	}
@@ -59,8 +59,7 @@ public class ValueTranslationTests extends TestBase
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	@Index
-	public static class HasStringIndexInversion
-	{
+	public static class HasStringIndexInversion {
 		public @Id Long id;
 		@Unindex public String string;
 	}
@@ -68,8 +67,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasNumber
-	{
+	public static class HasNumber {
 		public @Id Long id;
 		public int number;
 	}
@@ -77,8 +75,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasStringArray
-	{
+	public static class HasStringArray {
 		public @Id Long id;
 		public String[] strings;
 	}
@@ -86,8 +83,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasNames
-	{
+	public static class HasNames {
 		public @Id Long id;
 		public Name[] names;
 	}
@@ -106,8 +102,7 @@ public class ValueTranslationTests extends TestBase
 	 * Anything can be converted to a String
 	 */
 	@Test
-	public void numberToString() throws Exception
-	{
+	public void numberToString() throws Exception {
 		fact().register(HasString.class);
 
 		Entity ent = new Entity(Key.getKind(HasString.class));
@@ -124,8 +119,7 @@ public class ValueTranslationTests extends TestBase
 	 * Strings can be converted to numbers
 	 */
 	@Test
-	public void stringToNumber() throws Exception
-	{
+	public void stringToNumber() throws Exception {
 		fact().register(HasNumber.class);
 
 		DatastoreService ds = ds();
@@ -145,8 +139,7 @@ public class ValueTranslationTests extends TestBase
 	 * some potentially odd effects.
 	 */
 	@Test
-	public void testBigStrings() throws Exception
-	{
+	public void testBigStrings() throws Exception {
 		fact().register(HasString.class);
 
 		HasString has = new HasString();
@@ -161,8 +154,7 @@ public class ValueTranslationTests extends TestBase
 	 * some potentially odd effects.
 	 */
 	@Test
-	public void testBigStringsInCollections() throws Exception
-	{
+	public void testBigStringsInCollections() throws Exception {
 		fact().register(HasStringArray.class);
 
 		HasStringArray has = new HasStringArray();
@@ -181,8 +173,7 @@ public class ValueTranslationTests extends TestBase
 	 * You should be able to store a big string in an embedded collection
 	 */
 	@Test
-	public void bigStringsAreAllowedInEmbeddedCollections() throws Exception
-	{
+	public void bigStringsAreAllowedInEmbeddedCollections() throws Exception {
 		fact().register(HasNames.class);
 
 		HasNames has = new HasNames();
@@ -197,8 +188,7 @@ public class ValueTranslationTests extends TestBase
 	 * some potentially odd effects.
 	 */
 	@Test
-	public void testBigStringsWithIndexInversion() throws Exception
-	{
+	public void testBigStringsWithIndexInversion() throws Exception {
 		fact().register(HasStringIndexInversion.class);
 
 		HasStringIndexInversion has = new HasStringIndexInversion();
@@ -211,8 +201,7 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasText
-	{
+	public static class HasText {
 		public @Id Long id;
 		public Text text;
 	}
@@ -221,8 +210,7 @@ public class ValueTranslationTests extends TestBase
 	 * Stored Strings can be converted to Text in the data model
 	 */
 	@Test
-	public void stringsCanBeConvertedToText() throws Exception
-	{
+	public void stringsCanBeConvertedToText() throws Exception {
 		fact().register(HasText.class);
 
 		Entity ent = new Entity(Key.getKind(HasText.class));
@@ -239,8 +227,7 @@ public class ValueTranslationTests extends TestBase
 	 * Stored numbers can be converted to Text in the data model
 	 */
 	@Test
-	public void numbersCanBeConvertedToText() throws Exception
-	{
+	public void numbersCanBeConvertedToText() throws Exception {
 		fact().register(HasText.class);
 
 		Entity ent = new Entity(Key.getKind(HasText.class));
@@ -256,16 +243,14 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class Blobby
-	{
+	public static class Blobby {
 		public @Id Long id;
 		public byte[] stuff;
 	}
 
 	/** */
 	@Test
-	public void testBlobConversion() throws Exception
-	{
+	public void testBlobConversion() throws Exception {
 		fact().register(Blobby.class);
 
 		Blobby b = new Blobby();
@@ -276,19 +261,33 @@ public class ValueTranslationTests extends TestBase
 		assert Arrays.equals(b.stuff, c.stuff);
 	}
 
+	/** */
+	@Test
+	public void shortBlobsAreConvertedToByteArrays() throws Exception {
+		fact().register(Blobby.class);
+
+		final Entity ent = new Entity("Blobby");
+		final ShortBlob shortBlob = new ShortBlob(new byte[]{1, 2, 3});
+		ent.setProperty("stuff", shortBlob);
+
+		final Key<Blobby> blobbyKey = Key.create(ds().put(ent));
+
+		final Blobby blobby = ofy().load().key(blobbyKey).safe();
+
+		assert Arrays.equals(blobby.stuff, shortBlob.getBytes());
+	}
+
 	/** For testSqlDateConversion() */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasSqlDate
-	{
+	public static class HasSqlDate {
 		public @Id Long id;
 		public java.sql.Date when;
 	}
 
 	/** */
 	@Test
-	public void testSqlDateConversion() throws Exception
-	{
+	public void testSqlDateConversion() throws Exception {
 		fact().register(HasSqlDate.class);
 
 		HasSqlDate hasDate = new HasSqlDate();
@@ -302,23 +301,20 @@ public class ValueTranslationTests extends TestBase
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class HasBigDecimal
-	{
+	public static class HasBigDecimal {
 		public @Id Long id;
 		public BigDecimal data;
 	}
 
 	/** Make sure we can't execute without converter registration */
 	@Test
-	public void testAddedConversion1() throws Exception
-	{
+	public void testAddedConversion1() throws Exception {
 		fact().register(HasBigDecimal.class);
 
 		HasBigDecimal hbd = new HasBigDecimal();
 		hbd.data = new BigDecimal(32.25);
 
-		try
-		{
+		try {
 			ofy().saveClearLoad(hbd);
 			assert false;	// shouldn't be possible without registering converter
 		}
@@ -327,8 +323,7 @@ public class ValueTranslationTests extends TestBase
 
 	/** Make sure we can execute with converter registration */
 	@Test
-	public void testAddedConversion2() throws Exception
-	{
+	public void testAddedConversion2() throws Exception {
 		fact().getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
 			@Override
 			protected ValueTranslator<BigDecimal, String> createValueTranslator(TypeKey tk, CreateContext ctx, Path path) {
@@ -357,8 +352,7 @@ public class ValueTranslationTests extends TestBase
 
 	/** */
 	@Test
-	public void testBigDecimalLongTranslator() throws Exception
-	{
+	public void testBigDecimalLongTranslator() throws Exception {
 		fact().getTranslators().add(new BigDecimalLongTranslatorFactory());
 		fact().register(HasBigDecimal.class);
 
@@ -371,16 +365,14 @@ public class ValueTranslationTests extends TestBase
 
 	/** */
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasTimeZone
-	{
+	public static class HasTimeZone {
 		public @Id Long id;
 		public TimeZone tz;
 	}
 
 	/** */
 	@Test
-	public void testTimeZoneTranslator() throws Exception
-	{
+	public void testTimeZoneTranslator() throws Exception {
 		fact().register(HasTimeZone.class);
 
 		HasTimeZone htz = new HasTimeZone();
@@ -392,16 +384,14 @@ public class ValueTranslationTests extends TestBase
 
 	/** */
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasURL
-	{
+	public static class HasURL {
 		public @Id Long id;
 		public URL url;
 	}
 
 	/** */
 	@Test
-	public void testURLTranslator() throws Exception
-	{
+	public void testURLTranslator() throws Exception {
 		fact().register(HasURL.class);
 
 		HasURL hu = new HasURL();
