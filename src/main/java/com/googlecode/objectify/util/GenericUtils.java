@@ -10,6 +10,9 @@ import java.util.Map;
  */
 public class GenericUtils
 {
+	private GenericUtils() {
+	}
+
 	/**
 	 * Get the component type of a Collection.
 	 */

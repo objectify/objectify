@@ -15,6 +15,9 @@ import com.googlecode.objectify.ObjectifyFactory;
  */
 public class JodaTimeTranslators
 {
+	private JodaTimeTranslators() {
+	}
+
 	public static void add(ObjectifyFactory fact) {
 		fact.getTranslators().add(new ReadableInstantTranslatorFactory());
 		fact.getTranslators().add(new ReadablePartialTranslatorFactory());
