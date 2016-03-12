@@ -55,6 +55,9 @@ public class TypeKey<T>
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null)
+			return false;
+			
 		TypeKey other = (TypeKey)obj;
 
 		return type.equals(other.type) && Arrays.equals(annotations, other.annotations);
