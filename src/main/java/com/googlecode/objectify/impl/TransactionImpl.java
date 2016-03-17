@@ -5,9 +5,12 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.util.FutureHelper;
 import com.googlecode.objectify.util.SimpleFutureWrapper;
 import com.googlecode.objectify.util.cmd.TransactionWrapper;
+import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 
 /** */
@@ -25,7 +28,15 @@ public class TransactionImpl extends TransactionWrapper {
 	private List<Result<?>> enlisted = new ArrayList<>();
 
 
+	/** Listeners that will be executed _after_ a commit completes successfully */
 	private List<Runnable> listeners = new ArrayList<>();
+
+	/**
+	 * An arbitrary bag of stuff that can be associated with the current transaction context. Not used
+	 * by Objectify internally but useful sometimes for application programming.
+	 */
+	@Getter
+	private Map<Object, Object> bag = new HashMap<>();
 
 	/** */
 	public TransactionImpl(Transaction raw, TransactorYes<?> transactor) {
