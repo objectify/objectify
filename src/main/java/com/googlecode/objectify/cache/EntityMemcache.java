@@ -128,7 +128,12 @@ public class EntityMemcache
 
 		/** */
 		@Override
-		public boolean equals(Object obj) { return this.key.equals(((Bucket)obj).key); }
+		public boolean equals(Object obj) {
+			if (this.getClass() != obj.getClass())
+				return false;
+				
+			return this.key.equals(((Bucket)obj).key); 
+		}
 
 		/** */
 		@Override
