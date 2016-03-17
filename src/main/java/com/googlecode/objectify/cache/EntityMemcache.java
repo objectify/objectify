@@ -7,6 +7,8 @@ import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import lombok.EqualsAndHashCode;
+import lombok.extern.java.Log;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>
@@ -36,16 +37,16 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Log
 public class EntityMemcache
 {
-	private static final Logger log = Logger.getLogger(EntityMemcache.class.getName());
-
 	/**
 	 * A bucket represents memcache information for a particular Key.  It might have an entity,
 	 * it might be a negative cache result, it might be empty.
 	 *
 	 * Buckets can be hash keys; they hash to their Key value.
 	 */
+	@EqualsAndHashCode(of="key")
 	public class Bucket
 	{
 		/** Identifies the bucket */
@@ -125,19 +126,6 @@ public class EntityMemcache
 		{
 			return (this.next == null) ? NEGATIVE : this.next;
 		}
-
-		/** */
-		@Override
-		public boolean equals(Object obj) {
-			if (this.getClass() != obj.getClass())
-				return false;
-				
-			return this.key.equals(((Bucket)obj).key); 
-		}
-
-		/** */
-		@Override
-		public int hashCode() { return this.key.hashCode(); }
 	}
 
 	/**

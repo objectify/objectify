@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.common.base.Objects;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
-import java.util.Arrays;
 
 /**
  * <p>Unique identifier for a translator instance. Important so we can re-use translators
@@ -14,28 +14,22 @@ import java.util.Arrays;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Data
+@RequiredArgsConstructor
 public class TypeKey<T>
 {
 	/** */
 	private static final Annotation[] NO_ANNOTATIONS = {};
 
 	/** */
-	private Type type;
-	public Type getType() { return type; }
+	private final Type type;
 
 	/** */
-	private Annotation[] annotations;
-	public Annotation[] getAnnotations() { return annotations; }
+	private final Annotation[] annotations;
 
 	/** */
 	public TypeKey(Type type) {
 		this(type, NO_ANNOTATIONS);
-	}
-
-	/** */
-	public TypeKey(Type type, Annotation[] annotations) {
-		this.type = type;
-		this.annotations = annotations;
 	}
 
 	/**
@@ -51,26 +45,6 @@ public class TypeKey<T>
 	 */
 	public TypeKey(Property prop) {
 		this(prop.getType(), prop.getAnnotations());
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this.getClass() != obj.getClass())
-			return false;
-			
-		TypeKey other = (TypeKey)obj;
-
-		return type.equals(other.type) && Arrays.equals(annotations, other.annotations);
-	}
-
-	@Override
-	public int hashCode() {
-		int code = type.hashCode();
-
-		for (Annotation annotation: annotations)
-			code = 31 * code + annotation.hashCode();
-
-		return code;
 	}
 
 	/**
@@ -114,14 +88,5 @@ public class TypeKey<T>
 	 */
 	public boolean isAssignableTo(Class<?> superclass) {
 		return superclass.isAssignableFrom(getTypeAsClass());
-	}
-
-	/* */
-	@Override
-	public String toString() {
-		return Objects.toStringHelper(this)
-				.add("type", type)
-				.add("annotations", Arrays.toString(annotations))
-				.toString();
 	}
 }
