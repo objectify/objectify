@@ -19,6 +19,9 @@ import java.util.List;
  */
 public class DatastoreUtils
 {
+	private DatastoreUtils() {
+	}
+
 	/**
 	 * Turn a list of refs into a list of raw keys.
 	 */

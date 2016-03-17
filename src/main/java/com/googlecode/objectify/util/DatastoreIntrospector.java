@@ -39,4 +39,7 @@ public class DatastoreIntrospector
 			}
 		}
 	}
+
+	private DatastoreIntrospector() {
+	}
 }

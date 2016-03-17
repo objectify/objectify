@@ -21,7 +21,10 @@ import java.util.Set;
  */
 public class GenericTypeReflector {
 	private static final Type UNBOUND_WILDCARD = new WildcardTypeImpl(new Type[]{Object.class}, new Type[]{});
-	
+
+	private GenericTypeReflector() {
+	}
+
 	/**
 	 * Returns the erasure of the given type.
 	 */

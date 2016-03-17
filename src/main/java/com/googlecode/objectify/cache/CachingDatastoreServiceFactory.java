@@ -19,7 +19,10 @@ import com.googlecode.objectify.ObjectifyFactory;
 public class CachingDatastoreServiceFactory
 {
 	private static String defaultMemcacheNamespace = ObjectifyFactory.MEMCACHE_NAMESPACE;
-	
+
+	private CachingDatastoreServiceFactory() {
+	}
+
 	/** 
 	 * The default namespace is the one used by Objectify for its cache.  You can reset it.
 	 */

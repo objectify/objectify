@@ -18,6 +18,9 @@ import java.util.concurrent.Future;
  */
 public class FutureHelper
 {
+	private FutureHelper() {
+	}
+
 	/** Quietly perform the get() on a future */
 	public static <T> T quietGet(Future<T> future)
 	{

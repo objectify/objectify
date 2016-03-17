@@ -27,6 +27,9 @@ public class TypeUtils
 		PRIMITIVE_TO_WRAPPER.put(char.class, Character.class);
 	}
 
+	private TypeUtils() {
+	}
+
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */

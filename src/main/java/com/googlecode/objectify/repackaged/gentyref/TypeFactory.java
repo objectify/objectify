@@ -15,7 +15,10 @@ import java.lang.reflect.WildcardType;
  */
 public class TypeFactory {
 	private static final WildcardType UNBOUND_WILDCARD = new WildcardTypeImpl(new Type[]{Object.class}, new Type[]{});
-	
+
+	private TypeFactory() {
+	}
+
 	/**
 	 * Creates a type of class <tt>clazz</tt> with <tt>arguments</tt> as type arguments.
 	 * <p>
