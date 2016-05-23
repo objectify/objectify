@@ -2,7 +2,9 @@ package com.googlecode.objectify.cache;
 
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.memcache.AsyncMemcacheService;
 import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.common.base.Function;
@@ -34,10 +36,12 @@ public class KeyMemcacheService
 
 	/** */
 	MemcacheService service;
-
+  AsyncMemcacheService asyncService;
+ 
 	/** */
 	public KeyMemcacheService(MemcacheService service) {
 		this.service = service;
+		this.asyncService = MemcacheServiceFactory.getAsyncMemcacheService(service.getNamespace());
 	}
 
 	private <T> Map<Key, T> keyify(Map<String, T> stringified) {
@@ -88,7 +92,8 @@ public class KeyMemcacheService
 		if (map.isEmpty())
 			return;
 		
-		service.putAll(stringify(map));
+//		service.putAll(stringify(map));
+		asyncService.putAll(stringify(map));
 	}
 
 	public Set<Key> putIfUntouched(Map<Key, CasValues> map) {
