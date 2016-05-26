@@ -99,11 +99,15 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 				EmbeddedEntity emb = new EmbeddedEntity();
 
 				for (Map.Entry<Object, Object> entry: pojo.entrySet()) {
-					String key = stringifier.toString(entry.getKey());
-					Path propPath = path.extend(key);
-					Object value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
+					try {
+						String key = stringifier.toString(entry.getKey());
+						Path propPath = path.extend(key);
+						Object value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
 
-					DatastoreUtils.setContainerProperty(emb, key, value, index, ctx, propPath);
+						DatastoreUtils.setContainerProperty(emb, key, value, index, ctx, propPath);
+					} catch (SkipException e) {
+						// do nothing
+					}
 				}
 
 				return emb;
