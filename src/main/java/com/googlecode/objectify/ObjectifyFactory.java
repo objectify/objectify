@@ -55,7 +55,7 @@ import java.util.TreeSet;
  */
 public class ObjectifyFactory implements Forge
 {
-	/** Default memcache namespace; override getRawMemcacheService() to change */
+	/** Default memcache namespace */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 
 	/** Encapsulates entity registration info */
