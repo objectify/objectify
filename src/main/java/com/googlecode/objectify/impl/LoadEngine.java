@@ -163,6 +163,8 @@ public class LoadEngine
 	public Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetch(Set<com.google.appengine.api.datastore.Key> keys) {
 		Transaction txn = (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
 
+		log.log(Level.FINER, "Fetching " + keys.size() + " keys" + (txn == null ? ": " : " in txn: ") + keys);
+
 		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(txn, keys);
 		return ResultAdapter.create(fut);
 	}
