@@ -31,22 +31,7 @@ import java.util.TreeSet;
 
 /**
  * <p>Factory which allows us to construct implementations of the Objectify interface.
- * Just call {@code begin()}.</p>
- *
- * <p>Note that unlike the DatastoreService, there is no implicit transaction management.
- * You either create an Objectify without a transaction (by calling {@code begin()} or you
- * create one with a transaction (by calling {@code beginTransaction()}.  If you create
- * an Objectify with a transaction, you should use it like this:</p>
- * <code><pre>
- * 	Objectify data = factory.beginTransaction()
- * 	try {
- * 		// do work
- * 		data.getTxn().commit();
- * 	}
- * 	finally {
- * 		if (data.getTxn().isActive()) data.getTxn().rollback();
- * 	}
- * </pre></code>
+ * You should usually use the ObjectifyService to access Objectify.</p>
  *
  * <p>ObjectifyFactory is designed to be subclassed; much default behavior can be changed
  * by overriding methods.  In particular, see createObjectify(), construct(), getAsyncDatastoreService().</p>
