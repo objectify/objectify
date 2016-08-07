@@ -40,11 +40,17 @@ import java.io.IOException;
  */
 public class ObjectifyFilter extends AbstractFilter
 {
-	/** */
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-
-		try (Closeable closeable = ObjectifyService.begin()) {
+		// Create and check for an attribute on incoming requests to prevent us from creating a new
+		// root session if this filter is multiply invoked (which may happen, for example, if the
+		// request is forwarded with RequestDispatcher).
+		if (request.getAttribute(ObjectifyFilter.class.getCanonicalName()) == null) {
+			try (Closeable closeable = ObjectifyService.begin()) {
+				request.setAttribute(ObjectifyFilter.class.getCanonicalName(), this);
+				chain.doFilter(request, response);
+			}
+		} else {
 			chain.doFilter(request, response);
 		}
 	}
