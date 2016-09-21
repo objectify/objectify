@@ -56,7 +56,8 @@ public class NumberTranslatorFactory implements TranslatorFactory<Number, Object
 	 */
 	private Number coerceNumber(Number value, Class<?> type)
 	{
-		if (type == Byte.class) return value.byteValue();
+		if (type == Number.class) return value;
+		else if (type == Byte.class) return value.byteValue();
 		else if (type == Short.class) return value.shortValue();
 		else if (type == Integer.class) return value.intValue();
 		else if (type == Long.class) return value.longValue();
