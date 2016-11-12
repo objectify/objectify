@@ -31,7 +31,8 @@ of the GAE datastore.
 
 ## Documentation
 
-Full documentation is availble in the [Objectify Wiki](https://github.com/objectify/objectify/wiki).
+Full documentation is availble in the [Objectify Wiki](https://github.com/objectify/objectify/wiki). Be sure to check
+out the [FAQ](https://github.com/objectify/objectify/wiki/FrequentlyAskedQuestions), especially if you are using Flexible Runtimes.
 
 ## Downloads
 
