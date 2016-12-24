@@ -16,7 +16,7 @@
 	<url>https://github.com/objectify/objectify</url>
 	<scm>
 		<url>scm:git:https://github.com/objectify/objectify</url>
-		<developerConnection>scm:git:https://github.com/objectify/objectify</developerConnection>
+		<developerConnection>scm:git:git@github.com:objectify/objectify</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 	<licenses>
