@@ -6,7 +6,6 @@ import com.google.appengine.api.memcache.ErrorHandlers;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import lombok.EqualsAndHashCode;
 import lombok.extern.java.Log;
 
@@ -165,9 +164,19 @@ public class EntityMemcache
 	 */
 	public EntityMemcache(String namespace, CacheControl cacheControl, MemcacheStats stats)
 	{
-		this.memcache = new KeyMemcacheService(MemcacheServiceFactory.getMemcacheService(namespace));
+		this(namespace, cacheControl, stats, MemcacheServiceFactory.DEFAULT);
+	}
+
+	public EntityMemcache(
+			String namespace,
+			CacheControl cacheControl,
+			MemcacheStats stats,
+			MemcacheServiceFactory memcacheServiceFactory)
+	{
+		this.memcache = new KeyMemcacheService(memcacheServiceFactory.getMemcacheService(namespace));
 		this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
-		this.memcacheWithRetry = new KeyMemcacheService(MemcacheServiceRetryProxy.createProxy(MemcacheServiceFactory.getMemcacheService(namespace)));
+		this.memcacheWithRetry = new KeyMemcacheService(
+				MemcacheServiceRetryProxy.createProxy(memcacheServiceFactory.getMemcacheService(namespace)));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
