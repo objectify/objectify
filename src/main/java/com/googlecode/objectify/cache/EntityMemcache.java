@@ -4,8 +4,10 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.memcache.ErrorHandlers;
 import com.google.appengine.api.memcache.Expiration;
+import com.google.appengine.api.memcache.IMemcacheServiceFactory;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
+import com.google.appengine.spi.ServiceFactoryFactory;
 import lombok.EqualsAndHashCode;
 import lombok.extern.java.Log;
 
@@ -164,14 +166,14 @@ public class EntityMemcache
 	 */
 	public EntityMemcache(String namespace, CacheControl cacheControl, MemcacheStats stats)
 	{
-		this(namespace, cacheControl, stats, MemcacheServiceFactory.DEFAULT);
+		this(namespace, cacheControl, stats, ServiceFactoryFactory.getFactory(IMemcacheServiceFactory.class));
 	}
 
 	public EntityMemcache(
 			String namespace,
 			CacheControl cacheControl,
 			MemcacheStats stats,
-			MemcacheServiceFactory memcacheServiceFactory)
+			IMemcacheServiceFactory memcacheServiceFactory)
 	{
 		this.memcache = new KeyMemcacheService(memcacheServiceFactory.getMemcacheService(namespace));
 		this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
