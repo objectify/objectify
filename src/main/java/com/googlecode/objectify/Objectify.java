@@ -143,6 +143,21 @@ public interface Objectify
 	Objectify cache(boolean value);
 
 	/**
+	 * <p>Provides a new Objectify instance which throws an exception whenever save() or delete() is
+	 * called from outside a transaction context. This is a reasonable sanity check for most business
+	 * workloads; you may wish to enable it globally by overriding ObjectifyFactory.begin() to
+	 * twiddle this flag on the returned object.</p>
+	 *
+	 * <p>Objectify instances are mandatoryTransactions(false) by default.</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return a new immutable Objectify instance which will (or won't) require transactions for save() and delete().
+	 */
+	Objectify mandatoryTransactions(boolean value);
+
+	/**
 	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
 	 * do not need to use this; use transact() instead.</p>
 	 *

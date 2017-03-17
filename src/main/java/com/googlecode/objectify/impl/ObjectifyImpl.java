@@ -41,6 +41,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected boolean cache = true;
 	protected Consistency consistency = Consistency.STRONG;
 	protected Double deadline;
+	protected boolean mandatoryTransactions = false;
 
 	/** */
 	protected Transactor<O> transactor = new TransactorNo<>(this);
@@ -58,6 +59,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		this.consistency = other.consistency;
 		this.deadline = other.deadline;
 		this.transactor = other.transactor;
+		this.mandatoryTransactions = other.mandatoryTransactions;
 	}
 
 	/* (non-Javadoc)
@@ -132,6 +134,17 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	public O cache(boolean value) {
 		ObjectifyImpl<O> clone = this.clone();
 		clone.cache = value;
+		return (O)clone;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#mandatoryTransactions(boolean)
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	public O mandatoryTransactions(boolean value) {
+		ObjectifyImpl<O> clone = this.clone();
+		clone.mandatoryTransactions = value;
 		return (O)clone;
 	}
 
@@ -238,6 +251,9 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
 	 */
 	protected WriteEngine createWriteEngine() {
+		if (mandatoryTransactions && getTransaction() == null)
+			throw new IllegalStateException("You have attempted save/delete outside of a transaction, but you have enabled ofy().mandatoryTransactions(true). Perhaps you wanted to start a transaction first?");
+
 		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
 	}
 
