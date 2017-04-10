@@ -363,7 +363,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public List<T> list() {
-		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterable()));
+		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterator()));
 	}
 
 	/**

@@ -44,7 +44,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public List<Key<T>> list() {
-		return ResultProxy.create(List.class, new MakeListResult<>(impl.chunk(Integer.MAX_VALUE).keysIterable()));
+		return ResultProxy.create(List.class, new MakeListResult<>(impl.chunk(Integer.MAX_VALUE).keysIterable().iterator()));
 	}
 
 	@Override
