@@ -30,6 +30,8 @@ public interface Query<T> extends SimpleQuery<T>
 	 * can with the Low-Level API.</p>
 	 *
 	 * <p>Multiple calls to filter() will produce an AND (intersection) query.</p></p>
+	 *
+	 * <p>{@code ==} is an alias of {@code =}, {@code <>} is an alias of {@code !=}.</p>
 	 * 
 	 * <p>See the Google documentation for 
 	 * <a href="http://code.google.com/appengine/docs/java/datastore/queries.html#Introduction_to_Indexes">indexes</a>
