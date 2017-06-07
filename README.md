@@ -3,7 +3,7 @@
 Objectify is a Java data access API specifically designed for the Google App Engine datastore.  It occupies a
 "middle ground"; easier to use and more transparent than JDO or JPA, but significantly more convenient than
 the Low-Level API.  Objectify is designed to make novices immediately productive yet also expose the full power
-of the GAE datastore.
+of the GAE datastore. This library **does not** currently support the Google AppEngine **Flexible** Environment.
 
 ## Features
 
