@@ -17,6 +17,9 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 {
 	private static final Logger log = Logger.getLogger(StringTranslatorFactory.class.getName());
 
+	/** Maximum number of chars we can store in a String before we have to convert to Text */
+	public static final int MAX_STRING_CHARS = 1500;
+
 	/** */
 	public StringTranslatorFactory() {
 		super(String.class);
@@ -36,7 +39,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 			@Override
 			protected Object saveValue(String value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				// Check to see if it's too long and needs to be Text instead
-				if (value.length() > 500) {
+				if (value.length() > MAX_STRING_CHARS) {
 					if (index)
 						log.log(Level.WARNING, "Attempt to index a String which has been automatically converted to Text. The property is at " + path);
 
