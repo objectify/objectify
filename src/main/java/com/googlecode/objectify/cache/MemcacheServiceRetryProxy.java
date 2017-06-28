@@ -21,14 +21,14 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	private static final Logger log = Logger.getLogger(MemcacheServiceRetryProxy.class.getName());
 	
 	/** */
-	private static final int DEFAULT_RETRIES = 4;
+	private static final int DEFAULT_TRIES = 4;
 	
 	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
 	public static MemcacheService createProxy(MemcacheService raw)
 	{
-		return createProxy(raw, DEFAULT_RETRIES);
+		return createProxy(raw, DEFAULT_TRIES);
 	}
 	
 	/**
@@ -48,13 +48,13 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	private MemcacheService raw;
 	
 	/** */
-	private int retries;
+	private int tries;
 	
 	/** */
-	public MemcacheServiceRetryProxy(MemcacheService raw, int retries)
+	public MemcacheServiceRetryProxy(MemcacheService raw, int tries)
 	{
 		this.raw = raw;
-		this.retries = retries;
+		this.tries = tries;
 	}
 
 	/* (non-Javadoc)
@@ -63,11 +63,11 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	@Override
 	public Object invoke(Object proxy, Method meth, Object[] args) throws Throwable
 	{
-		for (int i=0; i<this.retries; i++) {
+		for (int i = 0; i<this.tries; i++) {
 			try {
 				return meth.invoke(this.raw, args);
 			} catch (InvocationTargetException ex) {
-				if (i == (this.retries - 1))
+				if (i == (this.tries - 1))
 					log.log(Level.SEVERE, "Memcache operation failed, giving up", ex);
 				else
 					log.log(Level.WARNING, "Error performing memcache operation, retrying: " + meth, ex);
