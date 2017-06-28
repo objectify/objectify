@@ -9,6 +9,7 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
@@ -31,6 +32,14 @@ public class CachingUncacheableTests extends TestBase
 	/** */
 	@Entity
 	static class Uncacheable {
+		@Id Long id;
+		String stuff;
+	}
+
+	/** */
+	@Entity
+	@Cache
+	static class Cacheable {
 		@Id Long id;
 		String stuff;
 	}
@@ -75,6 +84,7 @@ public class CachingUncacheableTests extends TestBase
 		});
 
 		fact().register(Uncacheable.class);
+		fact().register(Cacheable.class);	// needed to get caching in the code path
 	}
 
 	/** */

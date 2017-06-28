@@ -325,27 +325,35 @@ public class EntityMemcache
 
 	/**
 	 * Put buckets in the cache, checking for cacheability and collisions.
-	 * @return the set of keys that were *successfully* put without collision
+	 * @return the set of keys that were *successfully* handled. That includes buckets that were put without collision
+	 * and buckets that didn't need to be cached.
 	 */
 	private Set<Key> cachePutIfUntouched(Iterable<Bucket> buckets)
 	{
-		Map<Key, CasValues> payload = new HashMap<>();
+		final Map<Key, CasValues> payload = new HashMap<>();
+		final Set<Key> successes = new HashSet<>();
 
 		for (Bucket buck: buckets)
 		{
-			if (!buck.isCacheable())
+			if (!buck.isCacheable()) {
+				successes.add(buck.getKey());
 				continue;
+			}
 
 			Integer expirySeconds = cacheControl.getExpirySeconds(buck.getKey());
-			if (expirySeconds == null)
+			if (expirySeconds == null) {
+				successes.add(buck.getKey());
 				continue;
+			}
 
 			Expiration expiration = expirySeconds == 0 ? null : Expiration.byDeltaSeconds(expirySeconds);
 
 			payload.put(buck.getKey(), new CasValues(buck.iv, buck.getNextToStore(), expiration));
 		}
 
-		return this.memcache.putIfUntouched(payload);
+		successes.addAll(this.memcache.putIfUntouched(payload));
+
+		return successes;
 	}
 
 	/**
