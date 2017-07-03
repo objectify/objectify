@@ -2,9 +2,10 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
+import lombok.extern.java.Log;
 
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -13,12 +14,20 @@ import java.util.logging.Logger;
  * convenient for converting between say Number and the String representation, possibly dangerous
  * otherwise. 
  */
+@Log
 public class StringTranslatorFactory extends ValueTranslatorFactory<String, Object>
 {
-	private static final Logger log = Logger.getLogger(StringTranslatorFactory.class.getName());
+	/**
+	 * Maximum number of BYTES we can store in a String before we have to convert to Text.
+	 */
+	public static final int MAX_STRING_BYTES = 1500;
 
-	/** Maximum number of chars we can store in a String before we have to convert to Text */
-	public static final int MAX_STRING_CHARS = 1500;
+	/**
+	 * Google isn't explicit that UTF-8 encoding is used, but it's a safe assumption. Worst case is
+	 * 4 bytes per character. So if we have more than that number of chars, we have to convert to
+	 * UTF-8 to test the actual length.
+	 */
+	public static final int SAFE_STRING_CHARS = 1500 / 4;
 
 	/** */
 	public StringTranslatorFactory() {
@@ -39,7 +48,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 			@Override
 			protected Object saveValue(String value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				// Check to see if it's too long and needs to be Text instead
-				if (value.length() > MAX_STRING_CHARS) {
+				if (needsConversion(value)) {
 					if (index)
 						log.log(Level.WARNING, "Attempt to index a String which has been automatically converted to Text. The property is at " + path);
 
@@ -47,6 +56,14 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 				} else {
 					return value;
 				}
+			}
+
+			private boolean needsConversion(final String value) {
+				if (value.length() < SAFE_STRING_CHARS)
+					return false;
+
+				final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
+				return bytes.length > MAX_STRING_BYTES;
 			}
 		};
 	}
