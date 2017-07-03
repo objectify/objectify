@@ -92,7 +92,7 @@ public class ValueTranslationTests extends TestBase
 	public final static String BIG_STRING;
 	static {
 		StringBuilder bld = new StringBuilder(1501);
-		for (int i=0; i<501; i++)
+		for (int i=0; i<bld.capacity(); i++)
 			bld.append('\u2202');
 
 		BIG_STRING = bld.toString();
