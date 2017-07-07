@@ -105,10 +105,16 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 		String containerDiscriminator = (String)container.getProperty(DISCRIMINATOR_PROPERTY);
 		if (!Objects.equals(discriminator, containerDiscriminator)) {
 			ClassTranslator<? extends P> translator = byDiscriminator.get(containerDiscriminator);
-			if (translator == null)
+			if (translator == null) {
 				throw new IllegalStateException("Datastore object has discriminator value '" + containerDiscriminator + "' but no relevant @Subclass is registered");
-			else
+			} else {
+				// This line fixes alsoLoad names in discriminators by changing the discriminator to what the
+				// translator expects for loading that subclass. Otherwise we'll get the error above since the
+				// translator discriminator and the container discriminator won't match.
+				container.setUnindexedProperty(DISCRIMINATOR_PROPERTY, translator.getDiscriminator());
+
 				return translator.load(container, ctx, path);
+			}
 		} else {
 			// This is a normal load
 			P into = creator.load(container, ctx, path);

@@ -14,17 +14,17 @@ import java.lang.annotation.Target;
  * For example, in the hierarchy Animal->Mammal->Cat, annotations should be:</p>
  * <ul>
  * <li>@Entity Animal</li>
- * <li>@EntitySubclass(index=true) Mammal</li>
- * <li>@EntitySubclass(index=true) Cat</li>
+ * <li>@Subclass(index=true) Mammal</li>
+ * <li>@Subclass(index=true) Cat</li>
  * </ul>
  * 
  * <p>The @Entity annotation must be present on the class that identifies the root of the
  * hierarchy.  This class will define the <em>kind</em> of the entire hierarchy.
  * The @Entity annotation must NOT be present on any subclasses.</p>
  * 
- * <p>Actual Java subclasses are not required to have @EntitySubclass, but only Java classes
- * which have @EntitySubclass can be persisted and queried for.  Note that subclass discriminators
- * are not indexed by default, so if you want to query for specific types of subclasses, use @EntitySubclass(index=true).</p>
+ * <p>Actual Java subclasses are not required to have @Subclass, but only Java classes
+ * which have @Subclass can be persisted and queried for.  Note that subclass discriminators
+ * are not indexed by default, so if you want to query for specific types of subclasses, use @Subclass(index=true).</p>
  * 
  * @author Jeff Schnitzer
  */

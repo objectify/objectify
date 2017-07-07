@@ -5,17 +5,20 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.EmbeddedEntity;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.NoArgsConstructor;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
 
@@ -234,4 +237,26 @@ public class EmbeddedPolymorphismTests extends TestBase
 		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
 	}
 
+	/** */
+	@Subclass(alsoLoad = "FakeDuck")
+	@NoArgsConstructor
+	public static class Platypus extends Animal {
+	}
+
+	/** */
+	@Test
+	public void alsoLoadSubclassNames() throws Exception {
+		fact().register(Handler.class);
+		fact().register(Platypus.class);
+
+		final com.google.appengine.api.datastore.Entity handler = ofy().save().toEntity(new Handler());
+		final EmbeddedEntity animal = new EmbeddedEntity();
+		animal.setUnindexedProperty("^d", "FakeDuck");
+		handler.setUnindexedProperty("animal", animal);
+
+		final com.google.appengine.api.datastore.Key key = ds().put(handler);
+
+		final Handler fetched = (Handler)ofy().load().value(key).now();
+		assert fetched.animal instanceof Platypus;
+	}
 }
