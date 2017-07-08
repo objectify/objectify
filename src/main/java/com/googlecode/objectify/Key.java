@@ -69,25 +69,25 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	transient protected Key<?> parent;
 
 	/** For GWT serialization */
-	private Key() {}
+	protected Key() {}
 
 	/** Wrap a raw Key */
-	private Key(com.google.appengine.api.datastore.Key raw) {
+	protected Key(com.google.appengine.api.datastore.Key raw) {
 		this.raw = raw;
 	}
 
 	/** Create a key with a long id */
-	private Key(Class<? extends T> kindClass, long id) {
+	protected Key(Class<? extends T> kindClass, long id) {
 		this(null, kindClass, id);
 	}
 
 	/** Create a key with a String name */
-	private Key(Class<? extends T> kindClass, String name) {
+	protected Key(Class<? extends T> kindClass, String name) {
 		this(null, kindClass, name);
 	}
 
 	/** Create a key with a parent and a long id */
-	private Key(Key<?> parent, Class<? extends T> kindClass, long id) {
+	protected Key(Key<?> parent, Class<? extends T> kindClass, long id) {
 		this.raw = KeyFactory.createKey(key(parent), getKind(kindClass), id);
 		this.parent = parent;
 	}
@@ -102,7 +102,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * Reconstitute a Key from a web safe string.  This can be generated with getString()/toWebSafeString()
 	 * or KeyFactory.stringToKey().
 	 */
-	private Key(String webSafe) {
+	protected Key(String webSafe) {
 		this(KeyFactory.stringToKey(webSafe));
 	}
 
