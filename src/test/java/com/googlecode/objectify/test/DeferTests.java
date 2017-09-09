@@ -214,14 +214,6 @@ public class DeferTests extends GAETestBase
 			assertIsNotInDatastore(triv);
 		}
 
-		// ofy().transaction().transactionless() creates a fresh ObjectifyImpl that is not tracked anywhere
-		// so nothing flushes the deferred operations.
-		// assertIsInDatastore(triv);
-		assertIsNotInDatastore(triv);
-
-		// ofy() already maintains a stack each time it switches from non-transactional to transaction context.
-		// Instead of transactionless() returning a new Objectify instance outside of that stack, it can return
-		// the first transactionless instance up the stack. If we don't have any lose Objectify instances, we
-		// can guarantee that we can flush and pending operations for a proper cleanup.
+		assertIsInDatastore(triv);
 	}
 }

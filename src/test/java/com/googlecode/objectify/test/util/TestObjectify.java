@@ -3,9 +3,11 @@ package com.googlecode.objectify.test.util;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.impl.ObjectifyImpl;
+import com.googlecode.objectify.impl.TransactionImpl;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 
@@ -33,5 +35,4 @@ public class TestObjectify extends ObjectifyImpl<TestObjectify>
 
 		return load().key(key).now();
 	}
-
 }

@@ -8,6 +8,8 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.util.ResultWrapper;
+
+import java.util.ArrayDeque;
 import java.util.concurrent.Future;
 
 /**
@@ -57,17 +59,28 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * We use the session from the parent, ie life before transactions.
 	 */
 	@Override
-	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent) {
-		ObjectifyImpl<O> next = parent.clone();
-		next.transactor = new TransactorNo<>(next, parentTransactor.getSession());
-		return next;
+	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> ofy) {
+		// Clone to get an instance of the same dynamic type, in case ofy is of a derived class.
+		ObjectifyImpl<O> newOfy = (ObjectifyImpl<O>) ofy.clone();
+
+		// We need to reset the runtime state of the clone:
+		newOfy.transactors = new ArrayDeque<>();
+		newOfy.forks = new ArrayDeque<>();
+
+		// And we need to instantiate the top level transactor of the clone:
+		TransactorNo<O> transactorNo = new TransactorNo<>(newOfy, parentTransactor.getSession());
+		newOfy.push(transactorNo);
+
+		// Keep track of our fork for cleanup
+		ofy.forks.addLast(newOfy);
+		return newOfy;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(ObjectifyImpl<O> parent, TxnType txnType, Work<R> work) {
+	public <R> R execute(ObjectifyImpl<O> ofy, TxnType txnType, Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 			case REQUIRED:
@@ -75,18 +88,19 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 				return work.run();
 
 			case NOT_SUPPORTED:
+				TransactorNo<O> transactorNo = new TransactorNo<>(ofy, parentTransactor.getSession());
 				try {
-					ObjectifyService.push(transactionless(parent));
+					ofy.push(transactorNo);
 					return work.run();
 				} finally {
-					ObjectifyService.pop();
+					ofy.pop(transactorNo);
 				}
 
 			case NEVER:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
 
 			case REQUIRES_NEW:
-				return transactNew(parent, Integer.MAX_VALUE, work);
+				return transactNew(ofy, Integer.MAX_VALUE, work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
@@ -107,8 +121,14 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * for our transaction.  This gives proper transaction isolation.
 	 */
 	@Override
-	public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work) {
-		return transactionless(parent).transactNew(limitTries, work);
+	public <R> R transactNew(ObjectifyImpl<O> ofy, int limitTries, Work<R> work) {
+		TransactorNo<O> transactorNo = new TransactorNo<>(ofy, parentTransactor.getSession());
+		try {
+			ofy.push(transactorNo);
+			return ofy.transactNew(limitTries, work);
+		} finally {
+			ofy.pop(transactorNo);
+		}
 	}
 
 	/**

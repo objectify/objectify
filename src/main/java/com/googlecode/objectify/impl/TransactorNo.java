@@ -112,42 +112,33 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(ObjectifyImpl<O> parent, Work<R> work) {
-		ObjectifyImpl<O> txnOfy = startTransaction(parent);
-		ObjectifyService.push(txnOfy);
+	private <R> R transactOnce(ObjectifyImpl<O> ofy, Work<R> work) {
+		TransactorYes<O> transactorYes = new TransactorYes<>(ofy, this);
+		ofy.push(transactorYes);
 
 		boolean committedSuccessfully = false;
 		try {
 			R result = work.run();
-			txnOfy.flush();
-			txnOfy.getTransaction().commit();
+			ofy.flush();
+			ofy.getTransaction().commit();
 			committedSuccessfully = true;
 			return result;
 		}
 		finally
 		{
-			if (txnOfy.getTransaction().isActive()) {
+			if (ofy.getTransaction().isActive()) {
 				try {
-					txnOfy.getTransaction().rollback();
+					ofy.getTransaction().rollback();
 				} catch (RuntimeException ex) {
 					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
 				}
 			}
 
-			ObjectifyService.pop();
+			ofy.pop(transactorYes);
 
 			if (committedSuccessfully) {
-				txnOfy.getTransaction().runCommitListeners();
+				transactorYes.getTransaction().runCommitListeners();
 			}
 		}
-	}
-
-	/**
-	 * Create a new transactional session by cloning this instance and resetting the transactor component.
-	 */
-	ObjectifyImpl<O> startTransaction(ObjectifyImpl<O> parent) {
-		ObjectifyImpl<O> cloned = parent.clone();
-		cloned.transactor = new TransactorYes<>(cloned, this);
-		return cloned;
 	}
 }

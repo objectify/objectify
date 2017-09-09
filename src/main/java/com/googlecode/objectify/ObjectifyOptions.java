@@ -14,10 +14,10 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
  */
 public class ObjectifyOptions {
 
-    protected boolean cache = true;
-    protected Consistency consistency = Consistency.STRONG;
-    protected Double deadline;
-    protected boolean mandatoryTransactions = false;
+    private boolean cache = true;
+    private Consistency consistency = Consistency.STRONG;
+    private Double deadline;
+    private boolean mandatoryTransactions = false;
 
     public ObjectifyOptions() {
     }
@@ -38,8 +38,6 @@ public class ObjectifyOptions {
      *
      * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
      * current command object.</b></p>
-     *
-     * @return a new immutable Objectify instance which will (or won't) use the global cache
      */
     public ObjectifyOptions cache(boolean cache) {
         this.cache = cache;
@@ -65,7 +63,6 @@ public class ObjectifyOptions {
      *
      * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
      *  are faster.
-     * @return a new immutable Objectify instance with the consistency policy replaced
      */
     public ObjectifyOptions consistency(Consistency policy) {
         this.consistency = policy;
@@ -87,7 +84,6 @@ public class ObjectifyOptions {
      * current command object.</b></p>
      *
      * @param value - limit in seconds, or null to indicate no deadline (other than the standard whole request deadline of 30s/10m).
-     * @return a new immutable Objectify instance with the specified deadline
      */
     public ObjectifyOptions deadline(Double value) {
         this.deadline = value;
@@ -108,8 +104,6 @@ public class ObjectifyOptions {
      *
      * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
      * current command object.</b></p>
-     *
-     * @return a new immutable Objectify instance which will (or won't) require transactions for save() and delete().
      */
     public ObjectifyOptions mandatoryTransactions(boolean mandatoryTransactions) {
         this.mandatoryTransactions = mandatoryTransactions;

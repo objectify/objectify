@@ -19,9 +19,12 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
+import com.googlecode.objectify.util.Closeable;
 
 import java.lang.reflect.Array;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 
 /**
@@ -45,7 +48,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected final boolean mandatoryTransactions;
 
 	/** */
-	protected Transactor<O> transactor = new TransactorNo<>(this);
+	protected Deque<Transactor<O>> transactors = new ArrayDeque<>();
+	protected Deque<ObjectifyImpl<O>> forks = new ArrayDeque<>();
 
 	/**
 	 */
@@ -55,16 +59,28 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		this.consistency = options.consistency();
 		this.deadline = options.deadline();
 		this.mandatoryTransactions = options.mandatoryTransactions();
+		push(new TransactorNo<O>(this));
 	}
 
-	/** Copy constructor */
-	public ObjectifyImpl(ObjectifyImpl<O> other) {
-		this.factory = other.factory;
-		this.cache = other.cache;
-		this.consistency = other.consistency;
-		this.deadline = other.deadline;
-		this.transactor = other.transactor;
-		this.mandatoryTransactions = other.mandatoryTransactions;
+	/**
+	 * @return The top of transactor in our transaction stack. This ensures that using the Objectify instance within
+	 * a transaction operates on the correct transactor object.
+	 */
+	private Transactor<O> transactor() {
+		return transactors.getLast();
+	}
+
+	/** Allow transactors to push themselves onto the transaction stack of their parent Objectify. */
+	protected void push(Transactor<O> next) {
+		transactors.addLast(next);
+	}
+
+	/** Allow transactors to push themselves off of the transaction stack of their parent Objectify. */
+	protected void pop(Transactor<O> last) {
+		if (last != transactor()) {
+			throw new IllegalStateException("Popping off transactors out of order.");
+		}
+		transactors.removeLast();
 	}
 
 	/* (non-Javadoc)
@@ -112,7 +128,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	@SuppressWarnings("unchecked")
 	public O transactionless() {
-		return (O)transactor.transactionless(this);
+		return (O)transactor().transactionless(this);
 	}
 
 	/* (non-Javadoc)
@@ -131,7 +147,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
 	public TransactionImpl getTransaction() {
-		return transactor.getTransaction();
+		return transactor().getTransaction();
 	}
 
 	/* (non-Javadoc)
@@ -139,7 +155,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R execute(TxnType txnType, Work<R> work) {
-		return transactor.execute(this, txnType, work);
+		return transactor().execute(this, txnType, work);
 	}
 
 	/* (non-Javadoc)
@@ -147,7 +163,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R transact(Work<R> work) {
-		return transactor.transact(this, work);
+		return transactor().transact(this, work);
 	}
 
 	@Override
@@ -174,7 +190,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public <R> R transactNew(int limitTries, Work<R> work) {
-		return transactor.transactNew(this, limitTries, work);
+		return transactor().transactNew(this, limitTries, work);
 	}
 
 	/* (non-Javadoc)
@@ -182,7 +198,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public void clear() {
-		transactor.getSession().clear();
+		transactor().getSession().clear();
 	}
 
 	/**
@@ -212,7 +228,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		if (mandatoryTransactions && getTransaction() == null)
 			throw new IllegalStateException("You have attempted save/delete outside of a transaction, but you have enabled ofy().mandatoryTransactions(true). Perhaps you wanted to start a transaction first?");
 
-		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
+		return new WriteEngine(this, createAsyncDatastoreService(), transactor().getSession(), transactor().getDeferrer());
 	}
 
 	/**
@@ -272,7 +288,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 
 	/** */
 	protected Session getSession() {
-		return this.transactor.getSession();
+		return this.transactor().getSession();
 	}
 
 	/** @return true if cache is enabled */
@@ -285,26 +301,33 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public boolean isLoaded(Key<?> key) {
-		return transactor.getSession().contains(key);
+		return transactor().getSession().contains(key);
 	}
 
 	@Override
 	public void flush() {
-		transactor.getDeferrer().flush();
+		transactor().getDeferrer().flush();
 	}
 
 	/**
 	 * Defer the saving of one entity. Updates the session cache with this new value.
 	 */
 	void deferSave(Object entity) {
-		transactor.getDeferrer().deferSave(entity);
+		transactor().getDeferrer().deferSave(entity);
 	}
 
 	/**
 	 * Defer the deletion of one entity. Updates the session cache with this new value.
 	 */
 	void deferDelete(Key<?> key) {
-		transactor.getDeferrer().deferDelete(key);
+		transactor().getDeferrer().deferDelete(key);
 	}
 
-}
+	@Override
+	public void close() {
+		flush();
+
+		for (ObjectifyImpl<O> fork : forks) {
+			fork.close();
+		}
+	}}

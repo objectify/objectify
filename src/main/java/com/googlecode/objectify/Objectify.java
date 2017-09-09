@@ -6,6 +6,7 @@ import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
+import com.googlecode.objectify.util.Closeable;
 
 /**
  * <p>This is the main "business end" of Objectify.  It lets you load, save, and delete your typed POJO entities.</p>
@@ -21,7 +22,7 @@ import com.googlecode.objectify.cmd.Saver;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Objectify
+public interface Objectify extends Closeable
 {
 	/**
 	 * <p>Start a load command chain.  This is where you begin for any request that fetches data from

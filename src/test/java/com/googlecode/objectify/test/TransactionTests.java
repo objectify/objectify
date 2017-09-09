@@ -6,6 +6,7 @@ package com.googlecode.objectify.test;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -20,6 +21,7 @@ import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.test.util.TestObjectifyService;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -235,6 +237,30 @@ public class TransactionTests extends TestBase
 		// Now verify that it was not saved
 		Trivial fetched = ofy().load().type(Trivial.class).first().now();
 		assert fetched == null;
+	}
+
+	/**
+	 * This is a somewhat clunky way to test this, and requires making impl.getCache() public,
+	 * but it gets the job done.
+	 */
+	@Test
+	public void transactionalObjectifyInheritsCacheSetting() throws Exception {
+		try (Objectify ofy = fact().begin(new ObjectifyOptions().cache(false))) {
+			ofy.transact(new VoidWork() {
+				@Override
+				public void vrun() {
+					// Test in _and out_ of a transaction
+					{
+						ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy;
+						assert !txnlessImpl.getCache();
+					}
+					{
+						ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy.transactionless();
+						assert !txnlessImpl.getCache();
+					}
+				}
+			});
+		}
 	}
 
 	/**
