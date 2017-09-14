@@ -206,7 +206,12 @@ public class DeferTests extends GAETestBase
 			ofy().transact(new VoidWork() {
 				@Override
 				public void vrun() {
-					ofy().transactionless().defer().save().entity(triv);
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().defer().save().entity(triv);
+						}
+					});
 				}
 			});
 

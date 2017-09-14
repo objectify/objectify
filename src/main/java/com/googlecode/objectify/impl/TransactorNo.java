@@ -30,12 +30,6 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 		super(ofy);
 	}
 
-	/**
-	 */
-	public TransactorNo(Objectify ofy, Session session) {
-		super(ofy, session);
-	}
-
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
@@ -46,11 +40,11 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless()
+	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent) {
-		return parent;
+	public <R> R transactionless(ObjectifyImpl<O> parent, Work<R> work) {
+		return work.run();
 	}
 
 	/* (non-Javadoc)

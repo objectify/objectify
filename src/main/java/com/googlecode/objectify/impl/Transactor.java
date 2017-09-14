@@ -22,14 +22,7 @@ abstract public class Transactor<O extends Objectify>
 	 * Construct a transactor with a fresh session
 	 */
 	public Transactor(Objectify ofy) {
-		this(ofy, new Session());
-	}
-
-	/**
-	 * Construct a transactor with an explicit session
-	 */
-	public Transactor(Objectify ofy, Session session) {
-		this.session = session;
+		this.session = new Session();
 		this.deferrer = new Deferrer(ofy, session);
 	}
 
@@ -53,11 +46,9 @@ abstract public class Transactor<O extends Objectify>
 	abstract public TransactionImpl getTransaction();
 
 	/**
-	 * @param parent is the parent objectify instance; the one being transitioned from
-	 * @return an Objectify instance that is suitable for transactionless execution. In the case of a
-	 * transactor which is not in a transaction, probably this is the same as getObjectify().
+	 * @see Objectify#transactionless(Work)
 	 */
-	abstract public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent);
+	abstract public <R> R transactionless(ObjectifyImpl<O> parent, Work<R> work);
 
 	/**
 	 * @see Objectify#execute(TxnType, Work)

@@ -113,13 +113,23 @@ public class TransactionTests extends TestBase
 			ofy().transactNew(2, new VoidWork() {
 				@Override
 				public void vrun() {
-					Trivial triv1 = ofy().transactionless().load().key(tk).now();
+					final Trivial triv1 = ofy().transactionless(new Work<Trivial>() {
+						@Override
+						public Trivial run() {
+							return ofy().load().key(tk).now();
+						}
+					});
 					Trivial triv2 = ofy().load().key(tk).now();
 
 					triv1.setSomeString("bar");
 					triv2.setSomeString("shouldn't work");
 
-					ofy().transactionless().save().entity(triv1).now();
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().save().entity(triv1).now();
+						}
+					});
 					ofy().save().entity(triv2).now();
 				}
 			});
@@ -208,8 +218,15 @@ public class TransactionTests extends TestBase
 		ofy().transact(new Work<Void>() {
 			@Override
 			public Void run() {
-				for (int i=1; i<10; i++)
-					ofy().transactionless().load().type(Thing.class).id(i).now();
+				for (int i=1; i<10; i++) {
+					final int id = i;
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().load().type(Thing.class).id(id).now();
+						}
+					});
+				}
 
 				ofy().save().entity(new Thing(99));
 				return null;
@@ -250,14 +267,16 @@ public class TransactionTests extends TestBase
 				@Override
 				public void vrun() {
 					// Test in _and out_ of a transaction
-					{
-						ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy;
-						assert !txnlessImpl.getCache();
-					}
-					{
-						ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy.transactionless();
-						assert !txnlessImpl.getCache();
-					}
+					ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy;
+					assert !txnlessImpl.getCache();
+
+					ofy.transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>) ofy;
+							assert !txnlessImpl.getCache();
+						}
+					});
 				}
 			});
 		}
@@ -406,11 +425,21 @@ public class TransactionTests extends TestBase
 					TransactionImpl txn = ofy().getTransaction();
 					txn.listenForCommit(listener);
 
-					Trivial triv1 = ofy().transactionless().load().key(tk).now();
+					final Trivial triv1 = ofy().transactionless(new Work<Trivial>() {
+						@Override
+						public Trivial run() {
+							return ofy().load().key(tk).now();
+						}
+					});
 					Trivial triv2 = ofy().load().key(tk).now();
 
 
-					ofy().transactionless().save().entity(triv1).now();
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().save().entity(triv1).now();
+						}
+					});
 					ofy().save().entity(triv2).now();
 				}
 			});
@@ -439,12 +468,22 @@ public class TransactionTests extends TestBase
 				TransactionImpl txn = ofy().getTransaction();
 				txn.listenForCommit(listener);
 
-				Trivial triv1 = ofy().transactionless().load().key(tk).now();
+				final Trivial triv1 = ofy().transactionless(new Work<Trivial>() {
+					@Override
+					public Trivial run() {
+						return ofy().load().key(tk).now();
+					}
+				});
 				Trivial triv2 = ofy().load().key(tk).now();
 
 
 				if (counter.counter < 3) {
-					ofy().transactionless().save().entity(triv1).now();
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().save().entity(triv1).now();
+						}
+					});
 				}
 				ofy().save().entity(triv2).now();
 			}

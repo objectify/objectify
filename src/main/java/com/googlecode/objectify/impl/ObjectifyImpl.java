@@ -9,6 +9,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.TxnType;
+import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.cmd.Deferred;
@@ -36,7 +37,7 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
+public class ObjectifyImpl<O extends Objectify> implements Objectify
 {
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
@@ -49,7 +50,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 
 	/** */
 	protected Deque<Transactor<O>> transactors = new ArrayDeque<>();
-	protected Deque<ObjectifyImpl<O>> forks = new ArrayDeque<>();
 
 	/**
 	 */
@@ -123,24 +123,25 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transactionless()
+	 * @see com.googlecode.objectify.Objectify#transactionless(com.googlecode.objectify.Work)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public O transactionless() {
-		return (O)transactor().transactionless(this);
+	public <R> R transactionless(Work<R> work) {
+		return transactor().transactionless(this, work);
 	}
 
 	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
+	 * @see com.googlecode.objectify.Objectify#transact(java.lang.Runnable)
 	 */
-	@SuppressWarnings("unchecked")
-	protected ObjectifyImpl<O> clone() {
-		try {
-			return (ObjectifyImpl<O>)super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e); // impossible
-		}
+	@Override
+	public void transactionless(final Runnable work) {
+		transactionless(new VoidWork() {
+			@Override
+			public void vrun() {
+				work.run();
+			}
+		});
 	}
 
 	/* (non-Javadoc)
@@ -166,13 +167,15 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		return transactor().transact(this, work);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#transact(java.lang.Runnable)
+	 */
 	@Override
 	public void transact(final Runnable work) {
-		transact(new Work<Void>() {
+		transact(new VoidWork() {
 			@Override
-			public Void run() {
+			public void vrun() {
 				work.run();
-				return null;
 			}
 		});
 	}
@@ -326,8 +329,4 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	public void close() {
 		flush();
-
-		for (ObjectifyImpl<O> fork : forks) {
-			fork.close();
-		}
 	}}

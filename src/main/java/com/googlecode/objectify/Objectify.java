@@ -106,21 +106,23 @@ public interface Objectify extends Closeable
 	Transaction getTransaction();
 
 	/**
-	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
-	 * current transaction and works with the session prior to the transaction start.  Inherits any
-	 * settings (consistency, deadline, etc) from the present Objectify instance.</p>
+	 * <p>Executes work outside of a transaction.  If you are in a transaction, a new non-transaction context will be
+	 * created using the session prior to the current transaction start. If you are not in a transaction, the work
+	 * is executed in the current context.</p>
 	 *
-	 * <p>If you are not in a transaction, this simply returns "this".</p>
+	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
+	 * {@code ObjectifyService.ofy()}</p>
 	 *
-	 * <p>This allows code to quickly "escape" a transactional context for the purpose of loading
-	 * manipulating data without creating or affecting XG transactions.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return an immutable Objectify instance outside of a transaction, with the session as it was before txn start.
+	 * @param work defines the work to be done outside of a transaction.
+	 * @return the result of the work
 	 */
-	Objectify transactionless();
+	<R> R transactionless(Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transactionless(Runnable work);
 
 	/**
 	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.

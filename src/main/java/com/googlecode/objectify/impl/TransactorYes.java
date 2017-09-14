@@ -54,26 +54,20 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 		return this.transaction.now();
 	}
 
-	/**
+	/* (non-Javadoc)
 	 * This version goes back to life without a transaction, but preserves current state regarding deadline, consistency, etc.
 	 * We use the session from the parent, ie life before transactions.
+	 *
+	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> ofy) {
-		// Clone to get an instance of the same dynamic type, in case ofy is of a derived class.
-		ObjectifyImpl<O> newOfy = (ObjectifyImpl<O>) ofy.clone();
-
-		// We need to reset the runtime state of the clone:
-		newOfy.transactors = new ArrayDeque<>();
-		newOfy.forks = new ArrayDeque<>();
-
-		// And we need to instantiate the top level transactor of the clone:
-		TransactorNo<O> transactorNo = new TransactorNo<>(newOfy, parentTransactor.getSession());
-		newOfy.push(transactorNo);
-
-		// Keep track of our fork for cleanup
-		ofy.forks.addLast(newOfy);
-		return newOfy;
+	public <R> R transactionless(ObjectifyImpl<O> ofy, Work<R> work) {
+		try {
+			ofy.push(parentTransactor);
+			return work.run();
+		} finally {
+			ofy.pop(parentTransactor);
+		}
 	}
 
 	/* (non-Javadoc)
@@ -88,13 +82,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 				return work.run();
 
 			case NOT_SUPPORTED:
-				TransactorNo<O> transactorNo = new TransactorNo<>(ofy, parentTransactor.getSession());
-				try {
-					ofy.push(transactorNo);
-					return work.run();
-				} finally {
-					ofy.pop(transactorNo);
-				}
+				transactionless(ofy, work);
 
 			case NEVER:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
@@ -121,14 +109,13 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * for our transaction.  This gives proper transaction isolation.
 	 */
 	@Override
-	public <R> R transactNew(ObjectifyImpl<O> ofy, int limitTries, Work<R> work) {
-		TransactorNo<O> transactorNo = new TransactorNo<>(ofy, parentTransactor.getSession());
-		try {
-			ofy.push(transactorNo);
-			return ofy.transactNew(limitTries, work);
-		} finally {
-			ofy.pop(transactorNo);
-		}
+	public <R> R transactNew(final ObjectifyImpl<O> ofy, final int limitTries, final Work<R> work) {
+		return transactionless(ofy, new Work<R>(){
+			@Override
+			public R run() {
+				return ofy.transactNew(limitTries, work);
+			}
+		});
 	}
 
 	/**
