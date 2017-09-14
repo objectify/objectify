@@ -7,6 +7,7 @@ import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
@@ -38,18 +39,22 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected ObjectifyFactory factory;
 
 	/** Our options */
-	protected boolean cache = true;
-	protected Consistency consistency = Consistency.STRONG;
-	protected Double deadline;
-	protected boolean mandatoryTransactions = false;
+	protected final boolean cache;
+	protected final Consistency consistency;
+	protected final Double deadline;
+	protected final boolean mandatoryTransactions;
 
 	/** */
 	protected Transactor<O> transactor = new TransactorNo<>(this);
 
 	/**
 	 */
-	public ObjectifyImpl(ObjectifyFactory fact) {
+	public ObjectifyImpl(ObjectifyOptions options, ObjectifyFactory fact) {
 		this.factory = fact;
+		this.cache = options.cache();
+		this.consistency = options.consistency();
+		this.deadline = options.deadline();
+		this.mandatoryTransactions = options.mandatoryTransactions();
 	}
 
 	/** Copy constructor */
@@ -99,53 +104,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	public Deferred defer() {
 		return new DeferredImpl(this);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public O consistency(Consistency value) {
-		if (value == null)
-			throw new IllegalArgumentException("Consistency cannot be null");
-
-		ObjectifyImpl<O> clone = this.clone();
-		clone.consistency = value;
-		return (O)clone;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public O deadline(Double value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.deadline = value;
-		return (O)clone;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#cache(boolean)
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public O cache(boolean value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.cache = value;
-		return (O)clone;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#mandatoryTransactions(boolean)
-	 */
-	@Override
-	@SuppressWarnings("unchecked")
-	public O mandatoryTransactions(boolean value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.mandatoryTransactions = value;
-		return (O)clone;
 	}
 
 	/* (non-Javadoc)

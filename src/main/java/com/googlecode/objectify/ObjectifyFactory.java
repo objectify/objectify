@@ -134,26 +134,16 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
-	 * This is the beginning of any Objectify session.  It creates an Objectify instance with the default
-	 * options, unless you override this method to alter the options.  You can also override this method
-	 * to produce a wholly different Objectify implementation (possibly using ObjectifyWrapper).
-	 *
-	 * <p>The default options are:</p>
-	 *
-	 * <ul>
-	 * <li>Do NOT begin a transaction.</li>
-	 * <li>DO use a global cache.</li>
-	 * <li>Use STRONG consistency.</li>
-	 * <li>Apply no deadline to calls.</li>
-	 * </ul>
+	 * This is the beginning of any Objectify session.  It creates an Objectify instance with the requested
+	 * options.  You can also override this method to produce a wholly different Objectify implementation.
 	 *
 	 * <p>Note that when using Objectify you will almost never directly call this method.  Instead you
 	 * should call the static ofy() method on ObjectifyService.</p>
 	 *
 	 * @return a new Objectify instance
 	 */
-	public Objectify begin() {
-		return new ObjectifyImpl<>(this);
+	public Objectify begin(ObjectifyOptions options) {
+		return new ObjectifyImpl<>(options, this);
 	}
 
 	/**

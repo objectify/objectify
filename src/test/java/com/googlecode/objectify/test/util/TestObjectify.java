@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 
 import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
@@ -14,8 +15,8 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 public class TestObjectify extends ObjectifyImpl<TestObjectify>
 {
 	/** */
-	public TestObjectify(ObjectifyFactory fact) {
-		super(fact);
+	public TestObjectify(ObjectifyOptions options, ObjectifyFactory fact) {
+		super(options, fact);
 	}
 
 	/** Utility methods that puts, clears the session, and immediately gets an entity */

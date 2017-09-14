@@ -233,22 +233,6 @@ public class TransactionTests extends TestBase
 	}
 
 	/**
-	 * This is a somewhat clunky way to test this, and requires making impl.getCache() public,
-	 * but it gets the job done.
-	 */
-	@Test
-	public void transactionalObjectifyInheritsCacheSetting() throws Exception {
-		ofy().cache(false).transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				// Test in _and out_ of a transaction
-				ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
-				assert !txnlessImpl.getCache();
-			}
-		});
-	}
-	
-	/**
 	 */
 	@Test
 	public void executeMethodWorks() throws Exception {

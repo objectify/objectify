@@ -174,15 +174,6 @@ public class BasicTests extends TestBase
 
 	/** */
 	@Test
-	public void testConsistencySetting() throws Exception {
-		fact().register(Trivial.class);
-
-		Trivial triv = new Trivial("foo", 5);
-		ofy().consistency(Consistency.EVENTUAL).save().entity(triv).now();
-	}
-
-	/** */
-	@Test
 	public void testKeyToString() throws Exception {
 		Key<Trivial> trivKey = Key.create(Trivial.class, 123);
 

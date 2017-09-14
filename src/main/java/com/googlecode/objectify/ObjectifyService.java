@@ -77,9 +77,28 @@ public class ObjectifyService
 	 * @return the result of the work.
 	 */
 	public static <R> R run(Work<R> work) {
-		try (Closeable closeable = begin()) {
+		return run(new ObjectifyOptions(), work);
+	}
+
+	/**
+	 * <p>Runs one unit of work, making the root Objectify context available, configured per the options parameter.</p>
+	 *
+	 * <p>Normally you do not need to use this method. When servicing a normal request, the ObjectifyFilter
+	 * will run this for you. This method is useful for using Objectify outside of a normal request -
+	 * using the remote api, for example.</p>
+	 *
+	 * <p>Alternatively, you can use the begin() method and close the session manually.</p>
+	 *
+	 * @return the result of the work.
+	 */
+	public static <R> R run(ObjectifyOptions options, Work<R> work) {
+		try (Closeable closeable = begin(options)) {
 			return work.run();
 		}
+	}
+
+	public static Closeable begin() {
+		return begin(new ObjectifyOptions());
 	}
 
 	/**
@@ -89,7 +108,7 @@ public class ObjectifyService
 	 * <p>This method is not typically necessary - in a normal request, the ObjectifyFilter takes care of this housekeeping
 	 * for you. However, in unit tests or remote API calls it can be useful.</p>
 	 */
-	public static Closeable begin() {
+	public static Closeable begin(ObjectifyOptions options) {
 		final Deque<Objectify> stack = STACK.get();
 
 		// Request forwarding in the container runs all the filters again, including the ObjectifyFilter. Since we
@@ -99,7 +118,7 @@ public class ObjectifyService
 		//if (!stack.isEmpty())
 		//	throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
 
-		final Objectify ofy = factory.begin();
+		final Objectify ofy = factory.begin(options);
 
 		stack.add(ofy);
 
