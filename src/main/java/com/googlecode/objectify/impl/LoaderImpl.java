@@ -34,6 +34,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 {
 	/** */
 	protected ObjectifyImpl<?> ofy;
+	protected Transactor<?> transactor;
 
 	/** */
 	protected LoadArrangement loadArrangement = new LoadArrangement();
@@ -42,6 +43,10 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	public LoaderImpl(ObjectifyImpl<?> ofy) {
 		super(null);
 		this.ofy = ofy;
+		// We need to save off the transactor at the top of the stack when the loader is created, then use
+		// the same transactor when actually executing the load. These were the original semantics when the
+		// transaction context stack was maintained outside of ObjectifyImpl, so we need to preserve these semantics.
+		this.transactor = ofy.transactor();
 	}
 
 	/* (non-Javadoc)
@@ -231,16 +236,17 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
-	LoadEngine createLoadEngine() {
-		return new LoadEngine(ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
+	protected LoadEngine createLoadEngine() {
+		return new LoadEngine(ofy, transactor.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
 	}
 
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for queries
 	 */
-	QueryEngine createQueryEngine() {
-		return new QueryEngine(this, ofy.createAsyncDatastoreService(), ofy.getTransaction() == null ? null : ofy.getTransaction().getRaw());
+	protected QueryEngine createQueryEngine() {
+		return new QueryEngine(this, ofy.createAsyncDatastoreService(),
+				transactor.getTransaction() == null ? null : transactor.getTransaction().getRaw());
 	}
 
 	/* (non-Javadoc)

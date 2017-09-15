@@ -19,10 +19,12 @@ public class DeleterImpl implements Deleter
 {
 	/** */
 	ObjectifyImpl<?> ofy;
+	Transactor<?> transactor;
 
 	/** */
 	public DeleterImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
+		this.transactor = ofy.transactor();
 	}
 
 	/* (non-Javadoc)
@@ -58,7 +60,7 @@ public class DeleterImpl implements Deleter
 		for (Key<?> key: keys)
 			rawKeys.add(key.getRaw());
 
-		return ofy.createWriteEngine().delete(rawKeys);
+		return ObjectifyImpl.createWriteEngine(ofy, transactor).delete(rawKeys);
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +80,7 @@ public class DeleterImpl implements Deleter
 		for (Object obj: entities)
 			keys.add(ofy.factory().keys().anythingToRawKey(obj));
 
-		return ofy.createWriteEngine().delete(keys);
+		return ObjectifyImpl.createWriteEngine(ofy, transactor).delete(keys);
 	}
 
 	/* (non-Javadoc)

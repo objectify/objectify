@@ -66,7 +66,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify
 	 * @return The top of transactor in our transaction stack. This ensures that using the Objectify instance within
 	 * a transaction operates on the correct transactor object.
 	 */
-	private Transactor<O> transactor() {
+	protected Transactor<O> transactor() {
 		return transactors.getLast();
 	}
 
@@ -227,11 +227,11 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
 	 */
-	protected WriteEngine createWriteEngine() {
-		if (mandatoryTransactions && getTransaction() == null)
+	protected static WriteEngine createWriteEngine(ObjectifyImpl<?> ofy, Transactor<?> transactor) {
+		if (ofy.mandatoryTransactions && transactor.getTransaction() == null)
 			throw new IllegalStateException("You have attempted save/delete outside of a transaction, but you have enabled ofy().mandatoryTransactions(true). Perhaps you wanted to start a transaction first?");
 
-		return new WriteEngine(this, createAsyncDatastoreService(), transactor().getSession(), transactor().getDeferrer());
+		return new WriteEngine(ofy, ofy.createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
 	}
 
 	/**

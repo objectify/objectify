@@ -21,10 +21,12 @@ public class SaverImpl implements Saver
 {
 	/** */
 	ObjectifyImpl<?> ofy;
+	Transactor<?> transactor;
 
 	/** */
 	public SaverImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
+		this.transactor = ofy.transactor();
 	}
 
 	/* (non-Javadoc)
@@ -57,7 +59,7 @@ public class SaverImpl implements Saver
 	 */
 	@Override
 	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
-		return ofy.createWriteEngine().<E>save(entities);
+		return ObjectifyImpl.createWriteEngine(ofy, transactor).<E>save(entities);
 	}
 
 	/* (non-Javadoc)
