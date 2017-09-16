@@ -234,61 +234,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify
 		return new WriteEngine(ofy, ofy.createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
 	}
 
-	/**
-	 * <p>Translates the value of a filter clause into something the datastore understands.  Key<?> goes to native Key,
-	 * entities go to native Key, java.sql.Date goes to java.util.Date, etc.  It uses the same translation system
-	 * that is used for standard entity fields, but does no checking to see if the value is appropriate for the field.</p>
-	 *
-	 * <p>Unrecognized types are returned as-is.</p>
-	 *
-	 * <p>A future version of this method might check for type validity.</p>
-	 *
-	 * @return whatever can be put into a filter clause.
-	 */
-	protected Object makeFilterable(Object value) {
-		if (value == null)
-			return null;
-
-		// This is really quite a dilemma.  We need to convert that value into something we can filter by, but we don't
-		// really have a lot of information about it.  We could use type information from the matched field, but there's
-		// no guarantee that there is a field to check - it could be a typeless query or a query on an old property value.
-		// The only real solution is to create a (non root!) translator on the fly.  Even that is not straightforward,
-		// because erasure wipes out any component type information in a collection. We don't know what the collection
-		// contains.
-		//
-		// The answer:  Check for collections explicitly.  Create a separate translator for every item in the collection;
-		// after all, it could be a heterogeneous list.  This is not especially efficient but GAE only allows a handful of
-		// items in a IN operation and at any rate processing will still be negligible compared to the cost of a query.
-
-		// If this is an array, make life easier by turning it into a list first.  Because of primitive
-		// mismatching we can't trust Arrays.asList().
-		if (value.getClass().isArray()) {
-			int len = Array.getLength(value);
-			List<Object> asList = new ArrayList<>(len);
-			for (int i=0; i<len; i++)
-				asList.add(Array.get(value, i));
-
-			value = asList;
-		}
-
-		if (value instanceof Iterable) {
-			List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
-			for (Object obj: (Iterable<?>)value)
-				result.add(makeFilterable(obj));
-
-			return result;
-		} else {
-			// Special case entity pojos that become keys
-			if (value.getClass().isAnnotationPresent(Entity.class)) {
-				return factory().keys().getMetadataSafe(value).getRawKey(value);
-			} else {
-				// Run it through a translator
-				Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
-				return translator.save(value, false, new SaveContext(), Path.root());
-			}
-		}
-	}
-
 	/** */
 	protected Session getSession() {
 		return this.transactor().getSession();
