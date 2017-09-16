@@ -115,7 +115,7 @@ class Round {
 					};
 
 					// We throw away the saved entity and we are done
-					loadEngine.ofy.factory().getMetadataForEntity(thing).save(thing, saveCtx);
+					loadEngine.factory().getMetadataForEntity(thing).save(thing, saveCtx);
 				}
 			}
 		}
@@ -142,7 +142,7 @@ class Round {
 			// materialized immediately. The reason for this is that there are some nasty edge cases with @Load
 			// annotations in transactions getting called after the transaction closes. This is possibly not the
 			// best solution to the problem, but it solves the problem now.
-			if (loadEngine.ofy.getTransaction() != null && depth > 0)
+			if (loadEngine.getTransaction() != null && depth > 0)
 				translated.now();
 		}
 	}

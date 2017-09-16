@@ -235,7 +235,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	protected LoadEngine createLoadEngine() {
-		return new LoadEngine(ofy, transactor.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
+		return new LoadEngine(ofy, transactor, ofy.createAsyncDatastoreService(), loadArrangement);
 	}
 
 	/**

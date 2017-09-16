@@ -4,6 +4,7 @@ import com.google.appengine.api.datastore.AsyncDatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ref.LiveRef;
@@ -27,7 +28,8 @@ import java.util.logging.Level;
 public class LoadEngine
 {
 	/** */
-	final ObjectifyImpl<?> ofy;
+	private final ObjectifyImpl<?> ofy;
+	private final Transactor<?> transactor;
 	private final AsyncDatastoreService ads;
 	private final Session session;
 	private final LoadArrangement loadArrangement;
@@ -37,9 +39,10 @@ public class LoadEngine
 
 	/**
 	 */
-	public LoadEngine(ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
+	public LoadEngine(ObjectifyImpl<?> ofy, Transactor<?> transactor, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
 		this.ofy = ofy;
-		this.session = session;
+		this.transactor = transactor;
+		this.session = transactor.session;
 		this.ads = ads;
 		this.loadArrangement = loadArrangement;
 
@@ -62,8 +65,8 @@ public class LoadEngine
 
 		// If we are running a transaction, enlist the result so that it gets processed on commit even
 		// if the client never materializes the result.
-		if (ofy.getTransaction() != null)
-			ofy.getTransaction().enlist(result);
+		if (transactor.getTransaction() != null)
+			transactor.getTransaction().enlist(result);
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
@@ -109,7 +112,7 @@ public class LoadEngine
 	 * @return true if the specified property should be loaded in this batch
 	 */
 	public boolean shouldLoad(LoadConditions loadConditions) {
-		return loadConditions.shouldLoad(loadArrangement, ofy.getTransaction() != null);
+		return loadConditions.shouldLoad(loadArrangement, transactor.getTransaction() != null);
 	}
 
 	/**
@@ -161,7 +164,7 @@ public class LoadEngine
 	 * Fetch the keys from the async datastore using the current transaction context
 	 */
 	public Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetch(Set<com.google.appengine.api.datastore.Key> keys) {
-		Transaction txn = (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
+		Transaction txn = (transactor.getTransaction() == null) ? null : transactor.getTransaction().getRaw();
 
 		log.log(Level.FINER, "Fetching " + keys.size() + " keys" + (txn == null ? ": " : " in txn: ") + keys);
 
@@ -193,5 +196,15 @@ public class LoadEngine
 	/** */
 	public LoadArrangement getLoadArrangement() {
 		return loadArrangement;
+	}
+
+	/** */
+	public ObjectifyFactory factory() {
+		return ofy.factory();
+	}
+
+	/** */
+	public Transaction getTransaction() {
+		return transactor.getTransaction();
 	}
 }
