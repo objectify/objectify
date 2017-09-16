@@ -5,12 +5,17 @@ package com.googlecode.objectify.test;
 
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.cmd.Deferred;
+import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Loader;
+import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -441,5 +446,137 @@ public class TransactionTests extends TestBase
 				});
 			}
 		});
+	}
+
+	@Test
+	public void loaderIsBoundToTransactorAtInitialization() {
+		fact().register(Trivial.class);
+		final Trivial triv = new Trivial(42l, "foo", 5);
+
+		ofy().transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				ofy().save().entity(triv).now();
+
+				Loader loader = ofy().transactionless().load();
+				Trivial fetched = loader.entity(triv).now();
+				assert fetched == null;
+			}
+		});
+
+		// Now verify that it was saved
+		Trivial fetched = ofy().load().entity(triv).now();
+		assert fetched != null;
+	}
+
+	@Test
+	public void loaderIsBoundToTransactorAtInitialization2() {
+		fact().register(Trivial.class);
+		final Trivial triv = new Trivial(42l, "foo", 5);
+		ofy().save().entity(triv).now();
+		ofy().clear(); // important to make sure that the read below hits the datastore
+
+		try {
+			ofy().transactNew(1, new VoidWork() {
+				@Override
+				public void vrun() {
+					// The loader is initialized in a transactionless. We expect that the loader is bound to the
+					// transactionless context.
+					Loader loader = ofy().transactionless().load();
+					loader.entity(triv).now();
+
+					// We perform a write to a different entity group. If the loader touched the active transaction,
+					// and the entity was modified outside of the transaction, a ConcurrentModificationException will
+					// be thrown. If the loader didn't touch the transaction, it would commit successfully.
+					ofy().save().entity(new Trivial(43l, "bar", 6)).now();
+
+					ofy().transactionless().save().entity(triv);
+				}
+			});
+		} catch (ConcurrentModificationException e) {
+			assert false : "transactionless loader was not fully isolated from the encapsulating transaction";
+		}
+	}
+
+	@Test
+	public void saverIsBoundToTransactorAtInitialization() {
+		fact().register(Trivial.class);
+		final Trivial triv = new Trivial(42l, "foo", 5);
+
+		ofy().transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				final Key<Trivial> trivKey = Key.create(Trivial.class, 42l);
+				assert !ofy().isLoaded(trivKey);
+
+				Saver saver = ofy().transactionless().save();
+				triv.setSomeString("bar");
+				saver.entity(triv).now();
+
+				// A write is visible in the session (test with isLoaded()) it was performed. We expect it to not be
+				// visible in the transaction but to be visible outside.
+				assert !ofy().isLoaded(trivKey);
+
+				ofy().transactionless().isLoaded(trivKey);
+			}
+		});
+	}
+
+	@Test
+	public void deleterIsBoundToTransactorAtInitialization() {
+		fact().register(Trivial.class);
+		final Trivial triv = new Trivial(42l, "foo", 5);
+		ofy().save().entity(triv).now();
+
+		ofy().transact(new VoidWork() {
+			@Override
+			public void vrun() {
+				Trivial fetched = ofy().load().entity(triv).now();
+
+				Deleter deleter = ofy().transactionless().delete();
+				deleter.entity(triv).now();
+
+				assert null != ofy().load().entity(triv).now();
+
+				ofy().transactionless().load().entity(triv).now();
+			}
+		});
+	}
+
+	@Test
+	public void deferredIsBoundToTransactorAtInitialization() {
+		fact().register(Trivial.class);
+		final Trivial triv1 = new Trivial(42l, "foo", 5);
+		final Trivial triv2 = new Trivial(43l, "foo", 5);
+
+		ofy().save().entity(triv1).now();
+
+		assert null != ofy().load().entity(triv1).now();
+		assert null == ofy().load().entity(triv2).now();
+
+		final Objectify transactionless = ofy().transact(new Work<Objectify>() {
+			@Override
+			public Objectify run() {
+				Objectify transactionless = ofy().transactionless();
+				Deferred deferred = transactionless.defer();
+				deferred.delete().entity(triv1);
+				deferred.save().entity(triv2);
+
+				// deferred operations not visible inside the transaction
+				assert null != ofy().load().entity(triv1).now();
+				assert null == ofy().load().entity(triv2).now();
+
+				return transactionless;
+			}
+		});
+
+		ofy().clear(); // otherwise writes will be visible from merged cache
+		assert null != ofy().load().entity(triv1).now();
+		assert null == ofy().load().entity(triv2).now();
+
+		// NOTE: unless we saved off the ofy returned from transactionless(), we have no way of flushing
+		transactionless.flush(); // writes are visible once deferred are flushed
+		assert null == ofy().load().entity(triv1).now();
+		assert null != ofy().load().entity(triv2).now();
 	}
 }
