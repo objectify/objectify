@@ -523,7 +523,19 @@ public class TransactionTests extends TestBase
 			public void vrun() {
 				ofy().save().entity(triv).now();
 
-				Loader loader = ofy().transactionless().load();
+				// The write is visible inside the transaction but not yet outside. Initialize a loader inside a
+				// transactionless context but execute the load outside (in the current transactional context).
+				// This may happen easily with the legacy transactional() syntax:
+				//   Loader loader = ofy().transactionless().load();
+				//   ... // configure loader
+				//   loader.now();
+
+				Loader loader = ofy().transactionless(new Work<Loader>(){
+					@Override
+					public Loader run() {
+						return ofy().load();
+					}
+				});
 				Trivial fetched = loader.entity(triv).now();
 				assert fetched == null;
 			}
@@ -545,9 +557,14 @@ public class TransactionTests extends TestBase
 			ofy().transactNew(1, new VoidWork() {
 				@Override
 				public void vrun() {
-					// The loader is initialized in a transactionless. We expect that the loader is bound to the
-					// transactionless context.
-					Loader loader = ofy().transactionless().load();
+					// The loader is initialized in a transactionless context but is executed outside of that initial
+					// context. We expect that the loader is bound to the transactionless context.
+					Loader loader = ofy().transactionless(new Work<Loader>() {
+						@Override
+						public Loader run() {
+							return ofy().load();
+						}
+					});
 					loader.entity(triv).now();
 
 					// We perform a write to a different entity group. If the loader touched the active transaction,
@@ -555,7 +572,12 @@ public class TransactionTests extends TestBase
 					// be thrown. If the loader didn't touch the transaction, it would commit successfully.
 					ofy().save().entity(new Trivial(43l, "bar", 6)).now();
 
-					ofy().transactionless().save().entity(triv);
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().save().entity(triv);
+						}
+					});
 				}
 			});
 		} catch (ConcurrentModificationException e) {
@@ -574,15 +596,33 @@ public class TransactionTests extends TestBase
 				final Key<Trivial> trivKey = Key.create(Trivial.class, 42l);
 				assert !ofy().isLoaded(trivKey);
 
-				Saver saver = ofy().transactionless().save();
+				Saver saver = ofy().transactionless(new Work<Saver>() {
+					@Override
+					public Saver run() {
+						return ofy().save();
+					}
+				});
+
 				triv.setSomeString("bar");
 				saver.entity(triv).now();
+
+				// The write is visible outside the transaction but not yet inside. The saver was initialized inside a
+				// transactionless context but it was executed outside (in the current transactional context).
+				// This may happen easily with the legacy transactional() syntax:
+				//   Saver saver = ofy().transactionless().save();
+				//   ... // configure saver
+				//   saver.now();
 
 				// A write is visible in the session (test with isLoaded()) it was performed. We expect it to not be
 				// visible in the transaction but to be visible outside.
 				assert !ofy().isLoaded(trivKey);
 
-				ofy().transactionless().isLoaded(trivKey);
+				ofy().transactionless(new VoidWork() {
+					@Override
+					public void vrun() {
+						assert ofy().isLoaded(trivKey);
+					}
+				});
 			}
 		});
 	}
@@ -598,12 +638,30 @@ public class TransactionTests extends TestBase
 			public void vrun() {
 				Trivial fetched = ofy().load().entity(triv).now();
 
-				Deleter deleter = ofy().transactionless().delete();
+				Deleter deleter = ofy().transactionless(new Work<Deleter>() {
+					@Override
+					public Deleter run() {
+						return ofy().delete();
+					}
+				});
+
 				deleter.entity(triv).now();
+
+				// The delete is visible outside the transaction but not yet inside. The deleter was initialized inside
+				// a transactionless context but it was executed outside (in the current transactional context).
+				// This may happen easily with the legacy transactional() syntax:
+				//   Deleter deleter = ofy().transactionless().delete();
+				//   ... // configure deleter
+				//   deleter.now();
 
 				assert null != ofy().load().entity(triv).now();
 
-				ofy().transactionless().load().entity(triv).now();
+				ofy().transactionless(new VoidWork() {
+					@Override
+					public void vrun() {
+						assert null == ofy().load().entity(triv).now();
+					}
+				});
 			}
 		});
 	}
@@ -619,28 +677,36 @@ public class TransactionTests extends TestBase
 		assert null != ofy().load().entity(triv1).now();
 		assert null == ofy().load().entity(triv2).now();
 
-		final Objectify transactionless = ofy().transact(new Work<Objectify>() {
+		ofy().transact(new VoidWork() {
 			@Override
-			public Objectify run() {
-				Objectify transactionless = ofy().transactionless();
-				Deferred deferred = transactionless.defer();
+			public void vrun() {
+				Deferred deferred = ofy().transactionless(new Work<Deferred>() {
+					@Override
+					public Deferred run() {
+						return ofy().defer();
+					}
+				});
+
 				deferred.delete().entity(triv1);
 				deferred.save().entity(triv2);
 
 				// deferred operations not visible inside the transaction
 				assert null != ofy().load().entity(triv1).now();
 				assert null == ofy().load().entity(triv2).now();
-
-				return transactionless;
 			}
 		});
+
+		// The deferred won't be flushed when the transaction commits because it was initialied inside the
+		// transactionless context. This may happen easily with the legacy transactional() syntax:
+		//   Deferred deferred = ofy().transactionless().defer();
+		//   ... // configure deferred
+		//   deferred.now();
 
 		ofy().clear(); // otherwise writes will be visible from merged cache
 		assert null != ofy().load().entity(triv1).now();
 		assert null == ofy().load().entity(triv2).now();
 
-		// NOTE: unless we saved off the ofy returned from transactionless(), we have no way of flushing
-		transactionless.flush(); // writes are visible once deferred are flushed
+		ofy().flush(); // writes are visible once deferred are flushed
 		assert null == ofy().load().entity(triv1).now();
 		assert null != ofy().load().entity(triv2).now();
 	}

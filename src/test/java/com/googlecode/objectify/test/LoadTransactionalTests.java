@@ -4,7 +4,6 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.Work;
@@ -153,17 +152,27 @@ public class LoadTransactionalTests extends TestBase
 				// Initialize the ref in transactionless context but don't deref until we're back in the transaciton
 				// context. The entity pointed to by the ref won't be loaded in either session. Using withGroup
 				// as it won't be automatically loaded.
-				Objectify ofyt = ofy().transactionless();
-				One fetched = ofyt.load().entity(one).now();
+				One fetched = ofy().transactionless(new Work<One>() {
+					@Override
+					public One run() {
+						One fetched = ofy().load().entity(one).now();
+						assert !ofy().isLoaded(twoWithGroupKey);
+						return fetched;
+					}
+				});
 
-				assert !ofyt.isLoaded(twoWithGroupKey);
 				assert !ofy().isLoaded(twoWithGroupKey);
 
 				// Now deref, inside the transaction contact. Since the Ref is bound to the transactionless instance,
 				// the load happens in the transactionless context and not loaded in the transaction session:
 				fetched.withGroup.get();
 
-				assert ofyt.isLoaded(twoWithGroupKey);
+				ofy().transactionless(new VoidWork() {
+					@Override
+					public void vrun() {
+						assert ofy().isLoaded(twoWithGroupKey);
+					}
+				});
 				assert !ofy().isLoaded(twoWithGroupKey);
 			}
 		});
