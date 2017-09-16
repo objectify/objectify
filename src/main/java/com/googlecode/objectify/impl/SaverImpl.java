@@ -20,8 +20,8 @@ import java.util.Map;
 public class SaverImpl implements Saver
 {
 	/** */
-	ObjectifyImpl<?> ofy;
-	Transactor<?> transactor;
+	private ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
 
 	/** */
 	public SaverImpl(ObjectifyImpl<?> ofy) {

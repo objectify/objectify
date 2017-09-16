@@ -17,6 +17,7 @@ import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
+import com.googlecode.objectify.impl.Deferrer;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;

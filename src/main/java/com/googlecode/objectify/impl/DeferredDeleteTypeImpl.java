@@ -16,13 +16,13 @@ import java.util.Collections;
 class DeferredDeleteTypeImpl implements DeferredDeleteType
 {
 	/** */
-	DeferredDeleterImpl deleter;
+	private DeferredDeleterImpl deleter;
 
 	/** Translated from the type class */
-	Class<?> type;
+	private Class<?> type;
 
 	/** Possible parent */
-	Key<?> parent;
+	private Key<?> parent;
 
 	/**
 	 * @param type must be a registered type
@@ -42,7 +42,7 @@ class DeferredDeleteTypeImpl implements DeferredDeleteType
 
 	@Override
 	public DeferredDeleteIds parent(Object keyOrEntity) {
-		Key<?> parentKey = deleter.ofy.factory().keys().anythingToKey(keyOrEntity);
+		Key<?> parentKey = deleter.factory().keys().anythingToKey(keyOrEntity);
 		return new DeferredDeleteTypeImpl(deleter, type, parentKey);
 	}
 

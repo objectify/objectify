@@ -18,13 +18,13 @@ import java.util.Collections;
 class DeleteTypeImpl implements DeleteType
 {
 	/** */
-	DeleterImpl deleter;
+	private DeleterImpl deleter;
 
 	/** Translated from the type class */
-	Class<?> type;
+	private Class<?> type;
 
 	/** Possible parent */
-	Key<?> parent;
+	private Key<?> parent;
 
 	/**
 	 * @param type must be a registered type
@@ -47,7 +47,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public DeleteIds parent(Object keyOrEntity) {
-		Key<?> parentKey = deleter.ofy.factory().keys().anythingToKey(keyOrEntity);
+		Key<?> parentKey = deleter.factory().keys().anythingToKey(keyOrEntity);
 		return new DeleteTypeImpl(deleter, type, parentKey);
 	}
 

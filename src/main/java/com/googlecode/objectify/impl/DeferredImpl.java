@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.DeferredDeleter;
 import com.googlecode.objectify.cmd.DeferredSaver;
@@ -13,20 +14,22 @@ import com.googlecode.objectify.cmd.DeferredSaver;
 public class DeferredImpl implements Deferred
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
+	private ObjectifyFactory factory;
 
 	/** */
 	public DeferredImpl(ObjectifyImpl<?> ofy) {
-		this.ofy = ofy;
+		this.transactor = ofy.transactor();
+		this.factory = ofy.factory();
 	}
 
 	@Override
 	public DeferredSaver save() {
-		return new DeferredSaverImpl(ofy);
+		return new DeferredSaverImpl(transactor);
 	}
 
 	@Override
 	public DeferredDeleter delete() {
-		return new DeferredDeleterImpl(ofy);
+		return new DeferredDeleterImpl(transactor, factory);
 	}
 }
