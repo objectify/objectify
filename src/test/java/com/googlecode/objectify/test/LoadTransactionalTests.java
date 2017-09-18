@@ -163,17 +163,18 @@ public class LoadTransactionalTests extends TestBase
 
 				assert !ofy().isLoaded(twoWithGroupKey);
 
-				// Now deref, inside the transaction contact. Since the Ref is bound to the transactionless instance,
-				// the load happens in the transactionless context and not loaded in the transaction session:
+				// Now deref, inside the transaction contact. Since the Ref is bound to the Objectify instance,
+				// the load happens in the current context. So the entity is loaded in the transaction session and
+				// not loaded in the transactionless session:
 				fetched.withGroup.get();
 
 				ofy().transactionless(new VoidWork() {
 					@Override
 					public void vrun() {
-						assert ofy().isLoaded(twoWithGroupKey);
+						assert !ofy().isLoaded(twoWithGroupKey);
 					}
 				});
-				assert !ofy().isLoaded(twoWithGroupKey);
+				assert ofy().isLoaded(twoWithGroupKey);
 			}
 		});
 	}
