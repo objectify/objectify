@@ -105,48 +105,4 @@ public class LoadTransactionalTests extends TestBase
 			}
 		});
 	}
-
-	/** */
-	@Entity
-	public static class Multi {
-		public @Id long id;
-		public @Load(unless=No.class) List<Ref<Two>> always = new ArrayList<>();
-	}
-
-	/** */
-	@Test
-	public void testLoadUnlessMulti() throws Exception {
-		fact().register(Multi.class);
-		fact().register(Two.class);
-
-		Two two1 = new Two();
-		two1.id = 456;
-		Key<Two> two1Key = ofy().save().entity(two1).now();
-		Ref<Two> two1Ref = Ref.create(two1Key);
-
-		Two two2 = new Two();
-		two2.id = 789;
-		Key<Two> two2Key = ofy().save().entity(two2).now();
-		Ref<Two> two2Ref = Ref.create(two2Key);
-
-		Multi multi = new Multi();
-		multi.id = 123;
-		multi.always.add(two1Ref);
-		multi.always.add(two2Ref);
-		ofy().save().entity(multi).now();
-
-		ofy().clear();
-		Multi fetchedDefault = ofy().load().entity(multi).now();
-		assertThat(fetchedDefault.always, hasSize(2));
-		for (Ref<Two> ref : fetchedDefault.always) {
-			assertThat(ref.isLoaded(), equalTo(true));
-		}
-
-		ofy().clear();
-		Multi fetchedNo = ofy().load().group(No.class).entity(multi).now();
-		assertThat(fetchedNo.always, hasSize(2));
-		for (Ref<Two> ref : fetchedNo.always) {
-			assertThat(ref.isLoaded(), equalTo(false));
-		}
-	}
 }
