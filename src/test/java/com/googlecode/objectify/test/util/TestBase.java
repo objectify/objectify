@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test.util;
 
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.util.Closeable;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -42,6 +43,10 @@ public class TestBase extends GAETestBase
 			rootService.close();
 
 		TestObjectifyService.setFactory(factory);
-		rootService = TestObjectifyService.begin();
+		rootService = TestObjectifyService.begin(getObjectifyOptions());
+	}
+
+	protected ObjectifyOptions getObjectifyOptions() {
+		return new ObjectifyOptions();
 	}
 }

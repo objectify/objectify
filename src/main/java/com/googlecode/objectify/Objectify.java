@@ -6,6 +6,7 @@ import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
+import com.googlecode.objectify.util.Closeable;
 
 /**
  * <p>This is the main "business end" of Objectify.  It lets you load, save, and delete your typed POJO entities.</p>
@@ -21,7 +22,7 @@ import com.googlecode.objectify.cmd.Saver;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Objectify
+public interface Objectify extends Closeable
 {
 	/**
 	 * <p>Start a load command chain.  This is where you begin for any request that fetches data from
@@ -92,72 +93,6 @@ public interface Objectify
 	ObjectifyFactory factory();
 
 	/**
-	 * <p>Provides a new Objectify instance with the specified Consistency.  Generally speaking, STRONG consistency
-	 * provides more consistent results more slowly; EVENTUAL consistency produces results quickly but they
-	 * might be out of date.  See the
-	 * <a href="http://code.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/ReadPolicy.Consistency.html">Appengine Docs</a>
-	 * for more explanation.</p>
-	 *
-	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
-	 * from this instance.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
-	 * current command object.</b></p>
-	 *
-	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
-	 *  are faster.
-	 * @return a new immutable Objectify instance with the consistency policy replaced
-	 */
-	Objectify consistency(Consistency policy);
-
-	/**
-	 * <p>Provides a new Objectify instance with a limit, in seconds, for datastore calls.  If datastore calls take longer
-	 * than this amount, a timeout exception will be thrown.</p>
-	 *
-	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
-	 * from this instance.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
-	 * current command object.</b></p>
-	 *
-	 * @param value - limit in seconds, or null to indicate no deadline (other than the standard whole request deadline of 30s/10m).
-	 * @return a new immutable Objectify instance with the specified deadline
-	 */
-	Objectify deadline(Double value);
-
-	/**
-	 * <p>Provides a new Objectify instance which uses (or doesn't use) a 2nd-level memcache.
-	 * If true, Objectify will obey the @Cache annotation on entity classes,
-	 * saving entity data to the GAE memcache service.  Fetches from the datastore
-	 * for @Cache entities will look in the memcache service first.  This cache
-	 * is shared across all versions of your application across the entire GAE
-	 * cluster.</p>
-	 *
-	 * <p>Objectify instances are cache(true) by default.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return a new immutable Objectify instance which will (or won't) use the global cache
-	 */
-	Objectify cache(boolean value);
-
-	/**
-	 * <p>Provides a new Objectify instance which throws an exception whenever save() or delete() is
-	 * called from outside a transaction context. This is a reasonable sanity check for most business
-	 * workloads; you may wish to enable it globally by overriding ObjectifyFactory.begin() to
-	 * twiddle this flag on the returned object.</p>
-	 *
-	 * <p>Objectify instances are mandatoryTransactions(false) by default.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return a new immutable Objectify instance which will (or won't) require transactions for save() and delete().
-	 */
-	Objectify mandatoryTransactions(boolean value);
-
-	/**
 	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
 	 * do not need to use this; use transact() instead.</p>
 	 *
@@ -171,21 +106,23 @@ public interface Objectify
 	Transaction getTransaction();
 
 	/**
-	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
-	 * current transaction and works with the session prior to the transaction start.  Inherits any
-	 * settings (consistency, deadline, etc) from the present Objectify instance.</p>
+	 * <p>Executes work outside of a transaction.  If you are in a transaction, a new non-transaction context will be
+	 * created using the session prior to the current transaction start. If you are not in a transaction, the work
+	 * is executed in the current context.</p>
 	 *
-	 * <p>If you are not in a transaction, this simply returns "this".</p>
+	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
+	 * {@code ObjectifyService.ofy()}</p>
 	 *
-	 * <p>This allows code to quickly "escape" a transactional context for the purpose of loading
-	 * manipulating data without creating or affecting XG transactions.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return an immutable Objectify instance outside of a transaction, with the session as it was before txn start.
+	 * @param work defines the work to be done outside of a transaction.
+	 * @return the result of the work
 	 */
-	Objectify transactionless();
+	<R> R transactionless(Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transactionless(Runnable work);
 
 	/**
 	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.

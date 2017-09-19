@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -102,7 +103,7 @@ public class SerializeTests extends TestBase
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();
 		fact2.register(HasSerialize.class);
 
-		HasSerialize fetched = fact2.begin().load().type(HasSerialize.class).id(hs.id).now();
+		HasSerialize fetched = fact2.begin(new ObjectifyOptions()).load().type(HasSerialize.class).id(hs.id).now();
 		assert fetched.numbers.equals(hs.numbers);
 	}
 
@@ -121,7 +122,7 @@ public class SerializeTests extends TestBase
 		TestObjectifyFactory fact2 = new TestObjectifyFactory();
 		fact2.register(HasSerializeZip.class);
 
-		HasSerializeZip fetched = fact2.begin().load().type(HasSerializeZip.class).id(hs.id).now();
+		HasSerializeZip fetched = fact2.begin(new ObjectifyOptions()).load().type(HasSerializeZip.class).id(hs.id).now();
 		assert fetched.numbers.equals(hs.numbers);
 	}
 }

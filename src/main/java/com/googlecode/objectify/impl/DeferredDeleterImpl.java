@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.cmd.DeferredDeleteType;
 import com.googlecode.objectify.cmd.DeferredDeleter;
 
@@ -13,11 +14,13 @@ import com.googlecode.objectify.cmd.DeferredDeleter;
 class DeferredDeleterImpl implements DeferredDeleter
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
+	private ObjectifyFactory factory;
 
 	/** */
-	DeferredDeleterImpl(ObjectifyImpl<?> ofy) {
-		this.ofy = ofy;
+	DeferredDeleterImpl(Transactor<?> transactor, ObjectifyFactory factory) {
+		this.transactor = transactor;
+		this.factory = factory;
 	}
 
 	@Override
@@ -27,7 +30,7 @@ class DeferredDeleterImpl implements DeferredDeleter
 
 	@Override
 	public void key(Key<?> key) {
-		ofy.deferDelete(key);
+		transactor.getDeferrer().deferDelete(key);
 	}
 
 	@Override
@@ -44,7 +47,7 @@ class DeferredDeleterImpl implements DeferredDeleter
 
 	@Override
 	public void entity(Object entity) {
-		key(ofy.factory().keys().anythingToKey(entity));
+		key(factory().keys().anythingToKey(entity));
 	}
 
 	@Override
@@ -57,5 +60,9 @@ class DeferredDeleterImpl implements DeferredDeleter
 	public void entities(Object... entities) {
 		for (Object entity: entities)
 			entity(entity);
+	}
+
+	public ObjectifyFactory factory() {
+		return factory;
 	}
 }

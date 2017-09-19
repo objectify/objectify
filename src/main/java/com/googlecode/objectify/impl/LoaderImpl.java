@@ -6,6 +6,7 @@ import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.LoadType;
@@ -33,7 +34,8 @@ import java.util.Set;
 public class LoaderImpl<L extends Loader> extends Queryable<Object> implements Loader, Cloneable
 {
 	/** */
-	protected ObjectifyImpl<?> ofy;
+	private ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
 
 	/** */
 	protected LoadArrangement loadArrangement = new LoadArrangement();
@@ -42,6 +44,10 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	public LoaderImpl(ObjectifyImpl<?> ofy) {
 		super(null);
 		this.ofy = ofy;
+		// We need to save off the transactor at the top of the stack when the loader is created, then use
+		// the same transactor when actually executing the load. These were the original semantics when the
+		// transaction context stack was maintained outside of ObjectifyImpl, so we need to preserve these semantics.
+		this.transactor = ofy.transactor();
 	}
 
 	/* (non-Javadoc)
@@ -118,7 +124,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	 */
 	@Override
 	public <E> LoadResult<E> entity(E entity) {
-		return key(ofy.factory().keys().keyOf(entity));
+		return key(factory().keys().keyOf(entity));
 	}
 
 	/* (non-Javadoc)
@@ -127,7 +133,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> LoadResult<E> value(Object key) {
-		return (LoadResult<E>)key(ofy.factory().keys().anythingToKey(key));
+		return (LoadResult<E>)key(factory().keys().anythingToKey(key));
 	}
 
 	/* (non-Javadoc)
@@ -181,7 +187,7 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 		// Do this in a separate pass so any errors converting keys will show up before we try loading something
 		List<Key<E>> keys = new ArrayList<>();
 		for (Object keyish: values)
-			keys.add((Key<E>)ofy.factory().keys().anythingToKey(keyish));
+			keys.add((Key<E>)factory().keys().anythingToKey(keyish));
 
 		LoadEngine engine = createLoadEngine();
 
@@ -207,14 +213,6 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#getObjectify()
-	 */
-	@Override
-	public Objectify getObjectify() {
-		return ofy;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Loader#getLoadGroups()
 	 */
 	@Override
@@ -222,25 +220,31 @@ public class LoaderImpl<L extends Loader> extends Queryable<Object> implements L
 		return Collections.unmodifiableSet(loadArrangement);
 	}
 
-	/** */
-	public ObjectifyImpl<?> getObjectifyImpl() {
-		return this.ofy;
+	/* Expose the factory but not expose ofy directly. */
+	public ObjectifyFactory factory() {
+		return ofy.factory();
+	}
+
+	/* Expose the cache setting but not expose ofy directly. */
+	public boolean getCache() {
+		return ofy.getCache();
 	}
 
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
-	LoadEngine createLoadEngine() {
-		return new LoadEngine(ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
+	protected LoadEngine createLoadEngine() {
+		return new LoadEngine(ofy, transactor, ofy.createAsyncDatastoreService(), loadArrangement);
 	}
 
 	/**
 	 * Use this once for one operation and then throw it away
 	 * @return a fresh engine that handles fundamental datastore operations for queries
 	 */
-	QueryEngine createQueryEngine() {
-		return new QueryEngine(this, ofy.createAsyncDatastoreService(), ofy.getTransaction() == null ? null : ofy.getTransaction().getRaw());
+	protected QueryEngine createQueryEngine() {
+		return new QueryEngine(this, ofy.createAsyncDatastoreService(),
+				transactor.getTransaction() == null ? null : transactor.getTransaction().getRaw());
 	}
 
 	/* (non-Javadoc)

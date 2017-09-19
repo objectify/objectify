@@ -214,11 +214,6 @@ public interface Loader extends SimpleQuery<Object>
 	<E> Map<Key<E>, E> values(Object... keysOrEntities);
 
 	/**
-	 * @return the parent Objectify instance
-	 */
-	Objectify getObjectify();
-
-	/**
 	 * @return the currently enabled load groups in an unmodifiable list
 	 */
 	Set<Class<?>> getLoadGroups();

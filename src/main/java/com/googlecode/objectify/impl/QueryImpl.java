@@ -13,14 +13,21 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.impl.translate.ClassTranslator;
+import com.googlecode.objectify.impl.translate.CreateContext;
+import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.Translator;
+import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.IteratorFirstResult;
 import com.googlecode.objectify.util.MakeListResult;
 import com.googlecode.objectify.util.ResultProxy;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -132,7 +139,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		// filtering on the id field to a __key__ query, but that tended to confuse users about the real capabilities
 		// of GAE and Objectify. So let's force users to use filterKey() instead.
 		if (this.classRestriction != null) {
-			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
+			KeyMetadata<?> meta = loader.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (prop.equals(meta.getParentFieldName())) {
 				throw new IllegalArgumentException("@Parent fields cannot be filtered on. Perhaps you wish to use filterKey() or ancestor() instead?");
@@ -143,7 +150,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		}
 
 		// Convert to something filterable, possibly extracting/converting keys
-		value = loader.getObjectifyImpl().makeFilterable(value);
+		value = makeFilterable(value);
 
 		addFilter(op.of(prop, value));
 	}
@@ -156,6 +163,62 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			actual.setFilter(filter);
 		} else {
 			actual.setFilter(CompositeFilterOperator.and(actual.getFilter(), filter));
+		}
+	}
+
+	/**
+	 * <p>Translates the value of a filter clause into something the datastore understands.  Key<?> goes to native Key,
+	 * entities go to native Key, java.sql.Date goes to java.util.Date, etc.  It uses the same translation system
+	 * that is used for standard entity fields, but does no checking to see if the value is appropriate for the field.</p>
+	 *
+	 * <p>Unrecognized types are returned as-is.</p>
+	 *
+	 * <p>A future version of this method might check for type validity.</p>
+	 *
+	 * @return whatever can be put into a filter clause.
+	 */
+	protected Object makeFilterable(Object value) {
+		if (value == null)
+			return null;
+
+		// This is really quite a dilemma.  We need to convert that value into something we can filter by, but we don't
+		// really have a lot of information about it.  We could use type information from the matched field, but there's
+		// no guarantee that there is a field to check - it could be a typeless query or a query on an old property value.
+		// The only real solution is to create a (non root!) translator on the fly.  Even that is not straightforward,
+		// because erasure wipes out any component type information in a collection. We don't know what the collection
+		// contains.
+		//
+		// The answer:  Check for collections explicitly.  Create a separate translator for every item in the collection;
+		// after all, it could be a heterogeneous list.  This is not especially efficient but GAE only allows a handful of
+		// items in a IN operation and at any rate processing will still be negligible compared to the cost of a query.
+
+		// If this is an array, make life easier by turning it into a list first.  Because of primitive
+		// mismatching we can't trust Arrays.asList().
+		if (value.getClass().isArray()) {
+			int len = Array.getLength(value);
+			List<Object> asList = new ArrayList<>(len);
+			for (int i=0; i<len; i++)
+				asList.add(Array.get(value, i));
+
+			value = asList;
+		}
+
+		if (value instanceof Iterable) {
+			List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
+			for (Object obj: (Iterable<?>)value)
+				result.add(makeFilterable(obj));
+
+			return result;
+		} else {
+			// Special case entity pojos that become keys
+			if (value.getClass().isAnnotationPresent(Entity.class)) {
+				return loader.factory().keys().getMetadataSafe(value).getRawKey(value);
+			} else {
+				// Run it through a translator
+				Translator<Object, Object> translator = loader.factory().getTranslators().get(
+						new TypeKey<>(value.getClass()), new CreateContext(loader.factory()), Path.root());
+				return translator.save(value, false, new SaveContext(), Path.root());
+			}
 		}
 	}
 
@@ -196,7 +259,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 		// Prevent ordering by @Id or @Parent fields, which are really part of the key
 		if (this.classRestriction != null) {
-			KeyMetadata<?> meta = loader.ofy.factory().keys().getMetadataSafe(this.classRestriction);
+			KeyMetadata<?> meta = loader.factory().keys().getMetadataSafe(this.classRestriction);
 
 			if (condition.equals(meta.getParentFieldName()))
 				throw new IllegalArgumentException("You cannot order by @Parent field. Perhaps you wish to order by __key__ instead?");
@@ -211,7 +274,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Modifies the instance */
 	void setAncestor(Object keyOrEntity) {
-		this.actual.setAncestor(loader.ofy.factory().keys().anythingToRawKey(keyOrEntity));
+		this.actual.setAncestor(loader.factory().keys().anythingToRawKey(keyOrEntity));
 	}
 
 	/** Modifies the instance */
@@ -393,7 +456,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			return hybrid;
 
 		// If the class is cacheable
-		if (classRestriction != null && loader.getObjectifyImpl().getCache() && fact().getMetadata(classRestriction).getCacheExpirySeconds() != null)
+		if (classRestriction != null && loader.getCache() && loader.factory().getMetadata(classRestriction).getCacheExpirySeconds() != null)
 			return true;
 
 		return false;
@@ -440,10 +503,5 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			opts = opts.chunkSize(this.chunk);
 
 		return opts;
-	}
-
-	/** Convenience method */
-	private ObjectifyFactory fact() {
-		return loader.getObjectify().factory();
 	}
 }

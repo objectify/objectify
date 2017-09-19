@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteType;
 import com.googlecode.objectify.cmd.Deleter;
@@ -18,11 +19,13 @@ import java.util.List;
 public class DeleterImpl implements Deleter
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
 
 	/** */
 	public DeleterImpl(ObjectifyImpl<?> ofy) {
 		this.ofy = ofy;
+		this.transactor = ofy.transactor();
 	}
 
 	/* (non-Javadoc)
@@ -58,7 +61,7 @@ public class DeleterImpl implements Deleter
 		for (Key<?> key: keys)
 			rawKeys.add(key.getRaw());
 
-		return ofy.createWriteEngine().delete(rawKeys);
+		return ObjectifyImpl.createWriteEngine(ofy, transactor).delete(rawKeys);
 	}
 
 	/* (non-Javadoc)
@@ -78,7 +81,7 @@ public class DeleterImpl implements Deleter
 		for (Object obj: entities)
 			keys.add(ofy.factory().keys().anythingToRawKey(obj));
 
-		return ofy.createWriteEngine().delete(keys);
+		return ObjectifyImpl.createWriteEngine(ofy, transactor).delete(keys);
 	}
 
 	/* (non-Javadoc)
@@ -87,5 +90,9 @@ public class DeleterImpl implements Deleter
 	@Override
 	public Result<Void> entities(Object... entities) {
 		return this.entities(Arrays.asList(entities));
+	}
+
+	public ObjectifyFactory factory() {
+		return ofy.factory();
 	}
 }

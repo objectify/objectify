@@ -3,6 +3,7 @@ package com.googlecode.objectify.test.util;
 import com.google.appengine.api.memcache.IMemcacheServiceFactory;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.ObjectifyOptions;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.CacheControlImpl;
 
@@ -12,11 +13,8 @@ import com.googlecode.objectify.impl.CacheControlImpl;
 public class TestObjectifyFactory extends ObjectifyFactory
 {
 	@Override
-	public Objectify begin() {
-		return new TestObjectify(this)
-
-			// This can be used to enable/disable the memory cache globally.
-			.cache(true);
+	public Objectify begin(ObjectifyOptions options) {
+		return new TestObjectify(options, this);
 	}
 
 	/** Only used for one test */

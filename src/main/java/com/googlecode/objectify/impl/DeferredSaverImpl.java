@@ -11,16 +11,16 @@ import com.googlecode.objectify.cmd.DeferredSaver;
 public class DeferredSaverImpl implements DeferredSaver
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private Transactor<?> transactor;
 
 	/** */
-	public DeferredSaverImpl(ObjectifyImpl<?> ofy) {
-		this.ofy = ofy;
+	public DeferredSaverImpl(Transactor<?> transactor) {
+		this.transactor = transactor;
 	}
 
 	@Override
 	public void entity(Object entity) {
-		ofy.deferSave(entity);
+		transactor.getDeferrer().deferSave(entity);
 	}
 
 	@Override

@@ -149,7 +149,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 */
 	@Override
 	public LoadIds<T> parent(Object keyOrEntity) {
-		Key<T> parentKey = loader.ofy.factory().keys().anythingToKey(keyOrEntity);
+		Key<T> parentKey = loader.factory().keys().anythingToKey(keyOrEntity);
 		return new LoadTypeImpl<>(loader, kind, type, parentKey);
 	}
 

@@ -4,7 +4,11 @@
 package com.googlecode.objectify.test;
 
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -17,9 +21,11 @@ import com.googlecode.objectify.util.Closeable;
 import lombok.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
 import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
 import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
@@ -32,6 +38,48 @@ import static org.hamcrest.Matchers.nullValue;
  */
 public class DeferTests extends GAETestBase
 {
+	private void assertIsInSession(Trivial triv) {
+		assertThat(ofy().isLoaded(Key.create(triv)), is(true));
+		assertThat(ofy().load().entity(triv).now(), is(triv));
+	}
+
+	private void assertIsNotInSession(Trivial triv) {
+		assertThat(ofy().load().entity(triv).now(), nullValue());
+	}
+
+	private void assertIsInDatastore(Trivial triv) {
+		try {
+			ds().get(null, Key.create(triv).getRaw());
+		} catch (EntityNotFoundException e) {
+			assert false : "Entity should be in the datastore.";
+		}
+	}
+
+	private void assertIsNotInDatastore(Trivial triv) {
+		try {
+			ds().get(null, Key.create(triv).getRaw());
+			assert false : "Entity should not be in the datastore.";
+		} catch (EntityNotFoundException e) {
+			// success
+		}
+	}
+
+	private MemcacheService mc() {
+		return MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
+	}
+
+	private void assertIsInMemcache(Trivial triv) {
+		String stringKey = Key.create(triv).getString();
+		Object actual = mc().get(stringKey);
+		assertThat(actual, not(nullValue()));
+	}
+
+	private void assertIsNotInMemcache(Trivial triv) {
+		String stringKey = Key.create(triv).getString();
+		Trivial actual = (Trivial) mc().get(stringKey);
+		assertThat(actual, nullValue());
+	}
+
 	@BeforeMethod
 	public void setUp() throws Exception {
 		TestObjectifyService.setFactory(new TestObjectifyFactory());
@@ -47,7 +95,11 @@ public class DeferTests extends GAETestBase
 
 		try (Closeable root = TestObjectifyService.begin()) {
 			ofy().defer().save().entity(triv);
+
+			assert triv.getId() == null;
 		}
+
+		assert triv.getId() != null;
 	}
 
 	/** */
@@ -59,16 +111,8 @@ public class DeferTests extends GAETestBase
 		try (Closeable root = TestObjectifyService.begin()) {
 			ofy().defer().save().entity(triv);
 
-			// Can load out of session
-			assertThat(ofy().load().entity(triv).now(), is(triv));
-
-			// But not the datastore
-			try {
-				ds().get(null, Key.create(triv).getRaw());
-				assert false : "Entity should not have been saved yet";
-			} catch (EntityNotFoundException e) {
-				// correct
-			}
+			assertIsInSession(triv);
+			assertIsNotInDatastore(triv);
 		}
 
 		try (Closeable root = TestObjectifyService.begin()) {
@@ -79,15 +123,8 @@ public class DeferTests extends GAETestBase
 		try (Closeable root = TestObjectifyService.begin()) {
 			ofy().defer().delete().entity(triv);
 
-			// Deleted in session
-			assertThat(ofy().load().entity(triv).now(), nullValue());
-
-			// But not datastore
-			try {
-				ds().get(null, Key.create(triv).getRaw());
-			} catch (EntityNotFoundException e) {
-				assert false : "Entity should not have been deleted yet";
-			}
+			assertIsNotInSession(triv);
+			assertIsInDatastore(triv);
 		}
 
 		try (Closeable root = TestObjectifyService.begin()) {
@@ -109,16 +146,8 @@ public class DeferTests extends GAETestBase
 				public void vrun() {
 					ofy().defer().save().entity(triv);
 
-					// Can load out of session
-					assertThat(ofy().load().entity(triv).now(), is(triv));
-
-					// But not datastore
-					try {
-						ds().get(null, Key.create(triv).getRaw());
-						assert false : "Entity should not have been saved yet";
-					} catch (EntityNotFoundException e) {
-						// correct
-					}
+					assertIsInSession(triv);
+					assertIsNotInDatastore(triv);
 				}
 			});
 
@@ -132,15 +161,8 @@ public class DeferTests extends GAETestBase
 				public void vrun() {
 					ofy().defer().delete().entity(triv);
 
-					// Deleted in session
-					assertThat(ofy().load().entity(triv).now(), nullValue());
-
-					// But not datastore
-					try {
-						ds().get(null, Key.create(triv).getRaw());
-					} catch (EntityNotFoundException e) {
-						assert false : "Entity should not have been deleted yet";
-					}
+					assertIsNotInSession(triv);
+					assertIsInDatastore(triv);
 				}
 			});
 
@@ -175,4 +197,28 @@ public class DeferTests extends GAETestBase
 		assertThat(hos.getData(), equalTo("onsaved"));
 	}
 
+	@Test
+	public void testTransactionTransactionlessDeferredNotFlushed() {
+
+		final Trivial triv = new Trivial(123L, "foo", 5);
+
+		try (Closeable root = TestObjectifyService.begin()) {
+			ofy().transact(new VoidWork() {
+				@Override
+				public void vrun() {
+					ofy().transactionless(new VoidWork() {
+						@Override
+						public void vrun() {
+							ofy().defer().save().entity(triv);
+						}
+					});
+				}
+			});
+
+			assertIsInSession(triv);
+			assertIsNotInDatastore(triv);
+		}
+
+		assertIsInDatastore(triv);
+	}
 }
