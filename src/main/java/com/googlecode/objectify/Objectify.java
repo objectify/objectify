@@ -224,6 +224,12 @@ public interface Objectify
 	<R> R transactNew(Work<R> work);
 
 	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transactNew(Runnable work);
+
+	/**
 	 * <p>Executes the work in a new transaction, repeating up to limitTries times when a ConcurrentModificationException
 	 * is thrown.  This requires your Work to be idempotent; otherwise limit tries to 1.
 	 *
@@ -234,6 +240,12 @@ public interface Objectify
 	 * @return the result of the work
 	 */
 	<R> R transactNew(int limitTries, Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transactNew(int limitTries, Runnable work);
 
 	/**
 	 * <p>Executes the work with the transactional behavior defined by the parameter txnType.  This is very similar
@@ -252,6 +264,12 @@ public interface Objectify
 	 * @return the result of the work
 	 */
 	<R> R execute(TxnType txnType, Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void execute(TxnType txnType, Runnable work);
 
 	/**
 	 * Synchronously flushes any deferred operations to the datastore. Objectify does this for you at the end

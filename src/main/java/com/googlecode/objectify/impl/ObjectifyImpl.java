@@ -184,6 +184,14 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		return transactor.execute(this, txnType, work);
 	}
 
+	@Override
+	public void execute(final TxnType txnType, final Runnable work) {
+		execute(txnType, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.Work)
 	 */
@@ -194,12 +202,9 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 
 	@Override
 	public void transact(final Runnable work) {
-		transact(new Work<Void>() {
-			@Override
-			public Void run() {
-				work.run();
-				return null;
-			}
+		transact((Work<Void>)() -> {
+			work.run();
+			return null;
 		});
 	}
 
@@ -211,12 +216,28 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 		return this.transactNew(Integer.MAX_VALUE, work);
 	}
 
+	@Override
+	public void transactNew(final Runnable work) {
+		transactNew((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.Work)
 	 */
 	@Override
 	public <R> R transactNew(int limitTries, Work<R> work) {
 		return transactor.transactNew(this, limitTries, work);
+	}
+
+	@Override
+	public void transactNew(int limitTries, final Runnable work) {
+		transactNew(limitTries, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
 	}
 
 	/* (non-Javadoc)
