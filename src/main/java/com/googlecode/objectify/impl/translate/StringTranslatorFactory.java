@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.appengine.api.datastore.DataTypeUtils;
 import com.google.appengine.api.datastore.Text;
 import com.googlecode.objectify.impl.Path;
 import lombok.extern.java.Log;
@@ -20,7 +21,7 @@ public class StringTranslatorFactory extends ValueTranslatorFactory<String, Obje
 	/**
 	 * Maximum number of BYTES we can store in a String before we have to convert to Text.
 	 */
-	public static final int MAX_STRING_BYTES = 1500;
+	public static final int MAX_STRING_BYTES = DataTypeUtils.MAX_STRING_PROPERTY_LENGTH;
 
 	/**
 	 * Google isn't explicit that UTF-8 encoding is used, but it's a safe assumption. Worst case is
