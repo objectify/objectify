@@ -5,53 +5,51 @@ package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.test.LoadTransactionalTests.One.Bar;
-import com.googlecode.objectify.test.LoadTransactionalTests.One.Foo;
-import com.googlecode.objectify.test.LoadUnlessTests.One.No;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of @Load annotation in transactions
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadTransactionalTests extends TestBase
-{
+class LoadTransactionalTests extends TestBase {
 	/** */
 	@Entity
-	public static class One {
-		public static class Foo {}
-		public static class Bar {}
+	@Data
+	private static class One {
+		static class Foo {}
+		static class Bar {}
 
-		public @Id long id;
-		public @Load Ref<Two> always;
-		public @Load(unless=Foo.class) Ref<Two> withUnless;
-		public @Load(Foo.class) Ref<Two> withGroup;
+		@Id long id;
+		@Load Ref<Two> always;
+		@Load(unless=Foo.class) Ref<Two> withUnless;
+		@Load(Foo.class) Ref<Two> withGroup;
 	}
 
 	/** */
 	@Entity
-	public static class Two {
+	@Data
+	private static class Two {
 		public @Id long id;
 	}
 
 	/** */
 	@Test
-	public void properLoadBehaviorInTransactions() throws Exception {
-		fact().register(One.class);
-		fact().register(Two.class);
+	void properLoadBehaviorInTransactions() throws Exception {
+		factory().register(One.class);
+		factory().register(Two.class);
 
 		final Two twoAlways = new Two();
 		twoAlways.id = 123;
@@ -75,78 +73,72 @@ public class LoadTransactionalTests extends TestBase
 		one.withGroup = twoWithGroupRef;
 		ofy().save().entity(one).now();
 
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				final One fetched = ofy().load().entity(one).now();
-				assert !fetched.always.isLoaded();
-				assert !fetched.withUnless.isLoaded();
-				assert !fetched.withGroup.isLoaded();
-			}
+		ofy().transact(() -> {
+			final One fetched = ofy().load().entity(one).now();
+			assertThat(fetched.always.isLoaded()).isFalse();
+			assertThat(fetched.withUnless.isLoaded()).isFalse();
+			assertThat(fetched.withGroup.isLoaded()).isFalse();
 		});
 
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				final One fetched = ofy().load().group(Foo.class).entity(one).now();
-				assert !fetched.always.isLoaded();
-				assert !fetched.withUnless.isLoaded();
-				assert fetched.withGroup.isLoaded();
-			}
+		ofy().transact(() -> {
+			final One fetched = ofy().load().group(One.Foo.class).entity(one).now();
+			assertThat(fetched.always.isLoaded()).isFalse();
+			assertThat(fetched.withUnless.isLoaded()).isFalse();
+			assertThat(fetched.withGroup.isLoaded()).isTrue();
 		});
 
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				final One fetched = ofy().load().group(Bar.class).entity(one).now();
-				assert !fetched.always.isLoaded();
-				assert !fetched.withUnless.isLoaded();
-				assert !fetched.withGroup.isLoaded();
-			}
+		ofy().transact(() -> {
+			final One fetched = ofy().load().group(One.Bar.class).entity(one).now();
+			assertThat(fetched.always.isLoaded()).isFalse();
+			assertThat(fetched.withUnless.isLoaded()).isFalse();
+			assertThat(fetched.withGroup.isLoaded()).isFalse();
 		});
 	}
 
 	/** */
 	@Entity
-	public static class Multi {
-		public @Id long id;
-		public @Load(unless=No.class) List<Ref<Two>> always = new ArrayList<>();
+	@Data
+	private static class Multi {
+		static class No {}
+
+		@Id long id;
+		@Load(unless=No.class) List<Ref<Two>> always = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testLoadUnlessMulti() throws Exception {
-		fact().register(Multi.class);
-		fact().register(Two.class);
+	void testLoadUnlessMulti() throws Exception {
+		factory().register(Multi.class);
+		factory().register(Two.class);
 
-		Two two1 = new Two();
+		final Two two1 = new Two();
 		two1.id = 456;
-		Key<Two> two1Key = ofy().save().entity(two1).now();
-		Ref<Two> two1Ref = Ref.create(two1Key);
+		final Key<Two> two1Key = ofy().save().entity(two1).now();
+		final Ref<Two> two1Ref = Ref.create(two1Key);
 
-		Two two2 = new Two();
+		final Two two2 = new Two();
 		two2.id = 789;
-		Key<Two> two2Key = ofy().save().entity(two2).now();
-		Ref<Two> two2Ref = Ref.create(two2Key);
+		final Key<Two> two2Key = ofy().save().entity(two2).now();
+		final Ref<Two> two2Ref = Ref.create(two2Key);
 
-		Multi multi = new Multi();
+		final Multi multi = new Multi();
 		multi.id = 123;
 		multi.always.add(two1Ref);
 		multi.always.add(two2Ref);
 		ofy().save().entity(multi).now();
 
 		ofy().clear();
-		Multi fetchedDefault = ofy().load().entity(multi).now();
-		assertThat(fetchedDefault.always, hasSize(2));
-		for (Ref<Two> ref : fetchedDefault.always) {
-			assertThat(ref.isLoaded(), equalTo(true));
+		final Multi fetchedDefault = ofy().load().entity(multi).now();
+		assertThat(fetchedDefault.always).hasSize(2);
+		for (final Ref<Two> ref : fetchedDefault.always) {
+			assertThat(ref.isLoaded()).isEqualTo(true);
 		}
 
 		ofy().clear();
-		Multi fetchedNo = ofy().load().group(No.class).entity(multi).now();
-		assertThat(fetchedNo.always, hasSize(2));
-		for (Ref<Two> ref : fetchedNo.always) {
-			assertThat(ref.isLoaded(), equalTo(false));
+		final Multi fetchedNo = ofy().load().group(Multi.No.class).entity(multi).now();
+		assertThat(fetchedNo.always).hasSize(2);
+		for (final Ref<Two> ref : fetchedNo.always) {
+			assertThat(ref.isLoaded()).isEqualTo(false);
 		}
 	}
 }

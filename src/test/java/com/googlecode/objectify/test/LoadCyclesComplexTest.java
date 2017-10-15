@@ -6,66 +6,69 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144
  */
-public class LoadCyclesComplexTest extends TestBase {
+class LoadCyclesComplexTest extends TestBase {
 
 	@Entity
-	public static class A {
+	@Data
+	private static class A {
 		@Id
-		public long id = 1;
-
-		AEm aem = new AEm();
+		private long id = 1;
+		private AEm aem = new AEm();
 	}
 
-	public static class AEm {
+	@Data
+	private static class AEm {
 		@Load
-		public List<Ref<B>> bs = new ArrayList<>();
+		private List<Ref<B>> bs = new ArrayList<>();
 	}
 
 	@Entity
-	public static class B {
+	@Data
+	private static class B {
 		@Parent
 		@Load
-		public Ref<A> a;
+		private Ref<A> a;
 
 		@Id
-		public long id = 2;
+		private long id = 2;
 
 		@Load
-		public List<Ref<C>> cs = new ArrayList<>();
+		private List<Ref<C>> cs = new ArrayList<>();
 	}
 
 	@Entity
-	public static class C {
+	@Data
+	private static class C {
 		@Parent
 		@Load
-		public Ref<A> a;
+		private Ref<A> a;
 
 		@Id
-		public long id = 3;
+		private long id = 3;
 	}
-
-
 
 	@Test
-	public void loadCycles() {
-		fact().register(A.class);
-		fact().register(B.class);
-		fact().register(C.class);
+	void loadCycles() {
+		factory().register(A.class);
+		factory().register(B.class);
+		factory().register(C.class);
 
-		A a = new A();
-		B b = new B();
-		C c = new C();
+		final A a = new A();
+		final B b = new B();
+		final C c = new C();
 
 		c.a = Ref.create(a);
 		b.a = Ref.create(a);
@@ -75,7 +78,7 @@ public class LoadCyclesComplexTest extends TestBase {
 		ofy().save().entities(a, b, c).now();
 		ofy().clear();
 
-		A a1 = ofy().load().entity(a).now();
-		assert a1.aem.bs.get(0).get().cs.get(0).get().a != null;
+		final A a1 = ofy().load().entity(a).now();
+		assertThat(a1.aem.bs.get(0).get().cs.get(0).get().a).isNotNull();
 	}
 }

@@ -11,12 +11,13 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.junit.jupiter.api.Test;
 
-import java.util.logging.Logger;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Just the registration part of polymorphic classes.  The 'A' just to alphabetize it before
@@ -24,17 +25,13 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class PolymorphicAAATests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(PolymorphicAAATests.class.getName());
+class PolymorphicAAATests extends TestBase {
 
 	/** */
 	@Entity
 	@Index
-	public static class Animal
-	{
+	@Data
+	public static class Animal {
 		@Id Long id;
 		String name;
 	}
@@ -42,83 +39,83 @@ public class PolymorphicAAATests extends TestBase
 	/** */
 	@Subclass(index=true)
 	@Index
-	public static class Mammal extends Animal
-	{
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	public static class Mammal extends Animal {
 		boolean longHair;
 	}
 
 	/** */
 	@Subclass(index=true)
 	@Index
-	public static class Cat extends Mammal
-	{
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	public static class Cat extends Mammal {
 		boolean hypoallergenic;
 	}
 
 	/** */
 	@Subclass(index=false)
 	@Index
-	public static class Dog extends Mammal
-	{
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	public static class Dog extends Mammal {
 		int loudness;
 	}
 
 	/** */
 	@Test
-	public void testRegistrationForwards() throws Exception {
-		fact().register(Animal.class);
-		fact().register(Mammal.class);
-		fact().register(Cat.class);
-		fact().register(Dog.class);
+	void registrationForwards() throws Exception {
+		factory().register(Animal.class);
+		factory().register(Mammal.class);
+		factory().register(Cat.class);
+		factory().register(Dog.class);
 	}
 
 	/** */
 	@Test
-	public void testRegistrationBackwards() throws Exception {
-		fact().register(Dog.class);
-		fact().register(Cat.class);
-		fact().register(Mammal.class);
-		fact().register(Animal.class);
+	void registrationBackwards() throws Exception {
+		factory().register(Dog.class);
+		factory().register(Cat.class);
+		factory().register(Mammal.class);
+		factory().register(Animal.class);
 	}
 
 	/** */
 	@Test
-	public void testBasicFetch() throws Exception {
-		this.testRegistrationForwards();
+	void basicFetch() throws Exception {
+		this.registrationForwards();
 
-		Animal a = new Animal();
+		final Animal a = new Animal();
 		a.name = "Bob";
-		Animal a2 = ofy().saveClearLoad(a);
-		assert a.name.equals(a2.name);
+		final Animal a2 = saveClearLoad(a);
+		assertThat(a2).isEqualTo(a);
 
-		Mammal m = new Mammal();
+		final Mammal m = new Mammal();
 		m.name = "Bob";
 		m.longHair = true;
-		Mammal m2 = ofy().saveClearLoad(m);
-		assert m.name.equals(m2.name);
-		assert m.longHair == m2.longHair;
+		final Mammal m2 = saveClearLoad(m);
+		assertThat(m2).isEqualTo(m);
 
-		Cat c = new Cat();
+		final Cat c = new Cat();
 		c.name = "Bob";
 		c.longHair = true;
 		c.hypoallergenic = true;
-		Cat c2 = ofy().saveClearLoad(c);
-		assert c.name.equals(c2.name);
-		assert c.longHair == c2.longHair;
-		assert c.hypoallergenic == c2.hypoallergenic;
+		final Cat c2 = saveClearLoad(c);
+		assertThat(c2).isEqualTo(c);
 	}
 
 	/**
 	 * Issue #80:  http://code.google.com/p/objectify-appengine/issues/detail?id=80
 	 */
 	@Test
-	public void testNullFind() throws Exception {
-		this.testRegistrationForwards();
+	void nullFind() throws Exception {
+		this.registrationForwards();
 
 		// This should produce null
-		Cat cat = ofy().load().type(Cat.class).id(123).now();
+		final Cat cat = ofy().load().type(Cat.class).id(123).now();
 
-		assert cat == null;
+		assertThat(cat).isNull();
 	}
 
 	/**
@@ -127,25 +124,26 @@ public class PolymorphicAAATests extends TestBase
 	 * what went wrong - the CCE is pretty explicit about the classes involved.  If we returned
 	 * null folks would think the data wasn't in the db.
 	 */
-	@Test(expectedExceptions=ClassCastException.class)
-	public void testFetchMismatch() throws Exception {
-		this.testRegistrationForwards();
+	@Test
+	void fetchingDowncastedKeyStillReturnsNormalEntity() throws Exception {
+		this.registrationForwards();
 
-		Animal a = new Animal();
+		final Animal a = new Animal();
 		a.name = "Bob";
 		ofy().save().entity(a).now();
 
-		// This should exclude the value
-		@SuppressWarnings("unused")
-		Mammal m = ofy().load().type(Mammal.class).id(a.id).now();
+		ofy().clear();
+
+		final Animal fetched = ofy().load().type(Mammal.class).id(a.id).now();
+		assertThat(fetched.getClass()).isEqualTo(Animal.class);	// not Mammal.class
 	}
 
 	/**
 	 */
 	@Test
-	public void keyCreationFindsBaseKind() throws Exception {
+	void keyCreationFindsBaseKind() throws Exception {
 		Key<?> key = Key.create(Mammal.class, 123L);
 
-		assert key.getKind().equals("Animal");
+		assertThat(key.getKind()).isEqualTo("Animal");
 	}
 }

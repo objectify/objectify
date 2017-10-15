@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -9,46 +10,49 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144
  */
-public class LoadCyclesParentTest extends TestBase {
+class LoadCyclesParentTest extends TestBase {
 
 	@Entity
-	public static class A {
+	@Data
+	private static class A {
 		@Id
-		public long id = 1;
+		private long id = 1;
 
 		@Load
-		public Ref<B> b;
+		private Ref<B> b;
 	}
 
 	@Entity
-	public static class B {
+	@Data
+	private static class B {
 		@Id
-		public long id = 1;
+		private long id = 1;
 
 		@Parent @Load
-		public Ref<A> a;
+		private Ref<A> a;
 	}
 
 	@Test
-	public void loadCycles() {
-		fact().register(A.class);
-		fact().register(B.class);
+	void loadCycles() {
+		factory().register(A.class);
+		factory().register(B.class);
 
-		A a = new A();
-		B b = new B();
+		final A a = new A();
+		final B b = new B();
 		b.a = Ref.create(a);	// gotta place b.a first so it assigns parent before we create a.b ref
 		a.b = Ref.create(b);
 
 		ofy().save().entities(a, b).now();
 
 		ofy().clear();
-		A a1 = ofy().load().entity(a).now();
-		assert a1.b.get().id == b.id;
+		final A a1 = ofy().load().entity(a).now();
+		assertThat(a1.b.get().id).isEqualTo(b.id);
 	}
 }

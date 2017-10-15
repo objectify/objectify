@@ -3,106 +3,94 @@
 
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
-import com.googlecode.objectify.test.EnumTests.HasEnums.Color;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of Enums, including Enums in arrays and lists
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EnumTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(EnumTests.class.getName());
+class EnumTests extends TestBase {
+	private enum Color {
+		RED,
+		GREEN
+	}
 
 	/** */
 	@Entity
 	@Cache
 	@Index
-	public static class HasEnums
-	{
-		public enum Color {
-			RED,
-			GREEN
-		}
+	@Data
+	private static class HasEnums {
+		private @Id Long id;
 
-		public @Id Long id;
-
-		public Color color;
-		public List<Color> colors;
-		public Color[] colorsArray;
+		private Color color;
+		private List<Color> colors;
+		private Color[] colorsArray;
 	}
 
 	/** */
-	@BeforeMethod
-	public void setUpExtra()
+	@BeforeEach
+	void setUpExtra()
 	{
-		fact().register(HasEnums.class);
+		factory().register(HasEnums.class);
 	}
 
 	/** */
 	@Test
-	public void testSimpleEnum() throws Exception
-	{
-		HasEnums he = new HasEnums();
+	void simpleEnumsArePersisted() throws Exception {
+		final HasEnums he = new HasEnums();
 		he.color = Color.RED;
-		Key<HasEnums> key = ofy().save().entity(he).now();
 
-		he = ofy().load().key(key).now();
-		assert he.color == Color.RED;
+		final HasEnums fetched = saveClearLoad(he);
+
+		assertThat(fetched).isEqualTo(he);
 	}
 
 	/** */
-	@Test(groups={"now"})
-	public void testEnumsList() throws Exception
-	{
-		HasEnums he = new HasEnums();
+	@Test
+	void enumCollectionsArePersisted() throws Exception {
+		final HasEnums he = new HasEnums();
 		he.colors = Arrays.asList(Color.RED, Color.GREEN);
-		Key<HasEnums> key = ofy().save().entity(he).now();
 
-		he = ofy().load().key(key).now();
-		assert he.colors.get(0).equals(Color.RED) : "Expected RED got " + he.colors.get(0);
-		assert he.colors.get(1).equals(Color.GREEN) : "Expected GREEN got " + he.colors.get(1);
+		final HasEnums fetched = saveClearLoad(he);
+
+		assertThat(fetched).isEqualTo(he);
 	}
 
 	/** */
 	@Test
-	public void testEnumsArray() throws Exception
-	{
-		HasEnums he = new HasEnums();
+	void enumArraysArePersisted() throws Exception {
+		final HasEnums he = new HasEnums();
 		he.colorsArray = new Color[] { Color.RED, Color.GREEN };
-		Key<HasEnums> key = ofy().save().entity(he).now();
 
-		he = ofy().load().key(key).now();
-		assert he.colorsArray[0] == Color.RED;
-		assert he.colorsArray[1] == Color.GREEN;
+		final HasEnums fetched = saveClearLoad(he);
+
+		assertThat(fetched.colorsArray).isEqualTo(he.colorsArray);
 	}
 
 	/** */
 	@Test
-	public void testFilterByEnum() throws Exception
-	{
-		HasEnums he = new HasEnums();
+	void canFilterByEnum() throws Exception {
+		final HasEnums he = new HasEnums();
 		he.color = Color.GREEN;
 		ofy().save().entity(he).now();
 
 		HasEnums fetched = ofy().load().type(HasEnums.class).filter("color =", Color.GREEN).first().now();
-		assert fetched.id.equals(he.id);
+		assertThat(fetched).isEqualTo(he);
 	}
 }

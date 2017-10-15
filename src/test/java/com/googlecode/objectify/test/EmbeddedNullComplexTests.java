@@ -3,41 +3,39 @@
  */
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.Key;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Hey, this should work now! These used to break in the old embedded format. In the new EmbeddedEntity-based
  * solution, weird pathological situations are fine.
  */
-public class EmbeddedNullComplexTests extends TestBase {
+class EmbeddedNullComplexTests extends TestBase {
 
 	/**
 	 * @author Brian Chapman
 	 */
 	@Test
-	public void testFooBar() {
-		fact().register(FooBar.class);
+	void testFooBar() {
+		factory().register(FooBar.class);
 
-		FooBar fooBar = createFooBar();
-		Result<Key<FooBar>> result = ofy().save().entity(fooBar);
-		result.now();
+		final FooBar fooBar = createFooBar();
+		final FooBar retreived = saveClearLoad(fooBar);
 
-		FooBar retreived = ofy().load().type(FooBar.class).id(fooBar.id).safe();
-
-		assert fooBar.foos.size() == retreived.foos.size();
+		assertThat(fooBar.foos).isEqualTo(retreived.foos);
 	}
 
 	private FooBar createFooBar() {
@@ -55,25 +53,28 @@ public class EmbeddedNullComplexTests extends TestBase {
 	}
 
 	private Foo createFoo() {
-		Bar bar = new Bar();
-		return new Foo(bar);
+		return new Foo(new Bar());
 	}
 
-	public static class Bar {
-		public String aField = "aField";
-		public Double bField = Math.random();
+	@Data
+	private static class Bar {
+		private String aField = "aField";
+		private Double bField = Math.random();
 	}
 
-	public static class Foo {
-		public Bar bar;
-		public Foo(Bar bar) { this.bar = bar; }
-		public Foo() { }
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Foo {
+		private Bar bar;
 	}
 
 	@Entity
-	public static class FooBar {
-		@Id Long id;
-		public List<Foo> foos = new ArrayList<>();
+	@Data
+	private static class FooBar {
+		@Id
+		private Long id;
+		private List<Foo> foos = new ArrayList<>();
 	}
 
 
@@ -140,56 +141,65 @@ all 3 Approval objects, no 'approvals.addressBook' field is created in
 the data store and when read, all 3 Approval objects are present with
 no problems.
 	 */
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@SuppressWarnings("serial")
-	static class Group implements Serializable {
+	private static class Group implements Serializable {
 		String name;
-		public Group() {}
-		public Group(String name) { this.name = name; }
 	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
 	@SuppressWarnings("serial")
-	static class Profile implements Serializable {
+	private static class Profile implements Serializable {
 		String name;
-		public Profile() {}
-		public Profile(String name) { this.name = name; }
 	}
-	static class AddressBook {
+
+	@Data
+	private static class AddressBook {
 		@Serialize Group[] groups;
 		@Serialize Profile[] profiles;
 	}
-	static class Approval {
+
+	@Data
+	private static class Approval {
 		AddressBook addressBook;
 		String approvedBy;
 	}
+
+	@Data
 	@Entity
-	static class Form {
+	private static class Form {
 		@Id Long id;
 		Approval[] approvals;
 	}
 
 	/** */
 	@Test
-	public void testNestedEmbeds() {
-		fact().register(Form.class);
+	void testNestedEmbeds() {
+		factory().register(Form.class);
 
-		Approval approval0 = new Approval();
+		final Approval approval0 = new Approval();
 		approval0.approvedBy = "somezero";
 		approval0.addressBook = new AddressBook();
 		approval0.addressBook.groups = new Group[] { new Group("group0") };
 		approval0.addressBook.profiles = new Profile[] { new Profile("profile0") };
 
-		Approval approval1 = new Approval();
+		final Approval approval1 = new Approval();
 		approval1.approvedBy = "someone";
 
-		Approval approval2 = new Approval();
+		final Approval approval2 = new Approval();
 		approval2.approvedBy = "sometwo";
 		approval2.addressBook = new AddressBook();
 		approval2.addressBook.groups = new Group[] { new Group("group2") };
 		approval2.addressBook.profiles = new Profile[] { new Profile("profile2") };
 
-		Form form = new Form();
+		final Form form = new Form();
 		form.approvals = new Approval[] { approval0, approval1, approval2 };
 
-		Form fetched = ofy().saveClearLoad(form);
+		final Form fetched = saveClearLoad(form);
 
 		assert fetched.approvals.length == 3;
 

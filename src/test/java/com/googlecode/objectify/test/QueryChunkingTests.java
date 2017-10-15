@@ -14,12 +14,15 @@ import com.googlecode.objectify.impl.ResultWithCursor;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.ResultNow;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+
 import java.util.Map;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-import static org.mockito.Mockito.mock;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 import static org.mockito.Mockito.when;
 
 /**
@@ -27,40 +30,38 @@ import static org.mockito.Mockito.when;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryChunkingTests extends TestBase
-{
+class QueryChunkingTests extends TestBase {
 	private static final int BATCH_SIZE = 2;
 
-	QueryResultIterator<Key<Trivial>> keysIt;
-	Map<Key<Trivial>, Trivial> values;
+	private QueryResultIterator<Key<Trivial>> keysIt;
+	private Map<Key<Trivial>, Trivial> values;
 
-	LoadEngine loadEngine;
+	@Mock
+	private LoadEngine loadEngine;
 
 	/** */
-	@BeforeMethod
-	public void setUpExtra() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Trivial.class);
 
 		values = Maps.newHashMap();
 
 		for (int i=10; i<15; i++) {
-			Trivial triv = new Trivial((long)i, "str"+i, i);
-			Key<Trivial> key = ofy().save().entity(triv).now();
+			final Trivial triv = new Trivial((long)i, "str"+i, i);
+			final Key<Trivial> key = ofy().save().entity(triv).now();
 			values.put(key, triv);
 		}
 
 		keysIt = ofy().load().type(Trivial.class).chunk(BATCH_SIZE).keys().iterator();
 
-		loadEngine = mock(LoadEngine.class);
-
-		for (Map.Entry<Key<Trivial>, Trivial> entry: values.entrySet())
+		for (final Map.Entry<Key<Trivial>, Trivial> entry: values.entrySet())
 			when(loadEngine.load(entry.getKey())).thenReturn(new ResultNow<>(entry.getValue()));
 	}
 
 	/** */
 	@Test
-	public void testChunkIterator() throws Exception {
-		ChunkIterator<Trivial> chunkIt = new ChunkIterator<>(keysIt, BATCH_SIZE, loadEngine);
+	void testChunkIterator() throws Exception {
+		final ChunkIterator<Trivial> chunkIt = new ChunkIterator<>(keysIt, BATCH_SIZE, loadEngine);
 
 		Chunk<Trivial> chunk;
 		ResultWithCursor<Trivial> rc;
@@ -69,44 +70,41 @@ public class QueryChunkingTests extends TestBase
 		chunk = chunkIt.next();
 
 		rc = chunk.next();
-		assert rc.getResult().getId() == 10;
+		assertThat(rc.getResult().getId()).isEqualTo(10);
 		assertCursorGetsId(rc.getCursor(), 10);
-		assert rc.getOffset() == 0;
+		assertThat(rc.getOffset()).isEqualTo(0);
 
 		rc = chunk.next();
-		assert rc.getResult().getId() == 11;
+		assertThat(rc.getResult().getId()).isEqualTo(11);
 		assertCursorGetsId(rc.getCursor(), 10);
-		assert rc.getOffset() == 1;
-
+		assertThat(rc.getOffset()).isEqualTo(1);
 
 		// Second chunk
 		chunk = chunkIt.next();
 
 		rc = chunk.next();
-		assert rc.getResult().getId() == 12;
+		assertThat(rc.getResult().getId()).isEqualTo(12);
 		assertCursorGetsId(rc.getCursor(), 12);
-		assert rc.getOffset() == 0;
+		assertThat(rc.getOffset()).isEqualTo(0);
 
 		rc = chunk.next();
-		assert rc.getResult().getId() == 13;
+		assertThat(rc.getResult().getId()).isEqualTo(13);
 		assertCursorGetsId(rc.getCursor(), 12);
-		assert rc.getOffset() == 1;
-
+		assertThat(rc.getOffset()).isEqualTo(1);
 
 		// Third (abbreviated) chunk
 		chunk = chunkIt.next();
 
 		rc = chunk.next();
-		assert rc.getResult().getId() == 14;
+		assertThat(rc.getResult().getId()).isEqualTo(14);
 		assertCursorGetsId(rc.getCursor(), 14);
-		assert rc.getOffset() == 0;
-
+		assertThat(rc.getOffset()).isEqualTo(0);
 	}
 
 	/**
 	 * Assert that fetching from the cursor gets a trivial with the specified id as the first item.
 	 */
 	private void assertCursorGetsId(Cursor cursor, long trivId) {
-		assert ofy().load().type(Trivial.class).startAt(cursor).first().now().getId() == trivId;
+		assertThat(ofy().load().type(Trivial.class).startAt(cursor).first().now().getId()).isEqualTo(trivId);
 	}
 }

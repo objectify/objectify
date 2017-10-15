@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -9,50 +10,54 @@ import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144
  */
-public class LoadCyclesDeeperTest extends TestBase {
+class LoadCyclesDeeperTest extends TestBase {
 
 	@Entity
-	public static class A {
+	@Data
+	private static class A {
 		@Id
-		public long id = 1;
+		private long id = 1;
 
 		@Load
-		public Ref<B> b;
+		private Ref<B> b;
 	}
 
 	@Entity
-	public static class B {
+	@Data
+	private static class B {
 		@Id
-		public long id = 2;
+		private long id = 2;
 
 		@Load
-		public Ref<C> c;
+		private Ref<C> c;
 	}
 
 	@Entity
-	public static class C {
+	@Data
+	private static class C {
 		@Id
-		public long id = 3;
+		private long id = 3;
 
 		@Load @Parent
-		public Ref<A> a;
+		private Ref<A> a;
 	}
 
 	@Test
-	public void loadCycles() {
-		fact().register(A.class);
-		fact().register(B.class);
-		fact().register(C.class);
+	void loadCycles() {
+		factory().register(A.class);
+		factory().register(B.class);
+		factory().register(C.class);
 
-		A a = new A();
-		B b = new B();
-		C c = new C();
+		final A a = new A();
+		final B b = new B();
+		final C c = new C();
 		a.b = Ref.create(b);
 		c.a = Ref.create(a);	// must do this before creating Ref for b.c
 		b.c = Ref.create(c);
@@ -60,7 +65,7 @@ public class LoadCyclesDeeperTest extends TestBase {
 		ofy().save().entities(a, b, c).now();
 
 		ofy().clear();
-		A a1 = ofy().load().entity(a).now();
-		assert a1.b.get().c.get().a.get() != null;
+		final A a1 = ofy().load().entity(a).now();
+		assertThat(a1.b.get().c.get().a.get()).isNotNull();
 	}
 }

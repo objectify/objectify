@@ -8,39 +8,38 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Multi;
-import com.googlecode.objectify.test.LoadFieldRefTests.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests the fetching system for simple parent values.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadFieldRefTests extends TestBase
-{
-	Trivial t1;
-	Trivial t2;
-	Trivial tNone1;
-	Trivial tNone2;
-	Key<Trivial> k1;
-	Key<Trivial> k2;
-	Key<Trivial> kNone1;
-	Key<Trivial> kNone2;
+class LoadFieldRefTests extends TestBase {
+	private Trivial t1;
+	private Trivial t2;
+	private Trivial tNone1;
+	private Trivial tNone2;
+	private Key<Trivial> k1;
+	private Key<Trivial> k2;
+	private Key<Trivial> kNone1;
+	private Key<Trivial> kNone2;
 
 	/** */
-	@BeforeMethod
-	public void createTwo() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void createTwo() {
+		factory().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
 		k1 = ofy().save().entity(t1).now();
@@ -57,188 +56,178 @@ public class LoadFieldRefTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasEntities {
-		public @Id Long id;
-		public @Load Ref<Trivial> single;
-		public @Load List<Ref<Trivial>> multi = new ArrayList<>();
+	@Data
+	private static class HasEntities {
+		@Id Long id;
+		@Load Ref<Trivial> single;
+		@Load List<Ref<Trivial>> multi = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testTargetsExist() throws Exception {
-		fact().register(HasEntities.class);
+	void testTargetsExist() throws Exception {
+		factory().register(HasEntities.class);
 
-		HasEntities he = new HasEntities();
+		final HasEntities he = new HasEntities();
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
 
-		HasEntities fetched = ofy().saveClearLoad(he);
+		final HasEntities fetched = saveClearLoad(he);
 
-		assert fetched.single.isLoaded();
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.single.get()).isEqualTo(t1);
 
-		for (Ref<?> ref: fetched.multi)
-			assert ref.isLoaded();
+		for (final Ref<?> ref: fetched.multi)
+			assertThat(ref.isLoaded()).isTrue();
 
-		assert fetched.multi.get(0).get() == fetched.single.get();
-
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
+		assertThat(fetched.multi.get(0).get()).isSameAs(fetched.single.get());
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
 	}
 
 	/** */
 	@Test
-	public void testTargetsDontExist() throws Exception {
-		fact().register(HasEntities.class);
+	void testTargetsDontExist() throws Exception {
+		factory().register(HasEntities.class);
 
-		HasEntities he = new HasEntities();
+		final HasEntities he = new HasEntities();
 		he.single = Ref.create(kNone1);
 		he.multi.add(Ref.create(kNone1));
 		he.multi.add(Ref.create(kNone2));
-		HasEntities fetched = ofy().saveClearLoad(he);
+		final HasEntities fetched = saveClearLoad(he);
 
-		assert fetched.single.isLoaded();
-		assert fetched.single.get() == null;
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.single.get()).isNull();
 
-		for (Ref<?> ref: fetched.multi)
-			assert ref.isLoaded();
+		for (final Ref<?> ref: fetched.multi)
+			assertThat(ref.isLoaded()).isTrue();
 
-		assert fetched.multi.get(0).get() == null;
-		assert fetched.multi.get(1).get() == null;
+		assertThat(fetched.multi.get(0).get()).isNull();
+		assertThat(fetched.multi.get(1).get()).isNull();
 	}
 
 	/** */
 	@Entity
-	public static class ListNode {
-		public @Id Long id;
-		public @Load Ref<ListNode> next;
-		public String foo;
+	@Data
+	private static class ListNode {
+		@Id Long id;
+		@Load Ref<ListNode> next;
+		String foo;
 	}
 
 	/** */
 	@Test
-	public void testTwoLevelsOfFetch() throws Exception {
-		fact().register(ListNode.class);
+	void testTwoLevelsOfFetch() throws Exception {
+		factory().register(ListNode.class);
 
-		ListNode node3 = new ListNode();
+		final ListNode node3 = new ListNode();
 		node3.foo = "foo3";
 		ofy().save().entity(node3).now();
 
-		ListNode node2 = new ListNode();
+		final ListNode node2 = new ListNode();
 		node2.foo = "foo2";
 		node2.next = Ref.create(node3);
 		ofy().save().entity(node2).now();
 
-		ListNode node1 = new ListNode();
+		final ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(node2);
 		ofy().save().entity(node1).now();
 
 		ofy().clear();
-		ListNode fetched = ofy().load().entity(node1).now();
+		final ListNode fetched = ofy().load().entity(node1).now();
 
-		assert fetched.foo.equals(node1.foo);
-		assert fetched.next.isLoaded();
-		assert fetched.next.get().id.equals(node2.id);
-		assert fetched.next.get().foo.equals(node2.foo);
-		assert fetched.next.get().next.isLoaded();
-		assert fetched.next.get().next.get().id.equals(node3.id);
-		assert fetched.next.get().next.get().foo.equals(node3.foo);
-		assert fetched.next.get().next.get().next == null;
+		assertThat(fetched.foo).isEqualTo(node1.foo);
+		assertThat(fetched.next.isLoaded()).isTrue();
+		assertThat(fetched.next.get()).isEqualTo(node2);
+		assertThat(fetched.next.get().next.isLoaded()).isTrue();
+		assertThat(fetched.next.get().next.get()).isEqualTo(node3);
+		assertThat(fetched.next.get().next.get().next).isNull();
 	}
 
 	/** */
 	@Test
-	public void testMissingTail() throws Exception {
-		fact().register(ListNode.class);
+	void testMissingTail() throws Exception {
+		factory().register(ListNode.class);
 
 		// Node2 should not exist but should have a concrete id for node1
-		ListNode node2 = new ListNode();
+		final ListNode node2 = new ListNode();
 		node2.id = 999L;
 
-		ListNode node1 = new ListNode();
+		final ListNode node1 = new ListNode();
 		node1.foo = "foo1";
 		node1.next = Ref.create(Key.create(node2));
 		ofy().save().entity(node1).now();
 
 		ofy().clear();
-		ListNode fetched = ofy().load().entity(node1).now();
+		final ListNode fetched = ofy().load().entity(node1).now();
 
-		assert fetched.foo.equals(node1.foo);
-		assert fetched.next.get() == null;	// it was fetched, so this should be initialized and null.
+		assertThat(fetched.foo).isEqualTo(node1.foo);
+		assertThat(fetched.next.get()).isNull();	// it was fetched, so this should be initialized and null.
 	}
 
 	/** */
 	@Entity
-	public static class HasEntitiesWithGroups {
-		public static class Single {}
-		public static class Multi {}
+	private static class HasEntitiesWithGroups {
+		static class Single {}
+		static class Multi {}
 
-		public @Id Long id;
-		public @Load(Single.class) Ref<Trivial> single;
-		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
+		@Id Long id;
+		@Load(Single.class) Ref<Trivial> single;
+		@Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testGrouping() throws Exception {
-		fact().register(HasEntitiesWithGroups.class);
+	void testGrouping() throws Exception {
+		factory().register(HasEntitiesWithGroups.class);
 
-		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
+		final HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
+		HasEntitiesWithGroups fetched = saveClearLoad(he);
 
-		Key<HasEntitiesWithGroups> hekey = Key.create(he);
+		final Key<HasEntitiesWithGroups> hekey = Key.create(he);
 
-		assert !fetched.single.isLoaded();
-		assert !fetched.multi.get(0).isLoaded();
-		assert !fetched.multi.get(1).isLoaded();
+		assertThat(fetched.single.isLoaded()).isFalse();
+		assertThat(fetched.multi.get(0).isLoaded()).isFalse();
+		assertThat(fetched.multi.get(1).isLoaded()).isFalse();
 
-		assert fetched.single.equivalent(k1);
-		assert fetched.single.equivalent(fetched.multi.get(0));
-
-		ofy().clear();
-		fetched = ofy().load().group(Single.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert !fetched.multi.get(1).isLoaded();
-
-		assert fetched.single.equivalent(fetched.multi.get(0));
-		assert fetched.single.get() == fetched.multi.get(0).get();
-
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
+		assertThat(fetched.single.equivalent(k1)).isTrue();
+		assertThat(fetched.single.equivalent(fetched.multi.get(0))).isTrue();
 
 		ofy().clear();
-		fetched = ofy().load().group(Multi.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert fetched.multi.get(1).isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Single.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isFalse();
 
-		assert fetched.multi.get(0).equivalent(fetched.single);
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assertThat(fetched.single.equivalent(fetched.multi.get(0))).isTrue();
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-
+		assertThat(fetched.single.get()).isEqualTo(t1);
 
 		ofy().clear();
-		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert fetched.multi.get(1).isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Multi.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isTrue();
 
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assertThat(fetched.multi.get(0).equivalent(fetched.single)).isTrue();
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 
+		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
+
+		ofy().clear();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Single.class).group(HasEntitiesWithGroups.Multi.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isTrue();
+
+		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 	}
 }

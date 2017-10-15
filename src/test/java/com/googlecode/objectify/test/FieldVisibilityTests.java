@@ -10,31 +10,28 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Testing of field visiblity (package/private/etc)
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class FieldVisibilityTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(FieldVisibilityTests.class.getName());
-
+class FieldVisibilityTests extends TestBase {
 	/** */
 	@Entity
 	@Unindex
-	static class ThingWithPrivates
-	{
+	@Data
+	private static class ThingWithPrivates {
 		@Id
 		private Long id;
 
@@ -44,29 +41,29 @@ public class FieldVisibilityTests extends TestBase
 
 	/** */
 	@Test
-	public void testGet() throws Exception
-	{
-		fact().register(ThingWithPrivates.class);
+	void canPersistPrivateFields() throws Exception {
+		factory().register(ThingWithPrivates.class);
 
-		ThingWithPrivates thing = new ThingWithPrivates();
-		//thing.stuff.add("foo");
+		final ThingWithPrivates thing = new ThingWithPrivates();
+		thing.stuff.add("foo");
 
-		ThingWithPrivates fetched = ofy().saveClearLoad(thing);
+		final ThingWithPrivates fetched = saveClearLoad(thing);
 
-		assert fetched.id.equals(thing.id);
+		assertThat(fetched).isEqualTo(thing);
 	}
 
 	/** */
 	@Test
-	public void testQuery() throws Exception
-	{
-		fact().register(ThingWithPrivates.class);
+	void canQueryForPrivateFields() throws Exception {
+		factory().register(ThingWithPrivates.class);
 
-		ThingWithPrivates thing = new ThingWithPrivates();
+		final ThingWithPrivates thing = new ThingWithPrivates();
 		thing.stuff.add("foo");
 
 		ofy().save().entity(thing).now();
+		ofy().clear();
+		final List<ThingWithPrivates> fetched = ofy().load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
 
-		ofy().load().type(ThingWithPrivates.class).filter("stuff", "foo").list();
+		assertThat(fetched).containsExactly(thing);
 	}
 }

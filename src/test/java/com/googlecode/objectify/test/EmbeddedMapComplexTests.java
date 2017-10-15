@@ -2,72 +2,57 @@ package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Test persisting of Map with an embedded value.
  */
-public class EmbeddedMapComplexTests extends TestBase
-{
-	public static class Thing {
-		String name;
-		Long weight;
+class EmbeddedMapComplexTests extends TestBase {
 
-		/** Simplistic implementation */
-		@Override
-		public boolean equals(Object other) {
-			return name.equals(((Thing)other).name) && weight.equals(((Thing)other).weight);
-		}
-
-		@Override
-		public String toString() {
-			return "Thing(name=" + name + ", weight=" + weight + ")";
-		}
+	@Data
+	private static class Thing {
+		private String name;
+		private Long weight;
 	}
 
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasMapEmbed {
+	@Data
+	@EqualsAndHashCode(exclude = "id")
+	private static class HasMapEmbed {
 		@Id Long id;
 		Thing thing;
 		Map<String, Thing> things = new HashMap<>();
-
-		/** Simplistic implementation, ignores id */
-		@Override
-		public boolean equals(Object obj) {
-			HasMapEmbed other = (HasMapEmbed)obj;
-			return Objects.equals(thing, other.thing)
-					&& Objects.equals(things, other.things);
-		}
 	}
 
 
 	@com.googlecode.objectify.annotation.Entity
-	public static class HasNestedMapEmbed {
+	private static class HasNestedMapEmbed {
 		@Id Long id;
 		Map<String, HasMapEmbed> nestedThings = new HashMap<>();
 	}
 
 	/** Need to be able to create these easily */
 	private HasMapEmbed createHasMapEmbed(int suffix) {
-		HasMapEmbed hasMap = new HasMapEmbed();
+		final HasMapEmbed hasMap = new HasMapEmbed();
 
 		hasMap.thing = new Thing();
 		hasMap.thing.name = "Chair" + suffix;
 		hasMap.thing.weight = 100L + suffix;
 
-		Thing fishThing = new Thing();
+		final Thing fishThing = new Thing();
 		fishThing.name = "Blue whale" + suffix;
 		fishThing.weight = 1000000L + suffix;
 		hasMap.things.put("fish" + suffix, fishThing);
 
-		Thing fruitThing = new Thing();
+		final Thing fruitThing = new Thing();
 		fruitThing.name = "Apple" + suffix;
 		fruitThing.weight = 0L + suffix;
 		hasMap.things.put("fruit" + suffix, fruitThing);
@@ -76,31 +61,31 @@ public class EmbeddedMapComplexTests extends TestBase
 	}
 
 	@Test
-	public void testEmbeddedMap() throws Exception {
-		fact().register(HasMapEmbed.class);
+	void embeddedMapsArePersisted() throws Exception {
+		factory().register(HasMapEmbed.class);
 
-		HasMapEmbed hasMap = createHasMapEmbed(1);
-		HasMapEmbed fetched = ofy().saveClearLoad(hasMap);
+		final HasMapEmbed hasMap = createHasMapEmbed(1);
+		final HasMapEmbed fetched = saveClearLoad(hasMap);
 
-		assert hasMap.equals(fetched);
+		assertThat(fetched).isEqualTo(hasMap);
 	}
 
 	@Test
-	public void testNestedEmbeddedMap() throws Exception {
-		fact().register(HasNestedMapEmbed.class);
+	void nestedEmbeddedMapsArePersisted() throws Exception {
+		factory().register(HasNestedMapEmbed.class);
 
-		HasNestedMapEmbed hasNested = new HasNestedMapEmbed();
+		final HasNestedMapEmbed hasNested = new HasNestedMapEmbed();
 
-		HasMapEmbed hasMap1 = createHasMapEmbed(1);
+		final HasMapEmbed hasMap1 = createHasMapEmbed(1);
 		hasMap1.id = 123L;
-		HasMapEmbed hasMap2 = createHasMapEmbed(2);
+		final HasMapEmbed hasMap2 = createHasMapEmbed(2);
 		hasMap2.id = 456L;
 
 		hasNested.nestedThings.put("one", hasMap1);
 		hasNested.nestedThings.put("two", hasMap2);
 
-		HasNestedMapEmbed fetched = ofy().saveClearLoad(hasNested);
+		final HasNestedMapEmbed fetched = saveClearLoad(hasNested);
 
-		assert fetched.nestedThings.equals(hasNested.nestedThings);
+		assertThat(fetched.nestedThings).isEqualTo(hasNested.nestedThings);
 	}
 }

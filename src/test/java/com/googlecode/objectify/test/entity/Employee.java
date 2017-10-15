@@ -10,6 +10,8 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Load;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * An employee with a key for a Many to one test case.
@@ -19,43 +21,30 @@ import com.googlecode.objectify.annotation.Load;
  */
 @Entity
 @Cache
-public class Employee
-{
+@Data
+@NoArgsConstructor
+public class Employee {
 	@Id
-	public String name;
+	private String name;
 
 	@Index
-	public Key<Employee> manager;
+	private Key<Employee> manager;
 
 	@Index @Load
-	public Ref<Employee> manager2;
+	private Ref<Employee> manager2;
 
-	/** Default constructor must always exist */
-	public Employee() {}
-
-	/** set a name */
 	public Employee(String name)
 	{
 		this.name = name;
 	}
 
-	/** set a name and manager */
-	public Employee(String name, Key<Employee> manager)
-	{
+	public Employee(String name, Key<Employee> manager) {
 		this.name = name;
 		this.manager = manager;
 	}
 
-	/** set a name and manager */
-	public Employee(String name, Employee manager2)
-	{
+	public Employee(String name, Employee manager2) {
 		this.name = name;
 		this.manager2 = Ref.create(manager2);
-	}
-
-	/** */
-	public String getName()
-	{
-		return this.name;
 	}
 }

@@ -9,47 +9,51 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Tests of KeyMetadata
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class KeyMetadataTests extends TestBase
-{
+class KeyMetadataTests extends TestBase {
 	/** */
 	@Test
-	public void testIdType() throws Exception {
-		fact().register(Trivial.class);
-		assert fact().getMetadata(Trivial.class).getKeyMetadata().getIdFieldType() == Long.class;
+	void testIdType() throws Exception {
+		factory().register(Trivial.class);
+		assertThat(factory().getMetadata(Trivial.class).getKeyMetadata().getIdFieldType()).isEqualTo(Long.class);
 	}
 
-	static class BaseThing {
+	@Data
+	private static class BaseThing {
 		@Parent Key<?> parent;
 		@Id Long id;
 	}
 
 	@Entity
-	static class Thing extends BaseThing {
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	private static class Thing extends BaseThing {
 		String foo;
 	}
 
 	/**
 	 */
 	@Test
-	public void idAndParentCanBeSpecifiedInBaseClass() throws Exception {
-		fact().register(Thing.class);
+	void idAndParentCanBeSpecifiedInBaseClass() throws Exception {
+		factory().register(Thing.class);
 
-		Thing th = new Thing();
+		final Thing th = new Thing();
 		th.parent = Key.create(Thing.class, 123L);
 		th.id = 456L;
 
-		Thing fetched = ofy().saveClearLoad(th);
-		assert fetched.parent.equals(th.parent);
-		assert fetched.id.equals(th.id);
+		final Thing fetched = saveClearLoad(th);
+
+		assertThat(fetched).isEqualTo(th);
 	}
 }

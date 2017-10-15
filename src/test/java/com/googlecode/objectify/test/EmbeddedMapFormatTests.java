@@ -7,44 +7,43 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  */
-public class EmbeddedMapFormatTests extends TestBase
-{
+class EmbeddedMapFormatTests extends TestBase {
 	
 	/** */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class OuterWithMap {
+	private static class OuterWithMap {
 		@Id Long id;
 		Map<String, Long> map = Maps.newLinkedHashMap();
 	}
 	
 	/** */
 	@Test
-	public void v2EmbedMapFormatIsCorrect() throws Exception {
-		fact().register(OuterWithMap.class);
+	void v2EmbedMapFormatIsCorrect() throws Exception {
+		factory().register(OuterWithMap.class);
 
-		OuterWithMap outer = new OuterWithMap();
+		final OuterWithMap outer = new OuterWithMap();
 		outer.map.put("asdf", 123L);
 		
-		Key<OuterWithMap> key = ofy().save().entity(outer).now();
+		final Key<OuterWithMap> key = ofy().save().entity(outer).now();
 		
-		Entity entity = ds().get(key.getRaw());
+		final Entity entity = ds().get(key.getRaw());
 		
-		EmbeddedEntity entityInner = (EmbeddedEntity)entity.getProperty("map");
-		assert entityInner.getProperty("asdf").equals(123L);
+		final EmbeddedEntity entityInner = (EmbeddedEntity)entity.getProperty("map");
+		assertThat(entityInner.getProperty("asdf")).isEqualTo(123L);
 		
 		ofy().clear();
-		OuterWithMap fetched = ofy().load().key(key).now();
-		assert fetched.map.equals(outer.map);
+		final OuterWithMap fetched = ofy().load().key(key).now();
+		assertThat(fetched.map).isEqualTo(outer.map);
 	}
 }

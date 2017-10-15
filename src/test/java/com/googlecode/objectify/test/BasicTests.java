@@ -16,330 +16,321 @@ import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.NamedTrivial;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import java.util.stream.Collectors;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests of basic entity manipulation.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BasicTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(BasicTests.class.getName());
-
+class BasicTests extends TestBase {
 	/** */
 	@Test
-	public void idIsGenerated() throws Exception {
-		fact().register(Trivial.class);
+	void idIsGenerated() throws Exception {
+		factory().register(Trivial.class);
 
 		// Note that 5 is not the id, it's part of the payload
-		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy().save().entity(triv).now();
+		final Trivial triv = new Trivial("foo", 5);
+		final Key<Trivial> k = ofy().save().entity(triv).now();
 
-		assert k.getKind().equals(triv.getClass().getSimpleName());
-		assert k.getId() == triv.getId();
-
-		Key<Trivial> created = Key.create(Trivial.class, k.getId());
-		assert k.equals(created);
-
-		Trivial fetched = ofy().load().key(k).now();
-
-		assert fetched.getId().equals(k.getId());
-		assert fetched.getSomeNumber() == triv.getSomeNumber();
-		assert fetched.getSomeString().equals(triv.getSomeString());
+		assertThat(k.getKind()).isEqualTo(triv.getClass().getSimpleName());
+		assertThat(k.getId()).isEqualTo(triv.getId());
 	}
 	
 	/** */
-	@Test(expectedExceptions=SaveException.class)
-	public void savingNullNamedIdThrowsException() throws Exception {
-		fact().register(NamedTrivial.class);
+	@Test
+	void savingNullNamedIdThrowsException() throws Exception {
+		factory().register(NamedTrivial.class);
 		
-		NamedTrivial triv = new NamedTrivial(null, "foo", 5);
-		ofy().save().entity(triv).now();
+		final NamedTrivial triv = new NamedTrivial(null, "foo", 5);
+
+		assertThrows(SaveException.class, () -> {
+			ofy().save().entity(triv).now();
+		});
 	}
 
 	/** */
 	@Test
-	public void savingEntityWithSameIdOverwritesData() throws Exception {
-		fact().register(Trivial.class);
+	void savingEntityWithSameIdOverwritesData() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
-		Key<Trivial> k = ofy().save().entity(triv).now();
+		final Trivial triv = new Trivial("foo", 5);
+		final Key<Trivial> k = ofy().save().entity(triv).now();
 
-		Trivial triv2 = new Trivial(k.getId(), "bar", 6);
-		Key<Trivial> k2 = ofy().save().entity(triv2).now();
+		final Trivial triv2 = new Trivial(k.getId(), "bar", 6);
+		final Key<Trivial> k2 = ofy().save().entity(triv2).now();
 
-		assert k2.equals(k);
+		assertThat(k2).isEqualTo(k);
 
-		Trivial fetched = ofy().load().key(k).now();
+		final Trivial fetched = ofy().load().key(k).now();
+		assertThat(fetched).isSameAs(triv2);
 
-		assert fetched.getId() == k.getId();
-		assert fetched.getSomeNumber() == triv2.getSomeNumber();
-		assert fetched.getSomeString().equals(triv2.getSomeString());
+		ofy().clear();
+		final Trivial fetched2 = ofy().load().key(k).now();
+		assertThat(fetched2.getId()).isEqualTo(k.getId());
+		assertThat(fetched2.getSomeNumber()).isEqualTo(triv2.getSomeNumber());
+		assertThat(fetched2.getSomeString()).isEqualTo(triv2.getSomeString());
 	}
 
 	/** */
 	@Test
-	public void savingEntityWithNameIdWorks() throws Exception {
-		fact().register(NamedTrivial.class);
+	void savingEntityWithNameIdWorks() throws Exception {
+		factory().register(NamedTrivial.class);
 
-		NamedTrivial triv = new NamedTrivial("first", "foo", 5);
-		Key<NamedTrivial> k = ofy().save().entity(triv).now();
+		final NamedTrivial triv = new NamedTrivial("first", "foo", 5);
+		final Key<NamedTrivial> k = ofy().save().entity(triv).now();
 
-		assert k.getName().equals("first");
+		assertThat(k.getName()).isEqualTo("first");
+		assertThat(k).isEqualTo(Key.create(NamedTrivial.class, "first"));
 
-		Key<NamedTrivial> createdKey = Key.create(NamedTrivial.class, "first");
-		assert k.equals(createdKey);
+		final NamedTrivial fetched = ofy().load().key(k).now();
+		assertThat(fetched).isSameAs(triv);
 
-		NamedTrivial fetched = ofy().load().key(k).now();
-
-		assert fetched.getName().equals(k.getName());
-		assert fetched.getSomeNumber() == triv.getSomeNumber();
-		assert fetched.getSomeString().equals(triv.getSomeString());
+		ofy().clear();
+		final NamedTrivial fetched2 = ofy().load().key(k).now();
+		assertThat(fetched2.getName()).isEqualTo(k.getName());
+		assertThat(fetched2.getSomeNumber()).isEqualTo(triv.getSomeNumber());
+		assertThat(fetched2.getSomeString()).isEqualTo(triv.getSomeString());
 	}
 
 	/** */
 	@Test
-	public void testBatchOperations() throws Exception {
-		fact().register(Trivial.class);
+	void simpleBatchOperations() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial("foo", 5);
-		Trivial triv2 = new Trivial("foo2", 6);
+		final Trivial triv1 = new Trivial("foo", 5);
+		final Trivial triv2 = new Trivial("foo2", 6);
+		final List<Trivial> objs = Arrays.asList(triv1, triv2);
 
-		List<Trivial> objs = new ArrayList<>();
-		objs.add(triv1);
-		objs.add(triv2);
+		final Map<Key<Trivial>, Trivial> map = ofy().save().entities(objs).now();
+		final List<Key<Trivial>> keys = new ArrayList<>(map.keySet());
 
-		Map<Key<Trivial>, Trivial> map = ofy().save().entities(objs).now();
-		List<Key<Trivial>> keys = new ArrayList<>(map.keySet());
+		assertThat(keys.stream().map(Key::getId).collect(Collectors.toList()))
+				.containsExactlyElementsIn(objs.stream().map(Trivial::getId).collect(Collectors.toList())).inOrder();
 
-		// Verify the put keys
-		assert keys.size() == objs.size();
-		for (int i=0; i<objs.size(); i++)
-		{
-			assert keys.get(i).getId() == objs.get(i).getId();
-		}
+		final Map<Key<Trivial>, Trivial> fetched = ofy().load().keys(keys);
 
-		// Now fetch and verify the data
-		Map<Key<Trivial>, Trivial> fetched = ofy().load().keys(keys);
-
-		assert fetched.size() == keys.size();
-		for (Trivial triv: objs)
-		{
-			Trivial fetchedTriv = fetched.get(Key.create(triv));
-			assert triv.getSomeNumber() == fetchedTriv.getSomeNumber();
-			assert triv.getSomeString().equals(fetchedTriv.getSomeString());
-		}
+		assertThat(fetched.values()).containsExactlyElementsIn(objs).inOrder();
 	}
 
 	/** */
 	@Test
-	public void testManyToOne() throws Exception {
-		fact().register(Employee.class);
+	void queryByKeyFieldUsingEntityObject() throws Exception {
+		factory().register(Employee.class);
 
-		Employee fred = new Employee("fred");
+		final Employee fred = new Employee("fred");
 		ofy().save().entity(fred).now();
 
-		Key<Employee> fredKey = Key.create(fred);
+		final Key<Employee> fredKey = Key.create(fred);
 
-		List<Employee> employees = new ArrayList<>(100);
-		for (int i = 0; i < 100; i++)
-		{
-			Employee emp = new Employee("foo" + i, fredKey);
+		final List<Employee> employees = new ArrayList<>(100);
+		for (int i = 0; i < 100; i++) {
+			final Employee emp = new Employee("foo" + i, fredKey);
 			employees.add(emp);
 		}
 
 		ofy().save().entities(employees).now();
 
-		assert employees.size() == 100;
-
-		int count = 0;
-		for (Employee emp: ofy().load().type(Employee.class).filter("manager", fred))
-		{
-			emp.getName(); // Just to make eclipse happy
-			count++;
-		}
-		assert count == 100;
+		final List<Employee> subordinates = ofy().load().type(Employee.class).filter("manager", fred).list();
+		assertThat(subordinates).hasSize(100);
 	}
 
 	/** */
 	@Test
-	public void testConsistencySetting() throws Exception {
-		fact().register(Trivial.class);
+	void saveWithConsistencySetting() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
+		final Trivial triv = new Trivial("foo", 5);
 		ofy().consistency(Consistency.EVENTUAL).save().entity(triv).now();
 	}
 
 	/** */
 	@Test
-	public void testKeyToString() throws Exception {
-		Key<Trivial> trivKey = Key.create(Trivial.class, 123);
+	void keyToStringAndBack() throws Exception {
+		final Key<Trivial> trivKey = Key.create(Trivial.class, 123);
 
-		String stringified = trivKey.getString();
+		final String stringified = trivKey.toWebSafeString();
 
-		Key<Trivial> andBack = Key.create(stringified);
+		final Key<Trivial> andBack = Key.create(stringified);
 
-		assert trivKey.equals(andBack);
+		assertThat(andBack).isEqualTo(trivKey);
 	}
 
-	/**
-	 */
+	/** */
 	@Test
-	public void testPutNothing() throws Exception {
+	void putEmptyListDoesNothing() throws Exception {
 		ofy().save().entities(Collections.emptyList()).now();
 	}
 
 	/** */
 	@Test
-	public void deleteBatch() throws Exception {
-		fact().register(Trivial.class);
+	void entitiesCanBeDeletedInBatch() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial("foo5", 5);
-		Trivial triv2 = new Trivial("foo6", 6);
+		final Trivial triv1 = new Trivial("foo5", 5);
+		final Trivial triv2 = new Trivial("foo6", 6);
 
 		ofy().save().entities(triv1, triv2).now();
 
-		assert ofy().load().entities(triv1, triv2).size() == 2;
+		assertThat(ofy().load().entities(triv1, triv2)).hasSize(2);
 
 		ofy().delete().entities(triv1, triv2).now();
 
-		Map<Key<Trivial>, Trivial> result = ofy().load().entities(triv1, triv2);
-		System.out.println("Result is " + result);
-		assert result.size() == 0;
+		final Map<Key<Trivial>, Trivial> result = ofy().load().entities(triv1, triv2);
+		assertThat(result).isEmpty();
 	}
 
 	/** */
 	@Test
-	public void loadWithManuallyCreatedKey() throws Exception {
-		fact().register(Trivial.class);
+	void loadWithManuallyCreatedKey() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial(123L, "foo5", 5);
+		final Trivial triv1 = new Trivial(123L, "foo5", 5);
 		ofy().save().entity(triv1).now();
 
-		Trivial fetched = ofy().load().key(Key.create(Trivial.class, 123L)).now();
-		assert fetched.toString().equals(triv1.toString());
-	}
-
-	/** */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void loadNonexistant() throws Exception {
-		fact().register(Trivial.class);
-
-		Trivial triv1 = new Trivial("foo5", 5);
-		ofy().save().entity(triv1).now();
-
-		Key<Trivial> triv1Key = Key.create(triv1);
-		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
-		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
-
-		LoadResult<Trivial> res = ofy().load().key(triv2Key);
-		assert res.now() == null;
-
-		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
-		assert result.size() == 0;
-
-		Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
-		assert result2.size() == 1;
-	}
-
-	/** */
-	@SuppressWarnings("unchecked")
-	@Test
-	public void loadNonexistantWithoutSession() throws Exception {
-		fact().register(Trivial.class);
-
-		Trivial triv1 = new Trivial("foo5", 5);
-		ofy().save().entity(triv1).now();
-
-		Key<Trivial> triv1Key = Key.create(triv1);
-		Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
-		Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
+		final Trivial fetched = ofy().load().key(Key.create(Trivial.class, 123L)).now();
+		assertThat(fetched).isSameAs(triv1);
 
 		ofy().clear();
-		LoadResult<Trivial> res = ofy().load().key(triv2Key);
-		assert res.now() == null;
-
-		ofy().clear();
-		Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
-		assert result.size() == 0;
-
-		ofy().clear();
-		Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
-		assert result2.size() == 1;
+		final Trivial fetched2 = ofy().load().key(Key.create(Trivial.class, 123L)).now();
+		assertThat(fetched2).isNotSameAs(triv1);
+		assertThat(fetched2).isEqualTo(triv1);
 	}
 
 	/** */
 	@Test
-	public void simpleFetchById() throws Exception {
-		fact().register(Trivial.class);
+	void loadNonexistant() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial("foo5", 5);
-
+		final Trivial triv1 = new Trivial("foo5", 5);
 		ofy().save().entity(triv1).now();
 
+		final Key<Trivial> triv1Key = Key.create(triv1);
+		final Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
+		final Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
+
+		final LoadResult<Trivial> res = ofy().load().key(triv2Key);
+		assertThat(res.now()).isNull();
+
+		@SuppressWarnings("unchecked")
+		final Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
+		assertThat(result).isEmpty();
+
+		@SuppressWarnings("unchecked")
+		final Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
+		assertThat(result2).hasSize(1);
+	}
+
+	/** */
+	@Test
+	void loadNonexistantWithoutSession() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv1 = new Trivial("foo5", 5);
+		ofy().save().entity(triv1).now();
+
+		final Key<Trivial> triv1Key = Key.create(triv1);
+		final Key<Trivial> triv2Key = Key.create(Trivial.class, 998);
+		final Key<Trivial> triv3Key = Key.create(Trivial.class, 999);
+
+		ofy().clear();
+		final LoadResult<Trivial> res = ofy().load().key(triv2Key);
+		assertThat(res.now()).isNull();
+
+		ofy().clear();
+		@SuppressWarnings("unchecked")
+		final Map<Key<Trivial>, Trivial> result = ofy().load().keys(triv2Key, triv3Key);
+		assertThat(result).isEmpty();
+
+		ofy().clear();
+		@SuppressWarnings("unchecked")
+		final Map<Key<Trivial>, Trivial> result2 = ofy().load().keys(triv1Key, triv2Key);
+		assertThat(result2).hasSize(1);
+	}
+
+	/** */
+	@Test
+	void simpleFetchById() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv1 = new Trivial("foo5", 5);
+
+		ofy().save().entity(triv1).now();
 		ofy().clear();
 
-		Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).now();
+		final Trivial fetched = ofy().load().type(Trivial.class).id(triv1.getId()).now();
 
-		assert fetched.getSomeString().equals(triv1.getSomeString());
+		assertThat(fetched).isEqualTo(triv1);
 	}
 	
 	
 	@Entity
-	static class HasParent {
-		@Parent Key<Trivial> parent;
-		@Id long id;
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class HasParent {
+		@Parent
+		private Key<Trivial> parent;
+
+		@Id
+		private long id;
 	}
 	
-	/** Simply delete an entity which has a parent */
 	@Test
-	public void deleteAnEntityWithAParent() throws Exception {
-		fact().register(Trivial.class);
-		fact().register(HasParent.class);
+	void deleteAnEntityWithAParent() throws Exception {
+		factory().register(Trivial.class);
+		factory().register(HasParent.class);
 		
-		HasParent hp = new HasParent();
-		hp.parent = Key.create(Trivial.class, 123L);
-		hp.id = 456L;
-		
-		Key<HasParent> hpKey = ofy().save().entity(hp).now();
+		final HasParent hp = new HasParent(Key.create(Trivial.class, 123L), 456L);
+
+		final Key<HasParent> hpKey = ofy().save().entity(hp).now();
 		ofy().clear();
-		assert ofy().load().key(hpKey).now() != null;
+		assertThat(ofy().load().key(hpKey).now()).isNotNull();
+
 		ofy().delete().entity(hp).now();
 		ofy().clear();
-		assert ofy().load().key(hpKey).now() == null;
+		assertThat(ofy().load().key(hpKey).now()).isNull();
 	}
 
 	@Entity
-	static class HasIndexedBlob {
-		@Id Long id;
-		@Index Blob blob;
+	@Data
+	private static class HasIndexedBlob {
+		@Id
+		private Long id;
+
+		@Index
+		private Blob blob;
 	}
 
+	/** Just verifies that nothing bad happens; the index should be silently ignored */
 	@Test
-	public void indexSomethingThatCannotBeIndexed() throws Exception {
-		fact().register(HasIndexedBlob.class);
+	void indexSomethingThatCannotBeIndexed() throws Exception {
+		factory().register(HasIndexedBlob.class);
 
-		byte[] stuff = "asdf".getBytes();
+		final byte[] stuff = "asdf".getBytes();
 
-		HasIndexedBlob hib = new HasIndexedBlob();
+		final HasIndexedBlob hib = new HasIndexedBlob();
 		hib.blob = new Blob(stuff);
 
-		HasIndexedBlob fetched = ofy().saveClearLoad(hib);
-		byte[] fetchedStuff = fetched.blob.getBytes();
+		final HasIndexedBlob fetched = saveClearLoad(hib);
+		final byte[] fetchedStuff = fetched.blob.getBytes();
 
-		assert Arrays.equals(fetchedStuff, stuff);
+		assertThat(fetchedStuff).isEqualTo(stuff);
 	}
 
 }

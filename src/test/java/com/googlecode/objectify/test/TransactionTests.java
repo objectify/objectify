@@ -6,8 +6,6 @@ package com.googlecode.objectify.test;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
-import com.googlecode.objectify.VoidWork;
-import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -15,15 +13,17 @@ import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of transactional behavior.  Since many transactional characteristics are
@@ -32,63 +32,50 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransactionTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(TransactionTests.class.getName());
+class TransactionTests extends TestBase {
 
 	/** */
 	@Test
-	public void testSimpleTransaction() throws Exception {
-		fact().register(Trivial.class);
+	void exerciseSimpleTransactions() throws Exception {
+		factory().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
 
-		Key<Trivial> k = ofy().transact(new Work<Key<Trivial>>() {
-			@Override
-			public Key<Trivial> run() {
-				return ofy().save().entity(triv).now();
-			}
-		});
+		final Key<Trivial> k = ofy().transact(() -> ofy().save().entity(triv).now());
 
-		Trivial fetched = ofy().load().key(k).now();
+		final Trivial fetched = ofy().load().key(k).now();
 
-		assert fetched.getId().equals(k.getId());
-		assert fetched.getSomeNumber() == triv.getSomeNumber();
-		assert fetched.getSomeString().equals(triv.getSomeString());
+		assertThat(fetched).isEqualTo(triv);
 	}
 
 	/** */
 	@Entity
 	@Cache
-	static class HasSimpleCollection {
+	@Data
+	private static class HasSimpleCollection {
 		@Id Long id;
 		List<String> stuff = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testInAndOutOfTransaction() throws Exception {
-		fact().register(HasSimpleCollection.class);
+	void testInAndOutOfTransaction() throws Exception {
+		factory().register(HasSimpleCollection.class);
 
 		final HasSimpleCollection simple = new HasSimpleCollection();
 		ofy().save().entity(simple).now();
 
-		HasSimpleCollection simple2 = ofy().transact(new Work<HasSimpleCollection>() {
-			@Override
-			public HasSimpleCollection run() {
-				HasSimpleCollection simple2 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
-				simple2.stuff.add("blah");
-				ofy().save().entity(simple2);
-				return simple2;
-			}
+		final HasSimpleCollection simple2 = ofy().transact(() -> {
+			final HasSimpleCollection simple21 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
+			simple21.stuff.add("blah");
+			ofy().save().entity(simple21);
+			return simple21;
 		});
 
 		ofy().clear();
-		HasSimpleCollection simple3 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
+		final HasSimpleCollection simple3 = ofy().load().type(HasSimpleCollection.class).id(simple.id).now();
 
-		assert simple2.stuff.equals(simple3.stuff);
+		assertThat(simple2.stuff).isEqualTo(simple3.stuff);
 	}
 
 	/**
@@ -96,25 +83,22 @@ public class TransactionTests extends TestBase
 	 * However, it doesn't seem to trigger even without the logic fix in ListenableFuture.
 	 */
 	@Test
-	public void testConcurrencyFailure() throws Exception {
-		fact().register(Trivial.class);
+	void testConcurrencyFailure() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
+		final Trivial triv = new Trivial("foo", 5);
 		final Key<Trivial> tk = ofy().save().entity(triv).now();
 
 		try {
-			ofy().transactNew(2, new VoidWork() {
-				@Override
-				public void vrun() {
-					Trivial triv1 = ofy().transactionless().load().key(tk).now();
-					Trivial triv2 = ofy().load().key(tk).now();
+			ofy().transactNew(2, () -> {
+				Trivial triv1 = ofy().transactionless().load().key(tk).now();
+				Trivial triv2 = ofy().load().key(tk).now();
 
-					triv1.setSomeString("bar");
-					triv2.setSomeString("shouldn't work");
+				triv1.setSomeString("bar");
+				triv2.setSomeString("shouldn't work");
 
-					ofy().transactionless().save().entity(triv1).now();
-					ofy().save().entity(triv2).now();
-				}
+				ofy().transactionless().save().entity(triv1).now();
+				ofy().save().entity(triv2).now();
 			});
 			assert false;	// must throw exception
 		}
@@ -123,113 +107,99 @@ public class TransactionTests extends TestBase
 		Trivial fetched = ofy().load().key(tk).now();
 
 		// This will be fetched from the cache, and must not be the "shouldn't work"
-		assert fetched.getSomeString().equals("bar");
+		assertThat(fetched.getSomeString()).isEqualTo("bar");
 	}
 
 	/**
 	 */
 	@Test
-	public void testTransactWork() throws Exception {
-		fact().register(Trivial.class);
+	void testTransactWork() throws Exception {
+		factory().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
 		ofy().save().entity(triv).now();
 
-		Trivial updated = ofy().transact(new Work<Trivial>() {
-			@Override
-			public Trivial run() {
-				Trivial result = ofy().load().entity(triv).now();
-				result.setSomeNumber(6);
-				ofy().save().entity(result);
-				return result;
-			}
+		final Trivial updated = ofy().transact(() -> {
+			Trivial result = ofy().load().entity(triv).now();
+			result.setSomeNumber(6);
+			ofy().save().entity(result);
+			return result;
 		});
-		assert updated.getSomeNumber() == 6;
+		assertThat(updated.getSomeNumber()).isEqualTo(6);
 
-		Trivial fetched = ofy().load().entity(triv).now();
-		assert fetched.getSomeNumber() == 6;
+		final Trivial fetched = ofy().load().entity(triv).now();
+		assertThat(fetched.getSomeNumber()).isEqualTo(6);
 	}
 
 	/**
 	 * Make sure that an async delete in a transaction fixes the session cache when the transaction is committed.
 	 */
 	@Test
-	public void testAsyncDelete() throws Exception {
-		fact().register(Trivial.class);
+	void testAsyncDelete() throws Exception {
+		factory().register(Trivial.class);
 
 		final Trivial triv = new Trivial("foo", 5);
 
 		// Make sure it's in the session (and memcache for that matter)
-		ofy().saveClearLoad(triv);
+		saveClearLoad(triv);
 
-		ofy().transact(new Work<Void>() {
-			@Override
-			public Void run() {
-				// Load this, enlist in txn
-				Trivial fetched = ofy().load().entity(triv).now();
+		ofy().transact(() -> {
+			// Load this, enlist in txn
+			final Trivial fetched = ofy().load().entity(triv).now();
 
-				// Do this async, don't complete it manually
-				ofy().delete().entity(fetched);
-
-				return null;
-			}
+			// Do this async, don't complete it manually
+			ofy().delete().entity(fetched);
 		});
 
-		assert ofy().load().entity(triv).now() == null;
+		assertThat(ofy().load().entity(triv).now()).isNull();
 	}
 
 	/** For transactionless tests */
 	@Entity
 	@Cache
-	public static class Thing {
+	@Data
+	@NoArgsConstructor
+	private static class Thing {
 		@Id long id;
 		String foo;
-		public Thing() {}
-		public Thing(long id) { this.id = id; this.foo = "foo"; }
+		Thing(long id) { this.id = id; this.foo = "foo"; }
 	}
 
 	/** */
 	@Test
-	public void testTransactionless() throws Exception {
-		fact().register(Thing.class);
+	void testTransactionless() throws Exception {
+		factory().register(Thing.class);
 
 		for (int i=1; i<10; i++) {
-			Thing th = new Thing(i);
+			final Thing th = new Thing(i);
 			ofy().save().entity(th).now();
 		}
 
-		ofy().transact(new Work<Void>() {
-			@Override
-			public Void run() {
-				for (int i=1; i<10; i++)
-					ofy().transactionless().load().type(Thing.class).id(i).now();
+		ofy().transact(() -> {
+			for (int i=1; i<10; i++)
+				ofy().transactionless().load().type(Thing.class).id(i).now();
 
-				ofy().save().entity(new Thing(99));
-				return null;
-			}
+			ofy().save().entity(new Thing(99));
 		});
 	}
 
 	/**
 	 */
 	@Test
-	public void testTransactionRollback() throws Exception {
-		fact().register(Trivial.class);
+	void testTransactionRollback() throws Exception {
+		factory().register(Trivial.class);
 
 		try {
-			ofy().transact(new VoidWork() {
-				@Override
-				public void vrun() {
-					Trivial triv = new Trivial("foo", 5);
-					ofy().save().entity(triv).now();
-					throw new RuntimeException();
-				}
+			ofy().transact(() -> {
+				final Trivial triv = new Trivial("foo", 5);
+				ofy().save().entity(triv).now();
+				throw new RuntimeException();
 			});
 		} catch (RuntimeException ex) {}
 
 		// Now verify that it was not saved
-		Trivial fetched = ofy().load().type(Trivial.class).first().now();
-		assert fetched == null;
+		final Trivial fetched = ofy().load().type(Trivial.class).first().now();
+		assertThat(fetched).isNull();
 	}
 
 	/**
@@ -237,53 +207,46 @@ public class TransactionTests extends TestBase
 	 * but it gets the job done.
 	 */
 	@Test
-	public void transactionalObjectifyInheritsCacheSetting() throws Exception {
-		ofy().cache(false).transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				// Test in _and out_ of a transaction
-				ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
-				assert !txnlessImpl.getCache();
-			}
+	void transactionalObjectifyInheritsCacheSetting() throws Exception {
+		ofy().cache(false).transact(() -> {
+			// Test in _and out_ of a transaction
+			ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
+			assertThat(txnlessImpl.getCache()).isFalse();
 		});
 	}
 	
 	/**
 	 */
 	@Test
-	public void executeMethodWorks() throws Exception {
-		ofy().execute(TxnType.REQUIRED, new VoidWork() {
-			@Override
-			public void vrun() {
-				assert ofy().load().type(Trivial.class).id(123L).now() == null;
-			}
+	void executeMethodWorks() throws Exception {
+		ofy().execute(TxnType.REQUIRED, () -> {
+			assertThat(ofy().load().type(Trivial.class).id(123L).now()).isNull();
 		});
 	}
 
-	public static class Counter {
-		public int counter = 0;
+	@Data
+	private static class Counter {
+		int counter = 0;
 	}
 
 	/**
 	 */
 	@Test
-	public void limitsTries() throws Exception {
+	void limitsTries() throws Exception {
 		final Counter counter = new Counter();
 
 		try {
-			ofy().transactNew(3, new VoidWork() {
-				@Override
-				public void vrun() {
-					counter.counter++;
-					throw new ConcurrentModificationException();
-				}
+			ofy().transactNew(3, () -> {
+				counter.counter++;
+				throw new ConcurrentModificationException();
 			});
 		} catch (ConcurrentModificationException e) {}
 
-		assert counter.counter == 3;
+		assertThat(counter.counter).isEqualTo(3);
 	}
 
-	public static class SimpleCommitListener implements Runnable {
+	@Data
+	private static class SimpleCommitListener implements Runnable {
 		private boolean run = false;
 
 		@Override
@@ -291,7 +254,7 @@ public class TransactionTests extends TestBase
 			run = true;
 		}
 
-		public boolean hasRun() {
+		boolean hasRun() {
 			return run;
 		}
 	}
@@ -299,45 +262,39 @@ public class TransactionTests extends TestBase
 	/**
 	 */
 	@Test
-	public void transactionListeners() {
+	void transactionListeners() {
 		final SimpleCommitListener listener = new SimpleCommitListener();
 
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				TransactionImpl txn = ofy().getTransaction();
-				txn.listenForCommit(listener);
+		ofy().transact(() -> {
+			final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			txn.listenForCommit(listener);
 
-				assert !listener.hasRun();
-			}
+			assertThat(listener.hasRun()).isFalse();
 		});
 
-		assert listener.hasRun();
+		assertThat(listener.hasRun()).isTrue();
 	}
 
 	/**
 	 */
 	@Test
-	public void listenerDontRunIfTransactionFails() {
+	void listenerDontRunIfTransactionFails() {
 		final SimpleCommitListener listener = new SimpleCommitListener();
 
 		try {
-			ofy().transactNew(1, new VoidWork() {
-				@Override
-				public void vrun() {
-					TransactionImpl txn = ofy().getTransaction();
-					txn.listenForCommit(listener);
+			ofy().transactNew(1, () -> {
+				TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+				txn.listenForCommit(listener);
 
-					throw new ConcurrentModificationException();
-				}
+				throw new ConcurrentModificationException();
 			});
 		} catch (ConcurrentModificationException e) {}
 
-
-		assert !listener.hasRun();
+		assertThat(listener.hasRun()).isFalse();
 	}
 
-	public static class CommitCountListener implements Runnable {
+	@Data
+	private static class CommitCountListener implements Runnable {
 		private int commitCount = 0;
 
 		@Override
@@ -353,109 +310,91 @@ public class TransactionTests extends TestBase
 	/**
 	 */
 	@Test
-	public void listenerIsOnlyCalledOnceIfTransactionRetries() {
+	void listenerIsOnlyCalledOnceIfTransactionRetries() {
 		final CommitCountListener listener = new CommitCountListener();
 		final Counter counter = new Counter();
 
-		ofy().transactNew(3, new VoidWork() {
-			@Override
-			public void vrun() {
-				counter.counter++;
-				TransactionImpl txn = ofy().getTransaction();
-				txn.listenForCommit(listener);
+		ofy().transactNew(3, () -> {
+			counter.counter++;
+			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			txn.listenForCommit(listener);
 
-				if (counter.counter < 3) {
-					throw new ConcurrentModificationException();
-				}
+			if (counter.counter < 3) {
+				throw new ConcurrentModificationException();
 			}
 		});
 
-		assert counter.counter == 3;
-		assert listener.getCommitCount() == 1;
+		assertThat(counter.counter).isEqualTo(3);
+		assertThat(listener.getCommitCount()).isEqualTo(1);
 	}
 
 	/**
 	 */
 	@Test
-	public void testListenerNotCalledWithOrganicConcurrencyFailure() throws Exception {
-		fact().register(Trivial.class);
+	void listenerNotCalledWithOrganicConcurrencyFailure() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
+		final Trivial triv = new Trivial("foo", 5);
 		final Key<Trivial> tk = ofy().save().entity(triv).now();
 		final SimpleCommitListener listener = new SimpleCommitListener();
 
 		try {
-			ofy().transactNew(1, new VoidWork() {
-				@Override
-				public void vrun() {
-					TransactionImpl txn = ofy().getTransaction();
-					txn.listenForCommit(listener);
+			ofy().transactNew(1, () -> {
+				final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+				txn.listenForCommit(listener);
 
-					Trivial triv1 = ofy().transactionless().load().key(tk).now();
-					Trivial triv2 = ofy().load().key(tk).now();
+				final Trivial triv1 = ofy().transactionless().load().key(tk).now();
+				final Trivial triv2 = ofy().load().key(tk).now();
 
-
-					ofy().transactionless().save().entity(triv1).now();
-					ofy().save().entity(triv2).now();
-				}
+				ofy().transactionless().save().entity(triv1).now();
+				ofy().save().entity(triv2).now();
 			});
 			assert false;	// must throw exception
 		}
 		catch (ConcurrentModificationException ex) {}
 
-		assert !listener.hasRun();
+		assertThat(listener.hasRun()).isFalse();
 	}
 
 	/**
 	 */
 	@Test
-	public void listenerIsOnlyCalledOnceIfTransactionRetriesFromOrganicConcurrencyFailure() {
-		fact().register(Trivial.class);
+	void listenerIsOnlyCalledOnceIfTransactionRetriesFromOrganicConcurrencyFailure() {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial("foo", 5);
+		final Trivial triv = new Trivial("foo", 5);
 		final Key<Trivial> tk = ofy().save().entity(triv).now();
 		final CommitCountListener listener = new CommitCountListener();
 		final Counter counter = new Counter();
 
-		ofy().transactNew(3, new VoidWork() {
-			@Override
-			public void vrun() {
-				counter.counter++;
-				TransactionImpl txn = ofy().getTransaction();
-				txn.listenForCommit(listener);
+		ofy().transactNew(3, () -> {
+			counter.counter++;
+			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			txn.listenForCommit(listener);
 
-				Trivial triv1 = ofy().transactionless().load().key(tk).now();
-				Trivial triv2 = ofy().load().key(tk).now();
+			final Trivial triv1 = ofy().transactionless().load().key(tk).now();
+			final Trivial triv2 = ofy().load().key(tk).now();
 
-
-				if (counter.counter < 3) {
-					ofy().transactionless().save().entity(triv1).now();
-				}
-				ofy().save().entity(triv2).now();
+			if (counter.counter < 3) {
+				ofy().transactionless().save().entity(triv1).now();
 			}
+			ofy().save().entity(triv2).now();
 		});
 
-		assert counter.counter == 3;
-		assert listener.getCommitCount() == 1;
+		assertThat(counter.counter).isEqualTo(3);
+		assertThat(listener.getCommitCount()).isEqualTo(1);
 	}
 
 	/**
 	 */
 	@Test
-	public void executeWithRequiresNewCreatesNewTransaction() {
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
+	void executeWithRequiresNewCreatesNewTransaction() {
+		ofy().transact(() -> {
+			final Transaction txn = ofy().getTransaction();
 
-				final Transaction txn = ofy().getTransaction();
-
-				ofy().execute(TxnType.REQUIRES_NEW, new VoidWork() {
-					@Override
-					public void vrun() {
-						assert txn != ofy().getTransaction();
-					}
-				});
-			}
+			ofy().execute(TxnType.REQUIRES_NEW, () -> {
+				assertThat(ofy().getTransaction()).isNotEqualTo(txn);
+			});
 		});
 	}
 }

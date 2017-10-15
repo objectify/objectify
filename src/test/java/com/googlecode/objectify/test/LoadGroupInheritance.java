@@ -9,127 +9,114 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.test.LoadGroupInheritance.Father.Bottom;
-import com.googlecode.objectify.test.LoadGroupInheritance.Father.Middle;
-import com.googlecode.objectify.test.LoadGroupInheritance.Father.Top;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests the inheritance of load group classes
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadGroupInheritance extends TestBase
-{
+class LoadGroupInheritance extends TestBase {
 	/** */
 	@Entity
-	public static class Father {
-		public static class Bottom {}
-		public static class Middle extends Bottom {}
-		public static class Top extends Middle {}
+	@Data
+	@NoArgsConstructor
+	private static class Father {
+		static class Bottom {}
+		static class Middle extends Bottom {}
+		static class Top extends Middle {}
 
-		public @Id long id;
-		public @Load(Middle.class) Ref<Child> child;
+		@Id long id;
+		@Load(Middle.class) Ref<Child> child;
 
-		public Father() {}
-		public Father(long id, Ref<Child> ch) {
+		Father(long id, Ref<Child> ch) {
 			this.id = id;
 			this.child = ch;
 		}
-
-		@Override
-		public String toString() {
-			return this.getClass().getSimpleName() + "(" + id + ", " + child + ")";
-		}
 	}
 
 	/** */
 	@Entity
-	public static class Child {
-		public @Id long id;
+	@Data
+	@NoArgsConstructor
+	private static class Child {
+		@Id long id;
 
-		public Child() {}
-		public Child(long id) { this.id = id; }
-
-		@Override
-		public String toString() {
-			return this.getClass().getSimpleName() + "(" + id + ")";
-		}
+		Child(long id) { this.id = id; }
 	}
 
 	/** */
 	@Test
-	public void testLoadNoGroup() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(Child.class);
+	void testLoadNoGroup() throws Exception {
+		factory().register(Father.class);
+		factory().register(Child.class);
 
-		Child ch = new Child(123);
-		Key<Child> kch = ofy().save().entity(ch).now();
+		final Child ch = new Child(123);
+		final Key<Child> kch = ofy().save().entity(ch).now();
 
-		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().save().entity(f).now();
+		final Father f = new Father(456, Ref.create(kch));
+		final Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
-		LoadResult<Father> fatherRef = ofy().load().key(kf);
-		assert !fatherRef.now().child.isLoaded();
+		final LoadResult<Father> fatherRef = ofy().load().key(kf);
+		assertThat(fatherRef.now().child.isLoaded()).isFalse();
 	}
 
 	/** */
 	@Test
-	public void testLoadBottomGroup() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(Child.class);
+	void testLoadBottomGroup() throws Exception {
+		factory().register(Father.class);
+		factory().register(Child.class);
 
-		Child ch = new Child(123);
-		Key<Child> kch = ofy().save().entity(ch).now();
+		final Child ch = new Child(123);
+		final Key<Child> kch = ofy().save().entity(ch).now();
 
-		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().save().entity(f).now();
+		final Father f = new Father(456, Ref.create(kch));
+		final Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
-		LoadResult<Father> fatherRef = ofy().load().group(Bottom.class).key(kf);
-		assert !fatherRef.now().child.isLoaded();
+		final LoadResult<Father> fatherRef = ofy().load().group(Father.Bottom.class).key(kf);
+		assertThat(fatherRef.now().child.isLoaded()).isFalse();
 	}
 
 	/** */
 	@Test
-	public void testLoadMiddleGroup() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(Child.class);
+	void testLoadMiddleGroup() throws Exception {
+		factory().register(Father.class);
+		factory().register(Child.class);
 
-		Child ch = new Child(123);
-		Key<Child> kch = ofy().save().entity(ch).now();
+		final Child ch = new Child(123);
+		final Key<Child> kch = ofy().save().entity(ch).now();
 
-		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().save().entity(f).now();
+		final Father f = new Father(456, Ref.create(kch));
+		final Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
-		LoadResult<Father> fatherRef = ofy().load().group(Middle.class).key(kf);
-		assert fatherRef.now().child.get() != null;
+		final LoadResult<Father> fatherRef = ofy().load().group(Father.Middle.class).key(kf);
+		assertThat(fatherRef.now().child.get()).isNotNull();
 	}
 
 	/** */
 	@Test
-	public void testLoadTopGroup() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(Child.class);
+	void testLoadTopGroup() throws Exception {
+		factory().register(Father.class);
+		factory().register(Child.class);
 
-		Child ch = new Child(123);
-		Key<Child> kch = ofy().save().entity(ch).now();
+		final Child ch = new Child(123);
+		final Key<Child> kch = ofy().save().entity(ch).now();
 
-		Father f = new Father(456, Ref.create(kch));
-		Key<Father> kf = ofy().save().entity(f).now();
+		final Father f = new Father(456, Ref.create(kch));
+		final Key<Father> kf = ofy().save().entity(f).now();
 
 		ofy().clear();
-		LoadResult<Father> fatherRef = ofy().load().group(Top.class).key(kf);
-		assert fatherRef.now().child.get() != null;
+		final LoadResult<Father> fatherRef = ofy().load().group(Father.Top.class).key(kf);
+		assertThat(fatherRef.now().child.get()).isNotNull();
 	}
 }

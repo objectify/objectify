@@ -3,56 +3,59 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.PreparedQuery;
 import com.google.appengine.api.datastore.Query;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.TestBaseInconsistent;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import com.googlecode.objectify.test.util.GAEExtensionEventual;
+import com.googlecode.objectify.test.util.MockitoExtension;
+import com.googlecode.objectify.test.util.ObjectifyExtension;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
- * Tests of queries when they are eventual
+ * Tests of queries when they are eventual. Does not extend TestBase! Uses a different GAEExtension.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryEventualityTests extends TestBaseInconsistent
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(QueryEventualityTests.class.getName());
+@ExtendWith({
+		MockitoExtension.class,
+		GAEExtensionEventual.class,
+		ObjectifyExtension.class,
+})
+class QueryEventualityTests {
 
 	/** */
-	Trivial triv1;
-	Trivial triv2;
-	List<Key<Trivial>> keys;
+	private Trivial triv1;
+	private Trivial triv2;
+	private List<Key<Trivial>> keys;
 
 	/** */
-	@BeforeMethod
-	public void setUpExtra() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Trivial.class);
 
 		this.triv1 = new Trivial("foo1", 1);
 		this.triv2 = new Trivial("foo2", 2);
 
-		List<Trivial> trivs = new ArrayList<>();
-		trivs.add(this.triv1);
-		trivs.add(this.triv2);
-
-		Map<Key<Trivial>, Trivial> result = ofy().save().entities(trivs).now();
+		final Map<Key<Trivial>, Trivial> result = ofy().save().entities(triv1, triv2).now();
 
 		this.keys = new ArrayList<>(result.keySet());
 
 		// This should apply the writes
-		Query q = new Query("Trivial");
-		PreparedQuery pq = ds().prepare(q);
+		final Query q = new Query("Trivial");
+		final PreparedQuery pq = DatastoreServiceFactory.getDatastoreService().prepare(q);
 		pq.asList(FetchOptions.Builder.withDefaults());
 
 		// For some reason this doesn't.
@@ -64,13 +67,12 @@ public class QueryEventualityTests extends TestBaseInconsistent
 	 * but rather pretend the value does not exist.
 	 */
 	@Test
-	public void deleteWorks() throws Exception {
+	void deleteWorks() throws Exception {
 		// Should be an unapplied write
 		ofy().delete().entity(triv1).now();
 
-		List<Trivial> found = ofy().load().type(Trivial.class).list();
-		assert found.size() == 1;
-		assert found.get(0).getId().equals(triv2.getId());
+		final List<Trivial> found = ofy().load().type(Trivial.class).list();
+		assertThat(found).containsExactly(triv2);
 	}
 
 	/**
@@ -78,10 +80,10 @@ public class QueryEventualityTests extends TestBaseInconsistent
 	 * but rather pretend the value does not exist.
 	 */
 	@Test
-	public void deleteAllWorks() throws Exception {
+	void deleteAllWorks() throws Exception {
 		ofy().delete().entities(triv1, triv2).now();
 
 		List<Trivial> found = ofy().load().type(Trivial.class).list();
-		assert found.isEmpty();
+		assertThat(found).isEmpty();
 	}
 }

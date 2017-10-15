@@ -1,27 +1,29 @@
 package com.googlecode.objectify.test;
 
 import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Test behavior of null fields, and default values
  */
-public class NullDefaultFieldTests extends TestBase
-{
-	public static class Struct {
+class NullDefaultFieldTests extends TestBase {
+
+	@Data
+	@NoArgsConstructor
+	private static class Struct {
 		String s = "default1";
 
-		public Struct() {}
-		public Struct(String s)
+		Struct(String s)
 		{
 			this.s = s;
 		}
@@ -29,7 +31,9 @@ public class NullDefaultFieldTests extends TestBase
 
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class EntityWithDefault {
+	@Data
+	@NoArgsConstructor
+	private static class EntityWithDefault {
 		@Id
 		Long id;
 		/** existing property */
@@ -42,17 +46,12 @@ public class NullDefaultFieldTests extends TestBase
 		/** new embedded */
 		Struct s = new Struct("default2");
 
-		public EntityWithDefault()
-		{
-		}
-
-		public EntityWithDefault(String a)
+		EntityWithDefault(String a)
 		{
 			this.a = a;
 		}
 
-		public EntityWithDefault(String a, String b, String c)
-		{
+		EntityWithDefault(String a, String b, String c) {
 			this.a = a;
 			this.b = b;
 			this.c = c;
@@ -64,51 +63,35 @@ public class NullDefaultFieldTests extends TestBase
 	 * when the fields in the entity class have default values
 	 */
 	@Test
-	public void testNewVersionOfEntity() throws Exception {
-		fact().register(EntityWithDefault.class);
+	void newVersionOfEntity() throws Exception {
+		factory().register(EntityWithDefault.class);
 
 		// e1 has absent properties
-		Entity e1 = new Entity("EntityWithDefault");
+		final Entity e1 = new Entity("EntityWithDefault");
 		e1.setProperty("a", "1");
-		com.google.appengine.api.datastore.Key k1 = ds().put(null, e1);
+		final com.google.appengine.api.datastore.Key k1 = ds().put(null, e1);
 
-		EntityWithDefault o = ofy().load().type(EntityWithDefault.class).id(k1.getId()).now();
+		final EntityWithDefault o = ofy().load().type(EntityWithDefault.class).id(k1.getId()).now();
 
-		assert o.a != null;
-		assert "1".equals(o.a);
-		assert o.b != null;
-		assert "foo".equals(o.b);
-		assert o.c != null;
-		assert "bar".equals(o.c);
-		assert o.s != null;
-		assert "default2".equals(o.s.s);
+		assertThat(o.a).isEqualTo("1");
+		assertThat(o.b).isEqualTo("foo");
+		assertThat(o.c).isEqualTo("bar");
+		assertThat(o.s).isEqualTo(new Struct("default2"));
 	}
 
 	/**
-	 * Test that writing null via Objectify is preserved, even when the fields have default values
 	 */
 	@Test
-	public void testDefaultValuesAndNull() throws Exception {
-		fact().register(EntityWithDefault.class);
+	void explicitNullsAreSavedEvenIfFieldsHaveDefaultValues() throws Exception {
+		factory().register(EntityWithDefault.class);
 
-		Key<EntityWithDefault> k1 = ofy().save().entity(new EntityWithDefault("A")).now();
-		Key<EntityWithDefault> k2 = ofy().save().entity(new EntityWithDefault("A", "B", "C")).now();
-		Key<EntityWithDefault> k3 = ofy().save().entity(new EntityWithDefault("A", null, null)).now();
+		survivesAsIs(new EntityWithDefault("A"));
+		survivesAsIs(new EntityWithDefault("A", "B", "C"));
+		survivesAsIs(new EntityWithDefault("A", null, null));
+	}
 
-		EntityWithDefault o1 = ofy().load().key(k1).now();
-		EntityWithDefault o2 = ofy().load().key(k2).now();
-		EntityWithDefault o3 = ofy().load().key(k3).now();
-
-		assert "A".equals(o1.a);
-		assert "foo".equals(o1.b);
-		assert "bar".equals(o1.c);
-
-		assert "A".equals(o2.a);
-		assert "B".equals(o2.b);
-		assert "C".equals(o2.c);
-
-		assert "A".equals(o3.a);
-		assert null == o3.b;
-		assert null == o3.c;
+	private void survivesAsIs(final EntityWithDefault entity) {
+		final EntityWithDefault fetched = saveClearLoad(entity);
+		assertThat(fetched).isEqualTo(entity);
 	}
 }

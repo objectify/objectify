@@ -9,32 +9,30 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of query cursors using a setup of lots of things. Note that all the numbers are 1-based because we can't have an id of 0
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryCursorTestsBig extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(QueryCursorTestsBig.class.getName());
+class QueryCursorTestsBig extends TestBase {
 
 	/** */
 	private static final int MAX_ID = 30;
 
 	/** */
-	List<Key<Trivial>> keys;
-	List<Trivial> entities;
+	private List<Key<Trivial>> keys;
+	private List<Trivial> entities;
 
 	/** Set up the base query we use for tests */
 	private Query<Trivial> query() {
@@ -42,83 +40,46 @@ public class QueryCursorTestsBig extends TestBase
 	}
 
 	/** */
-	@BeforeMethod
-	public void setUpExtra() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Trivial.class);
 
 		entities = new ArrayList<>();
 		for (long i = 1; i <= MAX_ID; i++)
 			entities.add(new Trivial(i, "foo", i));
 
-		Map<Key<Trivial>, Trivial> saved = ofy().save().entities(entities).now();
+		final Map<Key<Trivial>, Trivial> saved = ofy().save().entities(entities).now();
 		keys = new ArrayList<>(saved.keySet());
 	}
 
 	/** */
 	@Test
-	public void simpleOrder() throws Exception {
-		Query<Trivial> q1 = query();
-		QueryResultIterator<Trivial> i1 = q1.iterator();
+	void simpleOrder() throws Exception {
+		final Query<Trivial> q1 = query();
+		final QueryResultIterator<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
 			which++;
-			Trivial triv = i1.next();
-			assert triv == entities.get(which-1);
+			final Trivial triv = i1.next();
+			assertThat(triv).isSameAs(entities.get(which-1));
 		}
 
 		assert which == MAX_ID;
 	}
 
-	/** */
-	@Test
-	public void testCursorAtEveryStep() throws Exception {
-		Query<Trivial> q1 = query();
-		QueryResultIterator<Trivial> i1 = q1.iterator();
+	private void walkQuery(final Query<Trivial> q1, final int expectedEnd) {
+		final QueryResultIterator<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
 			which++;
-			Cursor cursor = i1.getCursor();
+			final Cursor cursor = i1.getCursor();
 			assertCursorAt(cursor, which);
 			i1.next();
 		}
 
-		assert which == MAX_ID;
-	}
-
-	/** */
-	@Test
-	public void testCursorAtEveryStepWithChunk() throws Exception {
-		Query<Trivial> q1 = query().chunk(5);
-		QueryResultIterator<Trivial> i1 = q1.iterator();
-
-		int which = 0;
-		while (i1.hasNext()) {
-			which++;
-			Cursor cursor = i1.getCursor();
-			assertCursorAt(cursor, which);
-			i1.next();
-		}
-
-		assert which == MAX_ID;
-	}
-
-	/** */
-	@Test
-	public void testCursorAtEveryStepWithLimit() throws Exception {
-		Query<Trivial> q1 = query().limit(20);
-		QueryResultIterator<Trivial> i1 = q1.iterator();
-
-		int which = 0;
-		while (i1.hasNext()) {
-			which++;
-			Cursor cursor = i1.getCursor();
-			assertCursorAt(cursor, which);
-			i1.next();
-		}
-
-		assert which == 20;
+		assertThat(which).isEqualTo(expectedEnd);
 	}
 
 	/** Asserts that the next value in the cursor is the specified position */
@@ -129,42 +90,60 @@ public class QueryCursorTestsBig extends TestBase
 
 	/** */
 	@Test
-	public void testLimitAndCursorUsingIterator() throws Exception {
+	void cursorAtEveryStep() throws Exception {
+		final Query<Trivial> q1 = query();
+		walkQuery(q1, MAX_ID);
+	}
+
+	/** */
+	@Test
+	void cursorAtEveryStepWithChunk() throws Exception {
+		final Query<Trivial> q1 = query().chunk(5);
+		walkQuery(q1, MAX_ID);
+	}
+
+	/** */
+	@Test
+	void cursorAtEveryStepWithLimit() throws Exception {
+		Query<Trivial> q1 = query().limit(20);
+		walkQuery(q1, 20);
+	}
+
+	/** */
+	@Test
+	void limitAndCursorUsingIterator() throws Exception {
 		// create 30 objects with someString=foo,
 		// then search for limit 20 (finding cursor at 15)
 		// then search using that cursor
 		// then use get() and see if we get the object at cursor
 
-		List<Trivial> l1 = new ArrayList<>();
+		final List<Trivial> l1 = new ArrayList<>();
 		Cursor cursor = null;
 
-		Query<Trivial> q1 = query().limit(20);
-		QueryResultIterator<Trivial> i1 = q1.iterator();
+		final Query<Trivial> q1 = query().limit(20);
+		final QueryResultIterator<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
 			which++;
-			Trivial trivial = i1.next();
+			final Trivial trivial = i1.next();
 			l1.add(trivial);
 
 			if (which == 15)
 				cursor = i1.getCursor();
 		}
 
-		assert l1.size() == 20;
+		assertThat(l1).hasSize(20);
 
-		List<Trivial> l2 = new ArrayList<>();
+		final Query<Trivial> q2 = query().limit(20).startAt(cursor);
 
-		Query<Trivial> q2 = query().limit(20).startAt(cursor);
-		QueryResultIterator<Trivial> i2 = q2.iterator();
-
-		while (i2.hasNext()) {
-			Trivial trivial = i2.next();
+		final List<Trivial> l2 = new ArrayList<>();
+		for (final Trivial trivial : q2) {
 			l2.add(trivial);
 		}
-		assert l2.size() == 15;
 
-		assert l2.get(0) == l1.get(15);
-		assert l2.get(0) == q2.first().now();
+		assertThat(l2).hasSize(15);
+		assertThat(l2.get(0)).isSameAs(l1.get(15));
+		assertThat(l2.get(0)).isSameAs(q2.first().now());
 	}
 }

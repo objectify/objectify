@@ -3,88 +3,83 @@
 
 package com.googlecode.objectify.test;
 
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Tests the fetching system for simple parent values.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ParentTests extends TestBase
-{
+class ParentTests extends TestBase {
 	/** */
 	@Entity
-	public static class Father {
-		public @Id Long id;
-		public String foo;
+	@Data
+	@NoArgsConstructor
+	private static class Father {
+		@Id Long id;
+		String foo;
 
-		public Father() {}
-		public Father(long id) { this.id = id; }
-
-		@Override public boolean equals(Object obj) {
-			return ((Father)obj).id.equals(id);
-		}
+		Father(long id) { this.id = id; }
 	}
 
 	/** */
 	@Entity
-	public static class KeyChild {
-		public @Id Long id;
-		public @Parent Key<Father> father;
-		public String bar;
+	@Data
+	@NoArgsConstructor
+	private static class KeyChild {
+		@Id Long id;
+		@Parent Key<Father> father;
+		String bar;
 	}
 
 	/** */
 	@Entity
-	public static class RefChild {
-		public @Id Long id;
-		public @Parent Ref<Father> father;
-		public String bar;
+	@Data
+	@NoArgsConstructor
+	private static class RefChild {
+		@Id Long id;
+		@Parent Ref<Father> father;
+		String bar;
 	}
 
 	/** */
 	@Test
-	public void testKeyParent() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(KeyChild.class);
+	void basicPersistenceOfChild() throws Exception {
+		factory().register(Father.class);
+		factory().register(KeyChild.class);
 
-		KeyChild ch = new KeyChild();
+		final KeyChild ch = new KeyChild();
 		ch.father = Key.create(Father.class, 123);
 		ch.bar = "bar";
-		ofy().save().entity(ch).now();
 
-		KeyChild fetched = ofy().load().entity(ch).now();
+		final KeyChild fetched = saveClearLoad(ch);
 
-		assert fetched.bar.equals(ch.bar);
-		assert fetched.father.equals(ch.father);
+		assertThat(fetched).isEqualTo(ch);
 	}
 
 	/** */
 	@Test
-	public void testRefParent() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(RefChild.class);
+	void parentIsRef() throws Exception {
+		factory().register(Father.class);
+		factory().register(RefChild.class);
 
-		RefChild ch = new RefChild();
+		final RefChild ch = new RefChild();
 		ch.father = Ref.create(Key.create(Father.class, 123));
 		ch.bar = "bar";
-		ofy().save().entity(ch).now();
 
-		RefChild fetched = ofy().load().entity(ch).now();
+		final RefChild fetched = saveClearLoad(ch);
 
-		assert fetched.bar.equals(ch.bar);
-		assert fetched.father.equals(ch.father);
+		assertThat(fetched).isEqualTo(ch);
 	}
 }

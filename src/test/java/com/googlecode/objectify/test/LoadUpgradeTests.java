@@ -5,46 +5,46 @@ package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
-import com.googlecode.objectify.VoidWork;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.test.LoadUpgradeTests.HasMulti.Multi;
-import com.googlecode.objectify.test.LoadUpgradeTests.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of reloading when there are load groups - basically upgrades.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadUpgradeTests extends TestBase
-{
+class LoadUpgradeTests extends TestBase {
 	/** */
 	@Entity
-	public static class Other {
-		public @Id long id;
-		public Other() {}
-		public Other(long id) { this.id = id; }
+	@Data
+	@NoArgsConstructor
+	private static class Other {
+		@Id long id;
+		Other(long id) { this.id = id; }
 	}
 
-	Key<Other> ko0;
-	Key<Other> ko1;
-	Other other0;
-	Other other1;
+	private Key<Other> ko0;
+	private Key<Other> ko1;
+	private Other other0;
+	private Other other1;
 
 	/** */
-	@BeforeMethod
-	public void createTwoOthers() {
-		fact().register(Other.class);
+	@BeforeEach
+	void createTwoOthers() {
+		factory().register(Other.class);
 
 		other0 = new Other(123L);
 		other1 = new Other(456L);
@@ -55,170 +55,139 @@ public class LoadUpgradeTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasMulti {
-		public static class Multi {}
+	@Data
+	private static class HasMulti {
+		static class Multi {}
 
-		public @Id Long id;
-		public @Load(Multi.class) List<Ref<Other>> multi = new ArrayList<>();
+		@Id Long id;
+		@Load(Multi.class) List<Ref<Other>> multi = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testMultiNotLoaded() throws Exception
-	{
-		fact().register(HasMulti.class);
+	void withLoadGroupRefsAreLoaded() throws Exception {
+		factory().register(HasMulti.class);
 
-		HasMulti hm = new HasMulti();
+		final HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		HasMulti fetched = ofy().saveClearLoad(hm);
 
-		//Key<HasMulti> hmkey = fact().getKey(hm);
-
-		for (Ref<Other> ref: fetched.multi)
-			assert !ref.isLoaded();
-	}
-
-	/** */
-	@Test
-	public void testMultiLoaded() throws Exception
-	{
-		fact().register(HasMulti.class);
-
-		HasMulti hm = new HasMulti();
-		hm.multi.add(Ref.create(ko0));
-		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy().save().entity(hm).now();
-
+		final Key<HasMulti> hmkey = ofy().save().entity(hm).now();
 		ofy().clear();
-		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();
+		final HasMulti fetched = ofy().load().group(HasMulti.Multi.class).key(hmkey).now();
 
-		assert fetched.multi.get(0).get().id == other0.id;
-		assert fetched.multi.get(1).get().id == other1.id;
+		for (final Ref<Other> ref: fetched.multi)
+			assertThat(ref.isLoaded()).isTrue();
 	}
 
 	/** */
 	@Test
-	public void testMultiReloaded() throws Exception
-	{
-		fact().register(HasMulti.class);
+	void reloadingWithALoadGroupUpgradesMulti() throws Exception {
+		factory().register(HasMulti.class);
 
-		HasMulti hm = new HasMulti();
+		final HasMulti hm = new HasMulti();
 		hm.multi.add(Ref.create(ko0));
 		hm.multi.add(Ref.create(ko1));
-		Key<HasMulti> hmkey = ofy().save().entity(hm).now();
 
-		ofy().clear();
-		ofy().load().key(hmkey).now();	// load once
-		HasMulti fetched = ofy().load().group(Multi.class).key(hmkey).now();	// upgrade with multi
+		final HasMulti fetched = saveClearLoad(hm);
 
-		Ref<Other> m0 = fetched.multi.get(0);
-		assert m0.get().id == other0.id;
+		for (final Ref<Other> ref: fetched.multi)
+			assertThat(ref.isLoaded()).isFalse();
 
-		assert fetched.multi.get(1).get().id == other1.id;
+		final HasMulti reloaded = ofy().load().group(HasMulti.Multi.class).entity(hm).now();	// upgrade with multi
+
+		for (final Ref<Other> ref: reloaded.multi)
+			assertThat(ref.isLoaded()).isTrue();
 	}
 
 	/** */
 	@Entity
-	public static class HasSingle {
-		public static class Single {}
+	@Data
+	private static class HasSingle {
+		static class Single {}
 
-		public @Id Long id;
-		public @Load(Single.class) Ref<Other> single;
+		@Id Long id;
+		@Load(Single.class) Ref<Other> single;
 	}
 
 	/** */
 	@Test
-	public void testSingleReloaded() throws Exception
-	{
-		fact().register(HasSingle.class);
+	void reloadingWithALoadGroupUpgradesSingle() throws Exception {
+		factory().register(HasSingle.class);
 
-		HasSingle hs = new HasSingle();
+		final HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
-		Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
-		ofy().clear();
-		ofy().load().key(hskey).now();	// load once
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
+		final HasSingle fetched = saveClearLoad(hs);
+		assertThat(fetched.single.isLoaded()).isFalse();
 
-		assert fetched.single.get().id == other0.id;
+		final HasSingle reloaded = ofy().load().group(HasSingle.Single.class).entity(hs).now();	// upgrade with single
+		assertThat(reloaded.single.isLoaded()).isTrue();
 	}
 
 	/** */
 	@Test
-	public void upgradingOutsideOfATransaction() throws Exception
-	{
-		fact().register(HasSingle.class);
+	void upgradingOutsideOfATransaction() throws Exception {
+		factory().register(HasSingle.class);
 
-		HasSingle hs = new HasSingle();
+		final HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
 		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 
 		// Load hs in a transaction, which will then propagate back to parent session
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				ofy().load().key(hskey).now();
-			}
+		ofy().transact(() -> {
+			ofy().load().key(hskey).now();
 		});
 
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
+		final HasSingle fetched = ofy().load().key(hskey).now();
+		assertThat(fetched.single.isLoaded()).isFalse();
 
-		assert fetched.single.get().id == other0.id;
+		final HasSingle reloaded = ofy().load().group(HasSingle.Single.class).key(hskey).now();	// upgrade with single
+		assertThat(reloaded.single.isLoaded()).isTrue();
 	}
 
 	/** */
 	@Test
-	public void reloadingOutsideOfATransaction() throws Exception
-	{
-		fact().register(HasSingle.class);
+	void reloadingOutsideOfATransaction() throws Exception {
+		factory().register(HasSingle.class);
 
-		HasSingle hs = new HasSingle();
+		final HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
 		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 
 		// Load hs in a transaction, which will then propagate back to parent session, including the Ref async load
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				ofy().load().group(Single.class).key(hskey).now();
-			}
+		ofy().transact(() -> {
+			ofy().load().group(HasSingle.Single.class).key(hskey).now();
 		});
 
 		// This works even without the load group because we are loading the same object instance,
 		// which has populated refs.  We don't unload refs.
-		HasSingle fetched = ofy().load().key(hskey).now();
-
-		assert fetched.single.get().id == other0.id;
+		final HasSingle fetched = ofy().load().key(hskey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
 	}
 
 	/** */
 	@Test
-	public void reloadingOutsideOfATransaction2() throws Exception
-	{
-		fact().register(HasSingle.class);
+	void reloadingOutsideOfATransaction2() throws Exception {
+		factory().register(HasSingle.class);
 
-		HasSingle hs = new HasSingle();
+		final HasSingle hs = new HasSingle();
 		hs.single = Ref.create(ko0);
 		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 
 		// Load hs in a transaction, which will then propagate back to parent session, including the Ref async load
-		ofy().transact(new VoidWork() {
-			@Override
-			public void vrun() {
-				ofy().load().group(Single.class).key(hskey).now();
-			}
+		ofy().transact(() -> {
+			ofy().load().group(HasSingle.Single.class).key(hskey).now();
 		});
 
 		// This is different by loading the group
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();
-
-		assert fetched.single.get().id == other0.id;
+		final HasSingle fetched = ofy().load().group(HasSingle.Single.class).key(hskey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
 	}
 }

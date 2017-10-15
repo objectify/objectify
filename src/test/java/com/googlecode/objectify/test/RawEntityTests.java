@@ -5,42 +5,36 @@ package com.googlecode.objectify.test;
 
 import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
-import java.util.logging.Logger;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import org.junit.jupiter.api.Test;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of using the native datastore Entity type
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class RawEntityTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(RawEntityTests.class.getName());
+class RawEntityTests extends TestBase {
 
 	/** */
 	@Test
-	public void saveAndLoadRawEntityWorks() throws Exception {
-		Entity ent = new Entity("asdf");
+	void saveAndLoadRawEntityWorks() throws Exception {
+		final Entity ent = new Entity("asdf");
 		ent.setProperty("foo", "bar");
 
 		ofy().save().entity(ent).now();
 		ofy().clear();
 
-		Entity fetched = ofy().load().<Entity>value(ent).now();
+		final Entity fetched = ofy().load().<Entity>value(ent).now();
 
-		assertThat(fetched.getProperty("foo"), equalTo(ent.getProperty("foo")));
+		assertThat(fetched).isEqualTo(ent);
 	}
 
 	/** */
 	@Test
-	public void deleteRawEntityWorks() throws Exception {
-		Entity ent = new Entity("asdf");
+	void deleteRawEntityWorks() throws Exception {
+		final Entity ent = new Entity("asdf");
 		ent.setProperty("foo", "bar");
 
 		ofy().save().entity(ent).now();
@@ -48,8 +42,7 @@ public class RawEntityTests extends TestBase
 
 		ofy().delete().entity(ent);
 
-		Entity fetched = ofy().load().<Entity>value(ent).now();
-
-		assertThat(fetched, nullValue());
+		final Entity fetched = ofy().load().<Entity>value(ent).now();
+		assertThat(fetched).isNull();
 	}
 }

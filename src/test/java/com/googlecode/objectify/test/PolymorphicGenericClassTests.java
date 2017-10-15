@@ -3,60 +3,54 @@
 
 package com.googlecode.objectify.test;
 
-import java.util.List;
-import java.util.logging.Logger;
-
-import com.googlecode.objectify.annotation.Subclass;
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Checking to make sure polymorphism works with generic base classes.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class PolymorphicGenericClassTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(PolymorphicGenericClassTests.class.getName());
-
+class PolymorphicGenericClassTests extends TestBase {
 	/** */
 	@Entity
-	public static class Vehicle<T>
-	{
+	@Data
+	private static class Vehicle<T> {
 		@Id Long id;
 		T name;
 	}
 
 	/** */
 	@Subclass(index=true)
-	public static class Car extends Vehicle<String>
-	{
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	private static class Car extends Vehicle<String> {
 		int numWheels;
 	}
 
 	/** */
 	@Test
-	public void testQuery() throws Exception
-	{
-		fact().register(Vehicle.class);
-		fact().register(Car.class);
+	void testQuery() throws Exception {
+		factory().register(Vehicle.class);
+		factory().register(Car.class);
 
-		Car car = new Car();
+		final Car car = new Car();
 		car.name = "Fast";
-		Car c2 = ofy().saveClearLoad(car);
-		assert car.name.equals(c2.name);
+		final Car c2 = saveClearLoad(car);
+		assertThat(c2).isEqualTo(car);
 
-		@SuppressWarnings("rawtypes")
-		List<Vehicle> all = ofy().load().type(Vehicle.class).list();
-		assert all.size() == 1;
-		assert all.get(0).name.equals(car.name);
+		final List<Vehicle> all = ofy().load().type(Vehicle.class).list();
+		assertThat(all).containsExactly(car);
 	}
 }

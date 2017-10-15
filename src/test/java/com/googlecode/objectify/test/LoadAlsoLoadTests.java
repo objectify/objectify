@@ -3,71 +3,61 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
-import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import java.util.logging.Logger;
-
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * More tests of using the @AlsoLoad annotation combined with @Load
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadAlsoLoadTests extends TestBase
-{
+class LoadAlsoLoadTests extends TestBase {
 	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(LoadAlsoLoadTests.class.getName());
-
-	/** */
-	@Entity
+	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	static class HasConcrete
-	{
+	private static class HasConcrete {
 		@Id Long id;
 		String bar;
 
-		public void cruft(@Load @AlsoLoad("foo") Ref<Trivial> triv) {
+		void cruft(@Load @AlsoLoad("foo") Ref<Trivial> triv) {
 			this.bar = triv.get().getSomeString();
 		}
 	}
 
 	/**
 	 */
-	@BeforeMethod
-	public void setUpExtra()
-	{
-		fact().register(HasConcrete.class);
-		fact().register(Trivial.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(HasConcrete.class);
+		factory().register(Trivial.class);
 	}
 
 	/** */
 	@Test
-	public void alsoLoadWorksWithLoad() throws Exception
-	{
-		Trivial triv = new Trivial("someString", 123L);
-		Key<Trivial> trivKey = ofy().save().entity(triv).now();
+	void alsoLoadWorksWithLoad() throws Exception {
+		final Trivial triv = new Trivial("someString", 123L);
+		final Key<Trivial> trivKey = ofy().save().entity(triv).now();
 
-		com.google.appengine.api.datastore.Entity ent = new com.google.appengine.api.datastore.Entity(Key.getKind(HasConcrete.class));
+		final Entity ent = new Entity(Key.getKind(HasConcrete.class));
 		ent.setProperty("foo", trivKey.getRaw());
 		ds().put(null, ent);
 
-		Key<HasConcrete> key = Key.create(ent.getKey());
-		HasConcrete fetched = ofy().load().key(key).now();
+		final Key<HasConcrete> key = Key.create(ent.getKey());
+		final HasConcrete fetched = ofy().load().key(key).now();
 
-		assert fetched.bar.equals(triv.getSomeString());
+		assertThat(fetched.bar).isEqualTo(triv.getSomeString());
 	}
 }

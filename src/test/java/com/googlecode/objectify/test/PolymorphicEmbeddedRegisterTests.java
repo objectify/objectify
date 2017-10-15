@@ -1,15 +1,7 @@
 package com.googlecode.objectify.test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-
-import java.util.List;
-import java.util.Map;
-
-import org.testng.annotations.Test;
-import org.testng.collections.Lists;
-
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Mapify;
@@ -18,6 +10,17 @@ import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.stringifier.Stringifier;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Check if the polymorphic embedded subclasses cause any exceptions depending on the usage place and the registration order.
@@ -25,37 +28,41 @@ import com.googlecode.objectify.test.util.TestBase;
  * 
  * @author Tamas Tozser <ttozser@gmail.com>
  */
-public class PolymorphicEmbeddedRegisterTests extends TestBase {
+class PolymorphicEmbeddedRegisterTests extends TestBase {
 	
 	@Entity
-	static class EnityWithField {
+	@Data
+	private static class EnityWithField {
 		@Id
 		long id = 1;
 		EmbeddedSuperclass field;
 	}
 	
 	@Entity
-	static class EnityWithList {
+	@Data
+	private static class EnityWithList {
 		@Id
 		long id = 1;
 		List<EmbeddedSuperclass> fields;
 	}
 	
 	@Entity
-	static class EnityWithMap {
+	@Data
+	private static class EnityWithMap {
 		@Id
 		long id = 1;
 		Map<String, EmbeddedSuperclass> map;
 	}
 	
 	@Entity
-	static class EnityWithStringify {
+	@Data
+	private static class EnityWithStringify {
 		@Id
 		long id = 1;
 		@Stringify(SuperEmbeddedClassStringifier.class)
 		Map<EmbeddedSuperclass, EmbeddedSuperclass> map;
-		
-		static class SuperEmbeddedClassStringifier implements Stringifier<EmbeddedSuperclass> {
+
+		private static class SuperEmbeddedClassStringifier implements Stringifier<EmbeddedSuperclass> {
 			@Override
 			public String toString(EmbeddedSuperclass obj) {
 				return obj.id;
@@ -63,151 +70,163 @@ public class PolymorphicEmbeddedRegisterTests extends TestBase {
 			
 			@Override
 			public EmbeddedSuperclass fromString(String str) {
-				return new EmbeddedSuperclass();
+				return new EmbeddedSuperclass(str);
 			}
 		}
 	}
 	
 	@Entity
-	static class EnityWithMapify {
+	@Data
+	private static class EnityWithMapify {
 		@Id
 		long id = 1;
 		@Mapify(SuperClassMapper.class)
 		Map<String, EmbeddedSuperclass> map;
 		
-		static class SuperClassMapper implements Mapper<String, EmbeddedSuperclass> {
+		private static class SuperClassMapper implements Mapper<String, EmbeddedSuperclass> {
 			@Override
 			public String getKey(EmbeddedSuperclass superClass) {
 				return superClass.id;
 			}
 		}
 	}
-	
-	static class EmbeddedSuperclass {
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class EmbeddedSuperclass {
 		String id = "foo";
 	}
 	
 	@Subclass
-	static class EmbeddedSubclass extends EmbeddedSuperclass {
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	private static class EmbeddedSubclass extends EmbeddedSuperclass {
 	}
 	
 	@Subclass
-	static class EmbeddedSubSubclass extends EmbeddedSubclass {
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	private static class EmbeddedSubSubclass extends EmbeddedSubclass {
 	}
 	
 	@Test
-	public void testPolymorphicField() {
-		fact().register(EnityWithField.class);
-		fact().register(EmbeddedSubSubclass.class);
+	void testPolymorphicField() {
+		factory().register(EnityWithField.class);
+		factory().register(EmbeddedSubSubclass.class);
 		
 		checkField();
 	}
 	
 	@Test
-	public void testPolymorphicFieldReverseRegistration() {
-		fact().register(EmbeddedSubSubclass.class);
-		fact().register(EnityWithField.class);
+	void testPolymorphicFieldReverseRegistration() {
+		factory().register(EmbeddedSubSubclass.class);
+		factory().register(EnityWithField.class);
 		
 		checkField();
 	}
 	
 	private void checkField() {
-		EnityWithField enityWithField = new EnityWithField();
+		final EnityWithField enityWithField = new EnityWithField();
 		enityWithField.field = new EmbeddedSubSubclass();
-		
-		ofy().saveClearLoad(enityWithField);
+
+		final EnityWithField fetched = saveClearLoad(enityWithField);
+		assertThat(fetched).isEqualTo(enityWithField);
 	}
 	
 	@Test
-	public void testPolymorphicList() {
-		fact().register(EnityWithList.class);
-		fact().register(EmbeddedSubSubclass.class);
+	void testPolymorphicList() {
+		factory().register(EnityWithList.class);
+		factory().register(EmbeddedSubSubclass.class);
 		
 		checkList();
 	}
 	
 	@Test
-	public void testPolymorphicListReverseRegistration() {
-		fact().register(EmbeddedSubSubclass.class);
-		fact().register(EnityWithList.class);
+	void testPolymorphicListReverseRegistration() {
+		factory().register(EmbeddedSubSubclass.class);
+		factory().register(EnityWithList.class);
 		
 		checkList();
 	}
 	
 	private void checkList() {
-		EnityWithList enityWithlist = new EnityWithList();
-		enityWithlist.fields = Lists.<EmbeddedSuperclass> newArrayList(new EmbeddedSubSubclass());
-		
-		ofy().saveClearLoad(enityWithlist);
+		final EnityWithList enityWithlist = new EnityWithList();
+		enityWithlist.fields = Lists.newArrayList(new EmbeddedSubSubclass());
+
+		final EnityWithList fetched = saveClearLoad(enityWithlist);
+		assertThat(fetched).isEqualTo(enityWithlist);
 	}
 	
 	@Test
-	public void testPolymorphicMap() {
-		fact().register(EnityWithMap.class);
-		fact().register(EmbeddedSubSubclass.class);
+	void testPolymorphicMap() {
+		factory().register(EnityWithMap.class);
+		factory().register(EmbeddedSubSubclass.class);
 		
 		checkMap();
 	}
 	
 	@Test
-	public void testPolymorphicMapReverseRegistration() {
-		fact().register(EmbeddedSubSubclass.class);
-		fact().register(EnityWithMap.class);
+	void testPolymorphicMapReverseRegistration() {
+		factory().register(EmbeddedSubSubclass.class);
+		factory().register(EnityWithMap.class);
 		
 		checkMap();
 	}
 	
 	private void checkMap() {
 		EnityWithMap enityWithMap = new EnityWithMap();
-		enityWithMap.map = ImmutableMap.<String, EmbeddedSuperclass>of("foo", new EmbeddedSubSubclass());
-		
-		ofy().saveClearLoad(enityWithMap);
+		enityWithMap.map = ImmutableMap.of("foo", new EmbeddedSubSubclass());
+
+		final EnityWithMap fetched = saveClearLoad(enityWithMap);
+		assertThat(fetched).isEqualTo(enityWithMap);
 	}
 
 	@Test
-	public void testPolymorphicStringify() {
-		fact().register(EnityWithStringify.class);
-		fact().register(EmbeddedSubSubclass.class);
+	void testPolymorphicStringify() {
+		factory().register(EnityWithStringify.class);
+		factory().register(EmbeddedSubSubclass.class);
 		
 		checkStringify();
 	}
 	
 	@Test
-	public void testPolymorphicStringifyReverseRegistration() {
-		fact().register(EmbeddedSubSubclass.class);
-		fact().register(EnityWithStringify.class);
+	void testPolymorphicStringifyReverseRegistration() {
+		factory().register(EmbeddedSubSubclass.class);
+		factory().register(EnityWithStringify.class);
 		
 		checkStringify();
 	}
 	
 	private void checkStringify() {
-		EnityWithStringify enityWithStringify = new EnityWithStringify();
-		enityWithStringify.map = ImmutableMap.<EmbeddedSuperclass, EmbeddedSuperclass>of(new EmbeddedSubSubclass(), new EmbeddedSubSubclass());
-		
-		ofy().saveClearLoad(enityWithStringify);
+		final EnityWithStringify enityWithStringify = new EnityWithStringify();
+		enityWithStringify.map = ImmutableMap.of(new EmbeddedSuperclass(), new EmbeddedSubSubclass());
+
+		final EnityWithStringify fetched = saveClearLoad(enityWithStringify);
+		assertThat(fetched).isEqualTo(enityWithStringify);
 	}
 
 	@Test
-	public void testPolymorphicMapify() {
-		fact().register(EnityWithMapify.class);
-		fact().register(EmbeddedSubSubclass.class);
+	void testPolymorphicMapify() {
+		factory().register(EnityWithMapify.class);
+		factory().register(EmbeddedSubSubclass.class);
 		
 		checkMapify();
 	}
 	
 	@Test
-	public void testPolymorphicMapifyReverseRegistration() {
-		fact().register(EmbeddedSubSubclass.class);
-		fact().register(EnityWithMapify.class);
+	void testPolymorphicMapifyReverseRegistration() {
+		factory().register(EmbeddedSubSubclass.class);
+		factory().register(EnityWithMapify.class);
 		
 		checkMapify();
 	}
 	
 	private void checkMapify() {
 		EnityWithMapify enityWithMapify = new EnityWithMapify();
-		enityWithMapify.map = ImmutableMap.<String, EmbeddedSuperclass>of("foo", new EmbeddedSubSubclass());
-		
-		ofy().saveClearLoad(enityWithMapify);
+		enityWithMapify.map = ImmutableMap.of("foo", new EmbeddedSubSubclass());
+
+		final EnityWithMapify fetched = saveClearLoad(enityWithMapify);
+		assertThat(fetched).isEqualTo(enityWithMapify);
 	}
-	
 }

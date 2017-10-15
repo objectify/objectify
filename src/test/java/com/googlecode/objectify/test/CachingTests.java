@@ -11,107 +11,107 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
-import java.util.ArrayList;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class CachingTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(CachingTests.class.getName());
-
+class CachingTests extends TestBase {
 	/** */
 	@Entity
-	static class Uncached {
-		@Id Long id;
-		String stuff;
+	@Data
+	@NoArgsConstructor
+	private static class Uncached {
+		@Id
+		private Long id;
+		private String stuff;
+
+		Uncached(final String stuff) {
+			this.stuff = stuff;
+		}
 	}
 
 	/** */
 	@Entity
 	@Cache
-	static class Cached {
-		@Id Long id;
-		String stuff;
+	@Data
+	@NoArgsConstructor
+	private static class Cached {
+		@Id
+		private Long id;
+		private String stuff;
+
+		Cached(final String stuff) {
+			this.stuff = stuff;
+		}
 	}
 
 	/**
 	 */
-	@BeforeMethod
-	public void setUpExtra() {
-		fact().register(Uncached.class);
-		fact().register(Cached.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Uncached.class);
+		factory().register(Cached.class);
 	}
 
 	/** */
 	@Test
-	public void testHeterogeneousBatch() throws Exception {
-		Uncached un1 = new Uncached();
-		un1.stuff = "un1 stuff";
+	void batchFetchSomeCachedSomeUncached() throws Exception {
+		final Uncached un1 = new Uncached("un1 stuff");
+		final Uncached un2 = new Uncached("un2 stuff");
+		final Cached ca1 = new Cached("ca1 stuff");
+		final Cached ca2 = new Cached("ca2 stuff");
 
-		Uncached un2 = new Uncached();
-		un2.stuff = "un2 stuff";
+		final List<Object> entities = Arrays.asList(un1, ca1, un2, ca2);
 
-		Cached ca1 = new Cached();
-		ca1.stuff = "ca1 stuff";
-
-		Cached ca2 = new Cached();
-		ca2.stuff = "ca2 stuff";
-
-		List<Object> entities = new ArrayList<>();
-		entities.add(un1);
-		entities.add(ca1);
-		entities.add(un2);
-		entities.add(ca2);
-
-		Map<Key<Object>, Object> keys = ofy().save().entities(entities).now();
+		final Map<Key<Object>, Object> keys = ofy().save().entities(entities).now();
 		ofy().clear();
-		Map<Key<Object>, Object> fetched = ofy().load().keys(keys.keySet());
+		final Map<Key<Object>, Object> fetched = ofy().load().keys(keys.keySet());
 
-		assert fetched.size() == 4;
-		assert fetched.containsKey(Key.create(un1));
-		assert fetched.containsKey(Key.create(un2));
-		assert fetched.containsKey(Key.create(ca1));
-		assert fetched.containsKey(Key.create(ca2));
+		assertThat(fetched.keySet()).containsExactlyElementsIn(keys.keySet()).inOrder();
 	}
 	
 	/** */
 	@Entity
 	@Cache(expirationSeconds=1)
-	static class Expires {
-		@Id Long id;
-		String stuff;
+	@Data
+	private static class Expires {
+		@Id
+		private Long id;
+		private String stuff;
 	}
 
 	/** */
 	@Test
-	public void cacheExpirationWorks() throws Exception {
-		fact().register(Expires.class);
+	void cacheExpirationWorks() throws Exception {
+		factory().register(Expires.class);
 		
-		Expires exp = new Expires();
+		final Expires exp = new Expires();
 		exp.stuff = "foo";
-		
-		Key<Expires> key = ofy().save().entity(exp).now();
+
+		final Key<Expires> key = ofy().save().entity(exp).now();
 		ofy().clear();
 		ofy().load().key(key).now();	// cached now
-		
-		MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
-		
-		Object thing = ms.get(key.getString());
-		assert thing != null;
+
+		final MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
+
+		final Object thing = ms.get(key.toWebSafeString());
+		assertThat(thing).isNotNull();
 		
 		Thread.sleep(2000);
-		
-		Object thing2 = ms.get(key.getString());
-		assert thing2 == null;
+
+		final Object thing2 = ms.get(key.toWebSafeString());
+		assertThat(thing2).isNull();
 	}
 }

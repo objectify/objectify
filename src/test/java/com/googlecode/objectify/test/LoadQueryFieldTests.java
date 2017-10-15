@@ -10,35 +10,36 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests the fetching via queries
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadQueryFieldTests extends TestBase
-{
-	Trivial t0;
-	Trivial t1;
-	Trivial tNone0;
-	Trivial tNone1;
-	Key<Trivial> k0;
-	Key<Trivial> k1;
-	Key<Trivial> kNone0;
-	Key<Trivial> kNone1;
+class LoadQueryFieldTests extends TestBase {
+	private Trivial t0;
+	private Trivial t1;
+	private Trivial tNone0;
+	private Trivial tNone1;
+	private Key<Trivial> k0;
+	private Key<Trivial> k1;
+	private Key<Trivial> kNone0;
+	private Key<Trivial> kNone1;
 
 	/** */
-	@BeforeMethod
-	public void createTwo() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void createTwo() {
+		factory().register(Trivial.class);
 
 		t0 = new Trivial("foo", 11);
 		k0 = ofy().save().entity(t0).now();
@@ -55,34 +56,30 @@ public class LoadQueryFieldTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasEntities {
-		public @Id Long id;
-		public @Load Ref<Trivial> single;
-		public @Load List<Ref<Trivial>> multi = new ArrayList<>();
+	@Data
+	private static class HasEntities {
+		@Id Long id;
+		@Load Ref<Trivial> single;
+		@Load List<Ref<Trivial>> multi = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void testTargetsExist() throws Exception
-	{
-		fact().register(HasEntities.class);
+	void testTargetsExist() throws Exception {
+		factory().register(HasEntities.class);
 
-		HasEntities he = new HasEntities();
+		final HasEntities he = new HasEntities();
 		he.single = Ref.create(t0);
 		he.multi.add(Ref.create(t0));
 		he.multi.add(Ref.create(t1));
 
-		Key<HasEntities> hekey = ofy().save().entity(he).now();
+		final Key<HasEntities> hekey = ofy().save().entity(he).now();
 		ofy().clear();
 
-		HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().now();
+		final HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().now();
 
-		assert fetched.single.get().getId().equals(t0.getId());
-		assert fetched.single.get().getSomeString().equals(t0.getSomeString());
-
-		assert fetched.multi.get(0).get() == fetched.single.get();
-
-		assert fetched.multi.get(1).get().getId().equals(t1.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t1.getSomeString());
+		assertThat(fetched.single.get()).isEqualTo(t0);
+		assertThat(fetched.multi.get(0).get()).isSameAs(fetched.single.get());
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t1);
 	}
 }

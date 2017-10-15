@@ -5,18 +5,20 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.appengine.api.datastore.Entity;
+import com.googlecode.objectify.test.util.TestBase;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.logging.Logger;
+import java.util.Collections;
 
-import org.testng.annotations.Test;
-
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.googlecode.objectify.test.util.TestBase;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * This is a set of tests that clarify exactly what happens when you put different
@@ -25,120 +27,76 @@ import com.googlecode.objectify.test.util.TestBase;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class DatastoreEntityTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(DatastoreEntityTests.class.getName());
+class DatastoreEntityTests extends TestBase {
 
-	public static class Thing
-	{
-		public String name;
-		public int age;
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Thing {
+		private String name;
+		private int age;
 	}
-	
-	@SuppressWarnings("serial")
-	public static class SerializableThing extends Thing implements Serializable
-	{
+
+	@NoArgsConstructor
+	private static class SerializableThing extends Thing implements Serializable {
+		public SerializableThing(final String name, final int age) {
+			super(name, age);
+		}
 	}
 	
 	/**
 	 * What happens when you put an object in an Entity?
 	 */
 	@Test
-	public void testObjectProperty() throws Exception
-	{
-		Thing thing = new Thing();
-		thing.name = "foo";
-		thing.age = 10;
+	void propertiesCannotBeArbitraryObjects() throws Exception {
+		final Thing thing = new Thing("foo", 10);
 
-		Entity ent = new Entity("Test");
-		try
-		{
-			ent.setProperty("thing", thing);
-			assert false;
-		}
-		catch (IllegalArgumentException ex) {}
-
-//		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-//		ds.put(ent);
-//		
-//		Entity fetched = ds.get(ent.getKey());
-//		Thing fetchedThing = (Thing)fetched.getProperty("thing");
-//		assert thing.name.equals(fetchedThing.name);
-//		assert thing.age == fetchedThing.age;
+		final Entity ent = new Entity("Test");
+		assertThrows(IllegalArgumentException.class, () -> ent.setProperty("thing", thing));
 	}
 
 	/**
 	 * What happens if it is serializable?
 	 */
 	@Test
-	public void testSerializableObjectProperty() throws Exception
-	{
-		SerializableThing thing = new SerializableThing();
-		thing.name = "foo";
-		thing.age = 10;
-		
-		Entity ent = new Entity("Test");
-		try
-		{
-			ent.setProperty("thing", thing);
-			assert false;
-		}
-		catch (IllegalArgumentException ex) {}
-		
-//		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-//		ds.put(ent);
-//		
-//		Entity fetched = ds.get(ent.getKey());
-//		SerializableThing fetchedThing = (SerializableThing)fetched.getProperty("thing");
-//		assert thing.name.equals(fetchedThing.name);
-//		assert thing.age == fetchedThing.age;
+	void propertiesCannotBeArbitraryObjectsNotEvenIfSerializable() throws Exception {
+		final SerializableThing thing = new SerializableThing("foo", 10);
+
+		final Entity ent = new Entity("Test");
+		assertThrows(IllegalArgumentException.class, () -> ent.setProperty("thing", thing));
 	}
 
 	/**
 	 * What happens when you put empty collections in an Entity?
 	 */
 	@Test
-	public void testEmptyCollectionInEntity() throws Exception
-	{
-		Entity ent = new Entity("Test");
-		List<Object> empty = new ArrayList<>();
-		ent.setProperty("empty", empty);
+	void emptyCollectionPropertiesDisappear() throws Exception {
+		final Entity ent = new Entity("Test");
+		ent.setProperty("empty", new ArrayList<>());
 
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		ds.put(ent);
+		ds().put(ent);
 		
-		Entity fetched = ds.get(ent.getKey());
-		
-		System.out.println(fetched);
+		final Entity fetched = ds().get(ent.getKey());
 		
 		Object whatIsIt = fetched.getProperty("empty");
-		assert whatIsIt == null;
+		assertThat(whatIsIt).isNull();
 	}
 
 	/**
 	 * What happens when you put a single null in a collection in an Entity?
 	 */
-	@SuppressWarnings("unchecked")
 	@Test
-	public void testCollectionContainingNullInEntity() throws Exception
-	{
-		Entity ent = new Entity("Test");
-		List<Object> hasNull = new ArrayList<>();
-		hasNull.add(null);
-		ent.setProperty("hasNull", hasNull);
+	void collectionPropertiesCanContainNull() throws Exception {
+		final Entity ent = new Entity("Test");
+		ent.setProperty("hasNull", Collections.singletonList(null));
 
-		DatastoreService ds = DatastoreServiceFactory.getDatastoreService();
-		ds.put(ent);
+		ds().put(ent);
 		
-		Entity fetched = ds.get(ent.getKey());
+		final Entity fetched = ds().get(ent.getKey());
 		
-		System.out.println(fetched);
-		
+		@SuppressWarnings("unchecked")
 		Collection<Object> whatIsIt = (Collection<Object>)fetched.getProperty("hasNull");
-		assert whatIsIt != null;
-		assert whatIsIt.size() == 1;
-		assert whatIsIt.iterator().next() == null;
+
+		assertThat(whatIsIt).containsExactly((Object)null);
 	}
 }

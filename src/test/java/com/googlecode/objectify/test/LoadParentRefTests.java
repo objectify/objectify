@@ -10,178 +10,173 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
-import com.googlecode.objectify.test.LoadParentRefTests.ChildWithGroup.Group;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests the fetching system for parent values using Ref<?> holders.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadParentRefTests extends TestBase
-{
+class LoadParentRefTests extends TestBase {
 	/** */
 	@Entity
-	public static class Father {
-		public @Id Long id;
-		public String foo;
+	@Data
+	private static class Father {
+		@Id Long id;
+		String foo;
 	}
 
 	/** */
 	@Entity
-	public static class Child {
-		public @Id Long id;
-		public @Load @Parent Ref<Father> father;
-		public String bar;
+	@Data
+	private static class Child {
+		@Id Long id;
+		@Load @Parent Ref<Father> father;
+		String bar;
 	}
 
 	/** Clears the session to get a full load */
 	@Test
-	public void testParentExists() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(Child.class);
+	void testParentExists() throws Exception {
+		factory().register(Father.class);
+		factory().register(Child.class);
 
-		Father f = new Father();
+		final Father f = new Father();
 		f.foo = "foo";
 		ofy().save().entity(f).now();
 
-		Child ch = new Child();
+		final Child ch = new Child();
 		ch.father = Ref.create(Key.create(f));
 		ch.bar = "bar";
 		ofy().save().entity(ch).now();
 
 		ofy().clear();
 
-		LoadResult<Child> fetchedRef = ofy().load().key(Key.create(ch));
-		Child fetched = fetchedRef.now();
+		final LoadResult<Child> fetchedRef = ofy().load().key(Key.create(ch));
+		final Child fetched = fetchedRef.now();
 
-		assert fetched.bar.equals(ch.bar);
-		assert fetched.father.get().id.equals(f.id);
-		assert fetched.father.get().foo.equals(f.foo);
+		assertThat(fetched.bar).isEqualTo(ch.bar);
+		assertThat(fetched.father.get()).isEqualTo(f);
 	}
 
 	/** */
 	@Entity
-	public static class TreeNode {
-		public @Id Long id;
-		public @Load @Parent Ref<TreeNode> parent;
-		public String foo;
+	@Data
+	private static class TreeNode {
+		@Id Long id;
+		@Load @Parent Ref<TreeNode> parent;
+		String foo;
 	}
 
 	/** */
 	@Test
-	public void testTwoLevelsOfFetch() throws Exception
-	{
-		fact().register(TreeNode.class);
+	void testTwoLevelsOfFetch() throws Exception {
+		factory().register(TreeNode.class);
 
-		TreeNode node1 = new TreeNode();
+		final TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
 		ofy().save().entity(node1).now();
 
-		TreeNode node2 = new TreeNode();
+		final TreeNode node2 = new TreeNode();
 		node2.parent = Ref.create(node1);
 		node2.foo = "foo2";
 		ofy().save().entity(node2).now();
 
-		TreeNode node3 = new TreeNode();
+		final TreeNode node3 = new TreeNode();
 		node3.parent = Ref.create(node2);
 		node3.foo = "foo3";
 		ofy().save().entity(node3).now();
 
 		ofy().clear();
 
-		TreeNode fetched3 = ofy().load().entity(node3).now();
+		final TreeNode fetched3 = ofy().load().entity(node3).now();
 
-		assert fetched3.foo.equals(node3.foo);
-		assert fetched3.parent.get().id.equals(node2.id);
-		assert fetched3.parent.get().foo.equals(node2.foo);
-		assert fetched3.parent.get().parent.get().id.equals(node1.id);
-		assert fetched3.parent.get().parent.get().foo.equals(node1.foo);
-		assert fetched3.parent.get().parent.get().parent == null;
+		assertThat(fetched3.foo).isEqualTo(node3.foo);
+		assertThat(fetched3.parent.get()).isEqualTo(node2);
+		assertThat(fetched3.parent.get().parent.get()).isEqualTo(node1);
+		assertThat(fetched3.parent.get().parent.get().parent).isNull();
 	}
 
 	/** */
 	@Test
-	public void testMissingIntermediate() throws Exception
-	{
-		fact().register(TreeNode.class);
+	void testMissingIntermediate() throws Exception {
+		factory().register(TreeNode.class);
 
-		TreeNode node1 = new TreeNode();
+		final TreeNode node1 = new TreeNode();
 		node1.foo = "foo1";
-		Key<TreeNode> key1 = ofy().save().entity(node1).now();
+		final Key<TreeNode> key1 = ofy().save().entity(node1).now();
 
 		// Node2 should not exist but should have a concrete id for node3
-		TreeNode node2 = new TreeNode();
+		final TreeNode node2 = new TreeNode();
 		node2.id = 999L;
 		node2.parent = Ref.create(key1);
-		Key<TreeNode> key2 = Key.create(node2);
+		final Key<TreeNode> key2 = Key.create(node2);
 
-		TreeNode node3 = new TreeNode();
+		final TreeNode node3 = new TreeNode();
 		node3.parent = Ref.create(key2);
 		node3.foo = "foo3";
-		Key<TreeNode> key3 = ofy().save().entity(node3).now();
+		final Key<TreeNode> key3 = ofy().save().entity(node3).now();
 
 		ofy().clear();
 
 		// Doing this step by step to make it easier for debugging
-		LoadResult<TreeNode> fetched3Ref = ofy().load().key(key3);
-		TreeNode fetched3 = fetched3Ref.now();
+		final LoadResult<TreeNode> fetched3Ref = ofy().load().key(key3);
+		final TreeNode fetched3 = fetched3Ref.now();
 
-		assert fetched3.parent.get() == null;
-		assert fetched3.parent.key().equals(key2);
-		assert fetched3.parent.key().getParent().equals(key1);
+		assertThat(fetched3.parent.get()).isNull();
+		assertThat(fetched3.parent.key()).isEqualTo(key2);
+		assertThat(fetched3.parent.key().getParent()).isEqualTo(key1);
 	}
 
 	/** */
 	@Entity
-	public static class ChildWithGroup {
-		public static class Group {}
+	@Data
+	private static class ChildWithGroup {
+		static class Group {}
 
-		public @Id Long id;
-		public @Load(Group.class) @Parent Ref<Father> father;
-		public String bar;
+		@Id Long id;
+		@Load(Group.class) @Parent Ref<Father> father;
+		String bar;
 	}
 
 	/** */
 	@Test
-	public void testParentWithGroup() throws Exception
-	{
-		fact().register(Father.class);
-		fact().register(ChildWithGroup.class);
+	void testParentWithGroup() throws Exception {
+		factory().register(Father.class);
+		factory().register(ChildWithGroup.class);
 
-		Father f = new Father();
+		final Father f = new Father();
 		f.foo = "foo";
 		ofy().save().entity(f).now();
 
-		ChildWithGroup ch = new ChildWithGroup();
+		final ChildWithGroup ch = new ChildWithGroup();
 		ch.father = Ref.create(Key.create(f));
 		ch.bar = "bar";
-		Key<ChildWithGroup> kch = ofy().save().entity(ch).now();
+		final Key<ChildWithGroup> kch = ofy().save().entity(ch).now();
 
 		// This should get an empty ref
 		ofy().clear();
-		ChildWithGroup fetched = ofy().load().key(kch).now();
-		assert fetched.father.key().getId() == f.id;
-		assert !fetched.father.isLoaded();
+		final ChildWithGroup fetched = ofy().load().key(kch).now();
+		assertThat(fetched.father.key().getId()).isEqualTo(f.id);
+		assertThat(fetched.father.isLoaded()).isFalse();
 
 		// Upgrade in the same session
-		ChildWithGroup fetched2 = ofy().load().group(Group.class).key(kch).now();
-		assert fetched2 == fetched;
-		assert fetched2.father.isLoaded();
-		assert fetched2.father.get().id.equals(f.id);
-		assert fetched2.father.get().foo.equals(f.foo);
+		final ChildWithGroup fetched2 = ofy().load().group(ChildWithGroup.Group.class).key(kch).now();
+		assertThat(fetched2).isSameAs(fetched);
+		assertThat(fetched2.father.isLoaded()).isTrue();
+		assertThat(fetched2.father.get()).isEqualTo(f);
 
 		// Also should work after session is cleared, but objects will not be same
 		ofy().clear();
-		ChildWithGroup fetched3 = ofy().load().group(Group.class).key(kch).now();
-		assert fetched3 != fetched2;
-		assert fetched3.father.isLoaded();
-		assert fetched3.father.get().id.equals(f.id);
-		assert fetched3.father.get().foo.equals(f.foo);
+		final ChildWithGroup fetched3 = ofy().load().group(ChildWithGroup.Group.class).key(kch).now();
+		assertThat(fetched3).isNotSameAs(fetched2);
+		assertThat(fetched3.father.isLoaded()).isTrue();
+		assertThat(fetched3.father.get()).isEqualTo(f);
 	}
 }

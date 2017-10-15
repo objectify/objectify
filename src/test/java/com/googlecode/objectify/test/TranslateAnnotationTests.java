@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Translate;
@@ -18,29 +19,25 @@ import com.googlecode.objectify.impl.translate.ValueTranslator;
 import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Tests of the @Translate annotation
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TranslateAnnotationTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(TranslateAnnotationTests.class.getName());
+class TranslateAnnotationTests extends TestBase {
 
 	/** Random translator that just prepends some junk and does an uppercase conversion on save so we know it was executed */
-	public static class FunkyStringTranslatorFactory extends ValueTranslatorFactory<String, String> {
+	private static class FunkyStringTranslatorFactory extends ValueTranslatorFactory<String, String> {
 		public FunkyStringTranslatorFactory() {
 			super(String.class);
 		}
@@ -62,7 +59,7 @@ public class TranslateAnnotationTests extends TestBase
 	}
 
 	/** Translates String collections to comma separated lists of strings, not really intended to be used (no escaping) */
-	public static class CommaSeparatedStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>, String> {
+	private static class CommaSeparatedStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>, String> {
 		@Override
 		public Translator<Collection<String>, String> create(TypeKey<Collection<String>> tk, CreateContext ctx, Path path) {
 			if (!tk.isAssignableTo(Collection.class))
@@ -100,54 +97,57 @@ public class TranslateAnnotationTests extends TestBase
 
 	/** */
 	@Entity
-	public static class HasTranslateLate
-	{
+	@Data
+	private static class HasTranslateLate {
 		@Id
-		public Long id;
+		Long id;
 
 		@Translate(FunkyStringTranslatorFactory.class)
-		public String string;
+		String string;
 	}
 
 	/**
 	 */
 	@Test
-	public void testTranslateLate() throws Exception
-	{
-		fact().register(HasTranslateLate.class);
+	void basicTranslationWorks() throws Exception {
+		factory().register(HasTranslateLate.class);
 
-		HasTranslateLate ht = new HasTranslateLate();
+		final HasTranslateLate ht = new HasTranslateLate();
 		ht.string = "bar";
 
-		HasTranslateLate fetched = ofy().saveClearLoad(ht);
+		final HasTranslateLate fetched = saveClearLoad(ht);
 
-		assert fetched.string.equals(ht.string.toUpperCase());
+		assertThat(fetched.getString()).isEqualTo("BAR");
+
+		final com.google.appengine.api.datastore.Entity entity = ds().get(Key.create(ht).getRaw());
+		assertThat(entity.getProperty("string")).isEqualTo("FOOBAR");
 	}
 
 	/** */
 	@Entity
-	public static class HasTranslateEarly
-	{
+	@Data
+	private static class HasTranslateEarly {
 		@Id
-		public Long id;
+		Long id;
 
 		@Translate(value=CommaSeparatedStringCollectionTranslatorFactory.class, early=true)
-		public List<String> strings;
+		List<String> strings;
 	}
 
 	/**
 	 */
 	@Test
-	public void testTranslateEarly() throws Exception
-	{
-		fact().register(HasTranslateEarly.class);
+	void earlyTranslationHappensBeforeCollections() throws Exception {
+		factory().register(HasTranslateEarly.class);
 
-		HasTranslateEarly ht = new HasTranslateEarly();
-		ht.strings = Arrays.asList(new String[] { "foo", "bar" });
+		final HasTranslateEarly ht = new HasTranslateEarly();
+		ht.strings = Arrays.asList("foo", "bar");
 
-		HasTranslateEarly fetched = ofy().saveClearLoad(ht);
+		final HasTranslateEarly fetched = saveClearLoad(ht);
 
-		assert fetched.strings.get(0).equals(ht.strings.get(0).toUpperCase());
-		assert fetched.strings.get(1).equals(ht.strings.get(1).toUpperCase());
+		assertThat(fetched.strings).isEqualTo(Arrays.asList("FOO", "BAR"));
+
+		final com.google.appengine.api.datastore.Entity entity = ds().get(Key.create(ht).getRaw());
+		assertThat(entity.getProperty("strings")).isEqualTo("FOO,BAR");
 	}
 }

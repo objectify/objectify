@@ -1,34 +1,38 @@
 package com.googlecode.objectify.test;
 
-import com.googlecode.objectify.test.entity.Criminal;
+import com.googlecode.objectify.annotation.Cache;
+import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests specifically dealing with nulls in embedded fields and collections
  */
-public class EmbeddedNullTests extends TestBase
-{
+class EmbeddedNullTests extends TestBase {
 	/**
 	 * Add an entry to the database that should never come back from null queries.
 	 */
-	@BeforeMethod
-	public void setUpExtra()
-	{
-		fact().register(Criminal.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Criminal.class);
 
-		Criminal avoid = new Criminal();
+		final Criminal avoid = new Criminal();
 		avoid.aliases = new Name[] { new Name("Bob", "Dobbs") };
 		avoid.moreAliases = Collections.singletonList(new Name("Bob", "Dobbs"));
 		ofy().save().entity(avoid).now();
@@ -39,185 +43,96 @@ public class EmbeddedNullTests extends TestBase
 	 * Rule: filtering collections filters by contents, so looking for null fails
 	 */
 	@Test
-	public void testNullCollection() throws Exception
-	{
-		Criminal crim = new Criminal();
+	void cannotFilterByNullCollections() throws Exception {
+		final Criminal crim = new Criminal();
 		crim.aliases = null;
 		crim.moreAliases = null;
 
-		Criminal fetched = ofy().saveClearLoad(crim);
-		assert fetched.aliases == null;
-		assert fetched.moreAliases == null;
+		final Criminal fetched = saveClearLoad(crim);
+		assertThat(fetched.aliases).isNull();
+		assertThat(fetched.moreAliases).isNull();
 
-		// Now check the queries
-		Iterator<Criminal> queried;
+		final Iterator<Criminal> queried = ofy().load().type(Criminal.class).filter("aliases", null).iterator();
+		assertThat(queried.hasNext()).isFalse();
 
-		queried = ofy().load().type(Criminal.class).filter("aliases", null).iterator();
-		assert !queried.hasNext();
-
-		queried = ofy().load().type(Criminal.class).filter("moreAliases", null).iterator();
-		assert !queried.hasNext();
-
-		// Potential altenate syntax?
-//		queried = ofy.query(Criminal.class).filterNullCollection("aliases").iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("moreAliases").iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("aliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
-//		assert !queried.hasNext();
+		final Iterator<Criminal> queried2 = ofy().load().type(Criminal.class).filter("moreAliases", null).iterator();
+		assertThat(queried2.hasNext()).isFalse();
 	}
 
 	/**
 	 */
 	@Test
-	public void testEmptyCollection() throws Exception
-	{
-		Criminal crim = new Criminal();
+	void emptyCollectionsAreJustLikeNullCollections() throws Exception {
+		final Criminal crim = new Criminal();
 		crim.aliases = new Name[0];
 		crim.moreAliases = new ArrayList<>();
 
-		Criminal fetched = ofy().saveClearLoad(crim);
-		assert fetched.aliases == null;	// not valid with caching objectify
-		assert fetched.moreAliases == null;
+		final Criminal fetched = saveClearLoad(crim);
+		assertThat(fetched.aliases).isNull();
+		assertThat(fetched.moreAliases).isNull();
 
-		// Now check the queries
-		Iterator<Criminal> queried;
+		final Iterator<Criminal> queried = ofy().load().type(Criminal.class).filter("aliases", null).iterator();
+		assertThat(queried.hasNext()).isFalse();
 
-		queried = ofy().load().type(Criminal.class).filter("aliases", null).iterator();
-		assert !queried.hasNext();
-
-		queried = ofy().load().type(Criminal.class).filter("moreAliases", null).iterator();
-		assert !queried.hasNext();
-
-		// Potential altenate syntax?
-//		queried = ofy.query(Criminal.class).filterNullCollection("aliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterNullCollection("moreAliases").iterator();
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("aliases").iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
-
-//		queried = ofy.query(Criminal.class).filterEmptyCollection("moreAliases").iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
+		final Iterator<Criminal> queried2 = ofy().load().type(Criminal.class).filter("moreAliases", null).iterator();
+		assertThat(queried2.hasNext()).isFalse();
 	}
 
 	/**
 	 */
 	@Test
-	public void testCollectionContainingNull() throws Exception
-	{
-		Criminal crim = new Criminal();
+	void collectionsCanContainNull() throws Exception {
+		final Criminal crim = new Criminal();
 		crim.aliases = new Name[] { null };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = ofy().saveClearLoad(crim);
-		assert fetched.aliases != null;
-		assert fetched.aliases.length == 1;
-		assert fetched.aliases[0] == null;
-
-		assert fetched.moreAliases != null;
-		assert fetched.moreAliases.size() == 1;
-		assert fetched.moreAliases.get(0) == null;
-
-		// Queries on non-leaf values are not currently supported
-//		TestObjectify ofy = this.fact.begin();
-//		Iterator<Criminal> queried;
-//
-//		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
-//
-//		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
+		final Criminal fetched = saveClearLoad(crim);
+		assertThat(fetched.aliases).isEqualTo(crim.aliases);
+		assertThat(fetched.moreAliases).isEqualTo(crim.moreAliases);
 	}
 
 	/**
 	 */
 	@Test
-	public void easierTestCollectionContainingNullAndOtherStuff() throws Exception
-	{
-		Criminal crim = new Criminal();
-		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
-
-		Criminal fetched = ofy().saveClearLoad(crim);
-
-		assert fetched.aliases != null;
-		assert fetched.aliases.length == 3;
-		assert fetched.aliases[0] != null;
-		assert fetched.aliases[1] == null;
-		assert fetched.aliases[2] != null;
-	}
-
-	/**
-	 */
-	@Test
-	public void testCollectionContainingNullAndOtherStuff() throws Exception
-	{
-		Criminal crim = new Criminal();
+	void collectionContainingNullAndOtherStuff() throws Exception {
+		final Criminal crim = new Criminal();
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), null, new Name("Ivan", "Stang") };
 		crim.moreAliases = Arrays.asList(crim.aliases);
 
-		Criminal fetched = ofy().saveClearLoad(crim);
+		final Criminal fetched = saveClearLoad(crim);
 
-		assert fetched.aliases != null;
-		assert fetched.aliases.length == 3;
-		assert fetched.aliases[0] != null;
-		assert fetched.aliases[1] == null;
-		assert fetched.aliases[2] != null;
-
-		assert fetched.moreAliases != null;
-		assert fetched.moreAliases.size() == 3;
-		assert fetched.moreAliases.get(0) != null;
-		assert fetched.moreAliases.get(1) == null;
-		assert fetched.moreAliases.get(2) != null;
-
-		// Queries on non-leaf values are not currently supported
-//		TestObjectify ofy = this.fact.begin();
-//		Iterator<Criminal> queried;
-//
-//		queried = ofy.query(Criminal.class).filter("aliases", null).iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
-//
-//		queried = ofy.query(Criminal.class).filter("moreAliases", null).iterator();
-//		assert queried.hasNext();
-//		assert queried.next().id.equals(fetched.id);
-//		assert !queried.hasNext();
+		assertThat(fetched.aliases).isEqualTo(crim.aliases);
+		assertThat(fetched.moreAliases).isEqualTo(crim.moreAliases);
 	}
 
 	/**
 	 * Reported error when a field is null in an embedded set, but it seems to work
 	 */
 	@Test
-	public void testEmbeddedSetWithNullField() throws Exception
-	{
-		Criminal crim = new Criminal();
+	void testEmbeddedSetWithNullField() throws Exception {
+		final Criminal crim = new Criminal();
 		crim.aliases = new Name[] { new Name("Bob", "Dobbs"), new Name("Mojo", null), new Name("Ivan", "Stang") };
 		crim.aliasesSet = new HashSet<>(Arrays.asList(crim.aliases));
 
-		Criminal fetched = ofy().saveClearLoad(crim);
+		final Criminal fetched = saveClearLoad(crim);
 
-		for (Name name: crim.aliases)
-			assert fetched.aliasesSet.contains(name);
+		assertThat(fetched.aliasesSet).isEqualTo(crim.aliasesSet);
 	}
 
+	/**
+	 * Entity for testing null/empty embedded arrays and collections
+	 */
+	@Entity
+	@Cache
+	@Data
+	private static class Criminal {
+		@Id
+		Long id;
+
+		Name[] aliases;
+
+		List<Name> moreAliases;
+
+		Set<Name> aliasesSet;
+	}
 }

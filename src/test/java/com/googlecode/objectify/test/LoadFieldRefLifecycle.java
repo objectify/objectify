@@ -10,75 +10,76 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnLoad;
-import com.googlecode.objectify.test.LoadFieldRefLifecycle.HasMulti.Multi;
-import com.googlecode.objectify.test.LoadFieldRefLifecycle.HasSingle.Single;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Just some simple tests of loading field Refs
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadFieldRefLifecycle extends TestBase
-{
+class LoadFieldRefLifecycle extends TestBase {
 	/** */
 	@Entity
-	public static class End {
-		public @Id long id;
+	@Data
+	@NoArgsConstructor
+	private static class End {
+		@Id long id;
 		@Ignore boolean loaded = false;
-		public End() {}
-		public End(long id) { this.id = id; }
+		End(long id) { this.id = id; }
 
-		public @OnLoad void onLoad() {
+		@OnLoad void onLoad() {
 			loaded = true;
 		}
 	}
 
 	/** */
 	@Entity
-	public static class Middle {
-		public @Id long id;
-		public Middle() {}
-		public Middle(long id) { this.id = id; }
-
-		public @Load(Single.class) Ref<End> end;
+	@Data
+	@NoArgsConstructor
+	private static class Middle {
+		@Id long id;
+		@Load(HasSingle.Single.class) Ref<End> end;
+		Middle(long id) { this.id = id; }
 	}
 
 	/** */
 	@Entity
-	public static class HasSingle {
-		public static class Single {}
+	private static class HasSingle {
+		static class Single {}
 
-		public @Id Long id;
-		public @Load(Single.class) Ref<Middle> middle;
+		@Id Long id;
+		@Load(Single.class) Ref<Middle> middle;
 	}
 
 	/** */
 	@Entity
-	public static class HasMulti {
-		public static class Multi {}
+	private static class HasMulti {
+		static class Multi {}
 
-		public @Id Long id;
-		public @Load(Multi.class) List<Ref<End>> ends = new ArrayList<>();
+		@Id Long id;
+		@Load(Multi.class) List<Ref<End>> ends = new ArrayList<>();
 	}
 
-	Key<End> ke0;
-	End end0;
-	Key<End> ke1;
-	End end1;
+	private Key<End> ke0;
+	private End end0;
+	private Key<End> ke1;
+	private End end1;
 
 	/** */
-	@BeforeMethod
-	public void createTwoOthers() {
-		fact().register(End.class);
+	@BeforeEach
+	void createTwoOthers() {
+		factory().register(End.class);
 
 		end0 = new End(123L);
 		ke0 = ofy().save().entity(end0).now();
@@ -88,42 +89,40 @@ public class LoadFieldRefLifecycle extends TestBase
 
 	/** */
 	@Test
-	public void testSingleOnLoad() throws Exception
-	{
-		fact().register(Middle.class);
-		fact().register(HasSingle.class);
+	void testSingleOnLoad() throws Exception {
+		factory().register(Middle.class);
+		factory().register(HasSingle.class);
 
-		Middle mid = new Middle(456);
+		final Middle mid = new Middle(456);
 		mid.end = Ref.create(ke0);
-		Key<Middle> kmid = ofy().save().entity(mid).now();
+		final Key<Middle> kmid = ofy().save().entity(mid).now();
 
-		HasSingle hs = new HasSingle();
+		final HasSingle hs = new HasSingle();
 		hs.middle = Ref.create(kmid);
-		Key<HasSingle> hskey = ofy().save().entity(hs).now();
+		final Key<HasSingle> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once
-		HasSingle fetched = ofy().load().group(Single.class).key(hskey).now();	// upgrade with single
+		final HasSingle fetched = ofy().load().group(HasSingle.Single.class).key(hskey).now();	// upgrade with single
 
-		assert fetched.middle.get().end.get().loaded;
+		assertThat(fetched.middle.get().end.get().loaded).isTrue();
 	}
 
 	/** */
 	@Test
-	public void testMultiOnLoad() throws Exception
-	{
-		fact().register(HasMulti.class);
+	void testMultiOnLoad() throws Exception {
+		factory().register(HasMulti.class);
 
-		HasMulti hs = new HasMulti();
+		final HasMulti hs = new HasMulti();
 		hs.ends.add(Ref.create(ke0));
 		hs.ends.add(Ref.create(ke1));
-		Key<HasMulti> hskey = ofy().save().entity(hs).now();
+		final Key<HasMulti> hskey = ofy().save().entity(hs).now();
 
 		ofy().clear();
 		//ofy().get(hskey);	// load once
-		HasMulti fetched = ofy().load().group(Multi.class).key(hskey).now();	// upgrade with single
+		final HasMulti fetched = ofy().load().group(HasMulti.Multi.class).key(hskey).now();	// upgrade with single
 
 		for (Ref<End> end: fetched.ends)
-			assert end.get().loaded;
+			assertThat(end.get().loaded).isTrue();
 	}
 }

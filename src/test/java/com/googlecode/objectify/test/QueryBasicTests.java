@@ -10,112 +10,100 @@ import com.google.appengine.api.datastore.Query;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.core.Is.is;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of basic query operations
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryBasicTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(QueryBasicTests.class.getName());
+class QueryBasicTests extends TestBase {
 
 	/** */
 	@Test
-	public void simpleQueryWorks() throws Exception {
-		fact().register(Trivial.class);
+	void simpleQueryWorks() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv = new Trivial(123L, "foo", 12);
+		final Trivial triv = new Trivial(123L, "foo", 12);
 		ofy().save().entity(triv).now();
 
-		Query q = new Query("Trivial");
-		PreparedQuery pq = ds().prepare(q);
-		List<Entity> stuff = pq.asList(FetchOptions.Builder.withDefaults());
-		assert stuff.size() == 1;
+		final Query q = new Query("Trivial");
+		final PreparedQuery pq = ds().prepare(q);
+		final List<Entity> stuff = pq.asList(FetchOptions.Builder.withDefaults());
+		assertThat(stuff).hasSize(1);
 
-		int count = 0;
-		for (@SuppressWarnings("unused") Trivial fetched: ofy().load().type(Trivial.class)) {
-			count++;
-		}
-		assert count == 1;
+		assertThat(ofy().load().type(Trivial.class)).containsExactly(triv);
 	}
 
-	/** */
+	/**
+	 * Doesn't actually test chunk behavior (which is really a performance consideration). Rather
+	 * just makes sure that if we set a small chunk size, everything works correctly.
+	 */
 	@Test
-	public void testChunking() throws Exception {
-		fact().register(Trivial.class);
+	void chunking() throws Exception {
+		factory().register(Trivial.class);
 
-		List<Trivial> trivs = new ArrayList<>(100);
+		final List<Trivial> trivs = new ArrayList<>(100);
 		for (int i = 0; i < 100; i++) {
-			Trivial triv = new Trivial(1000L + i, "foo" + i, i);
+			final Trivial triv = new Trivial(1000L + i, "foo" + i, i);
 			trivs.add(triv);
 		}
 
 		ofy().save().entities(trivs).now();
 
-		assert trivs.size() == 100;
+		assertThat(trivs).hasSize(100);
 
 		int count = 0;
-		for (Trivial triv: ofy().load().type(Trivial.class).chunk(2)) {
-			assert triv.getSomeNumber() == count;
+		for (final Trivial triv: ofy().load().type(Trivial.class).chunk(2)) {
+			assertThat(triv.getSomeNumber()).isEqualTo(count);
 			count++;
 		}
-		assert count == 100;
+		assertThat(count).isEqualTo(100);
 	}
 
 	/** */
 	@Test
-	public void loadByKindWorks() throws Exception {
-		fact().register(Trivial.class);
+	void loadByKindWorks() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		final Trivial triv1 = new Trivial(123L, "foo1", 12);
 		ofy().save().entities(triv1).now();
 		ofy().clear();
 
-		Trivial fetched1 = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).id(triv1.getId()).now();
-		assertThat(fetched1, is(triv1));
+		final Trivial fetched1 = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).id(triv1.getId()).now();
+		assertThat(fetched1).isEqualTo(triv1);
 	}
 
 	/** */
 	@Test
-	public void queryByKindWorks() throws Exception {
-		fact().register(Trivial.class);
+	void queryByKindWorks() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		final Trivial triv1 = new Trivial(123L, "foo1", 12);
 		ofy().save().entities(triv1).now();
 		ofy().clear();
 
-		List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).list();
-		assertThat(fetched, hasSize(1));
-		assertThat(fetched.get(0).getSomeString(), equalTo(triv1.getSomeString()));
+		final List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).list();
+		assertThat(fetched).containsExactly(triv1);
 	}
 
 	/** */
 	@Test
-	public void queryByKindWithFilterWorks() throws Exception {
-		fact().register(Trivial.class);
+	void queryByKindWithFilterWorks() throws Exception {
+		factory().register(Trivial.class);
 
-		Trivial triv1 = new Trivial(123L, "foo1", 12);
+		final Trivial triv1 = new Trivial(123L, "foo1", 12);
 		ofy().save().entities(triv1).now();
 		ofy().clear();
 
-		List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).filter("someString", "foo1").list();
-		assertThat(fetched, hasSize(1));
-		assertThat(fetched.get(0).getSomeString(), equalTo(triv1.getSomeString()));
+		final List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).filter("someString", "foo1").list();
+		assertThat(fetched).containsExactly(triv1);
 	}
 }

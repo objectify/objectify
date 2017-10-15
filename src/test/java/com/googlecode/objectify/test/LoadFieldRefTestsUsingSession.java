@@ -10,18 +10,18 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.OnSave;
-import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Multi;
-import com.googlecode.objectify.test.LoadFieldRefTestsUsingSession.HasEntitiesWithGroups.Single;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests the fetching system for normal fields. This uses the session so we can experiment with
@@ -29,21 +29,20 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoadFieldRefTestsUsingSession extends TestBase
-{
-	Trivial t1;
-	Trivial t2;
-	Trivial tNone1;
-	Trivial tNone2;
-	Key<Trivial> k1;
-	Key<Trivial> k2;
-	Key<Trivial> kNone1;
-	Key<Trivial> kNone2;
+class LoadFieldRefTestsUsingSession extends TestBase {
+	private Trivial t1;
+	private Trivial t2;
+	private Trivial tNone1;
+	private Trivial tNone2;
+	private Key<Trivial> k1;
+	private Key<Trivial> k2;
+	private Key<Trivial> kNone1;
+	private Key<Trivial> kNone2;
 
 	/** */
-	@BeforeMethod
-	public void createTwo() {
-		fact().register(Trivial.class);
+	@BeforeEach
+	void createTwo() {
+		factory().register(Trivial.class);
 
 		t1 = new Trivial("foo", 11);
 		k1 = ofy().save().entity(t1).now();
@@ -60,93 +59,89 @@ public class LoadFieldRefTestsUsingSession extends TestBase
 
 	/** */
 	@Entity
-	public static class HasEntitiesWithGroups {
-		public static class Single {}
-		public static class Multi {}
+	@Data
+	private static class HasEntitiesWithGroups {
+		static class Single {}
+		static class Multi {}
 
-		public @Id Long id;
-		public @Load(Single.class) Ref<Trivial> single;
-		public @Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
+		@Id Long id;
+		@Load(Single.class) Ref<Trivial> single;
+		@Load(Multi.class) List<Ref<Trivial>> multi = new ArrayList<>();
 
-		public @Ignore boolean onSaveFired = false;
+		@Ignore boolean onSaveFired = false;
 		@OnSave void onSave() { onSaveFired = true; }
 	}
 
 	/** */
 	@Test
-	public void loadGroupsSpecifiedOnCachedEntitiesStillLoad() throws Exception {
-		fact().register(HasEntitiesWithGroups.class);
+	void loadGroupsSpecifiedOnCachedEntitiesStillLoad() throws Exception {
+		factory().register(HasEntitiesWithGroups.class);
 
-		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
+		final HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
 		he.multi.add(Ref.create(k1));
 		he.multi.add(Ref.create(k2));
-		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
+		HasEntitiesWithGroups fetched = saveClearLoad(he);
 
-		Key<HasEntitiesWithGroups> hekey = Key.create(he);
+		final Key<HasEntitiesWithGroups> hekey = Key.create(he);
 
-		assert !fetched.single.isLoaded();
-		assert !fetched.multi.get(0).isLoaded();
-		assert !fetched.multi.get(1).isLoaded();
+		assertThat(fetched.single.isLoaded()).isFalse();
+		assertThat(fetched.multi.get(0).isLoaded()).isFalse();
+		assertThat(fetched.multi.get(1).isLoaded()).isFalse();
 
-		assert fetched.single.equivalent(k1);
-		assert fetched.single.equivalent(fetched.multi.get(0));
+		assertThat(fetched.single.equivalent(k1)).isTrue();
+		assertThat(fetched.single.equivalent(fetched.multi.get(0))).isTrue();
 
-		fetched = ofy().load().group(Single.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert !fetched.multi.get(1).isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Single.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isFalse();
 
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 
-		assert fetched.single.equivalent(fetched.multi.get(0));
-		assert fetched.single.equivalent(k1);
-		assert fetched.single.get().getId().equals(t1.getId());
-		assert fetched.single.get().getSomeString().equals(t1.getSomeString());
+		assertThat(fetched.single.equivalent(fetched.multi.get(0))).isTrue();
+		assertThat(fetched.single.equivalent(k1)).isTrue();
+		assertThat(fetched.single.get()).isEqualTo(t1);
 
-		fetched = ofy().load().group(Multi.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert fetched.multi.get(1).isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Multi.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isTrue();
 
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
+		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
 
-		fetched = ofy().load().group(Single.class).group(Multi.class).key(hekey).now();
-		assert fetched.single.isLoaded();
-		assert fetched.multi.get(0).isLoaded();
-		assert fetched.multi.get(1).isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Single.class).group(HasEntitiesWithGroups.Multi.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.multi.get(0).isLoaded()).isTrue();
+		assertThat(fetched.multi.get(1).isLoaded()).isTrue();
 
-		assert fetched.single.get() == fetched.multi.get(0).get();
+		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
 
-		assert fetched.multi.get(0).get().getId().equals(t1.getId());
-		assert fetched.multi.get(0).get().getSomeString().equals(t1.getSomeString());
-		assert fetched.multi.get(1).get().getId().equals(t2.getId());
-		assert fetched.multi.get(1).get().getSomeString().equals(t2.getSomeString());
+		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
+		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
 	}
 
 	/**
 	 * Fragment of other test, just easier to debug.
 	 */
 	@Test
-	public void loadGroupsSpecifiedOnCachedEntitiesStillLoad_simplerCase() throws Exception {
-		fact().register(HasEntitiesWithGroups.class);
+	void loadGroupsSpecifiedOnCachedEntitiesStillLoad_simplerCase() throws Exception {
+		factory().register(HasEntitiesWithGroups.class);
 
-		HasEntitiesWithGroups he = new HasEntitiesWithGroups();
+		final HasEntitiesWithGroups he = new HasEntitiesWithGroups();
 		he.single = Ref.create(k1);
 
-		HasEntitiesWithGroups fetched = ofy().saveClearLoad(he);
-		assert !fetched.single.isLoaded();
+		HasEntitiesWithGroups fetched = saveClearLoad(he);
+		assertThat(fetched.single.isLoaded()).isFalse();
 
-		fetched = ofy().load().group(Single.class).entity(he).now();
-		assert fetched.single.isLoaded();
+		fetched = ofy().load().group(HasEntitiesWithGroups.Single.class).entity(he).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
 
 		// The code internally performs a save to a throwaway Entity, but we want to make sure that doesn't have
 		// any public effects.
-		assert !fetched.onSaveFired;
+		assertThat(fetched.onSaveFired).isFalse();
 	}
 }

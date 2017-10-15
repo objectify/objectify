@@ -12,9 +12,9 @@ import com.googlecode.objectify.impl.translate.ClassTranslatorFactory;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Tests of the translators.
@@ -24,7 +24,7 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 public class TranslationTests extends TestBase
 {
 	@com.googlecode.objectify.annotation.Entity
-	public static class SimpleEntityPOJO {
+	private static class SimpleEntityPOJO {
 		public @Id Long id;
 		public String foo;
 	}
@@ -32,8 +32,8 @@ public class TranslationTests extends TestBase
 	/**
 	 */
 	@Test
-	public void simplePojoEntityTranslates() throws Exception {
-		CreateContext createCtx = new CreateContext(fact());
+	void simplePojoEntityTranslates() throws Exception {
+		CreateContext createCtx = new CreateContext(factory());
 		ClassTranslator<SimpleEntityPOJO> translator = ClassTranslatorFactory.createEntityClassTranslator(SimpleEntityPOJO.class, createCtx, Path.root());
 
 		SimpleEntityPOJO pojo = new SimpleEntityPOJO();
@@ -49,17 +49,17 @@ public class TranslationTests extends TestBase
 		assert ent.getProperty("foo").equals("bar");
 	}
 
-	public static class Thing {
+	private static class Thing {
 		public String foo;
 	}
 
 	/**
 	 */
 	@Test
-	public void simplePOJOTranslates() throws Exception {
+	void simplePOJOTranslates() throws Exception {
 		Path thingPath = Path.root().extend("somewhere");
 
-		CreateContext createCtx = new CreateContext(fact());
+		CreateContext createCtx = new CreateContext(factory());
 		ClassTranslator<Thing> translator = ClassTranslatorFactory.createEmbeddedClassTranslator(Thing.class, createCtx, thingPath);
 
 		Thing thing = new Thing();

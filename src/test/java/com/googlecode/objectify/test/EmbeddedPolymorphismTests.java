@@ -11,16 +11,18 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Just the registration part of polymorphic classes.  The 'A' just to alphabetize it before
@@ -28,41 +30,39 @@ import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EmbeddedPolymorphismTests extends TestBase
-{
-	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(EmbeddedPolymorphismTests.class.getName());
+class EmbeddedPolymorphismTests extends TestBase {
 
 	/** */
 	@Entity
-	public static class Handler {
-		@Id Long id;
-		Animal animal;
+	@Data
+	@NoArgsConstructor
+	private static class Handler {
+		@Id
+		private Long id;
+		private Animal animal;
 
-		public Handler() {}
 		public Handler(Animal animal) {
 			this.animal = animal;
 		}
 	}
 
 	@Index
-	public static class Animal {
-		String name;
-
-		public Animal() {}
-		public Animal(String name) {
-			this.name = name;
-		}
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	private static class Animal {
+		private String name;
 	}
 
 	/** */
 	@Subclass
 	@Index
-	public static class Mammal extends Animal {
-		boolean longHair;
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	@NoArgsConstructor
+	private static class Mammal extends Animal {
+		private boolean longHair;
 
-		public Mammal() {}
 		public Mammal(String name, boolean longHair) {
 			super(name);
 			this.longHair = longHair;
@@ -72,10 +72,12 @@ public class EmbeddedPolymorphismTests extends TestBase
 	/** */
 	@Subclass
 	@Index
-	public static class Cat extends Mammal {
-		boolean hypoallergenic;
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	@NoArgsConstructor
+	private static class Cat extends Mammal {
+		private boolean hypoallergenic;
 
-		public Cat() {}
 		public Cat(String name, boolean longHair, boolean hypoallergenic) {
 			super(name, longHair);
 			this.hypoallergenic = hypoallergenic;
@@ -85,10 +87,12 @@ public class EmbeddedPolymorphismTests extends TestBase
 	/** */
 	@Subclass
 	@Index
-	public static class Dog extends Mammal {
-		int loudness;
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	@NoArgsConstructor
+	private static class Dog extends Mammal {
+		private int loudness;
 
-		public Dog() {}
 		public Dog(String name, boolean longHair, int loudness) {
 			super(name, longHair);
 			this.loudness = loudness;
@@ -97,129 +101,126 @@ public class EmbeddedPolymorphismTests extends TestBase
 
 	/** */
 	@Test
-	public void testRegistrationForwards() throws Exception {
-		fact().register(Handler.class);
+	void testRegistrationForwards() throws Exception {
+		factory().register(Handler.class);
 
-		fact().register(Mammal.class);
-		fact().register(Cat.class);
-		fact().register(Dog.class);
+		factory().register(Mammal.class);
+		factory().register(Cat.class);
+		factory().register(Dog.class);
 	}
 
 	/** */
 	@Test
-	public void testRegistrationBackwards() throws Exception {
-		fact().register(Dog.class);
-		fact().register(Cat.class);
-		fact().register(Mammal.class);
+	void testRegistrationBackwards() throws Exception {
+		factory().register(Dog.class);
+		factory().register(Cat.class);
+		factory().register(Mammal.class);
 
-		fact().register(Handler.class);
+		factory().register(Handler.class);
 	}
 
 	/** */
 	@Test
-	public void embeddedBaseClassWorks() throws Exception {
+	void embeddedBaseClassWorks() throws Exception {
 		this.testRegistrationForwards();
 
-		Handler handler = new Handler(new Animal("Bob"));
-		Handler fetched = ofy().saveClearLoad(handler);
-		assert handler.animal.name.equals(fetched.animal.name);
+		final Handler handler = new Handler(new Animal("Bob"));
+		final Handler fetched = saveClearLoad(handler);
+
+		assertThat(fetched.animal).isEqualTo(handler.animal);
 	}
 
 	/** */
 	@Test
-	public void firstSubclassWorks() throws Exception {
+	void firstSubclassWorks() throws Exception {
 		this.testRegistrationForwards();
 
-		Handler handler = new Handler(new Mammal("Bob", true));
-		Handler fetched = ofy().saveClearLoad(handler);
-		assert handler.animal.name.equals(fetched.animal.name);
-		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
+		final Handler handler = new Handler(new Mammal("Bob", true));
+		final Handler fetched = saveClearLoad(handler);
+
+		assertThat(fetched.animal).isEqualTo(handler.animal);
 	}
 
 	/** */
 	@Test
-	public void secondSubclassWorks() throws Exception {
+	void secondSubclassWorks() throws Exception {
 		this.testRegistrationBackwards();
 
-		Handler handler = new Handler(new Cat("Bob", true, true));
-		Handler fetched = ofy().saveClearLoad(handler);
-		assert handler.animal.name.equals(fetched.animal.name);
-		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
-		assert ((Cat)handler.animal).hypoallergenic == ((Cat)fetched.animal).hypoallergenic;
+		final Handler handler = new Handler(new Cat("Bob", true, true));
+		final Handler fetched = saveClearLoad(handler);
+
+		assertThat(fetched.animal).isEqualTo(handler.animal);
 	}
 
 	/** */
 	@Test
-	public void queryingOnIndexedPropertiesWorks() throws Exception {
+	void queryingOnIndexedPropertiesWorks() throws Exception {
 		this.testRegistrationForwards();
 
-		Handler handler = new Handler(new Cat("Bob", true, true));
+		final Handler handler = new Handler(new Cat("Bob", true, true));
 		ofy().save().entity(handler).now();
+		ofy().clear();
+		final Handler fetched = ofy().load().type(Handler.class).filter("animal.hypoallergenic", true).first().now();
 
-		Handler fetched = ofy().load().type(Handler.class).filter("animal.hypoallergenic", true).first().now();
-
-		assert handler.animal.name.equals(fetched.animal.name);
-		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
-		assert ((Cat)handler.animal).hypoallergenic == ((Cat)fetched.animal).hypoallergenic;
+		assertThat(fetched.animal).isEqualTo(handler.animal);
 	}
 
 	/** */
 	@Entity
-	public static class BusyHandler {
-		public @Id Long id;
-		public List<Animal> animals = new ArrayList<>();
+	@Data
+	private static class BusyHandler {
+		private @Id Long id;
+		private List<Animal> animals = new ArrayList<>();
 	}
 
 	/** */
 	@Test
-	public void collectionOfPolymorphismWorks() throws Exception {
+	void collectionOfPolymorphismWorks() throws Exception {
 		this.testRegistrationForwards();
-		fact().register(BusyHandler.class);
+		factory().register(BusyHandler.class);
 
-		BusyHandler handler = new BusyHandler();
+		final BusyHandler handler = new BusyHandler();
 		handler.animals.add(new Animal("Bob"));
 		handler.animals.add(new Mammal("Bob", true));
 		handler.animals.add(new Cat("Bob", true, true));
 
-		BusyHandler fetched = ofy().saveClearLoad(handler);
-		assert fetched.animals.size() == 3;
-		assert handler.animals.get(0).name.equals(fetched.animals.get(0).name);
-		assert ((Mammal)handler.animals.get(1)).longHair == ((Mammal)fetched.animals.get(1)).longHair;
-		assert ((Cat)handler.animals.get(2)).hypoallergenic == ((Cat)fetched.animals.get(2)).hypoallergenic;
+		final BusyHandler fetched = saveClearLoad(handler);
+
+		assertThat(fetched.animals).isEqualTo(handler.animals);
 	}
 
 	/** */
 	@Test
-	public void queryingOnCollectionWorks() throws Exception {
+	void queryingOnCollectionWorks() throws Exception {
 		this.testRegistrationForwards();
-		fact().register(BusyHandler.class);
+		factory().register(BusyHandler.class);
 
-		BusyHandler handler = new BusyHandler();
+		final BusyHandler handler = new BusyHandler();
 		handler.animals.add(new Animal("Bob"));
 		handler.animals.add(new Mammal("Bob", true));
 		ofy().save().entity(handler).now();
 
-		BusyHandler handler2 = new BusyHandler();
+		final BusyHandler handler2 = new BusyHandler();
 		handler2.animals.add(new Mammal("Bob", true));
 		handler2.animals.add(new Cat("Bob", true, true));
 		ofy().save().entity(handler2).now();
 
 
-		List<BusyHandler> both = ofy().load().type(BusyHandler.class).filter("animals.longHair", true).list();
-		assert both.size() == 2;
+		final List<BusyHandler> both = ofy().load().type(BusyHandler.class).filter("animals.longHair", true).list();
+		assertThat(both).containsExactly(handler, handler2);
 
-		List<BusyHandler> second = ofy().load().type(BusyHandler.class).filter("animals.hypoallergenic", true).list();
-		assert second.size() == 1;
-		assert second.get(0).id == (long)handler2.id;
+		final List<BusyHandler> second = ofy().load().type(BusyHandler.class).filter("animals.hypoallergenic", true).list();
+		assertThat(second).containsExactly(handler2);
 	}
 
 	/** */
 	@Entity
-	public static class HandlerWithIndexedAnimal {
+	@Data
+	@NoArgsConstructor
+	private static class HandlerWithIndexedAnimal {
 		@Id Long id;
 		@Index Animal animal;
 
-		public HandlerWithIndexedAnimal() {}
 		public HandlerWithIndexedAnimal(Animal animal) {
 			this.animal = animal;
 		}
@@ -227,27 +228,27 @@ public class EmbeddedPolymorphismTests extends TestBase
 
 	/** */
 	@Test
-	public void indexedFirstSubclassWorks() throws Exception {
-		fact().register(HandlerWithIndexedAnimal.class);
-		fact().register(Mammal.class);
+	void indexedFirstSubclassWorks() throws Exception {
+		factory().register(HandlerWithIndexedAnimal.class);
+		factory().register(Mammal.class);
 
-		HandlerWithIndexedAnimal handler = new HandlerWithIndexedAnimal(new Mammal("Bob", true));
-		HandlerWithIndexedAnimal fetched = ofy().saveClearLoad(handler);
-		assert handler.animal.name.equals(fetched.animal.name);
-		assert ((Mammal)handler.animal).longHair == ((Mammal)fetched.animal).longHair;
+		final HandlerWithIndexedAnimal handler = new HandlerWithIndexedAnimal(new Mammal("Bob", true));
+		final HandlerWithIndexedAnimal fetched = saveClearLoad(handler);
+
+		assertThat(fetched.animal).isEqualTo(handler.animal);
 	}
 
 	/** */
 	@Subclass(alsoLoad = "FakeDuck")
 	@NoArgsConstructor
-	public static class Platypus extends Animal {
+	private static class Platypus extends Animal {
 	}
 
 	/** */
 	@Test
-	public void alsoLoadSubclassNames() throws Exception {
-		fact().register(Handler.class);
-		fact().register(Platypus.class);
+	void alsoLoadSubclassNames() throws Exception {
+		factory().register(Handler.class);
+		factory().register(Platypus.class);
 
 		final com.google.appengine.api.datastore.Entity handler = ofy().save().toEntity(new Handler());
 		final EmbeddedEntity animal = new EmbeddedEntity();
@@ -257,6 +258,6 @@ public class EmbeddedPolymorphismTests extends TestBase
 		final com.google.appengine.api.datastore.Key key = ds().put(handler);
 
 		final Handler fetched = (Handler)ofy().load().value(key).now();
-		assert fetched.animal instanceof Platypus;
+		assertThat(fetched.animal).isInstanceOf(Platypus.class);
 	}
 }

@@ -7,120 +7,129 @@ import com.googlecode.objectify.annotation.Container;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  */
-public class EmbeddedContainerTests extends TestBase
-{
-	public static class EmbedMe {
+public class EmbeddedContainerTests extends TestBase {
+
+	@Data
+	private static class EmbedMe {
 		@Container
-		HasEmbed container;
-		String foo;
+		private HasEmbed container;
+		private String foo;
 	}
+
 	@Entity
 	@Cache
-	public static class HasEmbed {
-		@Id Long id;
-		EmbedMe embedMe;
+	private static class HasEmbed {
+		@Id
+		private Long id;
+		private EmbedMe embedMe;
 	}
 	
 	@Test
-	public void embedClassContainerPointsAtContainer() throws Exception {
-		fact().register(HasEmbed.class);
+	void embedClassContainerPointsAtContainer() throws Exception {
+		factory().register(HasEmbed.class);
 		
-		HasEmbed he = new HasEmbed();
+		final HasEmbed he = new HasEmbed();
 		he.embedMe = new EmbedMe();
 		he.embedMe.foo = "bar";
 		
-		HasEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.embedMe.container == fetched;
+		final HasEmbed fetched = saveClearLoad(he);
+		assertThat(fetched.embedMe.container).isSameAs(fetched);
 	}
 	
 	//
 	//
 	//
-	
-	public static class SuperEmbedMe {
+
+	@Data
+	private static class SuperEmbedMe {
 		@Container
-		Object container;
-		String foo;
+		private Object container;
+		private String foo;
 	}
+
 	@Entity
 	@Cache
-	public static class HasSuperEmbed {
+	private static class HasSuperEmbed {
 		@Id Long id;
 		SuperEmbedMe embedMe;
 	}
 	
 	@Test
-	public void embedClassContainerPointsAtContainerWhenSpecifyingSuperclass() throws Exception {
-		fact().register(HasSuperEmbed.class);
+	void embedClassContainerPointsAtContainerWhenSpecifyingSuperclass() throws Exception {
+		factory().register(HasSuperEmbed.class);
 		
-		HasSuperEmbed he = new HasSuperEmbed();
+		final HasSuperEmbed he = new HasSuperEmbed();
 		he.embedMe = new SuperEmbedMe();
 		he.embedMe.foo = "bar";
 		
-		HasSuperEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.embedMe.container == fetched;
+		final HasSuperEmbed fetched = saveClearLoad(he);
+		assertThat(fetched.embedMe.container).isSameAs(fetched);
 	}
 	
 	//
 	//
 	//
 	
-	public static class DeepEmbedMe {
+	private static class DeepEmbedMe {
 		@Container
-		NestedEmbedMe nestedContainer;
+		private NestedEmbedMe nestedContainer;
 		@Container
-		HasNestedEmbed rootContainer;
-		String foo;
+		private HasNestedEmbed rootContainer;
+		private String foo;
 	}
-	public static class NestedEmbedMe {
+	private static class NestedEmbedMe {
 		@Container
-		HasNestedEmbed rootContainer;
-		DeepEmbedMe deep;
-		String foo;
+		private HasNestedEmbed rootContainer;
+		private DeepEmbedMe deep;
+		private String foo;
 	}
 	@Entity
 	@Cache
-	public static class HasNestedEmbed {
-		@Id Long id;
-		NestedEmbedMe nested;
+	private static class HasNestedEmbed {
+		@Id
+		private Long id;
+		private NestedEmbedMe nested;
 	}
 	
 	@Test
-	public void deepEmbedClassContainerPointsAtContainer() throws Exception {
-		fact().register(HasNestedEmbed.class);
+	void deepEmbedClassContainerPointsAtContainer() throws Exception {
+		factory().register(HasNestedEmbed.class);
 		
-		HasNestedEmbed he = new HasNestedEmbed();
+		final HasNestedEmbed he = new HasNestedEmbed();
 		he.nested = new NestedEmbedMe();
 		he.nested.foo = "bar";
 		he.nested.deep = new DeepEmbedMe();
 		he.nested.deep.foo = "bar";
 		
-		HasNestedEmbed fetched = ofy().saveClearLoad(he);
-		assert fetched.nested.rootContainer == fetched;
-		assert fetched.nested.deep.rootContainer == fetched;
-		assert fetched.nested.deep.nestedContainer == fetched.nested;
+		final HasNestedEmbed fetched = saveClearLoad(he);
+		assertThat(fetched.nested.rootContainer).isSameAs(fetched);
+		assertThat(fetched.nested.deep.rootContainer).isSameAs(fetched);
+		assertThat(fetched.nested.deep.nestedContainer).isSameAs(fetched.nested);
 	}
 	
 	//
 	//
 	//
 	
-	public static class BadEmbedMe {
+	private static class BadEmbedMe {
 		@Container
-		HasEmbed container;	// some other class!
-		String foo;
+		private HasEmbed container;	// some other class!
+		private String foo;
 	}
 
 	@Entity
 	@Cache
-	public static class BadHasEmbed {
+	private static class BadHasEmbed {
 		@Id Long id;
 		BadEmbedMe embedMe;
 	}
@@ -130,18 +139,17 @@ public class EmbeddedContainerTests extends TestBase
 	 * into a translator once. It may be embedded in many other classes which don't have
 	 * the correct container. So we just detect it on load.
 	 */
-	@Test(expectedExceptions= LoadException.class)
-	public void loadingBadContainerThrowsException() throws Exception {
-		fact().register(BadHasEmbed.class);
+	@Test
+	void loadingBadContainerThrowsException() throws Exception {
+		factory().register(BadHasEmbed.class);
 
-		BadHasEmbed bhe = new BadHasEmbed();
+		final BadHasEmbed bhe = new BadHasEmbed();
 		bhe.embedMe = new BadEmbedMe();
 		bhe.embedMe.foo = "bar";
 
-		Key<BadHasEmbed> key = ofy().save().entity(bhe).now();
+		final Key<BadHasEmbed> key = ofy().save().entity(bhe).now();
 		ofy().clear();
 
-		// This should throw an exception
-		ofy().load().key(key).now();
+		assertThrows(LoadException.class, () -> ofy().load().key(key).now());
 	}
 }

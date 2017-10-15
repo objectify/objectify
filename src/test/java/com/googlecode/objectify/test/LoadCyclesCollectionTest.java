@@ -1,56 +1,59 @@
 package com.googlecode.objectify.test;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.testng.annotations.Test;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144
  */
-public class LoadCyclesCollectionTest extends TestBase {
+class LoadCyclesCollectionTest extends TestBase {
 
 	@Entity
-	public static class A {
+	@Data
+	private static class A {
 		@Id
-		public long id = 1;
+		private long id = 1;
 
 		@Load
-		public List<Ref<B>> b = new ArrayList<>();
+		private List<Ref<B>> b = new ArrayList<>();
 	}
 
 	@Entity
-	public static class B {
+	@Data
+	private static class B {
 		@Id
-		public long id = 2;
+		private long id = 2;
 
 		@Load
-		public Ref<A> a;
+		private Ref<A> a;
 	}
 
 	@Test
-	public void loadCycles() {
-		fact().register(A.class);
-		fact().register(B.class);
+	void loadCycles() {
+		factory().register(A.class);
+		factory().register(B.class);
 
-		A a = new A();
-		B b = new B();
+		final A a = new A();
+		final B b = new B();
 		b.a = Ref.create(a);
 		a.b.add(Ref.create(b));
 
 		ofy().save().entities(a, b).now();
 
 		ofy().clear();
-		A a1 = ofy().load().entity(a).now();
-		assert a1.b.get(0).get().a != null;
+		final A a1 = ofy().load().entity(a).now();
+		assertThat(a1.b.get(0).get().a).isNotNull();
 	}
 }

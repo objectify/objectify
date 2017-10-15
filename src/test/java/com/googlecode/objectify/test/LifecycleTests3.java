@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
-import org.testng.annotations.Test;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
@@ -10,29 +11,31 @@ import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Trying to narrow down a specific problem.
  */
-public class LifecycleTests3 extends TestBase
-{
+class LifecycleTests3 extends TestBase {
 	/** */
 	@Entity
-	public static class Event {
+	@Data
+	private static class Event {
 		@Id Long id;
 		String foo;
 	}
 
 	/** */
 	@Entity
-	public static class Product {
+	@Data
+	private static class Product {
 		@Load @Parent Ref<Event> event;
 		@Id Long id;
 
 		@OnLoad void onLoad() {
-			assert event.get().foo.equals("fooValue");
+			assertThat(event.get().foo).isEqualTo("fooValue");
 		}
 	}
 
@@ -40,20 +43,20 @@ public class LifecycleTests3 extends TestBase
 	 * More complicated test of a more complicated structure
 	 */
 	@Test
-	public void loadingRefInOnLoad() throws Exception {
-		fact().register(Event.class);
-		fact().register(Product.class);
+	void loadingRefInOnLoad() throws Exception {
+		factory().register(Event.class);
+		factory().register(Product.class);
 
-		Event event = new Event();
+		final Event event = new Event();
 		event.foo = "fooValue";
 		ofy().save().entity(event).now();
 
-		Product prod = new Product();
+		final Product prod = new Product();
 		prod.event = Ref.create(event);
 		ofy().save().entity(prod).now();
 
 		ofy().clear();
-		Product fetched = ofy().load().entity(prod).now();
-		assert fetched.event.get().foo.equals("fooValue");
+		final Product fetched = ofy().load().entity(prod).now();
+		assertThat(fetched.event.get().foo).isEqualTo("fooValue");
 	}
 }

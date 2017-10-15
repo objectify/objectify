@@ -6,26 +6,26 @@ import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.Test;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
  * Tests the lifecycle annotations on embedded classes
  */
-public class EmbeddedLifecycleTests extends TestBase
-{
+class EmbeddedLifecycleTests extends TestBase {
+
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
-	public static class Outer {
-		@Id Long id;
-		HasLifecycle life;
+	private static class Outer {
+		@Id private Long id;
+		private HasLifecycle life;
 	}
 
-	public static class HasLifecycle {
-		@Ignore boolean onSaved;
-		@Ignore boolean onLoaded;
+	private static class HasLifecycle {
+		@Ignore private boolean onSaved;
+		@Ignore private boolean onLoaded;
 
 		@OnSave void onSave() { this.onSaved = true; }
 		@OnLoad void onLoad() { this.onLoaded = true; }
@@ -33,15 +33,15 @@ public class EmbeddedLifecycleTests extends TestBase
 
 	/** */
 	@Test
-	public void lifecycleInEmbeddedClassWorks() throws Exception {
-		fact().register(Outer.class);
+	void lifecycleInEmbeddedClassWorks() throws Exception {
+		factory().register(Outer.class);
 
-		Outer outer = new Outer();
+		final Outer outer = new Outer();
 		outer.life = new HasLifecycle();
 
-		Outer fetched = ofy().saveClearLoad(outer);
+		final Outer fetched = saveClearLoad(outer);
 
-		assert outer.life.onSaved;
-		assert fetched.life.onLoaded;	// would fail without session clear
+		assertThat(outer.life.onSaved).isTrue();
+		assertThat(fetched.life.onLoaded).isTrue();	// would fail without session clear
 	}
 }

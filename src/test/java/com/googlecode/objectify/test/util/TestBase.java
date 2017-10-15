@@ -3,10 +3,13 @@
 
 package com.googlecode.objectify.test.util;
 
-import com.googlecode.objectify.util.Closeable;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
-import java.util.logging.Logger;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.googlecode.objectify.Key;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * All tests should extend this class to set up the GAE environment.
@@ -14,34 +17,28 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TestBase extends GAETestBase
-{
+@ExtendWith({
+		MockitoExtension.class,
+		GAEExtension.class,
+		ObjectifyExtension.class,
+})
+public class TestBase {
 	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(TestBase.class.getName());
-
-	/** Tear down every method */
-	private Closeable rootService;
-
-	/** */
-	@BeforeMethod
-	public void setUp() {
-		this.setUpObjectifyFactory(new TestObjectifyFactory());
+	protected EmbeddedEntity makeEmbeddedEntityWithProperty(String name, Object value) {
+		EmbeddedEntity emb = new EmbeddedEntity();
+		emb.setProperty(name, value);
+		return emb;
 	}
 
 	/** */
-	@AfterMethod
-	public void tearDown() {
-		// This is normally done in ObjectifyFilter but that doesn't exist for tests
-		rootService.close();
-		rootService = null;
+	protected DatastoreService ds() {
+		return DatastoreServiceFactory.getDatastoreService();
 	}
 
-	protected void setUpObjectifyFactory(TestObjectifyFactory factory) {
-		if (rootService != null)
-			rootService.close();
-
-		TestObjectifyService.setFactory(factory);
-		rootService = TestObjectifyService.begin();
+	/** */
+	protected <E> E saveClearLoad(final E thing) {
+		final Key<E> key = ofy().save().entity(thing).now();
+		ofy().clear();
+		return ofy().load().key(key).now();
 	}
 }

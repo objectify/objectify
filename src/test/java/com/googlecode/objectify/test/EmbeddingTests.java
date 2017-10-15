@@ -9,33 +9,34 @@ import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Name;
-import com.googlecode.objectify.test.entity.Someone;
-import com.googlecode.objectify.test.entity.Town;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.Test;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.ds;
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  */
-public class EmbeddingTests extends TestBase
-{
-	public static class PartiallyIndexedStruct {
+class EmbeddingTests extends TestBase {
+
+	@Data
+	@NoArgsConstructor
+	private static class PartiallyIndexedStruct {
 		@Index Someone indexedPerson;
 		@Unindex Someone unindexedPerson;
 
 		@Index String indexedString;
 		@Unindex String unidexedString;
-
-		public PartiallyIndexedStruct() { }
 
 		PartiallyIndexedStruct(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString) {
 			this.indexedPerson = indexedPerson;
@@ -47,13 +48,13 @@ public class EmbeddingTests extends TestBase
 
 	@Entity
 	@Cache
-	public static class PartiallyIndexedEntity {
+	@Data
+	@NoArgsConstructor
+	private static class PartiallyIndexedEntity {
 		@Id Long id;
 
 		@Index PartiallyIndexedStruct indexed;
 		@Unindex PartiallyIndexedStruct unindexed;
-
-		public PartiallyIndexedEntity() { }
 
 		PartiallyIndexedEntity(PartiallyIndexedStruct indexed, PartiallyIndexedStruct unindexed) {
 			this.indexed = indexed;
@@ -62,9 +63,10 @@ public class EmbeddingTests extends TestBase
 	}
 	
 	@Subclass
-	public static class PartiallyIndexedStructSubclass extends PartiallyIndexedStruct {
-
-		public PartiallyIndexedStructSubclass() { }
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	@NoArgsConstructor
+	private static class PartiallyIndexedStructSubclass extends PartiallyIndexedStruct {
 
 		public PartiallyIndexedStructSubclass(Someone indexedPerson, Someone unindexedPerson, String indexedString, String unidexedString) {
 			super(indexedPerson, unindexedPerson, indexedString, unidexedString);
@@ -72,28 +74,33 @@ public class EmbeddingTests extends TestBase
 		
 	}
 
-	public static class Names {
+	@Data
+	private static class Names {
 		Name[] names;
 	}
 
-	public static class Team {
+	@Data
+	private static class Team {
 		Names members;
 	}
 
 	@Entity
 	@Cache
-	public static class TeamEntity extends Team {
+	@Data
+	@EqualsAndHashCode(callSuper = true)
+	private static class TeamEntity extends Team {
 		@Id
 		Long id;
 	}
 
-	public static class League {
+	@Data
+	private static class League {
 		Team[] teams;
 	}
 
 	@Test
-	public void testNullHandling() throws Exception {
-		fact().register(Town.class);
+	void testNullHandling() throws Exception {
+		factory().register(Town.class);
 
 		// null mayor
 		Town t1 = new Town();
@@ -103,8 +110,8 @@ public class EmbeddingTests extends TestBase
 
 		Town t2 = ofy().load().key(t1Key).now();
 
-		assert t2.mayor != null;
-		assert t2.mayor.name == null;
+		assertThat(t2.mayor).isNotNull();
+		assertThat(t2.mayor.name).isNull();
 
 		// mayor with null names
 		t1 = new Town();
@@ -114,20 +121,19 @@ public class EmbeddingTests extends TestBase
 
 		t2 = ofy().load().key(t1Key).now();
 
-		assert t2.mayor != null;
+		assertThat(t2.mayor).isNotNull();
 
-		assert t2.mayor.name != null;
-		assert t2.mayor.name.firstName == null;
-		assert t2.mayor.name.lastName == null;
-		assert t2.mayor.age == 30;
+		assertThat(t2.mayor.name).isNotNull();
+		assertThat(t2.mayor.name.getFirstName()).isNull();
+		assertThat(t2.mayor.name.getLastName()).isNull();
+		assertThat(t2.mayor.age).isEqualTo(30);
 	}
 
-
 	@Test
-	public void testUnindexed() throws Exception {
-		fact().register(PartiallyIndexedEntity.class);
+	void testUnindexed() throws Exception {
+		factory().register(PartiallyIndexedEntity.class);
 
-		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
+		final PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
 				new PartiallyIndexedStruct(
 						new Someone(new Name("A", "B"), 30),
 						new Someone(new Name("C", "D"), 31), "1", "2"),
@@ -140,11 +146,11 @@ public class EmbeddingTests extends TestBase
 	}
 
 	@Test
-	public void testUnindexedPolymorphic() throws Exception {
-		fact().register(PartiallyIndexedEntity.class);
-		fact().register(PartiallyIndexedStructSubclass.class);
+	void testUnindexedPolymorphic() throws Exception {
+		factory().register(PartiallyIndexedEntity.class);
+		factory().register(PartiallyIndexedStructSubclass.class);
 		
-		PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
+		final PartiallyIndexedEntity obj = new PartiallyIndexedEntity(
 				new PartiallyIndexedStructSubclass(
 						new Someone(new Name("A", "B"), 30),
 						new Someone(new Name("C", "D"), 31), "1", "2"),
@@ -156,9 +162,8 @@ public class EmbeddingTests extends TestBase
 		checkUnindexed(obj);
 	}
 
-
-	private void checkUnindexed(PartiallyIndexedEntity obj) {
-		Key<PartiallyIndexedEntity> key = ofy().save().entity(obj).now();
+	private void checkUnindexed(final PartiallyIndexedEntity obj) {
+		final Key<PartiallyIndexedEntity> key = ofy().save().entity(obj).now();
 
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.firstName", "A");
 		subtestFoundByQuery(true, key, "indexed.indexedPerson.name.lastName", "B");
@@ -183,93 +188,123 @@ public class EmbeddingTests extends TestBase
 		subtestFoundByQuery(false, key, "unindexed.unindexedString", "4");
 	}
 
-	private void subtestFoundByQuery(boolean expected, Key<?> key, String filter, Object value) {
-		Query<PartiallyIndexedEntity> q = ofy().load().type(PartiallyIndexedEntity.class);
-		q = q.filter(filter + " =", value);
-		Iterator<PartiallyIndexedEntity> results = q.iterator();
+	private void subtestFoundByQuery(final boolean expected, final Key<?> key, final String filter, final Object value) {
+		final Query<PartiallyIndexedEntity> q = ofy().load()
+				.type(PartiallyIndexedEntity.class)
+				.filter(filter + " =", value);
+
+		final Iterator<PartiallyIndexedEntity> results = q.iterator();
 
 		if (expected) {
-			assert results.hasNext();
-			PartiallyIndexedEntity result = results.next();
-			assert result.id.equals(key.getId());
-			assert !results.hasNext();
+			assertThat(results.hasNext()).isTrue();
+			final PartiallyIndexedEntity result = results.next();
+			assertThat(result.id).isEqualTo(key.getId());
+			assertThat(results.hasNext()).isFalse();
 		} else {
-			assert !results.hasNext();
+			assertThat(results.hasNext()).isFalse();
 		}
 	}
 
 	@Test
-	public void testDeepEmbeddedArrays() throws Exception {
-		fact().register(TeamEntity.class);
+	void testDeepEmbeddedArrays() throws Exception {
+		factory().register(TeamEntity.class);
 
-		TeamEntity t = new TeamEntity();
+		final TeamEntity t = new TeamEntity();
 		t.members = new Names();
 		t.members.names = new Name[]{new Name("Joe", "Smith"), new Name("Jane", "Foo")};
-		Key<TeamEntity> k = ofy().save().entity(t).now();
 
-		System.out.println(ds().get(k.getRaw()));
+		final TeamEntity fetched = saveClearLoad(t);
 
-		t = ofy().load().key(k).now();
-		assert t != null;
-		assert t.members != null;
-		assert t.members.names != null;
-		assert t.members.names.length == 2;
-		assert t.members.names[0].firstName.equals("Joe");
-		assert t.members.names[0].lastName.equals("Smith");
-		assert t.members.names[1].firstName.equals("Jane");
-		assert t.members.names[1].lastName.equals("Foo");
+		assertThat(fetched).isNotNull();
+		assertThat(fetched.members).isNotNull();
+		assertThat(fetched.members.names).isNotNull();
+		assertThat(fetched.members.names).hasLength(2);
+		assertThat(fetched.members.names[0].getFirstName()).isEqualTo("Joe");
+		assertThat(fetched.members.names[0].getLastName()).isEqualTo("Smith");
+		assertThat(fetched.members.names[1].getFirstName()).isEqualTo("Jane");
+		assertThat(fetched.members.names[1].getLastName()).isEqualTo("Foo");
 	}
 
+	@Data
 	@SuppressWarnings({"serial", "unused"})
-	public static class KensMailingListEntry implements Serializable {
+	private static class KensMailingListEntry implements Serializable {
 		private Key<Trivial> clientKey;
 		private String emailAddr;
 		private Integer mailOffset;
-		public KensMailingListEntry() {}
 	}
 
 	@SuppressWarnings({"serial", "unused"})
 	@Entity
-	public static class KensClientListName implements Serializable {
+	@Data
+	private static class KensClientListName implements Serializable {
 		@Id
 		private Long id;
 		private Key<Trivial> orgKey;
 		private String listName;
 		private List<KensMailingListEntry> listMembers = new ArrayList<>();
-		public KensClientListName() {}
 	}
 
 	@Test
-	public void kensTest() throws Exception {
-		fact().register(KensClientListName.class);
+	void kensTest() throws Exception {
+		factory().register(KensClientListName.class);
 
-		List<KensMailingListEntry> listMembers = new ArrayList<>();
-		KensMailingListEntry mle = new KensMailingListEntry();
+		final List<KensMailingListEntry> listMembers = new ArrayList<>();
+		final KensMailingListEntry mle = new KensMailingListEntry();
 		listMembers.add(mle);
 
-		KensClientListName clientlistname = new KensClientListName();
+		final KensClientListName clientlistname = new KensClientListName();
 		clientlistname.listMembers = listMembers;
 
 		ofy().save().entity(clientlistname).now();
 	}
 
 	@Entity
-	public static class EntityEmbedsOtherEntity {
+	private static class EntityEmbedsOtherEntity {
 		@Id Long id;
 		Trivial other;
 	}
 
 	@Test
-	public void testEntityEmbedsOtherEntity() throws Exception {
-		fact().register(EntityEmbedsOtherEntity.class);
+	void testEntityEmbedsOtherEntity() throws Exception {
+		factory().register(EntityEmbedsOtherEntity.class);
 
-		EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
+		final EntityEmbedsOtherEntity embeds = new EntityEmbedsOtherEntity();
 		embeds.other = new Trivial(123L, "blah", 7);
 
-		EntityEmbedsOtherEntity fetched = ofy().saveClearLoad(embeds);
+		final EntityEmbedsOtherEntity fetched = saveClearLoad(embeds);
 
-		assert embeds.other.getId().equals(fetched.other.getId());
-		assert embeds.other.getSomeString().equals(fetched.other.getSomeString());
+		assertThat(embeds.other.getId()).isEqualTo(fetched.other.getId());
+		assertThat(embeds.other.getSomeString()).isEqualTo(fetched.other.getSomeString());
 	}
 
+	/**
+	 */
+	@Entity
+	@Cache
+	@Data
+	private static class Town {
+		@Id
+		Long id;
+
+		String name;
+
+		Someone mayor;
+
+		Someone[] folk;
+	}
+
+	/**
+	 */
+	@Cache
+	@Data
+	@NoArgsConstructor
+	private static class Someone {
+		Name name;
+		int age;
+
+		Someone(Name name, int age) {
+			this.name = name;
+			this.age = age;
+		}
+	}
 }

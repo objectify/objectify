@@ -10,40 +10,35 @@ import com.googlecode.objectify.test.PolymorphicAAATests.Cat;
 import com.googlecode.objectify.test.PolymorphicAAATests.Dog;
 import com.googlecode.objectify.test.PolymorphicAAATests.Mammal;
 import com.googlecode.objectify.test.util.TestBase;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.logging.Logger;
 
-import static com.googlecode.objectify.test.util.TestObjectifyService.fact;
-import static com.googlecode.objectify.test.util.TestObjectifyService.ofy;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of polymorphic persistence and queries
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class PolymorphicQueryTests extends TestBase
+class PolymorphicQueryTests extends TestBase
 {
 	/** */
-	@SuppressWarnings("unused")
-	private static Logger log = Logger.getLogger(PolymorphicQueryTests.class.getName());
+	private Animal animal;
+	private Mammal mammal;
+	private Cat cat;
+	private Dog dog;
 
 	/** */
-	Animal animal;
-	Mammal mammal;
-	Cat cat;
-	Dog dog;
-
-	/** */
-	@BeforeMethod
-	public void setUpExtra()
-	{
-		fact().register(Animal.class);
-		fact().register(Mammal.class);
-		fact().register(Cat.class);
-		fact().register(Dog.class);
+	@BeforeEach
+	void setUpExtra() {
+		factory().register(Animal.class);
+		factory().register(Mammal.class);
+		factory().register(Cat.class);
+		factory().register(Dog.class);
 
 		this.animal = new Animal();
 		this.animal.name = "Ann";
@@ -69,88 +64,53 @@ public class PolymorphicQueryTests extends TestBase
 
 	/** */
 	@Test
-	public void testQueryAll() throws Exception
-	{
-		List<Animal> all = ofy().load().type(Animal.class).list();
-		assert all.size() == 4;
-
-		Animal ann = all.get(0);
-		assert ann.name.equals(this.animal.name);
-
-		Mammal mamet = (Mammal)all.get(1);
-		assert mamet.longHair == this.mammal.longHair;
-
-		Cat catrina = (Cat)all.get(2);
-		assert catrina.hypoallergenic == this.cat.hypoallergenic;
-
-		Dog doug = (Dog)all.get(3);
-		assert doug.loudness == this.dog.loudness;
+	void queryAll() throws Exception {
+		final List<Animal> all = ofy().load().type(Animal.class).list();
+		assertThat(all).containsExactly(animal, mammal, cat, dog);
 	}
 
 	/** */
 	@Test
-	public void testQueryMammal() throws Exception
-	{
-		List<Mammal> all = ofy().load().type(Mammal.class).list();
-		assert all.size() == 3;
-
-		Mammal mamet = (Mammal)all.get(0);
-		assert mamet.longHair == this.mammal.longHair;
-
-		Cat catrina = (Cat)all.get(1);
-		assert catrina.hypoallergenic == this.cat.hypoallergenic;
-
-		Dog doug = (Dog)all.get(2);
-		assert doug.loudness == this.dog.loudness;
+	void queryMammal() throws Exception {
+		final List<Mammal> all = ofy().load().type(Mammal.class).list();
+		assertThat(all).containsExactly(mammal, cat, dog);
 	}
 
 	/** */
 	@Test
-	public void testQueryCat() throws Exception
-	{
-		List<Cat> all = ofy().load().type(Cat.class).list();
-		assert all.size() == 1;
-
-		Cat catrina = (Cat)all.get(0);
-		assert catrina.hypoallergenic == this.cat.hypoallergenic;
+	void queryCat() throws Exception {
+		final List<Cat> all = ofy().load().type(Cat.class).list();
+		assertThat(all).containsExactly(cat);
 	}
 
 	/** Dog class is unindexed, but property is indexed */
 	@Test
-	public void testQueryWithUnindexedPoly() throws Exception
-	{
-		List<Dog> dogs = ofy().load().type(Dog.class).list();
-		assert dogs.size() == 0;
+	void queryWithUnindexedPoly() throws Exception {
+		final List<Dog> dogs = ofy().load().type(Dog.class).list();
+		assertThat(dogs).isEmpty();
 
-		List<Animal> loud = ofy().load().type(Animal.class).filter("loudness", this.dog.loudness).list();
-		assert loud.size() == 1;
+		ofy().clear();
+		final List<Animal> loud = ofy().load().type(Animal.class).filter("loudness", this.dog.loudness).list();
+		assertThat(loud).containsExactly(dog);
 
-		Dog doug = (Dog)loud.get(0);
-		assert doug.loudness == this.dog.loudness;
-
+		ofy().clear();
 		// Let's try that again with a mammal query
-		List<Mammal> mloud = ofy().load().type(Mammal.class).filter("loudness", this.dog.loudness).list();
-		assert mloud.size() == 1;
-
-		doug = (Dog)mloud.get(0);
-		assert doug.loudness == this.dog.loudness;
-
+		final List<Mammal> mloud = ofy().load().type(Mammal.class).filter("loudness", this.dog.loudness).list();
+		assertThat(loud).containsExactly(dog);
 	}
 
 	/** */
 	@Test
-	public void testFilterOnProperty() throws Exception
-	{
-		Cat other = new Cat();
+	void filterOnProperty() throws Exception {
+		final Cat other = new Cat();
 		other.name = "OtherCat";
 		other.hypoallergenic = false;
 		other.longHair = false;
 
 		ofy().save().entity(other).now();
+		ofy().clear();
 
-		// now query, should only get Catrina
-		List<Cat> cats = ofy().load().type(Cat.class).filter("longHair", true).list();
-		assert cats.size() == 1;
-		assert cats.get(0).name.equals(this.cat.name);
+		final List<Cat> cats = ofy().load().type(Cat.class).filter("longHair", true).list();
+		assertThat(cats).containsExactly(cat);
 	}
 }
