@@ -8,14 +8,14 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultWrapper;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This is the master logic for saving and deleting entities from the datastore.  It provides the
@@ -24,11 +24,9 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class WriteEngine
 {
-	/** */
-	private static final Logger log = Logger.getLogger(WriteEngine.class.getName());
-
 	/** */
 	protected final ObjectifyImpl<?> ofy;
 
@@ -59,9 +57,7 @@ public class WriteEngine
 	 * The fundamental put() operation.
 	 */
 	public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
-
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Saving " + entities);
+		log.trace("Saving {}", entities);
 
 		final SaveContext ctx = new SaveContext();
 
@@ -113,8 +109,7 @@ public class WriteEngine
 					session.addValue(key, obj);
 				}
 
-				if (log.isLoggable(Level.FINEST))
-					log.finest("Saved " + base);
+				log.trace("Saved {}", base);
 
 				return result;
 			}

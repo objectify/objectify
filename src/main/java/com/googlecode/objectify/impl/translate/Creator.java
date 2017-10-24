@@ -4,9 +4,7 @@ import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.LogUtils;
-
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
@@ -15,16 +13,15 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 abstract public class Creator<P> implements Translator<P, PropertyContainer>
 {
-	private static final Logger log = Logger.getLogger(Creator.class.getName());
-
-	Class<P> clazz;
-	Forge forge;
+	private final Class<P> clazz;
+	private final Forge forge;
 
 	/**
 	 */
-	public Creator(Class<P> clazz, Forge forge) {
+	Creator(final Class<P> clazz, final Forge forge) {
 		this.clazz = clazz;
 		this.forge = forge;
 	}
@@ -32,9 +29,9 @@ abstract public class Creator<P> implements Translator<P, PropertyContainer>
 	/**
 	 * Make an instance of the thing
 	 */
-	protected P construct(Path path) {
-		if (log.isLoggable(Level.FINEST))
-			log.finest(LogUtils.msg(path, "Instantiating a " + clazz.getName()));
+	protected P construct(final Path path) {
+		if (log.isTraceEnabled())
+			log.trace(LogUtils.msg(path, "Instantiating a " + clazz.getName()));
 
 		return forge.construct(clazz);
 	}

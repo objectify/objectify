@@ -13,12 +13,11 @@ import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.util.DatastoreUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -26,11 +25,9 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class KeyMetadata<P>
 {
-	/** */
-	private static final Logger log = Logger.getLogger(KeyMetadata.class.getName());
-
 	/** The @Id field on the pojo - it will be Long, long, or String */
 	private PropertyPopulator<Object, Object> idMeta;
 
@@ -159,9 +156,7 @@ public class KeyMetadata<P>
 		Object id = getId(pojo);
 		if (id == null)
 			if (isIdNumeric()) {
-				if (log.isLoggable(Level.FINEST))
-					log.finest("Getting parent key from " + pojo);
-
+				log.trace("Getting parent key from {}", pojo);
 				return new com.google.appengine.api.datastore.Entity(this.kind, getParentRaw(pojo));
 			} else
 				throw new IllegalStateException("Cannot save an entity with a null String @Id: " + pojo);
@@ -176,8 +171,7 @@ public class KeyMetadata<P>
 	 * @return null if the id is null (ie, null Long)
 	 */
 	public com.google.appengine.api.datastore.Key getRawKeyOrNull(P pojo) {
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Getting key from " + pojo);
+		log.trace("Getting key from {}", pojo);
 
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to get key of " + pojo.getClass().getName());

@@ -1,10 +1,10 @@
 package com.googlecode.objectify.cache;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <p>This class maintains a thread local list of all the outstanding Future<?> objects
@@ -13,22 +13,15 @@ import java.util.logging.Logger;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class PendingFutures
 {
-	/** */
-	private static final Logger log = Logger.getLogger(PendingFutures.class.getName());
-
 	/**
 	 * We use ConcurrentHashMap not for concurrency but because it doesn't throw
 	 * ConcurrentModificationException.  We need to be able to iterate while Futures remove
 	 * themselves from the set. A Set is just a Map of key to key.
 	 */
-	private static ThreadLocal<Map<Future<?>, Future<?>>> pending = new ThreadLocal<Map<Future<?>, Future<?>>>() {
-		@Override
-		protected Map<Future<?>, Future<?>> initialValue() {
-			return new ConcurrentHashMap<>(64, 0.75f, 1);
-		}
-	};
+	private static ThreadLocal<Map<Future<?>, Future<?>>> pending = ThreadLocal.withInitial(() -> new ConcurrentHashMap<>(64, 0.75f, 1));
 	
 	/**
 	 * Register a pending Future that has a callback.
@@ -57,7 +50,7 @@ public class PendingFutures
 				fut.get();
 			}
 			catch (Exception e) {
-				log.log(Level.SEVERE, "Error cleaning up pending Future: " + fut, e);
+				log.error("Error cleaning up pending Future: " + fut, e);
 			}
 		}
 	}

@@ -4,21 +4,18 @@ import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ConcurrentModificationException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Transactor which represents the absence of a transaction.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class TransactorNo<O extends Objectify> extends Transactor<O>
 {
-	/** */
-	private static final Logger log = Logger.getLogger(TransactorNo.class.getName());
-
 	/**
 	 */
 	public TransactorNo(Objectify ofy) {
@@ -92,11 +89,8 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 				return transactOnce(parent, work);
 			} catch (ConcurrentModificationException ex) {
 				if (--limitTries > 0) {
-					if (log.isLoggable(Level.WARNING))
-						log.warning("Optimistic concurrency failure for " + work + " (retrying): " + ex);
-
-					if (log.isLoggable(Level.FINEST))
-						log.log(Level.FINEST, "Details of optimistic concurrency failure", ex);
+					log.warn("Optimistic concurrency failure for {} (retrying): {}", work, ex);
+					log.trace("Details of optimistic concurrency failure", ex);
 				} else {
 					throw ex;
 				}
@@ -124,7 +118,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 				try {
 					txnOfy.getTransaction().rollback();
 				} catch (RuntimeException ex) {
-					log.log(Level.SEVERE, "Rollback failed, suppressing error", ex);
+					log.error("Rollback failed, suppressing error", ex);
 				}
 			}
 

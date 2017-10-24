@@ -3,14 +3,13 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.Path;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <p>Some common code for Translators which know how to convert a POJO type into a PropertiesContainer.
@@ -18,10 +17,9 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 {
-	private static final Logger log = Logger.getLogger(ClassTranslator.class.getName());
-
 	/** Name of the out-of-band discriminator property in a PropertyContainer */
 	public static final String DISCRIMINATOR_PROPERTY = "^d";
 
@@ -55,15 +53,14 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, PropertyContainer>
 	private Map<Class<? extends P>, ClassTranslator<? extends P>> byClass = new HashMap<>();
 
 	/** */
-	public ClassTranslator(Class<P> declaredClass, Path path, Creator<P> creator, Populator<P> populator) {
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Creating class translator for " + declaredClass.getName() + " at path '"+ path + "'");
+	public ClassTranslator(final Class<P> declaredClass, final Path path, final Creator<P> creator, final Populator<P> populator) {
+		log.trace("Creating class translator for {} at path '{}'", declaredClass.getName(), path);
 
 		this.declaredClass = declaredClass;
 		this.creator = creator;
 		this.populator = populator;
 
-		Subclass sub = declaredClass.getAnnotation(Subclass.class);
+		final Subclass sub = declaredClass.getAnnotation(Subclass.class);
 		if (sub != null) {
 			discriminator = (sub.name().length() > 0) ? sub.name() : declaredClass.getSimpleName();
 			addIndexedDiscriminators(declaredClass);

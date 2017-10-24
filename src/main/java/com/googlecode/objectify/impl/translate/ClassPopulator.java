@@ -17,6 +17,7 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
 import com.googlecode.objectify.impl.PropertyPopulator;
 import com.googlecode.objectify.impl.TypeUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -24,8 +25,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * <p>Used by translators to populate properties between POJO and PropertiesContainer. Unlike
@@ -36,10 +35,9 @@ import java.util.logging.Logger;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class ClassPopulator<P> implements Populator<P>
 {
-	private static final Logger log = Logger.getLogger(ClassPopulator.class.getName());
-
 	/** We do not persist fields with any of these modifiers */
 	private static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 
@@ -75,8 +73,7 @@ public class ClassPopulator<P> implements Populator<P>
 		// Recursively climb the superclass chain
 		this.superPopulator = ctx.getPopulator(clazz.getSuperclass(), path);
 
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Creating class translator for " + clazz.getName() + " at path '"+ path + "'");
+		log.trace("Creating class translator for {} at path '{}'", clazz.getName(), path);
 
 		indexInstruction = getIndexInstruction(clazz);
 

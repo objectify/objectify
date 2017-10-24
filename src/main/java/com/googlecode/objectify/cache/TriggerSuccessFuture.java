@@ -1,8 +1,8 @@
 package com.googlecode.objectify.cache;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 
 /**
@@ -14,10 +14,9 @@ import java.util.logging.Logger;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 abstract public class TriggerSuccessFuture<T> extends TriggerFuture<T>
 {
-	private static final Logger log = Logger.getLogger(TriggerSuccessFuture.class.getName());
-	
 	/** Wrap a normal Future<?> */
 	public TriggerSuccessFuture(Future<T> raw)
 	{
@@ -36,7 +35,7 @@ abstract public class TriggerSuccessFuture<T> extends TriggerFuture<T>
 		try {
 			this.success(this.get());
 		} catch (Exception ex) {
-			log.log(Level.WARNING, "Future<?> threw an exception during trigger", ex);
+			log.warn("Future<?> threw an exception during trigger", ex);
 		}
 	}
 }

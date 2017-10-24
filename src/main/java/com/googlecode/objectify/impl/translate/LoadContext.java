@@ -6,6 +6,7 @@ import com.googlecode.objectify.impl.LoadConditions;
 import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Type;
 import java.util.ArrayDeque;
@@ -13,17 +14,13 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * The context of a load operation, which may extend across several entities (for example, a batch).
  */
+@Slf4j
 public class LoadContext
 {
-	/** */
-	private static final Logger log = Logger.getLogger(LoadContext.class.getName());
-
 	/** */
 	LoadEngine engine;
 
@@ -71,13 +68,11 @@ public class LoadContext
 		engine.execute();
 
 		while (deferred != null) {
-			List<Runnable> runme = deferred;
+			final List<Runnable> runme = deferred;
 			deferred = null;	// reset this because it might get filled with more
 
-			for (Runnable run: runme) {
-				if (log.isLoggable(Level.FINEST))
-					log.finest("Executing " + run);
-
+			for (final Runnable run: runme) {
+				log.trace("Executing {}", run);
 				run.run();
 			}
 		}
@@ -97,8 +92,7 @@ public class LoadContext
 		if (this.deferred == null)
 			this.deferred = new ArrayList<>();
 
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Deferring: " + runnable);
+		log.trace("Deferring: {}", runnable);
 
 		this.deferred.add(runnable);
 	}

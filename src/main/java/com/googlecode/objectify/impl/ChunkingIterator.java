@@ -11,7 +11,6 @@ import com.googlecode.objectify.Key;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.logging.Logger;
 
 /**
  * Base class for normal and hybrid iterators, handles the chunking logic.
@@ -20,26 +19,29 @@ import java.util.logging.Logger;
  * null values but being careful about preserving cursor behavior.
  */
 public class ChunkingIterator<T> implements QueryResultIterator<T> {
-	/** */
-	static final Logger log = Logger.getLogger(ChunkingIterator.class.getName());
 
 	/** Input values */
-	private PreparedQuery pq;
-	private QueryResultIterator<Key<T>> source;
+	private final PreparedQuery pq;
+	private final QueryResultIterator<Key<T>> source;
 
 	/** As we process */
-	private PeekingIterator<ResultWithCursor<T>> stream;
+	private final PeekingIterator<ResultWithCursor<T>> stream;
 
 	/** Track the values for the next time we need to get this */
 	private Cursor nextCursor;
 	private int nextOffset;
 
 	/** */
-	public ChunkingIterator(LoadEngine loadEngine, PreparedQuery pq, QueryResultIterator<Key<T>> source, int chunkSize) {
+	public ChunkingIterator(
+			final LoadEngine loadEngine,
+			final PreparedQuery pq,
+			final QueryResultIterator<Key<T>> source,
+			final int chunkSize) {
+
 		this.pq = pq;
 		this.source = source;
 
-		ChunkIterator<T> chunkIt = new ChunkIterator<>(source, chunkSize, loadEngine);
+		final ChunkIterator<T> chunkIt = new ChunkIterator<>(source, chunkSize, loadEngine);
 		this.stream = Iterators.peekingIterator(Iterators.concat(chunkIt));
 
 		// Always start with a cursor; there might actually be any results
@@ -49,7 +51,7 @@ public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	@Override
 	public boolean hasNext() {
 		while (stream.hasNext()) {
-			ResultWithCursor<T> peek = stream.peek();
+			final ResultWithCursor<T> peek = stream.peek();
 			nextCursor = peek.getCursor();
 			nextOffset = peek.getOffset();
 
@@ -65,7 +67,7 @@ public class ChunkingIterator<T> implements QueryResultIterator<T> {
 	@Override
 	public T next() {
 		while (stream.hasNext()) {
-			ResultWithCursor<T> rc = stream.next();
+			final ResultWithCursor<T> rc = stream.next();
 
 			if (rc.isLast()) {
 				// We know we are back to the beginning of a batch, and the source cursor should be pointed the right place.

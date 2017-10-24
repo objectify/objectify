@@ -7,7 +7,6 @@ import com.googlecode.objectify.annotation.Subclass;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Logger;
 
 /**
  * <p>Maintains information about registered entity classes<p>
@@ -19,10 +18,6 @@ import java.util.logging.Logger;
  */
 public class Registrar
 {
-	/** */
-	@SuppressWarnings("unused")
-	private static final Logger log = Logger.getLogger(Registrar.class.getName());
-
 	/** Needed to obtain the converters */
 	protected ObjectifyFactory fact;
 

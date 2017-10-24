@@ -12,22 +12,19 @@ import com.googlecode.objectify.impl.translate.Synthetic;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.LogUtils;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Associates a Property with a Translator and provides a more convenient interface.
  */
+@Slf4j
 public class PropertyPopulator<P, D> implements Populator<P> {
 	/** */
-	private static final Logger log = Logger.getLogger(PropertyPopulator.class.getName());
+	protected final Property property;
+	protected final Translator<P, D> translator;
 
 	/** */
-	protected Property property;
-	protected Translator<P, D> translator;
-
-	/** */
-	public PropertyPopulator(Property prop, Translator<P, D> trans) {
+	public PropertyPopulator(final Property prop, final Translator<P, D> trans) {
 		this.property = prop;
 		this.translator = trans;
 	}
@@ -107,8 +104,8 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	 * TODO: Sensitive to the value possibly being a Result<?> wrapper, in which case it enqueues the set operation until the loadcontext is done.
 	 */
 	private void setOnPojo(Object pojo, P value, LoadContext ctx, Path path) {
-		if (log.isLoggable(Level.FINEST))
-			log.finest(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
+		if (log.isTraceEnabled())
+			log.trace(LogUtils.msg(path, "Setting property " + property.getName() + " to " + value));
 
 		property.set(pojo, value);
 	}

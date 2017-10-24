@@ -8,19 +8,16 @@ import com.google.appengine.api.datastore.QueryResultIterator;
 import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.util.DatastoreUtils;
-
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Logic for dealing with queries.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class QueryEngine
 {
-	/** */
-	static final Logger log = Logger.getLogger(QueryEngine.class.getName());
-
 	/** */
 	protected LoaderImpl<?> loader;
 	protected AsyncDatastoreService ads;
@@ -39,16 +36,11 @@ public class QueryEngine
 	 */
 	public <T> QueryResultIterable<Key<T>> queryKeysOnly(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert query.isKeysOnly();
-		log.finest("Starting keys-only query");
+		log.trace("Starting keys-only query");
 
 		final PreparedQuery pq = prepare(query);
 
-		return new QueryResultIterable<Key<T>>() {
-			@Override
-			public QueryResultIterator<Key<T>> iterator() {
-				return new KeysOnlyIterator<>(pq, fetchOpts);
-			}
-		};
+		return () -> new KeysOnlyIterator<>(pq, fetchOpts);
 	}
 
 	/**
@@ -56,18 +48,13 @@ public class QueryEngine
 	 */
 	public <T> QueryResultIterable<T> queryHybrid(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
-		log.finest("Starting hybrid query");
+		log.trace("Starting hybrid query");
 
 		query = DatastoreUtils.cloneQuery(query).setKeysOnly();
 
 		final PreparedQuery pq = prepare(query);
 
-		return new QueryResultIterable<T>() {
-			@Override
-			public QueryResultIterator<T> iterator() {
-				return new ChunkingIterator<>(loader.createLoadEngine(), pq, new KeysOnlyIterator<T>(pq, fetchOpts), fetchOpts.getChunkSize());
-			}
-		};
+		return () -> new ChunkingIterator<>(loader.createLoadEngine(), pq, new KeysOnlyIterator<T>(pq, fetchOpts), fetchOpts.getChunkSize());
 	}
 
 	/**
@@ -75,7 +62,7 @@ public class QueryEngine
 	 */
 	public <T> QueryResultIterable<T> queryNormal(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
-		log.finest("Starting normal query");
+		log.trace("Starting normal query");
 
 		final PreparedQuery pq = prepare(query);
 		final LoadEngine loadEngine = loader.createLoadEngine();
@@ -94,17 +81,12 @@ public class QueryEngine
 	public <T> QueryResultIterable<T> queryProjection(com.google.appengine.api.datastore.Query query, final FetchOptions fetchOpts) {
 		assert !query.isKeysOnly();
 		assert !query.getProjections().isEmpty();
-		log.finest("Starting projection query");
+		log.trace("Starting projection query");
 
 		final PreparedQuery pq = prepare(query);
 		final LoadEngine loadEngine = loader.createLoadEngine();
 
-		return new QueryResultIterable<T>() {
-			@Override
-			public QueryResultIterator<T> iterator() {
-				return new ProjectionIterator<>(pq.asQueryResultIterator(fetchOpts), loadEngine);
-			}
-		};
+		return () -> new ProjectionIterator<>(pq.asQueryResultIterator(fetchOpts), loadEngine);
 	}
 
 	/**

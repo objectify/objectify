@@ -7,24 +7,20 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNow;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Each round in the series of fetches required to complete a batch.  A round executes when
  * the value is obtained (via now()) for a Result that was created as part of this round.
  * When a round executes, a new round is created.
  */
+@Slf4j
 class Round {
-
-	/** */
-	private static final Logger log = Logger.getLogger(Round.class.getName());
-
 	/** */
 	private final LoadEngine loadEngine;
 
@@ -38,7 +34,7 @@ class Round {
 	private final Map<com.google.appengine.api.datastore.Key, Entity> stuffed = new HashMap<>();
 
 	/** Entities that have been fetched and translated this round. There will be an entry for each pending. */
-	Result<Map<Key<?>, Object>> translated;
+	private Result<Map<Key<?>, Object>> translated;
 
 	/**
 	 */
@@ -55,8 +51,7 @@ class Round {
 
 		SessionValue<T> sv = getSession().get(key);
 		if (sv == null) {
-			if (log.isLoggable(Level.FINEST))
-				log.finest("Adding to round (session miss): " + key);
+			log.trace("Adding to round (session miss): {}", key);
 
 			this.pending.add(key.getRaw());
 
@@ -81,12 +76,10 @@ class Round {
 			getSession().add(key, sv);
 
 		} else {
-			if (log.isLoggable(Level.FINEST))
-				log.finest("Adding to round (session hit): " + key);
+			log.trace("Adding to round (session hit): {}", key);
 
 			if (sv.loadWith(getLoadArrangement())) {
-				if (log.isLoggable(Level.FINEST))
-					log.finest("New load group arrangement, checking for upgrades: " + getLoadArrangement());
+				log.trace("New load group arrangement, checking for upgrades: {}", getLoadArrangement());
 
 				// We are looking at a brand-new arrangement for something that already existed in the session.
 				// We need to go through any Ref<?>s that might be in need of loading. We find those refs by
@@ -104,9 +97,7 @@ class Round {
 							com.google.appengine.api.datastore.Key key = super.saveRef(value, loadConditions);
 
 							if (loadEngine.shouldLoad(loadConditions)) {
-								if (log.isLoggable(Level.FINEST))
-									log.finest("Upgrading key " + key);
-
+								log.trace("Upgrading key {}", key);
 								loadEngine.load(value.key());
 							}
 
@@ -131,8 +122,7 @@ class Round {
 	/** Turn this into a result set */
 	public void execute() {
 		if (needsExecution()) {
-			if (log.isLoggable(Level.FINEST))
-				log.finest("Executing round: " + pending);
+			log.trace("Executing round: {}", pending);
 
 			Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
 			translated = loadEngine.translate(fetched);
@@ -167,12 +157,9 @@ class Round {
 		} else {
 			final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = loadEngine.fetch(fetch);
 
-			return new Result<Map<com.google.appengine.api.datastore.Key, Entity>>() {
-				@Override
-				public Map<com.google.appengine.api.datastore.Key, Entity> now() {
-					combined.putAll(fetched.now());
-					return combined;
-				}
+			return () -> {
+				combined.putAll(fetched.now());
+				return combined;
 			};
 		}
 	}
@@ -192,9 +179,7 @@ class Round {
 
 	/** Create the next round */
 	public Round next() {
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Creating new round, going from depth " + depth + " to " + (depth+1));
-
+		log.trace("Creating new round, going from depth {} to {}", depth, (depth+1));
 		return new Round(loadEngine, depth+1);
 	}
 

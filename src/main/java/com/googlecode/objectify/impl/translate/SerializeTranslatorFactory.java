@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl.translate;
 import com.google.appengine.api.datastore.Blob;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.Path;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -11,8 +12,6 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.Deflater;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -23,10 +22,9 @@ import java.util.zip.InflaterInputStream;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@Slf4j
 public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blob>
 {
-	private static final Logger log = Logger.getLogger(SerializeTranslatorFactory.class.getName());
-
 	@Override
 	public Translator<Object, Blob> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
 		final Serialize serializeAnno = tk.getAnnotationAnywhere(Serialize.class);
@@ -48,8 +46,8 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 					try {
 						return readObject(bais, unzip);
 					} catch (IOException ex) {	// will be one of ZipException or StreamCorruptedException
-						if (log.isLoggable(Level.INFO))
-							log.log(Level.INFO, "Error trying to deserialize object using unzip=" + unzip + ", retrying with " + !unzip, ex);
+						if (log.isInfoEnabled())
+							log.info("Error trying to deserialize object using unzip=" + unzip + ", retrying with " + !unzip, ex);
 
 						unzip = !unzip;
 						return readObject(bais, unzip);	// this will pass the exception up
