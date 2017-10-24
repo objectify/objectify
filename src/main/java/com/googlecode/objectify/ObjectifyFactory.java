@@ -6,6 +6,7 @@ import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
+import com.googlecode.objectify.cache.PendingFutures;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
@@ -15,10 +16,13 @@ import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
+import com.googlecode.objectify.util.Closeable;
 
 import java.lang.reflect.Constructor;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -43,6 +47,11 @@ public class ObjectifyFactory implements Forge
 	/** Default memcache namespace */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 
+	/**
+	 * Thread local stack of Objectify instances corresponding to transaction depth
+	 */
+	private final ThreadLocal<Deque<Objectify>> stacks = ThreadLocal.withInitial(ArrayDeque::new);
+
 	/** Encapsulates entity registration info */
 	protected Registrar registrar = new Registrar(this);
 
@@ -57,7 +66,7 @@ public class ObjectifyFactory implements Forge
 
 	/** Manages caching of entities at a low level */
 	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
-	
+
 	/**
 	 * <p>Construct an instance of the specified type.  Objectify uses this method whenever possible to create
 	 * instances of entities, condition classes, or other types; by overriding this method you can substitute Guice or other
@@ -321,5 +330,68 @@ public class ObjectifyFactory implements Forge
 	 */
 	public Keys keys() {
 		return keys;
+	}
+
+	/**
+	 * The method to call at any time to get the current Objectify, which may change depending on txn context
+	 */
+	public Objectify ofy() {
+		final Deque<Objectify> stack = stacks.get();
+
+		if (stack.isEmpty())
+			throw new IllegalStateException("You have not started an Objectify context. You are probably missing the " +
+					"ObjectifyFilter. If you are not running in the context of an http request, see the " +
+					"ObjectifyService.run() method.");
+
+		return stack.getLast();
+	}
+
+	/**
+	 * <p>An alternative to run() which is somewhat easier to use with testing (ie, @Before and @After) frameworks.
+	 * You must close the return value at the end of the request in a finally block. It's better/safer to use run().</p>
+	 *
+	 * <p>This method is not typically necessary - in a normal request, the ObjectifyFilter takes care of this housekeeping
+	 * for you. However, in unit tests or remote API calls it can be useful.</p>
+	 */
+	Closeable begin2() {
+		final Deque<Objectify> stack = stacks.get();
+
+		// Request forwarding in the container runs all the filters again, including the ObjectifyFilter. Since we
+		// have established a context already, we can't just throw an exception. We can't even really warn. Let's
+		// just give them a new context; the bummer is that if programmers screw up and fail to close the context,
+		// we have no way of warning them about the leak.
+		//if (!stack.isEmpty())
+		//	throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
+
+		final Objectify ofy = this.begin();
+
+		stack.add(ofy);
+
+		return () -> {
+			if (stack.isEmpty())
+				throw new IllegalStateException("You have already destroyed the Objectify context.");
+
+			// Same comment as above - we can't make claims about the state of the stack beacuse of dispatch forwarding
+			//if (stack.size() > 1)
+			//	throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
+
+			// The order of these three operations is significant
+
+			ofy.flush();
+
+			PendingFutures.completeAllPendingFutures();
+
+			stack.removeLast();
+		};
+	}
+
+	/** Pushes new context onto stack when a transaction starts. For internal housekeeping only. */
+	public void push(final Objectify ofy) {
+		stacks.get().add(ofy);
+	}
+
+	/** Pops context off of stack after a transaction completes. For internal housekeeping only. */
+	public void pop() {
+		stacks.get().removeLast();
 	}
 }

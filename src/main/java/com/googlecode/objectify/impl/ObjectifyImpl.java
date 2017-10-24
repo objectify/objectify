@@ -44,12 +44,13 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected boolean mandatoryTransactions = false;
 
 	/** */
-	protected Transactor<O> transactor = new TransactorNo<>(this);
+	protected Transactor<O> transactor;
 
 	/**
 	 */
 	public ObjectifyImpl(ObjectifyFactory fact) {
 		this.factory = fact;
+		this.transactor = new TransactorNo<>(this);
 	}
 
 	/** Copy constructor */

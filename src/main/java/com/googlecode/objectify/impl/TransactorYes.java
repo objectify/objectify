@@ -3,11 +3,11 @@ package com.googlecode.objectify.impl;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.util.ResultWrapper;
+
 import java.util.concurrent.Future;
 
 /**
@@ -76,10 +76,10 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 
 			case NOT_SUPPORTED:
 				try {
-					ObjectifyService.push(transactionless(parent));
+					factory.push(transactionless(parent));
 					return work.run();
 				} finally {
-					ObjectifyService.pop();
+					factory.pop();
 				}
 
 			case NEVER:

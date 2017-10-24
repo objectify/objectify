@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Objectify;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 
@@ -13,24 +14,28 @@ import com.googlecode.objectify.Work;
 abstract public class Transactor<O extends Objectify>
 {
 	/** Our session */
-	protected Session session;
+	protected final Session session;
 
 	/** Any deferred operations */
-	protected Deferrer deferrer;
+	protected final Deferrer deferrer;
+
+	/** */
+	protected final ObjectifyFactory factory;
 
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	public Transactor(Objectify ofy) {
+	Transactor(final Objectify ofy) {
 		this(ofy, new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	public Transactor(Objectify ofy, Session session) {
+	Transactor(final Objectify ofy, final Session session) {
 		this.session = session;
 		this.deferrer = new Deferrer(ofy, session);
+		this.factory = ofy.factory();
 	}
 
 	/**

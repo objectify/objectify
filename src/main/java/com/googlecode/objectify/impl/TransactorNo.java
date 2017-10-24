@@ -2,9 +2,9 @@ package com.googlecode.objectify.impl;
 
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Objectify;
-import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+
 import java.util.ConcurrentModificationException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,11 +13,6 @@ import java.util.logging.Logger;
  * Transactor which represents the absence of a transaction.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
- */
-/**
- * @author jeff
- *
- * @param <O>
  */
 public class TransactorNo<O extends Objectify> extends Transactor<O>
 {
@@ -113,8 +108,8 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 * One attempt at executing a transaction
 	 */
 	private <R> R transactOnce(ObjectifyImpl<O> parent, Work<R> work) {
-		ObjectifyImpl<O> txnOfy = startTransaction(parent);
-		ObjectifyService.push(txnOfy);
+		final ObjectifyImpl<O> txnOfy = startTransaction(parent);
+		factory.push(txnOfy);
 
 		boolean committedSuccessfully = false;
 		try {
@@ -124,8 +119,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 			committedSuccessfully = true;
 			return result;
 		}
-		finally
-		{
+		finally {
 			if (txnOfy.getTransaction().isActive()) {
 				try {
 					txnOfy.getTransaction().rollback();
@@ -134,7 +128,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 				}
 			}
 
-			ObjectifyService.pop();
+			factory.pop();
 
 			if (committedSuccessfully) {
 				txnOfy.getTransaction().runCommitListeners();
