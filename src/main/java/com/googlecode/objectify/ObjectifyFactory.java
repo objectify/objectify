@@ -73,9 +73,9 @@ public class ObjectifyFactory implements Forge
 	 * dependency injection mechanisms.  By default it constructs with a simple no-args constructor.</p>
 	 */
 	@Override
-	public <T> T construct(Class<T> type) {
+	public <T> T construct(final Class<T> type) {
 		// We do this instead of calling newInstance directly because this lets us work around accessiblity
-		Constructor<T> ctor = TypeUtils.getNoArgConstructor(type);
+		final Constructor<T> ctor = TypeUtils.getNoArgConstructor(type);
 		return TypeUtils.newInstance(ctor);
 	}
 
@@ -89,7 +89,7 @@ public class ObjectifyFactory implements Forge
 	 * need to bind these interfaces to concrete types.</p>
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Collection<?>> T constructCollection(Class<T> type, int size) {
+	public <T extends Collection<?>> T constructCollection(final Class<T> type, final int size) {
 		if ((Class<?>)type == List.class || (Class<?>)type == Collection.class)
 			return (T)new ArrayList<>(size);
 		else if ((Class<?>)type == Set.class)
@@ -109,7 +109,7 @@ public class ObjectifyFactory implements Forge
 	 * need to bind these interfaces to concrete types.</p>
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Map<?, ?>> T constructMap(Class<T> type) {
+	public <T extends Map<?, ?>> T constructMap(final Class<T> type) {
 		if ((Class<?>)type == Map.class)
 			return (T)new HashMap<>();
 		else if ((Class<?>)type == SortedMap.class)
@@ -125,9 +125,8 @@ public class ObjectifyFactory implements Forge
 	 *
 	 * @return an AsyncDatastoreService configured per the specified options.
 	 */
-	public AsyncDatastoreService createAsyncDatastoreService(DatastoreServiceConfig cfg, boolean globalCache)
-	{
-		AsyncDatastoreService ads = this.createRawAsyncDatastoreService(cfg);
+	public AsyncDatastoreService createAsyncDatastoreService(final DatastoreServiceConfig cfg, final boolean globalCache) {
+		final AsyncDatastoreService ads = this.createRawAsyncDatastoreService(cfg);
 
 		if (globalCache && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastoreService(ads, this.entityMemcache);
@@ -138,7 +137,7 @@ public class ObjectifyFactory implements Forge
 	/**
 	 * You can override this to add behavior at the raw datastoreservice level.
 	 */
-	protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
+	protected AsyncDatastoreService createRawAsyncDatastoreService(final DatastoreServiceConfig cfg) {
 		return DatastoreServiceFactory.getAsyncDatastoreService(cfg);
 	}
 
@@ -160,7 +159,11 @@ public class ObjectifyFactory implements Forge
 	 * should call the static ofy() method on ObjectifyService.</p>
 	 *
 	 * @return a new Objectify instance
+	 *
+	 * @deprecated This method is a holdover from the 1.x days and will have reduced visibility in the future.
+	 * 		Clients should use {@link ObjectifyService#ofy()} to obtain Objectify instances.
 	 */
+	@Deprecated
 	public Objectify begin() {
 		return new ObjectifyImpl<>(this);
 	}
@@ -175,7 +178,7 @@ public class ObjectifyFactory implements Forge
 	 *
 	 * <p>Attempts to re-register entity classes are ignored.</p>
 	 */
-	public <T> void register(Class<T> clazz) {
+	public <T> void register(final Class<T> clazz) {
 		this.registrar.register(clazz);
 	}
 
@@ -188,7 +191,7 @@ public class ObjectifyFactory implements Forge
 	 * Sets the error handler for the main memcache object.
 	 */
 	@SuppressWarnings("deprecation")
-	public void setMemcacheErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
+	public void setMemcacheErrorHandler(final com.google.appengine.api.memcache.ErrorHandler handler) {
 		this.entityMemcache.setErrorHandler(handler);
 	}
 
@@ -200,7 +203,7 @@ public class ObjectifyFactory implements Forge
 	 * @return the metadata for a kind of typed object
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Class<T> clazz) throws IllegalArgumentException {
+	public <T> EntityMetadata<T> getMetadata(final Class<T> clazz) throws IllegalArgumentException {
 		return this.registrar.getMetadataSafe(clazz);
 	}
 
@@ -208,7 +211,7 @@ public class ObjectifyFactory implements Forge
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(com.google.appengine.api.datastore.Key key) throws IllegalArgumentException {
+	public <T> EntityMetadata<T> getMetadata(final com.google.appengine.api.datastore.Key key) throws IllegalArgumentException {
 		return this.registrar.getMetadataSafe(key.getKind());
 	}
 
@@ -216,7 +219,7 @@ public class ObjectifyFactory implements Forge
 	 * @return the metadata for a kind of entity based on its key
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
-	public <T> EntityMetadata<T> getMetadata(Key<T> key) throws IllegalArgumentException {
+	public <T> EntityMetadata<T> getMetadata(final Key<T> key) throws IllegalArgumentException {
 		return this.registrar.getMetadataSafe(key.getKind());
 	}
 
@@ -225,7 +228,7 @@ public class ObjectifyFactory implements Forge
 	 * the others because it returns null instead of throwing an exception if the kind is not found.
 	 * @return null if the kind is not registered.
 	 */
-	public <T> EntityMetadata<T> getMetadata(String kind) {
+	public <T> EntityMetadata<T> getMetadata(final String kind) {
 		return this.registrar.getMetadata(kind);
 	}
 
@@ -235,8 +238,8 @@ public class ObjectifyFactory implements Forge
 	 * @throws IllegalArgumentException if the kind has not been registered
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> EntityMetadata<T> getMetadataForEntity(T obj) throws IllegalArgumentException {
-		// Type erasure sucks ass
+	public <T> EntityMetadata<T> getMetadataForEntity(final T obj) throws IllegalArgumentException {
+		// Type erasure sucks
 		return (EntityMetadata<T>)this.getMetadata(obj.getClass());
 	}
 
@@ -247,7 +250,7 @@ public class ObjectifyFactory implements Forge
 	 * @param clazz must be a registered entity class with a Long or long id field.
 	 * @return a key with an id that is unique to the kind
 	 */
-	public <T> Key<T> allocateId(Class<T> clazz) {
+	public <T> Key<T> allocateId(final Class<T> clazz) {
 		return allocateIds(clazz, 1).iterator().next();
 	}
 
@@ -263,7 +266,7 @@ public class ObjectifyFactory implements Forge
 	 * a parent key of the correct type.
 	 * @return a key with a new id unique to the kind and parent
 	 */
-	public <T> Key<T> allocateId(Object parentKeyOrEntity, Class<T> clazz) {
+	public <T> Key<T> allocateId(final Object parentKeyOrEntity, final Class<T> clazz) {
 		return allocateIds(parentKeyOrEntity, clazz, 1).iterator().next();
 	}
 
@@ -275,10 +278,10 @@ public class ObjectifyFactory implements Forge
 	 * @param clazz must be a registered entity class with a Long or long id field.
 	 * @param num must be >= 1 and <= 1 billion
 	 */
-	public <T> KeyRange<T> allocateIds(Class<T> clazz, long num) {
+	public <T> KeyRange<T> allocateIds(final Class<T> clazz, final long num) {
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
-		String kind = Key.getKind(clazz);
+		final String kind = Key.getKind(clazz);
 		return new KeyRange<>(DatastoreServiceFactory.getDatastoreService().allocateIds(kind, num));
 	}
 
@@ -293,9 +296,9 @@ public class ObjectifyFactory implements Forge
 	 * a parent key of the correct type.
 	 * @param num must be >= 1 and <= 1 billion
 	 */
-	public <T> KeyRange<T> allocateIds(Object parentKeyOrEntity, Class<T> clazz, long num) {
-		Key<?> parent = keys().anythingToKey(parentKeyOrEntity);
-		String kind = Key.getKind(clazz);
+	public <T> KeyRange<T> allocateIds(final Object parentKeyOrEntity, final Class<T> clazz, final long num) {
+		final Key<?> parent = keys().anythingToKey(parentKeyOrEntity);
+		final String kind = Key.getKind(clazz);
 
 		// Feels a little weird going directly to the DatastoreServiceFactory but the
 		// allocateIds() method really is optionless.
@@ -309,7 +312,7 @@ public class ObjectifyFactory implements Forge
 	 * collection of pre-existing entities).  If you don't care about what id is allocated, use
 	 * one of the other allocate methods.
 	 */
-	public <T> KeyRangeState allocateIdRange(KeyRange<T> range) {
+	public <T> KeyRangeState allocateIdRange(final KeyRange<T> range) {
 		return DatastoreServiceFactory.getDatastoreService().allocateIdRange(range.getRaw());
 	}
 
@@ -333,7 +336,8 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
-	 * The method to call at any time to get the current Objectify, which may change depending on txn context
+	 * The method to call at any time to get the current Objectify, which may change depending on txn context.
+	 * Normally you should use the static {@link ObjectifyService#ofy()} which calls this method.
 	 */
 	public Objectify ofy() {
 		final Deque<Objectify> stack = stacks.get();
@@ -347,13 +351,10 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
-	 * <p>An alternative to run() which is somewhat easier to use with testing (ie, @Before and @After) frameworks.
-	 * You must close the return value at the end of the request in a finally block. It's better/safer to use run().</p>
-	 *
-	 * <p>This method is not typically necessary - in a normal request, the ObjectifyFilter takes care of this housekeeping
-	 * for you. However, in unit tests or remote API calls it can be useful.</p>
+	 * <p>Start a scope of work. This is the outermost scope of work, typically created by the ObjectifyFilter
+	 * or by one of the methods on ObjectifyService. You need one of these to do anything at all.</p>
 	 */
-	Closeable begin2() {
+	Closeable createRootScope() {
 		final Deque<Objectify> stack = stacks.get();
 
 		// Request forwarding in the container runs all the filters again, including the ObjectifyFilter. Since we
@@ -391,7 +392,8 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/** Pops context off of stack after a transaction completes. For internal housekeeping only. */
-	public void pop() {
-		stacks.get().removeLast();
+	public void pop(final Objectify ofy) {
+		final Objectify popped = stacks.get().removeLast();
+		assert popped == ofy : "Mismatched objectify instances; somehow the stack was corrupted";
 	}
 }

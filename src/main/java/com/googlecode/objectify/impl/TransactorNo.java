@@ -122,7 +122,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 				}
 			}
 
-			factory.pop();
+			factory.pop(txnOfy);
 
 			if (committedSuccessfully) {
 				txnOfy.getTransaction().runCommitListeners();

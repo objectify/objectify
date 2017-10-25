@@ -70,6 +70,6 @@ public class ObjectifyService
 	 * for you. However, in unit tests or remote API calls it can be useful.</p>
 	 */
 	public static Closeable begin() {
-		return factory().begin2();
+		return factory().createRootScope();
 	}
 }

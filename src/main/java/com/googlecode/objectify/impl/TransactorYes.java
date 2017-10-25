@@ -75,11 +75,12 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 				return work.run();
 
 			case NOT_SUPPORTED:
+				final Objectify next = transactionless(parent);
+				factory.push(next);
 				try {
-					factory.push(transactionless(parent));
 					return work.run();
 				} finally {
-					factory.pop();
+					factory.pop(next);
 				}
 
 			case NEVER:
