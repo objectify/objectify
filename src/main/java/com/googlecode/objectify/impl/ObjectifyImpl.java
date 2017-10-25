@@ -18,6 +18,7 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
+import lombok.Getter;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -37,11 +38,9 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
 
-	/** Our options */
-	protected boolean cache = true;
-	protected Consistency consistency = Consistency.STRONG;
-	protected Double deadline;
-	protected boolean mandatoryTransactions = false;
+	/** */
+	@Getter
+	protected ObjectifyOptions options;
 
 	/** */
 	protected Transactor<O> transactor;
@@ -50,17 +49,15 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	public ObjectifyImpl(ObjectifyFactory fact) {
 		this.factory = fact;
+		this.options = new ObjectifyOptions();
 		this.transactor = new TransactorNo<>(this);
 	}
 
 	/** Copy constructor */
 	public ObjectifyImpl(ObjectifyImpl<O> other) {
 		this.factory = other.factory;
-		this.cache = other.cache;
-		this.consistency = other.consistency;
-		this.deadline = other.deadline;
+		this.options = other.options;
 		this.transactor = other.transactor;
-		this.mandatoryTransactions = other.mandatoryTransactions;
 	}
 
 	/* (non-Javadoc)
@@ -107,12 +104,9 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public O consistency(Consistency value) {
-		if (value == null)
-			throw new IllegalArgumentException("Consistency cannot be null");
-
-		ObjectifyImpl<O> clone = this.clone();
-		clone.consistency = value;
+	public O consistency(final Consistency value) {
+		final ObjectifyImpl<O> clone = this.clone();
+		clone.options = options.consistency(value);
 		return (O)clone;
 	}
 
@@ -121,9 +115,9 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
-	public O deadline(Double value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.deadline = value;
+	public O deadline(final Double value) {
+		final ObjectifyImpl<O> clone = this.clone();
+		clone.options = options.deadline(value);
 		return (O)clone;
 	}
 
@@ -133,8 +127,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	@SuppressWarnings("unchecked")
 	public O cache(boolean value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.cache = value;
+		final ObjectifyImpl<O> clone = this.clone();
+		clone.options = options.cache(value);
 		return (O)clone;
 	}
 
@@ -144,8 +138,8 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	@Override
 	@SuppressWarnings("unchecked")
 	public O mandatoryTransactions(boolean value) {
-		ObjectifyImpl<O> clone = this.clone();
-		clone.mandatoryTransactions = value;
+		final ObjectifyImpl<O> clone = this.clone();
+		clone.options = options.mandatoryTransactions(value);
 		return (O)clone;
 	}
 
@@ -253,10 +247,10 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * Make a datastore service config that corresponds to our options.
 	 */
 	protected DatastoreServiceConfig createDatastoreServiceConfig() {
-		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(consistency));
+		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(options.getConsistency()));
 
-		if (deadline != null)
-			cfg.deadline(deadline);
+		if (options.getDeadline() != null)
+			cfg.deadline(options.getDeadline());
 
 		return cfg;
 	}
@@ -265,7 +259,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * Make a datastore service config that corresponds to our options.
 	 */
 	protected AsyncDatastoreService createAsyncDatastoreService() {
-		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), cache);
+		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), options.isCache());
 	}
 
 	/**
@@ -273,7 +267,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @return a fresh engine that handles fundamental datastore operations for saving and deleting
 	 */
 	protected WriteEngine createWriteEngine() {
-		if (mandatoryTransactions && getTransaction() == null)
+		if (options.isMandatoryTransactions() && getTransaction() == null)
 			throw new IllegalStateException("You have attempted save/delete outside of a transaction, but you have enabled ofy().mandatoryTransactions(true). Perhaps you wanted to start a transaction first?");
 
 		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
@@ -337,11 +331,6 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	/** */
 	protected Session getSession() {
 		return this.transactor.getSession();
-	}
-
-	/** @return true if cache is enabled */
-	public boolean getCache() {
-		return cache;
 	}
 
 	/* (non-Javadoc)

@@ -393,7 +393,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			return hybrid;
 
 		// If the class is cacheable
-		if (classRestriction != null && loader.getObjectifyImpl().getCache() && fact().getMetadata(classRestriction).getCacheExpirySeconds() != null)
+		if (classRestriction != null && loader.getObjectifyImpl().getOptions().isCache() && fact().getMetadata(classRestriction).getCacheExpirySeconds() != null)
 			return true;
 
 		return false;

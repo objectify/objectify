@@ -210,8 +210,8 @@ class TransactionTests extends TestBase {
 	void transactionalObjectifyInheritsCacheSetting() throws Exception {
 		ofy().cache(false).transact(() -> {
 			// Test in _and out_ of a transaction
-			ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
-			assertThat(txnlessImpl.getCache()).isFalse();
+			final ObjectifyImpl<?> txnlessImpl = (ObjectifyImpl<?>)ofy().transactionless();
+			assertThat(txnlessImpl.getOptions().isCache()).isFalse();
 		});
 	}
 	
