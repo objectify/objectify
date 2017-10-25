@@ -6,17 +6,17 @@ import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
 import com.googlecode.objectify.cache.EntityMemcache;
-import com.googlecode.objectify.cache.PendingFutures;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ObjectifyImpl;
+import com.googlecode.objectify.impl.ObjectifyOptions;
 import com.googlecode.objectify.impl.Registrar;
+import com.googlecode.objectify.impl.TransactorSupplier;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
-import com.googlecode.objectify.util.Closeable;
 
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
@@ -354,46 +354,26 @@ public class ObjectifyFactory implements Forge
 	 * <p>Start a scope of work. This is the outermost scope of work, typically created by the ObjectifyFilter
 	 * or by one of the methods on ObjectifyService. You need one of these to do anything at all.</p>
 	 */
-	Closeable createRootScope() {
-		final Deque<Objectify> stack = stacks.get();
-
-		// Request forwarding in the container runs all the filters again, including the ObjectifyFilter. Since we
-		// have established a context already, we can't just throw an exception. We can't even really warn. Let's
-		// just give them a new context; the bummer is that if programmers screw up and fail to close the context,
-		// we have no way of warning them about the leak.
-		//if (!stack.isEmpty())
-		//	throw new IllegalStateException("You already have an initial Objectify context. Perhaps you want to use the ofy() method?");
-
-		final Objectify ofy = this.begin();
-
-		stack.add(ofy);
-
-		return () -> {
-			if (stack.isEmpty())
-				throw new IllegalStateException("You have already destroyed the Objectify context.");
-
-			// Same comment as above - we can't make claims about the state of the stack beacuse of dispatch forwarding
-			//if (stack.size() > 1)
-			//	throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
-
-			// The order of these three operations is significant
-
-			ofy.flush();
-
-			PendingFutures.completeAllPendingFutures();
-
-			stack.removeLast();
-		};
+	ObjectifyImpl open() {
+		final ObjectifyImpl objectify = new ObjectifyImpl(this);
+		stacks.get().add(objectify);
+		return objectify;
 	}
 
-	/** Pushes new context onto stack when a transaction starts. For internal housekeeping only. */
-	public void push(final Objectify ofy) {
-		stacks.get().add(ofy);
+	/** This is only public because it is used from the impl package; don't use this as a public API */
+	public ObjectifyImpl open(final ObjectifyOptions opts, final TransactorSupplier transactorSupplier) {
+		final ObjectifyImpl objectify = new ObjectifyImpl(this, opts, transactorSupplier);
+		stacks.get().add(objectify);
+		return objectify;
 	}
 
 	/** Pops context off of stack after a transaction completes. For internal housekeeping only. */
-	public void pop(final Objectify ofy) {
-		final Objectify popped = stacks.get().removeLast();
+	public void close(final Objectify ofy) {
+		final Deque<Objectify> stack = stacks.get();
+		if (stack.isEmpty())
+			throw new IllegalStateException("You have already destroyed the Objectify context.");
+
+		final Objectify popped = stack.removeLast();
 		assert popped == ofy : "Mismatched objectify instances; somehow the stack was corrupted";
 	}
 }

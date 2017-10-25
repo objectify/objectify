@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl;
 
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.datastore.TransactionOptions;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
@@ -53,7 +52,7 @@ class TransactorYes extends Transactor
 	}
 
 	/**
-	 * This version goes back to life without a transaction, but preserves current state regarding deadline, consistency, etc.
+	 * This version goes back to life without a transaction, but preserves current options.
 	 * We use the session from the parent, ie life before transactions.
 	 */
 	@Override
@@ -88,12 +87,11 @@ class TransactorYes extends Transactor
 
 	@Override
 	public <R> R transactionless(final ObjectifyImpl parent, final Work<R> work) {
-		final Objectify next = transactionless(parent);
-		factory.push(next);
+		final ObjectifyImpl ofy = factory.open(parent.getOptions(), next -> new TransactorNo(next, parentTransactor.getSession()));
 		try {
 			return work.run();
 		} finally {
-			factory.pop(next);
+			ofy.close();
 		}
 	}
 

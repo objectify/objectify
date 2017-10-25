@@ -5,6 +5,6 @@ package com.googlecode.objectify.impl;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @FunctionalInterface
-interface TransactorSupplier {
+public interface TransactorSupplier {
 	Transactor create(final ObjectifyImpl ofy);
 }

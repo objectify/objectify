@@ -10,6 +10,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
+import com.googlecode.objectify.cache.PendingFutures;
 import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
@@ -18,6 +19,7 @@ import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
+import com.googlecode.objectify.util.Closeable;
 import lombok.Getter;
 
 import java.lang.reflect.Array;
@@ -33,7 +35,7 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify
+public class ObjectifyImpl implements Objectify, Closeable
 {
 	/** The factory that produced us */
 	protected final ObjectifyFactory factory;
@@ -306,8 +308,8 @@ public class ObjectifyImpl implements Objectify
 		// If this is an array, make life easier by turning it into a list first.  Because of primitive
 		// mismatching we can't trust Arrays.asList().
 		if (value.getClass().isArray()) {
-			int len = Array.getLength(value);
-			List<Object> asList = new ArrayList<>(len);
+			final int len = Array.getLength(value);
+			final List<Object> asList = new ArrayList<>(len);
 			for (int i=0; i<len; i++)
 				asList.add(Array.get(value, i));
 
@@ -315,8 +317,8 @@ public class ObjectifyImpl implements Objectify
 		}
 
 		if (value instanceof Iterable) {
-			List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
-			for (Object obj: (Iterable<?>)value)
+			final List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
+			for (final Object obj: (Iterable<?>)value)
 				result.add(makeFilterable(obj));
 
 			return result;
@@ -326,7 +328,7 @@ public class ObjectifyImpl implements Objectify
 				return factory().keys().getMetadataSafe(value).getRawKey(value);
 			} else {
 				// Run it through a translator
-				Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
+				final Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
 				return translator.save(value, false, new SaveContext(), Path.root());
 			}
 		}
@@ -341,7 +343,7 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#isLoaded(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public boolean isLoaded(Key<?> key) {
+	public boolean isLoaded(final Key<?> key) {
 		return transactor.getSession().contains(key);
 	}
 
@@ -353,15 +355,27 @@ public class ObjectifyImpl implements Objectify
 	/**
 	 * Defer the saving of one entity. Updates the session cache with this new value.
 	 */
-	void deferSave(Object entity) {
+	void deferSave(final Object entity) {
 		transactor.getDeferrer().deferSave(entity);
 	}
 
 	/**
 	 * Defer the deletion of one entity. Updates the session cache with this new value.
 	 */
-	void deferDelete(Key<?> key) {
+	void deferDelete(final Key<?> key) {
 		transactor.getDeferrer().deferDelete(key);
 	}
 
+	/**
+	 * Ends this transactional scope.
+	 */
+	@Override
+	public void close() {
+		// The order of these three operations is significant
+		flush();
+
+		PendingFutures.completeAllPendingFutures();
+
+		factory().close(this);
+	}
 }

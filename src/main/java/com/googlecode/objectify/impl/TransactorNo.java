@@ -107,8 +107,7 @@ class TransactorNo extends Transactor
 	 * One attempt at executing a transaction
 	 */
 	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work) {
-		final ObjectifyImpl txnOfy = startTransaction(parent);
-		factory.push(txnOfy);
+		final ObjectifyImpl txnOfy = factory.open(parent.getOptions(), next -> new TransactorYes(next, this));
 
 		boolean committedSuccessfully = false;
 		try {
@@ -127,18 +126,11 @@ class TransactorNo extends Transactor
 				}
 			}
 
-			factory.pop(txnOfy);
+			txnOfy.close();
 
 			if (committedSuccessfully) {
 				txnOfy.getTransaction().runCommitListeners();
 			}
 		}
-	}
-
-	/**
-	 * Create a new transactional session by cloning this instance and resetting the transactor component.
-	 */
-	ObjectifyImpl startTransaction(final ObjectifyImpl parent) {
-		return parent.makeNew(next -> new TransactorYes(next, this));
 	}
 }
