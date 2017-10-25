@@ -54,13 +54,13 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	Boolean hybrid;
 
 	/** */
-	QueryImpl(LoaderImpl<?> loader) {
+	QueryImpl(final LoaderImpl loader) {
 		super(loader);
 		this.actual = new com.google.appengine.api.datastore.Query();
 	}
 
 	/** */
-	QueryImpl(LoaderImpl<?> loader, String kind, Class<T> clazz) {
+	QueryImpl(LoaderImpl loader, String kind, Class<T> clazz) {
 		super(loader);
 
 		this.actual = new com.google.appengine.api.datastore.Query(kind);

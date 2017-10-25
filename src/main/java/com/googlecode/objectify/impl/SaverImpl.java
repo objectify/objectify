@@ -20,10 +20,10 @@ import java.util.Map;
 public class SaverImpl implements Saver
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private final ObjectifyImpl ofy;
 
 	/** */
-	public SaverImpl(ObjectifyImpl<?> ofy) {
+	public SaverImpl(final ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 
@@ -31,14 +31,14 @@ public class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#entity(java.lang.Object)
 	 */
 	@Override
-	public <E> Result<Key<E>> entity(E entity) {
-		Result<Map<Key<E>, E>> base = this.<E>entities(Collections.singleton(entity));
+	public <E> Result<Key<E>> entity(final E entity) {
+		final Result<Map<Key<E>, E>> base = this.<E>entities(Collections.singleton(entity));
 
 		return new ResultWrapper<Map<Key<E>, E>, Key<E>>(base) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected Key<E> wrap(Map<Key<E>, E> base) {
+			protected Key<E> wrap(final Map<Key<E>, E> base) {
 				return base.keySet().iterator().next();
 			}
 		};
@@ -48,8 +48,8 @@ public class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#entities(E[])
 	 */
 	@Override
-	public <E> Result<Map<Key<E>, E>> entities(E... entities) {
-		return this.<E>entities(Arrays.asList(entities));
+	public <E> Result<Map<Key<E>, E>> entities(final E... entities) {
+		return this.entities(Arrays.asList(entities));
 	}
 
 	/* (non-Javadoc)
@@ -57,19 +57,19 @@ public class SaverImpl implements Saver
 	 */
 	@Override
 	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
-		return ofy.createWriteEngine().<E>save(entities);
+		return ofy.createWriteEngine().save(entities);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Saver#toEntity(java.lang.Object)
 	 */
 	@Override
-	public Entity toEntity(Object pojo) {
+	public Entity toEntity(final Object pojo) {
 		if (pojo instanceof Entity) {
 			return (Entity)pojo;
 		} else {
 			@SuppressWarnings("unchecked")
-			EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());
+			final EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());
 			return meta.save(pojo, new SaveContext());
 		}
 	}

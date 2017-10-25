@@ -27,7 +27,7 @@ import java.util.logging.Level;
 public class LoadEngine
 {
 	/** */
-	final ObjectifyImpl<?> ofy;
+	final ObjectifyImpl ofy;
 	private final AsyncDatastoreService ads;
 	private final Session session;
 	private final LoadArrangement loadArrangement;
@@ -37,7 +37,7 @@ public class LoadEngine
 
 	/**
 	 */
-	public LoadEngine(ObjectifyImpl<?> ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
+	public LoadEngine(ObjectifyImpl ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
 		this.ofy = ofy;
 		this.session = session;
 		this.ads = ads;

@@ -11,7 +11,7 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class Transactor<O extends Objectify>
+abstract public class Transactor
 {
 	/** Our session */
 	protected final Session session;
@@ -62,20 +62,20 @@ abstract public class Transactor<O extends Objectify>
 	 * @return an Objectify instance that is suitable for transactionless execution. In the case of a
 	 * transactor which is not in a transaction, probably this is the same as getObjectify().
 	 */
-	abstract public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent);
+	abstract public ObjectifyImpl transactionless(ObjectifyImpl parent);
 
 	/**
 	 * @see Objectify#execute(TxnType, Work)
 	 */
-	abstract public <R> R execute(ObjectifyImpl<O> parent, TxnType txnType, Work<R> work);
+	abstract public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work);
 
 	/**
 	 * @see Objectify#transact(Work)
 	 */
-	abstract public <R> R transact(ObjectifyImpl<O> parent, Work<R> work);
+	abstract public <R> R transact(ObjectifyImpl parent, Work<R> work);
 
 	/**
 	 * @see Objectify#transactNew(int, Work)
 	 */
-	abstract public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work);
+	abstract public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work);
 }

@@ -11,27 +11,27 @@ import com.googlecode.objectify.cmd.DeferredSaver;
 public class DeferredSaverImpl implements DeferredSaver
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private final ObjectifyImpl ofy;
 
 	/** */
-	public DeferredSaverImpl(ObjectifyImpl<?> ofy) {
+	public DeferredSaverImpl(final ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 
 	@Override
-	public void entity(Object entity) {
+	public void entity(final Object entity) {
 		ofy.deferSave(entity);
 	}
 
 	@Override
-	public void entities(Object... entities) {
-		for (Object entity: entities)
+	public void entities(final Object... entities) {
+		for (final Object entity: entities)
 			entity(entity);
 	}
 
 	@Override
 	public void entities(final Iterable<?> entities) {
-		for (Object entity: entities)
+		for (final Object entity: entities)
 			entity(entity);
 	}
 }

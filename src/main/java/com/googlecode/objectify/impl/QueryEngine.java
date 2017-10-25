@@ -19,13 +19,13 @@ import lombok.extern.slf4j.Slf4j;
 public class QueryEngine
 {
 	/** */
-	protected LoaderImpl<?> loader;
-	protected AsyncDatastoreService ads;
-	protected Transaction transactionRaw;
+	protected final LoaderImpl loader;
+	protected final AsyncDatastoreService ads;
+	protected final Transaction transactionRaw;
 
 	/**
 	 */
-	public QueryEngine(LoaderImpl<?> loader, AsyncDatastoreService ads, Transaction transactionRaw) {
+	public QueryEngine(LoaderImpl loader, AsyncDatastoreService ads, Transaction transactionRaw) {
 		this.loader = loader;
 		this.ads = ads;
 		this.transactionRaw = transactionRaw;

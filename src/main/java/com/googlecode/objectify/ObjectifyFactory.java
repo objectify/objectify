@@ -160,12 +160,12 @@ public class ObjectifyFactory implements Forge
 	 *
 	 * @return a new Objectify instance
 	 *
-	 * @deprecated This method is a holdover from the 1.x days and will have reduced visibility in the future.
+	 * @deprecated This method is a holdover from the 1.x days and will be removed in the future.
 	 * 		Clients should use {@link ObjectifyService#ofy()} to obtain Objectify instances.
 	 */
 	@Deprecated
 	public Objectify begin() {
-		return new ObjectifyImpl<>(this);
+		return new ObjectifyImpl(this);
 	}
 
 	/**

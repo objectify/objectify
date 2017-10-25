@@ -13,10 +13,10 @@ import com.googlecode.objectify.cmd.DeferredSaver;
 public class DeferredImpl implements Deferred
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	private final ObjectifyImpl ofy;
 
 	/** */
-	public DeferredImpl(ObjectifyImpl<?> ofy) {
+	public DeferredImpl(final ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 

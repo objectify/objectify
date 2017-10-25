@@ -16,17 +16,17 @@ import java.util.concurrent.Future;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransactorYes<O extends Objectify> extends Transactor<O>
+public class TransactorYes extends Transactor
 {
 	/** Our transaction. */
 	protected Result<TransactionImpl> transaction;
 
 	/** The non-transactional transactor that spawned us */
-	protected TransactorNo<O> parentTransactor;
+	protected TransactorNo parentTransactor;
 
 	/**
 	 */
-	public TransactorYes(ObjectifyImpl<O> current, TransactorNo<O> parentTransactor) {
+	public TransactorYes(ObjectifyImpl current, TransactorNo parentTransactor) {
 		super(current);
 
 		this.parentTransactor = parentTransactor;
@@ -57,9 +57,9 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * We use the session from the parent, ie life before transactions.
 	 */
 	@Override
-	public ObjectifyImpl<O> transactionless(ObjectifyImpl<O> parent) {
-		ObjectifyImpl<O> next = parent.clone();
-		next.transactor = new TransactorNo<>(next, parentTransactor.getSession());
+	public ObjectifyImpl transactionless(ObjectifyImpl parent) {
+		ObjectifyImpl next = parent.clone();
+		next.transactor = new TransactorNo(next, parentTransactor.getSession());
 		return next;
 	}
 
@@ -67,7 +67,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(ObjectifyImpl<O> parent, TxnType txnType, Work<R> work) {
+	public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 			case REQUIRED:
@@ -99,7 +99,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transact(ObjectifyImpl<O> parent, Work<R> work) {
+	public <R> R transact(ObjectifyImpl parent, Work<R> work) {
 		return work.run();
 	}
 
@@ -108,7 +108,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 	 * for our transaction.  This gives proper transaction isolation.
 	 */
 	@Override
-	public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work) {
+	public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work) {
 		return transactionless(parent).transactNew(limitTries, work);
 	}
 

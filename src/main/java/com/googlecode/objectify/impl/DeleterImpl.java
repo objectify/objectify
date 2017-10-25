@@ -18,10 +18,10 @@ import java.util.List;
 public class DeleterImpl implements Deleter
 {
 	/** */
-	ObjectifyImpl<?> ofy;
+	final ObjectifyImpl ofy;
 
 	/** */
-	public DeleterImpl(ObjectifyImpl<?> ofy) {
+	public DeleterImpl(final ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
 
@@ -29,7 +29,7 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Delete#type(java.lang.Class)
 	 */
 	@Override
-	public DeleteType type(Class<?> type) {
+	public DeleteType type(final Class<?> type) {
 		return new DeleteTypeImpl(this, type);
 	}
 
@@ -37,7 +37,7 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Deleter#key(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public Result<Void> key(Key<?> key) {
+	public Result<Void> key(final Key<?> key) {
 		return this.keys(key);
 	}
 
@@ -45,7 +45,7 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Deleter#keys(com.googlecode.objectify.Key<?>[])
 	 */
 	@Override
-	public Result<Void> keys(Key<?>... keys) {
+	public Result<Void> keys(final Key<?>... keys) {
 		return this.keys(Arrays.asList(keys));
 	}
 
@@ -53,9 +53,9 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Delete#values(java.lang.Iterable)
 	 */
 	@Override
-	public Result<Void> keys(Iterable<? extends Key<?>> keys) {
-		List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<>();
-		for (Key<?> key: keys)
+	public Result<Void> keys(final Iterable<? extends Key<?>> keys) {
+		final List<com.google.appengine.api.datastore.Key> rawKeys = new ArrayList<>();
+		for (final Key<?> key: keys)
 			rawKeys.add(key.getRaw());
 
 		return ofy.createWriteEngine().delete(rawKeys);
@@ -65,7 +65,7 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Deleter#entity(java.lang.Object)
 	 */
 	@Override
-	public Result<Void> entity(Object entity) {
+	public Result<Void> entity(final Object entity) {
 		return this.entities(entity);
 	}
 
@@ -73,9 +73,9 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Deleter#entities(java.lang.Iterable)
 	 */
 	@Override
-	public Result<Void> entities(Iterable<?> entities) {
-		List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
-		for (Object obj: entities)
+	public Result<Void> entities(final Iterable<?> entities) {
+		final List<com.google.appengine.api.datastore.Key> keys = new ArrayList<>();
+		for (final Object obj: entities)
 			keys.add(ofy.factory().keys().anythingToRawKey(obj));
 
 		return ofy.createWriteEngine().delete(keys);
@@ -85,7 +85,7 @@ public class DeleterImpl implements Deleter
 	 * @see com.googlecode.objectify.cmd.Deleter#entities(java.lang.Object[])
 	 */
 	@Override
-	public Result<Void> entities(Object... entities) {
+	public Result<Void> entities(final Object... entities) {
 		return this.entities(Arrays.asList(entities));
 	}
 }

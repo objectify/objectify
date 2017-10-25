@@ -15,14 +15,14 @@ import com.googlecode.objectify.cmd.SimpleQuery;
 public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
 	/** */
-	protected LoaderImpl<?> loader;
+	protected final LoaderImpl loader;
 
 	/**
 	 * There is a special case - if loader is null, use 'this' as the LoaderImpl. It's a bit of a hack
 	 * but we can't pass in 'this' to super constructors.
 	 */
-	SimpleQueryImpl(LoaderImpl<?> loader) {
-		this.loader = loader == null ? (LoaderImpl<?>)this : loader;
+	SimpleQueryImpl(final LoaderImpl loader) {
+		this.loader = loader == null ? (LoaderImpl)this : loader;
 	}
 
 	/**

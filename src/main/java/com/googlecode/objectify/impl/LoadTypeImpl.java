@@ -32,12 +32,12 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 
 	/**
 	 */
-	LoadTypeImpl(LoaderImpl<?> loader, String kind, Class<T> type) {
+	LoadTypeImpl(LoaderImpl loader, String kind, Class<T> type) {
 		this(loader, kind, type, null);
 	}
 
 	/** */
-	LoadTypeImpl(LoaderImpl<?> loader, String kind, Class<T> type, Key<T> parent) {
+	LoadTypeImpl(LoaderImpl loader, String kind, Class<T> type, Key<T> parent) {
 		super(loader);
 		this.kind = kind;
 		this.type = type;

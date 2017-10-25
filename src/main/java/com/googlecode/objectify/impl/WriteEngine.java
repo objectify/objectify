@@ -28,7 +28,7 @@ import java.util.concurrent.Future;
 public class WriteEngine
 {
 	/** */
-	protected final ObjectifyImpl<?> ofy;
+	protected final ObjectifyImpl ofy;
 
 	/** */
 	protected final AsyncDatastoreService ads;
@@ -41,7 +41,7 @@ public class WriteEngine
 
 	/**
 	 */
-	public WriteEngine(ObjectifyImpl<?> ofy, AsyncDatastoreService ads, Session session, Deferrer deferrer) {
+	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Deferrer deferrer) {
 		this.ofy = ofy;
 		this.ads = ads;
 		this.session = session;

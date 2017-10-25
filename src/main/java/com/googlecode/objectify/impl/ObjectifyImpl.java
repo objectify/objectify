@@ -33,7 +33,7 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
+public class ObjectifyImpl implements Objectify, Cloneable
 {
 	/** The factory that produced us */
 	protected ObjectifyFactory factory;
@@ -43,18 +43,18 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	protected ObjectifyOptions options;
 
 	/** */
-	protected Transactor<O> transactor;
+	protected Transactor transactor;
 
 	/**
 	 */
-	public ObjectifyImpl(ObjectifyFactory fact) {
+	public ObjectifyImpl(final ObjectifyFactory fact) {
 		this.factory = fact;
 		this.options = new ObjectifyOptions();
-		this.transactor = new TransactorNo<>(this);
+		this.transactor = new TransactorNo(this);
 	}
 
 	/** Copy constructor */
-	public ObjectifyImpl(ObjectifyImpl<O> other) {
+	public ObjectifyImpl(ObjectifyImpl other) {
 		this.factory = other.factory;
 		this.options = other.options;
 		this.transactor = other.transactor;
@@ -72,7 +72,7 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 */
 	@Override
 	public Loader load() {
-		return new LoaderImpl<>(this);
+		return new LoaderImpl(this);
 	}
 
 	/* (non-Javadoc)
@@ -103,62 +103,56 @@ public class ObjectifyImpl<O extends Objectify> implements Objectify, Cloneable
 	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public O consistency(final Consistency value) {
-		final ObjectifyImpl<O> clone = this.clone();
+	public Objectify consistency(final Consistency value) {
+		final ObjectifyImpl clone = this.clone();
 		clone.options = options.consistency(value);
-		return (O)clone;
+		return clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public O deadline(final Double value) {
-		final ObjectifyImpl<O> clone = this.clone();
+	public Objectify deadline(final Double value) {
+		final ObjectifyImpl clone = this.clone();
 		clone.options = options.deadline(value);
-		return (O)clone;
+		return clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#cache(boolean)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public O cache(boolean value) {
-		final ObjectifyImpl<O> clone = this.clone();
+	public Objectify cache(boolean value) {
+		final ObjectifyImpl clone = this.clone();
 		clone.options = options.cache(value);
-		return (O)clone;
+		return clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#mandatoryTransactions(boolean)
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public O mandatoryTransactions(boolean value) {
-		final ObjectifyImpl<O> clone = this.clone();
+	public Objectify mandatoryTransactions(boolean value) {
+		final ObjectifyImpl clone = this.clone();
 		clone.options = options.mandatoryTransactions(value);
-		return (O)clone;
+		return clone;
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transactionless()
 	 */
 	@Override
-	@SuppressWarnings("unchecked")
-	public O transactionless() {
-		return (O)transactor.transactionless(this);
+	public Objectify transactionless() {
+		return transactor.transactionless(this);
 	}
 
 	/* (non-Javadoc)
 	 * @see java.lang.Object#clone()
 	 */
-	@SuppressWarnings("unchecked")
-	protected ObjectifyImpl<O> clone() {
+	protected ObjectifyImpl clone() {
 		try {
-			return (ObjectifyImpl<O>)super.clone();
+			return (ObjectifyImpl)super.clone();
 		} catch (CloneNotSupportedException e) {
 			throw new RuntimeException(e); // impossible
 		}
