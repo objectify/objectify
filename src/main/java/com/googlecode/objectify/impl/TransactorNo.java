@@ -14,17 +14,17 @@ import java.util.ConcurrentModificationException;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Slf4j
-public class TransactorNo extends Transactor
+class TransactorNo extends Transactor
 {
 	/**
 	 */
-	public TransactorNo(Objectify ofy) {
+	TransactorNo(final Objectify ofy) {
 		super(ofy);
 	}
 
 	/**
 	 */
-	public TransactorNo(Objectify ofy, Session session) {
+	TransactorNo(final Objectify ofy, final Session session) {
 		super(ofy, session);
 	}
 
@@ -49,7 +49,7 @@ public class TransactorNo extends Transactor
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work) {
+	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
@@ -73,7 +73,7 @@ public class TransactorNo extends Transactor
 	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transact(ObjectifyImpl parent, Work<R> work) {
+	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
 		return this.transactNew(parent, Integer.MAX_VALUE, work);
 	}
 
@@ -81,7 +81,7 @@ public class TransactorNo extends Transactor
 	 * @see com.googlecode.objectify.impl.Transactor#transactNew(com.googlecode.objectify.impl.ObjectifyImpl, int, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work) {
+	public <R> R transactNew(final ObjectifyImpl parent, int limitTries, final Work<R> work) {
 		Preconditions.checkArgument(limitTries >= 1);
 
 		while (true) {
@@ -101,13 +101,13 @@ public class TransactorNo extends Transactor
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(ObjectifyImpl parent, Work<R> work) {
+	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work) {
 		final ObjectifyImpl txnOfy = startTransaction(parent);
 		factory.push(txnOfy);
 
 		boolean committedSuccessfully = false;
 		try {
-			R result = work.run();
+			final R result = work.run();
 			txnOfy.flush();
 			txnOfy.getTransaction().commit();
 			committedSuccessfully = true;
@@ -133,8 +133,8 @@ public class TransactorNo extends Transactor
 	/**
 	 * Create a new transactional session by cloning this instance and resetting the transactor component.
 	 */
-	ObjectifyImpl startTransaction(ObjectifyImpl parent) {
-		ObjectifyImpl cloned = parent.clone();
+	ObjectifyImpl startTransaction(final ObjectifyImpl parent) {
+		final ObjectifyImpl cloned = parent.clone();
 		cloned.transactor = new TransactorYes(cloned, this);
 		return cloned;
 	}

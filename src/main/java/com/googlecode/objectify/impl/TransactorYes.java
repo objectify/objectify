@@ -16,29 +16,29 @@ import java.util.concurrent.Future;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TransactorYes extends Transactor
+class TransactorYes extends Transactor
 {
 	/** Our transaction. */
-	protected Result<TransactionImpl> transaction;
+	private final Result<TransactionImpl> transaction;
 
 	/** The non-transactional transactor that spawned us */
-	protected TransactorNo parentTransactor;
+	private final TransactorNo parentTransactor;
 
 	/**
 	 */
-	public TransactorYes(ObjectifyImpl current, TransactorNo parentTransactor) {
+	TransactorYes(final ObjectifyImpl current, final TransactorNo parentTransactor) {
 		super(current);
 
 		this.parentTransactor = parentTransactor;
 
 		// There is no overhead for XG transactions on a single entity group, so there is
 		// no good reason to ever have withXG false when on the HRD.
-		Future<Transaction> fut = current.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(true));
+		final Future<Transaction> fut = current.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(true));
 		transaction = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<>(fut)) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected TransactionImpl wrap(Transaction raw) {
+			protected TransactionImpl wrap(final Transaction raw) {
 				return new TransactionImpl(raw, TransactorYes.this);
 			}
 		};
@@ -57,8 +57,8 @@ public class TransactorYes extends Transactor
 	 * We use the session from the parent, ie life before transactions.
 	 */
 	@Override
-	public ObjectifyImpl transactionless(ObjectifyImpl parent) {
-		ObjectifyImpl next = parent.clone();
+	public ObjectifyImpl transactionless(final ObjectifyImpl parent) {
+		final ObjectifyImpl next = parent.clone();
 		next.transactor = new TransactorNo(next, parentTransactor.getSession());
 		return next;
 	}
@@ -67,7 +67,7 @@ public class TransactorYes extends Transactor
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work) {
+	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
 		switch (txnType) {
 			case MANDATORY:
 			case REQUIRED:
@@ -99,7 +99,7 @@ public class TransactorYes extends Transactor
 	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R transact(ObjectifyImpl parent, Work<R> work) {
+	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
 		return work.run();
 	}
 
@@ -108,7 +108,7 @@ public class TransactorYes extends Transactor
 	 * for our transaction.  This gives proper transaction isolation.
 	 */
 	@Override
-	public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work) {
+	public <R> R transactNew(final ObjectifyImpl parent, final int limitTries, final Work<R> work) {
 		return transactionless(parent).transactNew(limitTries, work);
 	}
 
@@ -117,6 +117,6 @@ public class TransactorYes extends Transactor
 	 * session.
 	 */
 	public void committed() {
-		parentTransactor.getSession().addAll(session);
+		parentTransactor.getSession().addAll(getSession());
 	}
 }

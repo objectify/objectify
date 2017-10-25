@@ -4,6 +4,7 @@ import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+import lombok.Getter;
 
 /**
  * Determines the transactional behavior of an ObjectifyImpl instance. There are transactional and non-transactional
@@ -11,16 +12,18 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class Transactor
+abstract class Transactor
 {
-	/** Our session */
-	protected final Session session;
-
-	/** Any deferred operations */
-	protected final Deferrer deferrer;
-
 	/** */
 	protected final ObjectifyFactory factory;
+
+	/** The session associated with this transaction state */
+	@Getter
+	private final Session session;
+
+	/** Any deferred operations in this context */
+	@Getter
+	private final Deferrer deferrer;
 
 	/**
 	 * Construct a transactor with a fresh session
@@ -33,23 +36,9 @@ abstract public class Transactor
 	 * Construct a transactor with an explicit session
 	 */
 	Transactor(final Objectify ofy, final Session session) {
+		this.factory = ofy.factory();
 		this.session = session;
 		this.deferrer = new Deferrer(ofy, session);
-		this.factory = ofy.factory();
-	}
-
-	/**
-	 * @return the session associated with this transaction state
-	 */
-	public Session getSession() {
-		return session;
-	}
-
-	/**
-	 * @return the deferred operations in this context
-	 */
-	public Deferrer getDeferrer() {
-		return deferrer;
 	}
 
 	/**

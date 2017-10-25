@@ -11,14 +11,14 @@ abstract public class ResultWrapper<F, T> extends ResultTranslator<Result<F>, T>
 {
 	private static final long serialVersionUID = 1L;
 
-	public ResultWrapper(Result<F> base) {
+	public ResultWrapper(final Result<F> base) {
 		super(base);
 	}
 
 	protected abstract T wrap(F orig);
 
 	@Override
-	final protected T translate(Result<F> from) {
+	final protected T translate(final Result<F> from) {
 		return wrap(from.now());
 	}
 }

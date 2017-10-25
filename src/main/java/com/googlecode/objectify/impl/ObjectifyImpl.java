@@ -36,7 +36,7 @@ import java.util.List;
 public class ObjectifyImpl implements Objectify, Cloneable
 {
 	/** The factory that produced us */
-	protected ObjectifyFactory factory;
+	protected final ObjectifyFactory factory;
 
 	/** */
 	@Getter
@@ -54,7 +54,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	}
 
 	/** Copy constructor */
-	public ObjectifyImpl(ObjectifyImpl other) {
+	public ObjectifyImpl(final ObjectifyImpl other) {
 		this.factory = other.factory;
 		this.options = other.options;
 		this.transactor = other.transactor;
