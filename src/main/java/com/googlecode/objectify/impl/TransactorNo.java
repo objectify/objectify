@@ -134,8 +134,6 @@ class TransactorNo extends Transactor
 	 * Create a new transactional session by cloning this instance and resetting the transactor component.
 	 */
 	ObjectifyImpl startTransaction(final ObjectifyImpl parent) {
-		final ObjectifyImpl cloned = parent.clone();
-		cloned.transactor = new TransactorYes(cloned, this);
-		return cloned;
+		return parent.makeNew(next -> new TransactorYes(next, this));
 	}
 }

@@ -14,7 +14,6 @@ import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultNowFunction;
 import com.googlecode.objectify.util.ResultProxy;
-import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,18 +30,24 @@ import java.util.Set;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
+class LoaderImpl extends Queryable<Object> implements Loader
 {
-	/** */
-	protected final ObjectifyImpl ofy;
+	/** Used by some child command objects */
+	final ObjectifyImpl ofy;
 
 	/** */
-	protected LoadArrangement loadArrangement = new LoadArrangement();
+	private final LoadArrangement loadArrangement;
 
 	/** */
-	public LoaderImpl(ObjectifyImpl ofy) {
+	LoaderImpl(final ObjectifyImpl ofy) {
+		this(ofy, new LoadArrangement());
+	}
+
+	/** */
+	private LoaderImpl(final ObjectifyImpl ofy, final LoadArrangement loadArrangement) {
 		super(null);
 		this.ofy = ofy;
+		this.loadArrangement = loadArrangement;
 	}
 
 	/* (non-Javadoc)
@@ -57,14 +62,12 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	 * @see com.googlecode.objectify.cmd.Loader#group(java.lang.Class<?>[])
 	 */
 	@Override
-	public Loader group(Class<?>... groups) {
-		final LoaderImpl clone = this.clone();
+	public Loader group(final Class<?>... groups) {
+		final LoadArrangement arrangement = new LoadArrangement();
+		arrangement.addAll(Arrays.asList(groups));
+		arrangement.addAll(this.loadArrangement);
 
-		clone.loadArrangement = new LoadArrangement();
-		clone.loadArrangement.addAll(Arrays.asList(groups));
-		clone.loadArrangement.addAll(this.loadArrangement);
-
-		return clone;
+		return new LoaderImpl(ofy, arrangement);
 	}
 
 	/* (non-Javadoc)
@@ -179,14 +182,14 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	public <E> Map<Key<E>, E> values(final Iterable<?> values) {
 
 		// Do this in a separate pass so any errors converting keys will show up before we try loading something
-		List<Key<E>> keys = new ArrayList<>();
-		for (Object keyish: values)
+		final List<Key<E>> keys = new ArrayList<>();
+		for (final Object keyish: values)
 			keys.add(ofy.factory().keys().anythingToKey(keyish));
 
-		LoadEngine engine = createLoadEngine();
+		final LoadEngine engine = createLoadEngine();
 
 		final Map<Key<E>, Result<E>> results = new LinkedHashMap<>();
-		for (Key<E> key: keys)
+		for (final Key<E> key: keys)
 			results.put(key, engine.load(key));
 
 		engine.execute();
@@ -200,7 +203,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 				return
 					Maps.newLinkedHashMap(
 						Maps.filterValues(
-							Maps.transformValues(results, ResultNowFunction.<E>instance()),
+							Maps.transformValues(results, ResultNowFunction.instance()),
 							Predicates.notNull()));
 			}
 		});
@@ -247,7 +250,7 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	 * @see com.googlecode.objectify.cmd.Loader#now(com.googlecode.objectify.Key)
 	 */
 	@Override
-	public <E> E now(Key<E> key) {
+	public <E> E now(final Key<E> key) {
 		return createLoadEngine().load(key).now();
 	}
 
@@ -255,20 +258,11 @@ public class LoaderImpl extends Queryable<Object> implements Loader, Cloneable
 	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
 	 */
 	@Override
-	public <T> T fromEntity(Entity entity) {
-		LoadEngine engine = createLoadEngine();
-		LoadContext context = new LoadContext(engine);
-		T result = engine.load(entity, context);
+	public <T> T fromEntity(final Entity entity) {
+		final LoadEngine engine = createLoadEngine();
+		final LoadContext context = new LoadContext(engine);
+		final T result = engine.load(entity, context);
  		context.done();
 	 	return result;
 	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
-	 */
-	@SneakyThrows
-	protected LoaderImpl clone() {
-		return (LoaderImpl)super.clone();
-	}
-
 }

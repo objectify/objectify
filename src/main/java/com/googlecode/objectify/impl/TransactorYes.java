@@ -58,9 +58,7 @@ class TransactorYes extends Transactor
 	 */
 	@Override
 	public ObjectifyImpl transactionless(final ObjectifyImpl parent) {
-		final ObjectifyImpl next = parent.clone();
-		next.transactor = new TransactorNo(next, parentTransactor.getSession());
-		return next;
+		return parent.makeNew(next -> new TransactorNo(next, parentTransactor.getSession()));
 	}
 
 	/* (non-Javadoc)

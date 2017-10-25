@@ -33,17 +33,17 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify, Cloneable
+public class ObjectifyImpl implements Objectify
 {
 	/** The factory that produced us */
 	protected final ObjectifyFactory factory;
 
 	/** */
 	@Getter
-	protected ObjectifyOptions options;
+	protected final ObjectifyOptions options;
 
 	/** */
-	protected Transactor transactor;
+	protected final Transactor transactor;
 
 	/**
 	 */
@@ -53,16 +53,15 @@ public class ObjectifyImpl implements Objectify, Cloneable
 		this.transactor = new TransactorNo(this);
 	}
 
-	/** Copy constructor */
-	public ObjectifyImpl(final ObjectifyImpl other) {
-		this.factory = other.factory;
-		this.options = other.options;
-		this.transactor = other.transactor;
+	public ObjectifyImpl(final ObjectifyFactory factory, final ObjectifyOptions options, final TransactorSupplier supplier) {
+		this.factory = factory;
+		this.options = options;
+		this.transactor = supplier.create(this);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getFactory()
-	 */
+		 * @see com.googlecode.objectify.Objectify#getFactory()
+		 */
 	public ObjectifyFactory factory() {
 		return this.factory;
 	}
@@ -104,9 +103,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Objectify consistency(final Consistency value) {
-		final ObjectifyImpl clone = this.clone();
-		clone.options = options.consistency(value);
-		return clone;
+		return makeNew(options.consistency(value));
 	}
 
 	/* (non-Javadoc)
@@ -114,9 +111,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Objectify deadline(final Double value) {
-		final ObjectifyImpl clone = this.clone();
-		clone.options = options.deadline(value);
-		return clone;
+		return makeNew(options.deadline(value));
 	}
 
 	/* (non-Javadoc)
@@ -124,9 +119,7 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Objectify cache(boolean value) {
-		final ObjectifyImpl clone = this.clone();
-		clone.options = options.cache(value);
-		return clone;
+		return makeNew(options.cache(value));
 	}
 
 	/* (non-Javadoc)
@@ -134,9 +127,22 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	 */
 	@Override
 	public Objectify mandatoryTransactions(boolean value) {
-		final ObjectifyImpl clone = this.clone();
-		clone.options = options.mandatoryTransactions(value);
-		return clone;
+		return makeNew(options.mandatoryTransactions(value));
+	}
+
+	/** Same transactor, different options */
+	private ObjectifyImpl makeNew(final ObjectifyOptions opts) {
+		return makeNew(opts, ofy -> transactor);
+	}
+
+	/** Same options, different transactor */
+	ObjectifyImpl makeNew(final TransactorSupplier supplier) {
+		return makeNew(options, supplier);
+	}
+
+	/** Can be overriden if you want to subclass the ObjectifyImpl */
+	protected ObjectifyImpl makeNew(final ObjectifyOptions opts, final TransactorSupplier supplier) {
+		return new ObjectifyImpl(factory, opts, supplier);
 	}
 
 	/* (non-Javadoc)
@@ -145,17 +151,6 @@ public class ObjectifyImpl implements Objectify, Cloneable
 	@Override
 	public Objectify transactionless() {
 		return transactor.transactionless(this);
-	}
-
-	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
-	 */
-	protected ObjectifyImpl clone() {
-		try {
-			return (ObjectifyImpl)super.clone();
-		} catch (CloneNotSupportedException e) {
-			throw new RuntimeException(e); // impossible
-		}
 	}
 
 	/* (non-Javadoc)
