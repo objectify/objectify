@@ -51,12 +51,18 @@ abstract class Transactor
 	 * @return an Objectify instance that is suitable for transactionless execution. In the case of a
 	 * transactor which is not in a transaction, probably this is the same as getObjectify().
 	 */
+	@Deprecated
 	abstract public ObjectifyImpl transactionless(ObjectifyImpl parent);
 
 	/**
 	 * @see Objectify#execute(TxnType, Work)
 	 */
 	abstract public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work);
+
+	/**
+	 * @see Objectify#transactionless(Work)
+	 */
+	abstract public <R> R transactionless(ObjectifyImpl parent, Work<R> work);
 
 	/**
 	 * @see Objectify#transact(Work)

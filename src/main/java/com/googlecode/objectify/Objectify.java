@@ -171,21 +171,31 @@ public interface Objectify
 	Transaction getTransaction();
 
 	/**
-	 * <p>If you are in a transaction, this provides you an objectify instance which is outside of the
-	 * current transaction and works with the session prior to the transaction start.  Inherits any
-	 * settings (consistency, deadline, etc) from the present Objectify instance.</p>
-	 *
-	 * <p>If you are not in a transaction, this simply returns "this".</p>
-	 *
-	 * <p>This allows code to quickly "escape" a transactional context for the purpose of loading
-	 * manipulating data without creating or affecting XG transactions.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return an immutable Objectify instance outside of a transaction, with the session as it was before txn start.
+	 * @deprecated This method has very poorly defined behavior and will be removed SOON. Instead you should
+	 * use the {@link #transactionless(Work)} method.
 	 */
+	@Deprecated
 	Objectify transactionless();
+
+	/**
+	 * <p>Executes work outside of a transaction. This is a way to "escape" from a transaction and perform
+	 * datastore operations that would otherwise not be allowed (or perhaps to load data without hitting entity group
+	 * limits). If there is not already a transaction running, the work is executed normally.
+	 * If there is not already a transaction context, a new transaction will be started.</p>
+	 *
+	 * <p>For example, to return an entity fetched outside of a transaction:
+	 * {@code Thing th = ofy().transactionless(() -> ofy().load().key(thingKey).now())}</p>
+	 *
+	 * @param work defines the work to be done outside of a transaction
+	 * @return the result of the work
+	 */
+	<R> R transactionless(Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
+	 * so you don't have to return something from the lambda.</p>
+	 */
+	void transactionless(Runnable work);
 
 	/**
 	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.

@@ -73,13 +73,7 @@ class TransactorYes extends Transactor
 				return work.run();
 
 			case NOT_SUPPORTED:
-				final Objectify next = transactionless(parent);
-				factory.push(next);
-				try {
-					return work.run();
-				} finally {
-					factory.pop(next);
-				}
+				return transactionless(parent, work);
 
 			case NEVER:
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
@@ -90,7 +84,17 @@ class TransactorYes extends Transactor
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");
 		}
+	}
 
+	@Override
+	public <R> R transactionless(final ObjectifyImpl parent, final Work<R> work) {
+		final Objectify next = transactionless(parent);
+		factory.push(next);
+		try {
+			return work.run();
+		} finally {
+			factory.pop(next);
+		}
 	}
 
 	/* (non-Javadoc)

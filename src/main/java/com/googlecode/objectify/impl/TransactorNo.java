@@ -69,6 +69,11 @@ class TransactorNo extends Transactor
 
 	}
 
+	@Override
+	public <R> R transactionless(final ObjectifyImpl parent, final Work<R> work) {
+		return work.run();
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
 	 */

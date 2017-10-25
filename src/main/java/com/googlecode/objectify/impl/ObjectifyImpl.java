@@ -148,10 +148,12 @@ public class ObjectifyImpl implements Objectify
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#transactionless()
 	 */
+	@Deprecated
 	@Override
 	public Objectify transactionless() {
 		return transactor.transactionless(this);
 	}
+
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
@@ -164,13 +166,26 @@ public class ObjectifyImpl implements Objectify
 	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
 	 */
 	@Override
-	public <R> R execute(TxnType txnType, Work<R> work) {
+	public <R> R execute(final TxnType txnType, final Work<R> work) {
 		return transactor.execute(this, txnType, work);
 	}
 
 	@Override
 	public void execute(final TxnType txnType, final Runnable work) {
 		execute(txnType, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
+
+	@Override
+	public <R> R transactionless(final Work<R> work) {
+		return transactor.transactionless(this, work);
+	}
+
+	@Override
+	public void transactionless(final Runnable work) {
+		transactionless((Work<Void>)() -> {
 			work.run();
 			return null;
 		});

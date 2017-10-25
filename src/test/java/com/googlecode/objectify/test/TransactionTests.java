@@ -91,13 +91,13 @@ class TransactionTests extends TestBase {
 
 		try {
 			ofy().transactNew(2, () -> {
-				Trivial triv1 = ofy().transactionless().load().key(tk).now();
+				Trivial triv1 = ofy().transactionless(() -> ofy().load().key(tk).now());
 				Trivial triv2 = ofy().load().key(tk).now();
 
 				triv1.setSomeString("bar");
 				triv2.setSomeString("shouldn't work");
 
-				ofy().transactionless().save().entity(triv1).now();
+				ofy().transactionless(() -> ofy().save().entity(triv1).now());
 				ofy().save().entity(triv2).now();
 			});
 			assert false;	// must throw exception
@@ -176,8 +176,10 @@ class TransactionTests extends TestBase {
 		}
 
 		ofy().transact(() -> {
-			for (int i=1; i<10; i++)
-				ofy().transactionless().load().type(Thing.class).id(i).now();
+			for (int i=1; i<10; i++) {
+				final int index = i;
+				ofy().transactionless(() -> ofy().load().type(Thing.class).id(index).now());
+			}
 
 			ofy().save().entity(new Thing(99));
 		});
@@ -203,15 +205,16 @@ class TransactionTests extends TestBase {
 	}
 
 	/**
-	 * This is a somewhat clunky way to test this, and requires making impl.getCache() public,
-	 * but it gets the job done.
 	 */
 	@Test
 	void transactionalObjectifyInheritsCacheSetting() throws Exception {
 		ofy().cache(false).transact(() -> {
 			// Test in _and out_ of a transaction
-			final ObjectifyImpl txnlessImpl = (ObjectifyImpl)ofy().transactionless();
-			assertThat(txnlessImpl.getOptions().isCache()).isFalse();
+			assertThat(((ObjectifyImpl)ofy()).getOptions().isCache()).isFalse();
+
+			ofy().transactionless(() -> {
+				assertThat(((ObjectifyImpl)ofy()).getOptions().isCache()).isFalse();
+			});
 		});
 	}
 	
@@ -343,10 +346,10 @@ class TransactionTests extends TestBase {
 				final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
 				txn.listenForCommit(listener);
 
-				final Trivial triv1 = ofy().transactionless().load().key(tk).now();
+				final Trivial triv1 = ofy().transactionless(() -> ofy().load().key(tk).now());
 				final Trivial triv2 = ofy().load().key(tk).now();
 
-				ofy().transactionless().save().entity(triv1).now();
+				ofy().transactionless(() -> ofy().save().entity(triv1).now());
 				ofy().save().entity(triv2).now();
 			});
 			assert false;	// must throw exception
@@ -372,11 +375,11 @@ class TransactionTests extends TestBase {
 			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
 			txn.listenForCommit(listener);
 
-			final Trivial triv1 = ofy().transactionless().load().key(tk).now();
+			final Trivial triv1 = ofy().transactionless(() -> ofy().load().key(tk).now());
 			final Trivial triv2 = ofy().load().key(tk).now();
 
 			if (counter.counter < 3) {
-				ofy().transactionless().save().entity(triv1).now();
+				ofy().transactionless(() -> ofy().save().entity(triv1).now());
 			}
 			ofy().save().entity(triv2).now();
 		});
