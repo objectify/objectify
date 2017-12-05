@@ -7,8 +7,8 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.AsyncTransaction;
 import com.googlecode.objectify.impl.ObjectifyImpl;
-import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
@@ -147,7 +147,7 @@ class TransactionTestsDeprecated extends TestBase {
 
 		try {
 			ofy().transactNew(1, () -> {
-				final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+				final AsyncTransaction txn = ofy().getTransaction();
 				txn.listenForCommit(listener);
 
 				final Trivial triv1 = ofy().transactionless().load().key(tk).now();
@@ -176,7 +176,7 @@ class TransactionTestsDeprecated extends TestBase {
 
 		ofy().transactNew(3, () -> {
 			counter.counter++;
-			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			final AsyncTransaction txn = ofy().getTransaction();
 			txn.listenForCommit(listener);
 
 			final Trivial triv1 = ofy().transactionless().load().key(tk).now();

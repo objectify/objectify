@@ -3,7 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -51,11 +52,12 @@ class LoadAlsoLoadTests extends TestBase {
 		final Trivial triv = new Trivial("someString", 123L);
 		final Key<Trivial> trivKey = ofy().save().entity(triv).now();
 
-		final Entity ent = new Entity(Key.getKind(HasConcrete.class));
-		ent.setProperty("foo", trivKey.getRaw());
-		ds().put(null, ent);
+		final FullEntity<?> ent = makeEntity(HasConcrete.class)
+				.set("foo", trivKey.getRaw())
+				.build();
+		final Entity complete = datastore().put(ent);
 
-		final Key<HasConcrete> key = Key.create(ent.getKey());
+		final Key<HasConcrete> key = Key.create(complete.getKey());
 		final HasConcrete fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.bar).isEqualTo(triv.getSomeString());

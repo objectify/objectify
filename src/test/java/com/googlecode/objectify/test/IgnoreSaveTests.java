@@ -3,7 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
@@ -45,11 +46,13 @@ class IgnoreSaveTests extends TestBase {
 	void ignoreSavePropertiesAreIgnoredOnSave() throws Exception {
 		factory().register(CompletelyUnsaved.class);
 
-		final Entity ent = new Entity(Key.getKind(CompletelyUnsaved.class));
-		ent.setProperty("foo", TEST_VALUE);
-		ds().put(null, ent);
+		final FullEntity<?> ent = makeEntity(CompletelyUnsaved.class)
+				.set("foo", TEST_VALUE)
+				.build();
 
-		final Key<CompletelyUnsaved> key = Key.create(ent.getKey());
+		final Entity complete = datastore().put(ent);
+
+		final Key<CompletelyUnsaved> key = Key.create(complete.getKey());
 		final CompletelyUnsaved fetched = ofy().load().key(key).now();
 		assertThat(fetched.foo).isEqualTo(TEST_VALUE);
 
@@ -152,8 +155,8 @@ class IgnoreSaveTests extends TestBase {
 		final Key<UnsavedDefaults> key = ofy().save().entity(thing).now();
 
 		// Now get the raw entity and verify that it doesn't have properties saved
-		final Entity ent = ds().get(null, key.getRaw());
-		assert ent.getProperties().isEmpty();
+		final Entity ent = datastore().get(key.getRaw());
+		assertThat(ent.getNames()).isEmpty();
 	}
 
 }

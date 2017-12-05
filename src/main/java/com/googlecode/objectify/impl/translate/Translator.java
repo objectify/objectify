@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.impl.LoadEngine;
 import com.googlecode.objectify.impl.Path;
 
@@ -9,7 +10,7 @@ import com.googlecode.objectify.impl.Path;
  * <p>Translators are composed of other translators; through a chain of these a whole entity
  * object is assembled or disassembled.</p>
  *
- * <p>P is the pojo type. D is the datastore type.</p>
+ * <p>P is the pojo type. D is the datastore Value type.</p>
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -31,7 +32,7 @@ public interface Translator<P, D>
 	 * 
 	 * @see LoadEngine
 	 */
-	P load(D node, LoadContext ctx, Path path) throws SkipException;
+	P load(Value<D> node, LoadContext ctx, Path path) throws SkipException;
 
 	/**
 	 * Translates a pojo (or some component thereof) into a format suitable for storage in the datastore.
@@ -44,5 +45,5 @@ public interface Translator<P, D>
 	 * 
 	 * @throws SkipException if the return value should be abandoned
 	 */
-	D save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
+	Value<D> save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
 }

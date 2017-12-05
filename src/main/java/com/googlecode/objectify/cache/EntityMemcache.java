@@ -1,13 +1,12 @@
 package com.googlecode.objectify.cache;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.memcache.ErrorHandlers;
-import com.google.appengine.api.memcache.Expiration;
-import com.google.appengine.api.memcache.IMemcacheServiceFactory;
-import com.google.appengine.api.memcache.MemcacheService.CasValues;
-import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
-import com.google.appengine.spi.ServiceFactoryFactory;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Key;
+import com.googlecode.objectify.cache.tmp.Expiration;
+import com.googlecode.objectify.cache.tmp.IMemcacheServiceFactory;
+import com.googlecode.objectify.cache.tmp.MemcacheService.CasValues;
+import com.googlecode.objectify.cache.tmp.MemcacheService.IdentifiableValue;
+import com.googlecode.objectify.cache.tmp.ServiceFactoryFactory;
 import lombok.EqualsAndHashCode;
 import lombok.extern.java.Log;
 
@@ -176,21 +175,13 @@ public class EntityMemcache
 			IMemcacheServiceFactory memcacheServiceFactory)
 	{
 		this.memcache = new KeyMemcacheService(memcacheServiceFactory.getMemcacheService(namespace));
-		this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
+		//this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
 		this.memcacheWithRetry = new KeyMemcacheService(
 				MemcacheServiceRetryProxy.createProxy(memcacheServiceFactory.getMemcacheService(namespace)));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
 
-	/**
-	 * Sets the error handler for the non-retry memcache object.
-	 */
-	@SuppressWarnings("deprecation")
-	public void setErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
-		this.memcache.setErrorHandler(handler);
-	}
-	
 	/**
 	 * <p>Gets the Buckets for the specified keys.  A bucket is built around an IdentifiableValue so you can
 	 * putAll() them without the risk of overwriting other threads' changes.  Buckets also hide the

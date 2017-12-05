@@ -1,7 +1,7 @@
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
@@ -37,10 +37,10 @@ class EmbeddedMapFormatTests extends TestBase {
 		
 		final Key<OuterWithMap> key = ofy().save().entity(outer).now();
 		
-		final Entity entity = ds().get(key.getRaw());
+		final Entity entity = datastore().get(key.getRaw());
 		
-		final EmbeddedEntity entityInner = (EmbeddedEntity)entity.getProperty("map");
-		assertThat(entityInner.getProperty("asdf")).isEqualTo(123L);
+		final FullEntity<?> entityInner = entity.getEntity("map");
+		assertThat(entityInner.getLong("asdf")).isEqualTo(123L);
 		
 		ofy().clear();
 		final OuterWithMap fetched = ofy().load().key(key).now();

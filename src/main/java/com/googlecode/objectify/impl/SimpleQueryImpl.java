@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Cursor;
 import com.googlecode.objectify.cmd.QueryKeys;
 import com.googlecode.objectify.cmd.SimpleQuery;
 
@@ -14,6 +13,9 @@ import com.googlecode.objectify.cmd.SimpleQuery;
  */
 public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 {
+	/** Constant seems to have disappeared from the SDK */
+	private final String KEY_RESERVED_PROPERTY = "__key__";
+
 	/** */
 	protected final LoaderImpl loader;
 
@@ -37,7 +39,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	@Override
 	public QueryImpl<T> filterKey(String condition, Object value) {
 		QueryImpl<T> q = createQuery();
-		q.addFilter(Entity.KEY_RESERVED_PROPERTY + " " + condition.trim(), value);
+		q.addFilter(KEY_RESERVED_PROPERTY + " " + condition.trim(), value);
 		return q;
 	}
 
@@ -54,7 +56,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 		String prefix = descending ? "-" : "";
 
 		QueryImpl<T> q = createQuery();
-		q.addOrder(prefix + Entity.KEY_RESERVED_PROPERTY);
+		q.addOrder(prefix + KEY_RESERVED_PROPERTY);
 		return q;
 	}
 
@@ -89,7 +91,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#startCursor(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.Query#startCursor(com.google.cloud.datastore.Cursor)
 	 */
 	@Override
 	public QueryImpl<T> startAt(Cursor value) {
@@ -99,7 +101,7 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#endCursor(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.Query#endCursor(com.google.cloud.datastore.Cursor)
 	 */
 	@Override
 	public QueryImpl<T> endAt(Cursor value) {
@@ -143,18 +145,8 @@ public abstract class SimpleQueryImpl<T> implements SimpleQuery<T>
 	@Override
 	public QueryKeys<T> keys() {
 		QueryImpl<T> q = createQuery();
-		q.setKeysOnly();
+		q.checkKeysOnlyOk();
 		return new QueryKeysImpl<>(q);
-	}
-	
-	 /* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.SimpleQuery#reverse()
-	 */
-	@Override
-	public QueryImpl<T> reverse() {
-		QueryImpl<T> q = createQuery();
-		q.toggleReverse();
-		return q;
 	}
 
 	/* (non-Javadoc)

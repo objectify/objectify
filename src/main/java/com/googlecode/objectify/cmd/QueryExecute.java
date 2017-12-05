@@ -1,6 +1,5 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.appengine.api.datastore.QueryResultIterable;
 import com.googlecode.objectify.LoadResult;
 
 import java.util.List;
@@ -22,7 +21,7 @@ public interface QueryExecute<T> extends QueryResultIterable<T>
 	 * object itself.  However, if you want to start an async query and iterate on it later, you can
 	 * use this method.</p>
 	 */
-	public QueryResultIterable<T> iterable();
+	QueryResultIterable<T> iterable();
 
 	/**
 	 * <p>Execute the query and get the results as a List.  The list will be equivalent to a simple ArrayList;
@@ -31,14 +30,14 @@ public interface QueryExecute<T> extends QueryResultIterable<T>
 	 * <p>Note that you must be careful about limit()ing the size of the list returned; you can
 	 * easily exceed the practical memory limits of Appengine by querying for a very large dataset.</p>
 	 */
-	public List<T> list();
+	List<T> list();
 
 	/**
 	 * Gets the first entity in the result set.  Obeys the offset value.
 	 *
 	 * @return an asynchronous result containing the first result.  The result will hold null if the result set is empty.
 	 */
-	public LoadResult<T> first();
+	LoadResult<T> first();
 
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
@@ -47,5 +46,5 @@ public interface QueryExecute<T> extends QueryResultIterable<T>
 	 *
 	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p>
 	 */
-	public String toString();
+	String toString();
 }

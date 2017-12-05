@@ -3,14 +3,13 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
+import com.googlecode.objectify.impl.AsyncTransaction;
 import com.googlecode.objectify.impl.ObjectifyImpl;
-import com.googlecode.objectify.impl.TransactionImpl;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
@@ -269,7 +268,7 @@ class TransactionTests extends TestBase {
 		final SimpleCommitListener listener = new SimpleCommitListener();
 
 		ofy().transact(() -> {
-			final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			final AsyncTransaction txn = ofy().getTransaction();
 			txn.listenForCommit(listener);
 
 			assertThat(listener.hasRun()).isFalse();
@@ -286,7 +285,7 @@ class TransactionTests extends TestBase {
 
 		try {
 			ofy().transactNew(1, () -> {
-				TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+				final AsyncTransaction txn = ofy().getTransaction();
 				txn.listenForCommit(listener);
 
 				throw new ConcurrentModificationException();
@@ -319,7 +318,7 @@ class TransactionTests extends TestBase {
 
 		ofy().transactNew(3, () -> {
 			counter.counter++;
-			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			final AsyncTransaction txn = ofy().getTransaction();
 			txn.listenForCommit(listener);
 
 			if (counter.counter < 3) {
@@ -343,7 +342,7 @@ class TransactionTests extends TestBase {
 
 		try {
 			ofy().transactNew(1, () -> {
-				final TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+				final AsyncTransaction txn = ofy().getTransaction();
 				txn.listenForCommit(listener);
 
 				final Trivial triv1 = ofy().transactionless(() -> ofy().load().key(tk).now());
@@ -372,7 +371,7 @@ class TransactionTests extends TestBase {
 
 		ofy().transactNew(3, () -> {
 			counter.counter++;
-			TransactionImpl txn = (TransactionImpl)ofy().getTransaction();
+			final AsyncTransaction txn = ofy().getTransaction();
 			txn.listenForCommit(listener);
 
 			final Trivial triv1 = ofy().transactionless(() -> ofy().load().key(tk).now());
@@ -393,7 +392,7 @@ class TransactionTests extends TestBase {
 	@Test
 	void executeWithRequiresNewCreatesNewTransaction() {
 		ofy().transact(() -> {
-			final Transaction txn = ofy().getTransaction();
+			final AsyncTransaction txn = ofy().getTransaction();
 
 			ofy().execute(TxnType.REQUIRES_NEW, () -> {
 				assertThat(ofy().getTransaction()).isNotEqualTo(txn);

@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.PropertyContainer;
 
 
 /**
@@ -37,8 +36,8 @@ public class EntityCreator<P> extends Creator<P>
 	}
 
 	@Override
-	public P load(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
-		P pojo = construct(path);
+	public P load(final PropertyContainer container, final LoadContext ctx, final Path path) throws SkipException {
+		final P pojo = construct(path);
 
 		keyMetadata.setKey(pojo, container, ctx, path);
 
@@ -46,13 +45,7 @@ public class EntityCreator<P> extends Creator<P>
 	}
 
 	@Override
-	public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
-		if (path.isRoot()) {
-			return keyMetadata.initEntity(pojo);
-		} else {
-			EmbeddedEntity ent = new EmbeddedEntity();
-			ent.setKey(keyMetadata.getRawKeyOrNull(pojo));
-			return ent;
-		}
+	public PropertyContainer save(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+		return keyMetadata.initPropertyContainer(pojo);
 	}
 }

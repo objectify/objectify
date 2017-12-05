@@ -1,7 +1,6 @@
 package com.googlecode.objectify.cache;
 
-import com.google.appengine.api.memcache.ErrorHandlers;
-import com.google.appengine.api.memcache.MemcacheService;
+import com.googlecode.objectify.cache.tmp.MemcacheService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -32,7 +31,7 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
 	public static MemcacheService createProxy(MemcacheService raw, int retryCount) {
-		raw.setErrorHandler(ErrorHandlers.getStrict());
+//		raw.setErrorHandler(ErrorHandlers.getStrict());
 		
 		return (MemcacheService)java.lang.reflect.Proxy.newProxyInstance(
 			raw.getClass().getClassLoader(),

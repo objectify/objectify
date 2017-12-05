@@ -1,46 +1,23 @@
 package com.googlecode.objectify;
 
-import com.googlecode.objectify.util.TranslatingIterator;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 
-import java.io.Serializable;
-import java.util.Iterator;
+import java.util.List;
 
 /**
- * <p>This is a typesafe version of the KeyRange object.  It represents a number
- * of ids preallocated with {@code ObjectifyFactory#allocateIds(Class, long)}.</p>
- * 
+ * <p>The old SDK had a KeyRange object, which was just a list of keys. The new SDK drops the KeyRange
+ * in favor of a simple List. Keeping this for backwards compatibility for now, but you should just use
+ * {@code List<Key<T>>} instead.</p>
+ *
+ * @deprecated Use {@code List<Key<T>>} instead. We will drop this class entirely.
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class KeyRange<T> implements Iterable<Key<T>>, Serializable
+@RequiredArgsConstructor
+@Deprecated
+public class KeyRange<T> implements List<Key<T>>
 {
-	private static final long serialVersionUID = 1L;
-	
 	/** */
-	com.google.appengine.api.datastore.KeyRange raw;
-	
-	/** */
-	public KeyRange(com.google.appengine.api.datastore.KeyRange raw)
-	{
-		this.raw = raw;
-	}
-	
-	/**
-	 * Get the raw datastore keyrange.
-	 */
-	public com.google.appengine.api.datastore.KeyRange getRaw() { return this.raw; }
-
-	/* (non-Javadoc)
-	 * @see java.lang.Iterable#iterator()
-	 */
-	@Override
-	public Iterator<Key<T>> iterator()
-	{
-		return new TranslatingIterator<com.google.appengine.api.datastore.Key, Key<T>>(this.raw.iterator()) {
-			@Override
-			protected Key<T> translate(com.google.appengine.api.datastore.Key from)
-			{
-				return Key.create(from);
-			}
-		};
-	}
+	@Delegate
+	private final List<Key<T>> raw;
 }

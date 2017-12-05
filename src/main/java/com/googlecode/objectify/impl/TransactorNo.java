@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl;
 
 import com.google.common.base.Preconditions;
-import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import lombok.extern.slf4j.Slf4j;
@@ -18,21 +17,21 @@ class TransactorNo extends Transactor
 {
 	/**
 	 */
-	TransactorNo(final Objectify ofy) {
+	TransactorNo(final ObjectifyImpl ofy) {
 		super(ofy);
 	}
 
 	/**
 	 */
-	TransactorNo(final Objectify ofy, final Session session) {
+	TransactorNo(final ObjectifyImpl ofy, final Session session) {
 		super(ofy, session);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getTxn()
+	 * @see com.googlecode.objectify.Objectify#getTransaction()
 	 */
 	@Override
-	public TransactionImpl getTransaction() {
+	public AsyncTransactionImpl getTransaction() {
 		// This version doesn't have a transaction, always null.
 		return null;
 	}
@@ -103,6 +102,11 @@ class TransactorNo extends Transactor
 		}
 	}
 
+	@Override
+	public AsyncDatastoreReaderWriter asyncDatastore() {
+		return factory.asyncDatastore(ofy.getOptions().isCache());
+	}
+
 	/**
 	 * One attempt at executing a transaction
 	 */
@@ -129,7 +133,7 @@ class TransactorNo extends Transactor
 			txnOfy.close();
 
 			if (committedSuccessfully) {
-				txnOfy.getTransaction().runCommitListeners();
+				((PrivateAsyncTransaction)txnOfy.getTransaction()).runCommitListeners();
 			}
 		}
 	}

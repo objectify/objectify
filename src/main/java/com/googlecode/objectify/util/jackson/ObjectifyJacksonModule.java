@@ -2,7 +2,6 @@ package com.googlecode.objectify.util.jackson;
 
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.appengine.api.blobstore.BlobKey;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 
@@ -27,13 +26,9 @@ public class ObjectifyJacksonModule extends SimpleModule {
 		this.addDeserializer(Ref.class, new RefDeserializer());
 
 		// Native datastore Key
-		this.addSerializer(com.google.appengine.api.datastore.Key.class, new RawKeySerializer());
-		this.addKeySerializer(com.google.appengine.api.datastore.Key.class, new RawKeyKeySerializer());
-		this.addDeserializer(com.google.appengine.api.datastore.Key.class, new RawKeyDeserializer());
-
-		// Native datastore BlobKey
-		this.addSerializer(BlobKey.class, new BlobKeySerializer());
-		this.addDeserializer(BlobKey.class, new BlobKeyDeserializer());
+		this.addSerializer(com.google.cloud.datastore.Key.class, new RawKeySerializer());
+		this.addKeySerializer(com.google.cloud.datastore.Key.class, new RawKeyKeySerializer());
+		this.addDeserializer(com.google.cloud.datastore.Key.class, new RawKeyDeserializer());
 	}
 
 }

@@ -1,19 +1,21 @@
 package com.googlecode.objectify.cache;
 
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheService.CasValues;
-import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
-import com.google.common.base.Function;
+import com.google.cloud.datastore.Key;
 import com.google.common.collect.Collections2;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.googlecode.objectify.cache.tmp.MemcacheService;
+import com.googlecode.objectify.cache.tmp.MemcacheService.CasValues;
+import com.googlecode.objectify.cache.tmp.MemcacheService.IdentifiableValue;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BinaryOperator;
+import java.util.stream.Collectors;
 
 /**
  * Subset of MemcacheService used by EntityMemcache, but smart enough to translate Key into the stringified
@@ -22,57 +24,37 @@ import java.util.Set;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@RequiredArgsConstructor
 public class KeyMemcacheService
 {
 	/** */
-	private static final Function<Key, String> STRINGIFY = new Function<Key, String>() {
-		@Override
-		public String apply(Key input) {
-			return KeyFactory.keyToString(input);
-		}
-	};
+	private final MemcacheService service;
 
-	/** */
-	MemcacheService service;
-
-	/** */
-	public KeyMemcacheService(MemcacheService service) {
-		this.service = service;
+	private <T> Map<Key, T> keyify(final Map<String, T> stringified) {
+		return stringified.entrySet().stream()
+				.collect(Collectors.toMap(e -> Key.fromUrlSafe(e.getKey()), Entry::getValue, throwingMerger(), LinkedHashMap::new));
 	}
 
-	private <T> Map<Key, T> keyify(Map<String, T> stringified) {
-		Map<Key, T> result = Maps.newLinkedHashMap();
-		for (Map.Entry<String, T> entry: stringified.entrySet())
-			result.put(KeyFactory.stringToKey(entry.getKey()), entry.getValue());
-
-		return result;
+	private Set<Key> keyify(final Set<String> stringified) {
+		return stringified.stream()
+				.map(Key::fromUrlSafe)
+				.collect(Collectors.toCollection(LinkedHashSet::new));
 	}
 
-	private Set<Key> keyify(Set<String> stringified) {
-		Set<Key> result = Sets.newLinkedHashSet();
-		for (String str: stringified)
-			result.add(KeyFactory.stringToKey(str));
-
-		return result;
+	private <T> Map<String, T> stringify(final Map<Key, T> keyified) {
+		return keyified.entrySet().stream()
+				.collect(Collectors.toMap(e -> e.getKey().toUrlSafe(), Entry::getValue, throwingMerger(), LinkedHashMap::new));
 	}
 
-	private <T> Map<String, T> stringify(Map<Key, T> keyified) {
-		Map<String, T> result = Maps.newLinkedHashMap();
-		for (Map.Entry<Key, T> entry: keyified.entrySet())
-			result.put(KeyFactory.keyToString(entry.getKey()), entry.getValue());
-
-		return result;
-	}
-
-	private Collection<String> stringify(Collection<Key> keys) {
-		return Collections2.transform(keys, STRINGIFY);
+	private Collection<String> stringify(final Collection<Key> keys) {
+		return Collections2.transform(keys, Key::toUrlSafe);
 	}
 
 	public Map<Key, IdentifiableValue> getIdentifiables(Collection<Key> keys) {
 		if (keys.isEmpty())
 			return Collections.emptyMap();
 		
-		Map<String, IdentifiableValue> map = service.getIdentifiables(stringify(keys));
+		final Map<String, IdentifiableValue> map = service.getIdentifiables(stringify(keys));
 		return keyify(map);
 	}
 
@@ -80,34 +62,33 @@ public class KeyMemcacheService
 		if (keys.isEmpty())
 			return Collections.emptyMap();
 			
-		Map<String, Object> map = service.getAll(stringify(keys));
+		final Map<String, Object> map = service.getAll(stringify(keys));
 		return keyify(map);
 	}
 
-	public void putAll(Map<Key, Object> map) {
+	public void putAll(final Map<Key, Object> map) {
 		if (map.isEmpty())
 			return;
 		
 		service.putAll(stringify(map));
 	}
 
-	public Set<Key> putIfUntouched(Map<Key, CasValues> map) {
+	public Set<Key> putIfUntouched(final Map<Key, CasValues> map) {
 		if (map.isEmpty())
 			return Collections.emptySet();
-		
-		Set<String> result = service.putIfUntouched(stringify(map));
+
+		final Set<String> result = service.putIfUntouched(stringify(map));
 		return keyify(result);
 	}
 
-	public void deleteAll(Collection<Key> keys) {
+	public void deleteAll(final Collection<Key> keys) {
 		if (keys.isEmpty())
 			return;
 		
 		service.deleteAll(stringify(keys));
 	}
 
-	@SuppressWarnings("deprecation")
-	public void setErrorHandler(com.google.appengine.api.memcache.ErrorHandler handler) {
-		service.setErrorHandler(handler);
+	private static <T> BinaryOperator<T> throwingMerger() {
+		return (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
 	}
 }

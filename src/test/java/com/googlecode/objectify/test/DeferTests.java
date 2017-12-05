@@ -3,7 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.annotation.Entity;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests of defer()
@@ -58,10 +56,7 @@ class DeferTests extends TestBase {
 			assertThat(ofy().load().entity(triv).now()).isEqualTo(triv);
 
 			// But not the datastore
-			assertThrows(
-					EntityNotFoundException.class,
-					() -> ds().get(null, Key.create(triv).getRaw()),
-					"Entity should not have been saved yet");
+			assertThat(datastore().get(Key.create(triv).getRaw())).isNull();
 		}
 
 		try (final Closeable root = ObjectifyService.begin()) {
@@ -76,11 +71,7 @@ class DeferTests extends TestBase {
 			assertThat(ofy().load().entity(triv).now()).isNull();
 
 			// But not datastore
-			try {
-				ds().get(null, Key.create(triv).getRaw());
-			} catch (EntityNotFoundException e) {
-				assert false : "Entity should not have been deleted yet";
-			}
+			assertThat(datastore().get(Key.create(triv).getRaw())).isNotNull();
 		}
 
 		try (final Closeable root = ObjectifyService.begin()) {
@@ -104,10 +95,7 @@ class DeferTests extends TestBase {
 				assertThat(ofy().load().entity(triv).now()).isEqualTo(triv);
 
 				// But not datastore
-				assertThrows(
-						EntityNotFoundException.class,
-						() -> ds().get(null, Key.create(triv).getRaw()),
-						"Entity should not have been saved yet");
+				assertThat(datastore().get(Key.create(triv).getRaw())).isNull();
 			});
 
 			{
@@ -122,11 +110,7 @@ class DeferTests extends TestBase {
 				assertThat(ofy().load().entity(triv).now()).isNull();
 
 				// But not datastore
-				try {
-					ds().get(null, Key.create(triv).getRaw());
-				} catch (EntityNotFoundException e) {
-					assert false : "Entity should not have been deleted yet";
-				}
+				assertThat(datastore().get(Key.create(triv).getRaw())).isNotNull();
 			});
 
 			{

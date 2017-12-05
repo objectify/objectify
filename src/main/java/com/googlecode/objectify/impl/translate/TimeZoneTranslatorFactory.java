@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.Path;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 
 import java.util.TimeZone;
 
@@ -10,24 +12,19 @@ import java.util.TimeZone;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class TimeZoneTranslatorFactory extends ValueTranslatorFactory<TimeZone, String>
+public class TimeZoneTranslatorFactory extends SimpleValueTranslatorFactory<TimeZone, String>
 {
 	public TimeZoneTranslatorFactory() {
-		super(TimeZone.class);
+		super(TimeZone.class, ValueType.STRING);
 	}
 
 	@Override
-	protected ValueTranslator<TimeZone, String> createValueTranslator(TypeKey<TimeZone> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<TimeZone, String>(String.class) {
-			@Override
-			protected TimeZone loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-				return TimeZone.getTimeZone(value);
-			}
+	protected TimeZone toPojo(final Value<String> value) {
+		return TimeZone.getTimeZone(value.get());
+	}
 
-			@Override
-			protected String saveValue(TimeZone value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.getID();
-			}
-		};
+	@Override
+	protected Value<String> toDatastore(final TimeZone value) {
+		return StringValue.of(value.getID());
 	}
 }

@@ -3,25 +3,18 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.DataTypeUtils;
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.ShortBlob;
-import com.google.appengine.api.datastore.Text;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.translate.CreateContext;
-import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.impl.translate.SkipException;
-import com.googlecode.objectify.impl.translate.TypeKey;
-import com.googlecode.objectify.impl.translate.ValueTranslator;
-import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
@@ -93,7 +86,7 @@ class ValueTranslationTests extends TestBase {
 	/** */
 	private final static String BIG_STRING;
 	static {
-		StringBuilder bld = new StringBuilder(DataTypeUtils.MAX_STRING_PROPERTY_LENGTH + 1);
+		StringBuilder bld = new StringBuilder(1500 + 1);
 		for (int i=0; i<bld.capacity(); i++)
 			bld.append('\u2202');
 
@@ -107,11 +100,13 @@ class ValueTranslationTests extends TestBase {
 	void numberToString() throws Exception {
 		factory().register(HasString.class);
 
-		final Entity ent = new Entity(Key.getKind(HasString.class));
-		ent.setProperty("string", 2);	// setting a number
-		ds().put(null, ent);
+		final FullEntity<?> ent = makeEntity(HasString.class)
+				.set("string", 2)    // setting a number
+				.build();
 
-		final Key<HasString> key = Key.create(ent.getKey());
+		final Entity completeEntity = datastore().put(ent);
+
+		final Key<HasString> key = Key.create(completeEntity.getKey());
 		final HasString fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.string).isEqualTo("2");	// should be a string
@@ -124,13 +119,13 @@ class ValueTranslationTests extends TestBase {
 	void stringToNumber() throws Exception {
 		factory().register(HasNumber.class);
 
-		final DatastoreService ds = ds();
+		final FullEntity<?> ent = makeEntity(HasNumber.class)
+				.set("number", "2")    // setting a string
+				.build();
 
-		final Entity ent = new Entity(Key.getKind(HasNumber.class));
-		ent.setProperty("number", "2");	// setting a string
-		ds.put(null, ent);
+		final Entity completeEntity = datastore().put(ent);
 
-		final Key<HasNumber> key = Key.create(ent.getKey());
+		final Key<HasNumber> key = Key.create(completeEntity.getKey());
 		final HasNumber fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.number).isEqualTo(2);	// should be a number
@@ -204,49 +199,6 @@ class ValueTranslationTests extends TestBase {
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
 	@Data
-	private static class HasText {
-		@Id Long id;
-		Text text;
-	}
-
-	/**
-	 * Stored Strings can be converted to Text in the data model
-	 */
-	@Test
-	void stringsCanBeConvertedToText() throws Exception {
-		factory().register(HasText.class);
-
-		final Entity ent = new Entity(Key.getKind(HasText.class));
-		ent.setProperty("text", "foo");	// setting a string
-		ds().put(null, ent);
-
-		final Key<HasText> key = Key.create(ent.getKey());
-		final HasText fetched = ofy().load().key(key).now();
-
-		assertThat(fetched.text.getValue()).isEqualTo("foo");
-	}
-
-	/**
-	 * Stored numbers can be converted to Text in the data model
-	 */
-	@Test
-	void numbersCanBeConvertedToText() throws Exception {
-		factory().register(HasText.class);
-
-		final Entity ent = new Entity(Key.getKind(HasText.class));
-		ent.setProperty("text", 2);	// setting a number
-		ds().put(null, ent);
-
-		final Key<HasText> key = Key.create(ent.getKey());
-		final HasText fetched = ofy().load().key(key).now();
-
-		assertThat(fetched.text.getValue()).isEqualTo("2");
-	}
-
-	/** */
-	@com.googlecode.objectify.annotation.Entity
-	@Cache
-	@Data
 	private static class Blobby {
 		@Id Long id;
 		byte[] stuff;
@@ -263,22 +215,6 @@ class ValueTranslationTests extends TestBase {
 		final Blobby c = saveClearLoad(b);
 
 		assertThat(c.stuff).isEqualTo(b.stuff);
-	}
-
-	/** */
-	@Test
-	void shortBlobsAreConvertedToByteArrays() throws Exception {
-		factory().register(Blobby.class);
-
-		final Entity ent = new Entity("Blobby");
-		final ShortBlob shortBlob = new ShortBlob(new byte[]{1, 2, 3});
-		ent.setProperty("stuff", shortBlob);
-
-		final Key<Blobby> blobbyKey = Key.create(ds().put(ent));
-
-		final Blobby blobby = ofy().load().key(blobbyKey).safe();
-
-		assertThat(blobby.stuff).isEqualTo(shortBlob.getBytes());
 	}
 
 	/** For testSqlDateConversion() */
@@ -324,20 +260,15 @@ class ValueTranslationTests extends TestBase {
 
 	@Test
 	void arbitraryTranslatorIsRegistered() throws Exception {
-		factory().getTranslators().add(new ValueTranslatorFactory<BigDecimal, String>(BigDecimal.class) {
+		factory().getTranslators().add(new SimpleValueTranslatorFactory<BigDecimal, String>(BigDecimal.class, ValueType.STRING) {
 			@Override
-			protected ValueTranslator<BigDecimal, String> createValueTranslator(TypeKey tk, CreateContext ctx, Path path) {
-				return new ValueTranslator<BigDecimal, String>(String.class) {
-					@Override
-					protected BigDecimal loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-						return new BigDecimal(value);
-					}
+			protected BigDecimal toPojo(final Value<String> value) {
+				return new BigDecimal(value.get());
+			}
 
-					@Override
-					protected String saveValue(BigDecimal value, boolean index, SaveContext ctx, Path path) throws SkipException {
-						return value.toString();
-					}
-				};
+			@Override
+			protected Value<String> toDatastore(final BigDecimal value) {
+				return StringValue.of(value.toString());
 			}
 		});
 

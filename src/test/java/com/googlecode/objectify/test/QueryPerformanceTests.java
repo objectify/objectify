@@ -3,13 +3,13 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.AsyncDatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceConfig;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
+import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.Closeable;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,13 +32,10 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 class QueryPerformanceTests extends TestBase {
 
 	/** */
+	@RequiredArgsConstructor
 	class CountingProxy implements InvocationHandler {
 
-		AsyncDatastoreService base;
-
-		CountingProxy(AsyncDatastoreService base) {
-			this.base = base;
-		}
+		private final AsyncDatastore base;
 
 		@Override
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -64,8 +61,8 @@ class QueryPerformanceTests extends TestBase {
 		// throw away the current factory and replace it with one that tracks calls
 		ObjectifyService.setFactory(new ObjectifyFactory() {
 			@Override
-			protected AsyncDatastoreService createRawAsyncDatastoreService(DatastoreServiceConfig cfg) {
-				return (AsyncDatastoreService)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{AsyncDatastoreService.class}, new CountingProxy(super.createRawAsyncDatastoreService(cfg)));
+			public AsyncDatastore asyncDatastore() {
+				return (AsyncDatastore)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{AsyncDatastore.class}, new CountingProxy(super.asyncDatastore()));
 			}
 		});
 

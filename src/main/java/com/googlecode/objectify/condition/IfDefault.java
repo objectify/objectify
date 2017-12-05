@@ -47,11 +47,11 @@ import java.lang.reflect.Field;
  */
 public class IfDefault extends ValueIf<Object> implements InitializeIf
 {
-	Object defaultValue;
+	private Object defaultValue;
 	
 	@Override
-	public void init(ObjectifyFactory fact, Field field) {
-		Object pojo = fact.construct(field.getDeclaringClass());
+	public void init(final ObjectifyFactory fact, final Field field) {
+		final Object pojo = fact.construct(field.getDeclaringClass());
 		this.defaultValue = TypeUtils.field_get(field, pojo);
 	}
 	

@@ -1,19 +1,18 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.ShortBlob;
-import com.googlecode.objectify.impl.Path;
+import com.google.cloud.datastore.Blob;
+import com.google.cloud.datastore.BlobValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 
 
 /**
  * <p>Translates a byte[] to Blob.  Make sure this translator gets registered *before* the normal ArrayTranslator
  * otherwise it won't get used.</p>
  *
- * <p>Also reads ShortBlob into the byte[]</p>
- * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], Object> {
+public class ByteArrayTranslatorFactory extends SimpleValueTranslatorFactory<byte[], Blob> {
 
 	/** The pojo type this factory recognizes */
 	private static final Class<? extends byte[]> BYTE_ARRAY_TYPE = byte[].class;
@@ -21,28 +20,16 @@ public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], O
 	/**
 	 */
 	protected ByteArrayTranslatorFactory() {
-		super(BYTE_ARRAY_TYPE);
+		super(BYTE_ARRAY_TYPE, ValueType.BLOB);
 	}
 
-	/* */
 	@Override
-	protected ValueTranslator<byte[], Object> createValueTranslator(TypeKey<byte[]> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<byte[], Object>(Object.class) {
-			@Override
-			public byte[] loadValue(Object node, LoadContext ctx, Path path) throws SkipException {
-				if (node instanceof Blob) {
-					return ((Blob)node).getBytes();
-				} else if (node instanceof ShortBlob) {
-					return ((ShortBlob)node).getBytes();
-				} else {
-					throw new IllegalStateException("Can't convert " + node + " to a byte array");
-				}
-			}
+	protected byte[] toPojo(final Value<Blob> value) {
+		return value.get().toByteArray();
+	}
 
-			@Override
-			public Object saveValue(byte[] pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return new Blob(pojo);
-			}
-		};
+	@Override
+	protected Value<Blob> toDatastore(final byte[] value) {
+		return BlobValue.of(Blob.copyFrom(value));
 	}
 }

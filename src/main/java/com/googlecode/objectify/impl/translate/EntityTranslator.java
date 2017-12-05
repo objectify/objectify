@@ -1,12 +1,12 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Registrar;
+import lombok.RequiredArgsConstructor;
 
 
 /**
@@ -15,41 +15,24 @@ import com.googlecode.objectify.impl.Registrar;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EntityTranslator implements Translator<Object, PropertyContainer>
+@RequiredArgsConstructor
+public class EntityTranslator implements Translator<Object, FullEntity<?>>
 {
 	private final Registrar registrar;
 
-	/**
-	 */
-	public EntityTranslator(Registrar registrar) {
-		this.registrar = registrar;
-	}
-
 	@Override
-	public Object load(PropertyContainer container, LoadContext ctx, Path path) throws SkipException {
-		Key key = getKey(container);
-		EntityMetadata<?> meta = registrar.getMetadataSafe(key.getKind());
+	public Object load(final Value<FullEntity<?>> container, final LoadContext ctx, final Path path) throws SkipException {
+		final IncompleteKey key = container.get().getKey();
+		final EntityMetadata<?> meta = registrar.getMetadataSafe(key.getKind());
 
 		return meta.getTranslator().load(container, ctx, path);
 	}
 
 	@Override
-	public PropertyContainer save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+	public Value<FullEntity<?>> save(final Object pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 		@SuppressWarnings("unchecked")
-		EntityMetadata<Object> meta = (EntityMetadata<Object>)registrar.getMetadataSafe(pojo.getClass());
+		final EntityMetadata<Object> meta = (EntityMetadata<Object>)registrar.getMetadataSafe(pojo.getClass());
 
 		return meta.getTranslator().save(pojo, index, ctx, path);
 	}
-
-	/**
-	 */
-	private Key getKey(PropertyContainer pc) {
-		if (pc instanceof EmbeddedEntity)
-			return ((EmbeddedEntity)pc).getKey();
-		else if (pc instanceof Entity)
-			return ((Entity)pc).getKey();
-		else
-			throw new IllegalArgumentException("Unknown new type of PropertyContainer");
-	}
-
 }

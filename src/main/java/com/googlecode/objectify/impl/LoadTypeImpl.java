@@ -1,14 +1,15 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Query.Filter;
+import com.google.cloud.datastore.StructuredQuery.Filter;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
-import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.ResultCache;
 import com.googlecode.objectify.util.ResultProxy;
+
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -64,8 +65,8 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 
 	/* */
 	@Override
-	public Query<T> filter(Filter filter) {
-		QueryImpl<T> q = createQuery();
+	public Query<T> filter(final Filter filter) {
+		final QueryImpl<T> q = createQuery();
 		q.addFilter(filter);
 		return q;
 	}
@@ -84,23 +85,23 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#id(long)
 	 */
 	@Override
-	public LoadResult<T> id(long id) {
-		return loader.key(this.<T>makeKey(id));
+	public LoadResult<T> id(final long id) {
+		return loader.key(this.makeKey(id));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadIds#id(java.lang.String)
 	 */
 	@Override
-	public LoadResult<T> id(String id) {
-		return loader.key(this.<T>makeKey(id));
+	public LoadResult<T> id(final String id) {
+		return loader.key(this.makeKey(id));
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(Long[])
 	 */
 	@Override
-	public Map<Long, T> ids(Long... ids) {
+	public Map<Long, T> ids(final Long... ids) {
 		return ids(Arrays.asList(ids));
 	}
 
@@ -108,7 +109,7 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(java.lang.String[])
 	 */
 	@Override
-	public Map<String, T> ids(String... ids) {
+	public Map<String, T> ids(final String... ids) {
 		return ids(Arrays.asList(ids));
 	}
 
@@ -116,20 +117,20 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * @see com.googlecode.objectify.cmd.LoadIds#ids(java.lang.Iterable)
 	 */
 	@Override
-	public <S> Map<S, T> ids(Iterable<S> ids) {
+	public <S> Map<S, T> ids(final Iterable<S> ids) {
 
 		final Map<Key<T>, S> keymap = new LinkedHashMap<>();
-		for (S id: ids)
-			keymap.put(this.<T>makeKey(id), id);
+		for (final S id: ids)
+			keymap.put(this.makeKey(id), id);
 
 		final Map<Key<T>, T> loaded = loader.keys(keymap.keySet());
 
 		return ResultProxy.create(Map.class, new ResultCache<Map<S, T>>() {
 			@Override
 			protected Map<S, T> nowUncached() {
-				Map<S, T> proper = new LinkedHashMap<>(loaded.size() * 2);
+				final Map<S, T> proper = new LinkedHashMap<>(loaded.size() * 2);
 
-				for (Map.Entry<Key<T>, T> entry: loaded.entrySet())
+				for (final Map.Entry<Key<T>, T> entry: loaded.entrySet())
 					proper.put(keymap.get(entry.getKey()), entry.getValue());
 
 				return proper;
@@ -138,19 +139,24 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	}
 
 	/**
-	 * Make a key for the given id
+	 * Make a key for the given id, which could be either string or long
 	 */
-	private <T> Key<T> makeKey(Object id) {
-		return DatastoreUtils.createKey(parent, kind, id);
+	private <T> Key<T> makeKey(final Object id) {
+		final com.google.cloud.datastore.Key key = factory().keys().createRawAny(Keys.raw(this.parent), kind, id);
+		return Key.create(key);
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.LoadType#parent(java.lang.Object)
 	 */
 	@Override
-	public LoadIds<T> parent(Object keyOrEntity) {
-		Key<T> parentKey = loader.ofy.factory().keys().anythingToKey(keyOrEntity);
+	public LoadIds<T> parent(final Object keyOrEntity) {
+		final Key<T> parentKey = factory().keys().anythingToKey(keyOrEntity);
 		return new LoadTypeImpl<>(loader, kind, type, parentKey);
 	}
 
+	/** */
+	private ObjectifyFactory factory() {
+		return loader.getObjectifyImpl().factory();
+	}
 }

@@ -1,30 +1,36 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Cursor;
+import com.google.cloud.datastore.Cursor;
+import com.google.cloud.datastore.QueryResults;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 /**
- * Associates a result value with a base cursor + offset to this particular item. Watch out when creating cursors;
- * typically you want a cursor to the next item not this one.
+ * Associates a result value with a cursor.
  */
+@Data
 public class ResultWithCursor<T> {
-	final Cursor cursor;
-	public Cursor getCursor() { return cursor; }
+	private final T result;
+	private final Cursor cursorAfter;
 
-	/** Offset is the offset of *this* item; not necessarily what you want to use for a cursor (usually the _next_) */
-	final int offset;
-	public int getOffset() { return offset; }
+	/**
+	 * Turns QueryResults into an iterator of the {result, cursor} tuple
+	 */
+	@RequiredArgsConstructor
+	public static class Iterator<T> implements java.util.Iterator<ResultWithCursor<T>> {
 
-	final T result;
-	public T getResult() { return result; }
+		private final QueryResults<T> base;
 
-	/** True if this is the last item in the chunk */
-	final boolean lastInChunk;
-	public boolean isLast() { return lastInChunk; }
+		@Override
+		public boolean hasNext() {
+			return base.hasNext();
+		}
 
-	public ResultWithCursor(Cursor cursor, int offset, T result, boolean lastInChunk) {
-		this.cursor = cursor;
-		this.offset = offset;
-		this.result = result;
-		this.lastInChunk = lastInChunk;
+		@Override
+		public ResultWithCursor<T> next() {
+			final T next = base.next();
+			final Cursor cursor = base.getCursorAfter();
+			return new ResultWithCursor<>(next, cursor);
+		}
 	}
 }

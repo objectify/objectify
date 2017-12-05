@@ -3,7 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.LongValue;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TranslateException;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -59,11 +60,13 @@ class AlsoLoadTests2 extends TestBase {
 	/** */
 	@Test
 	void alsoLoadMethodsOverrideFields() throws Exception {
-		final Entity ent = new Entity(Key.getKind(MethodOverridesField.class));
-		ent.setProperty("foo", TEST_VALUE);
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(MethodOverridesField.class)
+				.set("foo", TEST_VALUE)
+				.build();
 
-		final Key<MethodOverridesField> key = Key.create(ent.getKey());
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<MethodOverridesField> key = Key.create(gkey);
 		final MethodOverridesField fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.getFoo()).isNull();
@@ -83,12 +86,14 @@ class AlsoLoadTests2 extends TestBase {
 	void alsoLoadConflictDetectedForMapFieldsToo() throws Exception {
 		factory().register(HasMap.class);
 
-		final Entity ent = new Entity(Key.getKind(HasMap.class));
-		ent.setProperty("alsoPrimitives", makeEmbeddedEntityWithProperty("one", 1L));
-		ent.setProperty("primitives", makeEmbeddedEntityWithProperty("two", 2L));
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasMap.class)
+				.set("alsoPrimitives", makeEmbeddedEntityWithProperty("one", LongValue.of(1L)))
+				.set("primitives", makeEmbeddedEntityWithProperty("two", LongValue.of(2L)))
+				.build();
 
-		final Key<HasMap> key = Key.create(ent.getKey());
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<HasMap> key = Key.create(gkey);
 
 		assertThrows(TranslateException.class, () -> {
 			ofy().load().key(key).now();

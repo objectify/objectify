@@ -85,8 +85,9 @@ public class TypeKey<T>
 
 	/**
 	 * Can this type be assigned to a variable with the specified type?
+	 * This is the inverse of isAssignableFrom().
 	 */
-	public boolean isAssignableTo(Class<?> superclass) {
+	public boolean isAssignableTo(final Class<?> superclass) {
 		return superclass.isAssignableFrom(getTypeAsClass());
 	}
 }

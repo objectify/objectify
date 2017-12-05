@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.GenericUtils;
@@ -22,10 +24,10 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>, Collection<Object>>
+public class CollectionTranslatorFactory implements TranslatorFactory<Collection<Object>, List<? extends Value<?>>>
 {
 	@Override
-	public Translator<Collection<Object>, Collection<Object>> create(TypeKey<Collection<Object>> tk, CreateContext ctx, Path path) {
+	public Translator<Collection<Object>, List<? extends Value<?>>> create(final TypeKey<Collection<Object>> tk, final CreateContext ctx, final Path path) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Collection<?>> collectionType = tk.getTypeAsClass();
 
@@ -34,13 +36,13 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericUtils.getCollectionComponentType(tk.getType());
-		final Translator<Object, Object> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
+		final Type componentType = GenericUtils.getCollectionComponentType(tk.getType());
+		final Translator<Object, ?> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
 
-		return new TranslatorRecycles<Collection<Object>, Collection<Object>>() {
+		return new TranslatorRecycles<Collection<Object>, List<? extends Value<?>>>() {
 
 			@Override
-			public Collection<Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Collection<Object> collection) throws SkipException {
+			public Collection<Object> loadInto(final Value<List<? extends Value<?>>> node, final LoadContext ctx, final Path path, Collection<Object> collection) throws SkipException {
 				// If the collection does not exist, skip it entirely. This mirrors the underlying behavior
 				// of collections in the datastore; if they are empty, they don't exist.
 				if (node == null)
@@ -48,13 +50,14 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 
 				if (collection == null)
 					//noinspection unchecked
-					collection = (Collection<Object>)fact.constructCollection(collectionType, node.size());
+					collection = (Collection<Object>)fact.constructCollection(collectionType, node.get().size());
 				else
 					collection.clear();
 
-				for (Object child: node) {
+				for (final Value<?> child: node.get()) {
 					try {
-						Object value = componentTranslator.load(child, ctx, path);
+						@SuppressWarnings("unchecked")
+						final Object value = componentTranslator.load((Value)child, ctx, path);
 						collection.add(value);
 					}
 					catch (SkipException ex) {
@@ -66,17 +69,17 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			}
 
 			@Override
-			public Collection<Object> save(Collection<Object> pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			public Value<List<? extends Value<?>>> save(final Collection<Object> pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 
 				// If it's empty, might as well skip it - the datastore doesn't store empty lists
 				if (pojo == null || pojo.isEmpty())
 					throw new SkipException();
 
-				List<Object> list = new ArrayList<>();
+				final List<Value<?>> list = new ArrayList<>();
 
-				for (Object obj: pojo) {
+				for (final Object obj: pojo) {
 					try {
-						Object translatedChild = componentTranslator.save(obj, index, ctx, path);
+						final Value<?> translatedChild = componentTranslator.save(obj, index, ctx, path);
 						list.add(translatedChild);
 					}
 					catch (SkipException ex) {
@@ -84,7 +87,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					}
 				}
 
-				return list;
+				return ListValue.of(list);
 			}
 		};
 	}

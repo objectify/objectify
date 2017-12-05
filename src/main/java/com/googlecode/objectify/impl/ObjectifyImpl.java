@@ -1,9 +1,8 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.AsyncDatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceConfig;
-import com.google.appengine.api.datastore.ReadPolicy;
-import com.google.appengine.api.datastore.ReadPolicy.Consistency;
+import com.google.cloud.datastore.KeyValue;
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -58,7 +57,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	public ObjectifyImpl(final ObjectifyFactory factory, final ObjectifyOptions options, final TransactorSupplier supplier) {
 		this.factory = factory;
 		this.options = options;
-		this.transactor = supplier.create(this);
+		this.transactor = supplier.get(this);
 	}
 
 	/* (non-Javadoc)
@@ -101,19 +100,12 @@ public class ObjectifyImpl implements Objectify, Closeable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#consistency(com.google.appengine.api.datastore.ReadPolicy.Consistency)
-	 */
-	@Override
-	public Objectify consistency(final Consistency value) {
-		return makeNew(options.consistency(value));
-	}
-
-	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
 	 */
 	@Override
 	public Objectify deadline(final Double value) {
-		return makeNew(options.deadline(value));
+		// A no-op
+		return this;
 	}
 
 	/* (non-Javadoc)
@@ -160,7 +152,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#getTxn()
 	 */
-	public TransactionImpl getTransaction() {
+	public AsyncTransaction getTransaction() {
 		return transactor.getTransaction();
 	}
 
@@ -250,22 +242,9 @@ public class ObjectifyImpl implements Objectify, Closeable
 	}
 
 	/**
-	 * Make a datastore service config that corresponds to our options.
 	 */
-	protected DatastoreServiceConfig createDatastoreServiceConfig() {
-		DatastoreServiceConfig cfg = DatastoreServiceConfig.Builder.withReadPolicy(new ReadPolicy(options.getConsistency()));
-
-		if (options.getDeadline() != null)
-			cfg.deadline(options.getDeadline());
-
-		return cfg;
-	}
-
-	/**
-	 * Make a datastore service config that corresponds to our options.
-	 */
-	protected AsyncDatastoreService createAsyncDatastoreService() {
-		return factory.createAsyncDatastoreService(this.createDatastoreServiceConfig(), options.isCache());
+	protected AsyncDatastoreReaderWriter asyncDatastore() {
+		return transactor.asyncDatastore();
 	}
 
 	/**
@@ -276,7 +255,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 		if (options.isMandatoryTransactions() && getTransaction() == null)
 			throw new IllegalStateException("You have attempted save/delete outside of a transaction, but you have enabled ofy().mandatoryTransactions(true). Perhaps you wanted to start a transaction first?");
 
-		return new WriteEngine(this, createAsyncDatastoreService(), transactor.getSession(), transactor.getDeferrer());
+		return new WriteEngine(this, asyncDatastore(), transactor.getSession(), transactor.getDeferrer());
 	}
 
 	/**
@@ -290,7 +269,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	 *
 	 * @return whatever can be put into a filter clause.
 	 */
-	protected Object makeFilterable(Object value) {
+	protected Value<?> makeFilterable(Object value) {
 		if (value == null)
 			return null;
 
@@ -317,18 +296,18 @@ public class ObjectifyImpl implements Objectify, Closeable
 		}
 
 		if (value instanceof Iterable) {
-			final List<Object> result = new ArrayList<>(50);	// hard limit is 30, but wth
+			final List<Value<?>> result = new ArrayList<>(50);	// hard limit is 30, but wth
 			for (final Object obj: (Iterable<?>)value)
 				result.add(makeFilterable(obj));
 
-			return result;
+			return ListValue.of(result);
 		} else {
 			// Special case entity pojos that become keys
 			if (value.getClass().isAnnotationPresent(Entity.class)) {
-				return factory().keys().getMetadataSafe(value).getRawKey(value);
+				return KeyValue.of(factory().keys().rawKeyOf(value));
 			} else {
 				// Run it through a translator
-				final Translator<Object, Object> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
+				final Translator<Object, Value<?>> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
 				return translator.save(value, false, new SaveContext(), Path.root());
 			}
 		}

@@ -12,7 +12,7 @@ import java.util.concurrent.Future;
 /**
  * This provides some of the methods of Google's (package-private) FutureHelper
  * 
- * @see com.google.appengine.api.datastore.FutureHelper
+ * @see com.google.cloud.datastore.FutureHelper
  * 
  * @author Jeff Schnitzer
  */

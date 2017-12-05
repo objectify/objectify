@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Unindex;
@@ -67,9 +68,12 @@ class NullDefaultFieldTests extends TestBase {
 		factory().register(EntityWithDefault.class);
 
 		// e1 has absent properties
-		final Entity e1 = new Entity("EntityWithDefault");
-		e1.setProperty("a", "1");
-		final com.google.appengine.api.datastore.Key k1 = ds().put(null, e1);
+		final FullEntity<?> e1 = makeEntity("EntityWithDefault")
+				.set("a", "1")
+				.build();
+
+		final Entity complete = datastore().put(e1);
+		final com.google.cloud.datastore.Key k1 = complete.getKey();
 
 		final EntityWithDefault o = ofy().load().type(EntityWithDefault.class).id(k1.getId()).now();
 

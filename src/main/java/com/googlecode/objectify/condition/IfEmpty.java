@@ -19,8 +19,7 @@ import java.util.Map;
 public class IfEmpty extends ValueIf<Object>
 {
 	@Override
-	public boolean matchesValue(Object value)
-	{
+	public boolean matchesValue(Object value) {
 		if (value == null)
 			return true;
 		

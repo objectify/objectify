@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.Path;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,29 +12,24 @@ import java.net.URL;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class URLTranslatorFactory extends ValueTranslatorFactory<URL, String>
+public class URLTranslatorFactory extends SimpleValueTranslatorFactory<URL, String>
 {
 	/** */
 	public URLTranslatorFactory() {
-		super(URL.class);
+		super(URL.class, ValueType.STRING);
 	}
-	
-	@Override
-	protected ValueTranslator<URL, String> createValueTranslator(TypeKey<URL> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<URL, String>(String.class) {
-			@Override
-			protected URL loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-				try {
-					return new URL(value);
-				} catch (MalformedURLException ex) {
-					throw new RuntimeException(ex);
-				}
-			}
 
-			@Override
-			protected String saveValue(URL value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.toString();
-			}
-		};
+	@Override
+	protected URL toPojo(final Value<String> value) {
+		try {
+			return new URL(value.get());
+		} catch (MalformedURLException ex) {
+			throw new RuntimeException(ex);
+		}
+	}
+
+	@Override
+	protected Value<String> toDatastore(final URL value) {
+		return StringValue.of(value.toString());
 	}
 }

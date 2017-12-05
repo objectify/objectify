@@ -3,7 +3,7 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
@@ -171,9 +171,9 @@ public class CollectionTests extends TestBase {
 		final HasCollections fetched = saveClearLoad(hc);
 		assertThat(fetched.integerList).isNull();
 
-		final Entity e = ds().get(Key.create(fetched).getRaw());
+		final Entity e = datastore().get(Key.create(fetched).getRaw());
 		// rule : never store a null collection
-		assertThat(e.hasProperty("integerList")).isFalse();
+		assertThat(e.getNames()).doesNotContain("integerList");
 	}
 
 	/**
@@ -188,9 +188,9 @@ public class CollectionTests extends TestBase {
 		final HasCollections fetched = saveClearLoad(hc);
 		assertThat(fetched.integerList).isNull();
 
-		Entity e = ds().get(Key.create(fetched).getRaw());
+		Entity e = datastore().get(Key.create(fetched).getRaw());
 		// rule : never store an empty collection
-		assertThat(e.hasProperty("integerList")).isFalse();
+		assertThat(e.getNames()).doesNotContain("integerList");
 
 		// The initialized one stays initialized
 		assertThat(fetched.initializedList).isNotNull();

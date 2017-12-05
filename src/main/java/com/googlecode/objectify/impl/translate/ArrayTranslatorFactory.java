@@ -1,12 +1,13 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 
@@ -24,29 +25,30 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collection<Object>>
+public class ArrayTranslatorFactory implements TranslatorFactory<Object, List<? extends Value<?>>>
 {
 	@Override
-	public Translator<Object, Collection<Object>> create(TypeKey<Object> tk, final CreateContext ctx, final Path path) {
+	public Translator<Object, List<? extends Value<?>>> create(final TypeKey<Object> tk, final CreateContext ctx, final Path path) {
 		final Class<?> arrayType = tk.getTypeAsClass();
 
 		if (!arrayType.isArray())
 			return null;
 
 		final Type componentType = GenericTypeReflector.getArrayComponentType(arrayType);
-		final Translator<Object, Object> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
+		final Translator<Object, ?> componentTranslator = ctx.getTranslator(new TypeKey<>(componentType, tk), ctx, path);
 
-		return new Translator<Object, Collection<Object>>() {
+		return new Translator<Object, List<? extends Value<?>>>() {
 			@Override
-			public Object load(Collection<Object> node, LoadContext ctx, Path path) throws SkipException {
+			public Object load(final Value<List<? extends Value<?>>> node, final LoadContext ctx, final Path path) throws SkipException {
 				if (node == null)
 					throw new SkipException();
 
-				List<Object> list = new ArrayList<>(node.size());
+				final List<Object> list = new ArrayList<>(node.get().size());
 
-				for (Object componentNode: node) {
+				for (final Value<?> componentNode: node.get()) {
 					try {
-						Object value = componentTranslator.load(componentNode, ctx, path);
+						@SuppressWarnings("unchecked")
+						final Object value = componentTranslator.load((Value)componentNode, ctx, path);
 						list.add(value);
 					}
 					catch (SkipException ex) {
@@ -64,23 +66,23 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 			}
 
 			@Override
-			public Collection<Object> save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			public Value<List<? extends Value<?>>> save(final Object pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 				// Use same behavior as collections.
 				if (pojo == null)
 					throw new SkipException();
 
-				int len = Array.getLength(pojo);
+				final int len = Array.getLength(pojo);
 
 				// If it's empty, might as well skip it - the datastore doesn't store empty lists
 				if (len == 0)
 					throw new SkipException();
 
-				List<Object> list = new ArrayList<>(len);
+				final List<Value<?>> list = new ArrayList<>(len);
 
 				for (int i=0; i<len; i++) {
 					try {
-						Object value = Array.get(pojo, i);
-						Object addNode = componentTranslator.save(value, index, ctx, path);
+						final Object value = Array.get(pojo, i);
+						final Value<?> addNode = componentTranslator.save(value, index, ctx, path);
 						list.add(addNode);
 					}
 					catch (SkipException ex) {
@@ -88,7 +90,7 @@ public class ArrayTranslatorFactory implements TranslatorFactory<Object, Collect
 					}
 				}
 
-				return list;
+				return ListValue.of(list);
 			}
 		};
 	}

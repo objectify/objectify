@@ -1,17 +1,20 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.cloud.datastore.EntityValue;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.PropertyContainer;
+import com.googlecode.objectify.impl.SavePropertyContainer;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.stringifier.EnumStringifier;
 import com.googlecode.objectify.stringifier.InitializeStringifier;
 import com.googlecode.objectify.stringifier.KeyStringifier;
 import com.googlecode.objectify.stringifier.NullStringifier;
 import com.googlecode.objectify.stringifier.Stringifier;
-import com.googlecode.objectify.util.DatastoreUtils;
 import com.googlecode.objectify.util.GenericUtils;
 
 import java.lang.reflect.Type;
@@ -27,10 +30,10 @@ import java.util.Map;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Object, Object>, EmbeddedEntity>
+public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Object, Object>, FullEntity<?>>
 {
 	@Override
-	public Translator<Map<Object, Object>, EmbeddedEntity> create(TypeKey<Map<Object, Object>> tk, CreateContext ctx, Path path) {
+	public Translator<Map<Object, Object>, FullEntity<?>> create(final TypeKey<Map<Object, Object>> tk, final CreateContext ctx, final Path path) {
 		@SuppressWarnings("unchecked")
 		final Class<? extends Map<?, ?>> mapType = tk.getTypeAsClass();
 
@@ -38,12 +41,12 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 		if (!Map.class.isAssignableFrom(mapType))
 			return null;
 
-		Stringify stringify = tk.getAnnotation(Stringify.class);
+		final Stringify stringify = tk.getAnnotation(Stringify.class);
 
 		final Type keyType = GenericUtils.getMapKeyType(tk.getType());
-		Class<?> keyTypeErased = GenericTypeReflector.erase(keyType);
+		final Class<?> keyTypeErased = GenericTypeReflector.erase(keyType);
 
-		Class<? extends Stringifier> stringifierClass = null;
+		final Class<? extends Stringifier> stringifierClass;
 		if (stringify != null)
 			stringifierClass = stringify.value();
 		else if (keyTypeErased == String.class)
@@ -52,8 +55,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 			stringifierClass = EnumStringifier.class;
 		else if (keyTypeErased == Key.class)
 			stringifierClass = KeyStringifier.class;
-
-		if (stringifierClass == null)
+		else
 			throw new IllegalStateException("Embedded Map keys must be of type String/Enum/Key<?> or field must specify @Stringify");
 
 		final ObjectifyFactory fact = ctx.getFactory();
@@ -63,13 +65,13 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 		if (stringifier instanceof InitializeStringifier)
 			((InitializeStringifier)stringifier).init(fact, keyType);
 
-		Type componentType = GenericUtils.getMapValueType(tk.getType());
-		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(new TypeKey<>(componentType, tk), ctx, path);
+		final Type componentType = GenericUtils.getMapValueType(tk.getType());
+		final Translator<Object, ?> componentTranslator = fact.getTranslators().get(new TypeKey<>(componentType, tk), ctx, path);
 
-		return new TranslatorRecycles<Map<Object,Object>, EmbeddedEntity>() {
+		return new TranslatorRecycles<Map<Object,Object>, FullEntity<?>>() {
 
 			@Override
-			public Map<Object, Object> loadInto(EmbeddedEntity node, LoadContext ctx, Path path, Map<Object, Object> into) {
+			public Map<Object, Object> loadInto(final Value<FullEntity<?>> node, final LoadContext ctx, final Path path, Map<Object, Object> into) {
 				// Make this work more like collections than atomic values
 				if (node == null)
 					throw new SkipException();
@@ -80,9 +82,12 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 				else
 					into.clear();
 
-				for (Map.Entry<String, Object> entry: node.getProperties().entrySet()) {
-					Object key = stringifier.fromString(entry.getKey());
-					Object value = componentTranslator.load(entry.getValue(), ctx, path.extend(entry.getKey()));
+				for (final String name : node.get().getNames()) {
+					final Object key = stringifier.fromString(name);
+					final Value<?> nodeValue = node.get().getValue(name);
+
+					@SuppressWarnings("unchecked")
+					final Object value = componentTranslator.load((Value)nodeValue, ctx, path.extend(name));
 
 					into.put(key, value);
 				}
@@ -91,26 +96,26 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 			}
 
 			@Override
-			public EmbeddedEntity save(Map<Object, Object> pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			public Value<FullEntity<?>> save(final Map<Object, Object> pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 				// Make this work more like collections than atomic values
 				if (pojo == null || pojo.isEmpty())
 					throw new SkipException();
 
-				EmbeddedEntity emb = new EmbeddedEntity();
+				final PropertyContainer emb = new SavePropertyContainer();
 
-				for (Map.Entry<Object, Object> entry: pojo.entrySet()) {
+				for (final Map.Entry<Object, Object> entry: pojo.entrySet()) {
 					try {
-						String key = stringifier.toString(entry.getKey());
-						Path propPath = path.extend(key);
-						Object value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
+						final String key = stringifier.toString(entry.getKey());
+						final Path propPath = path.extend(key);
+						final Value<?> value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
 
-						DatastoreUtils.setContainerProperty(emb, key, value, index, ctx, propPath);
+						emb.setProperty(key, value, index, ctx, propPath);
 					} catch (SkipException e) {
 						// do nothing
 					}
 				}
 
-				return emb;
+				return EntityValue.of(emb.toFullEntity());
 			}
 		};
 	}

@@ -9,8 +9,6 @@ import com.googlecode.objectify.Result;
  */
 abstract public class ResultWrapper<F, T> extends ResultTranslator<Result<F>, T>
 {
-	private static final long serialVersionUID = 1L;
-
 	public ResultWrapper(final Result<F> base) {
 		super(base);
 	}

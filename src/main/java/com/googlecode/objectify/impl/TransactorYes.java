@@ -1,13 +1,7 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.datastore.TransactionOptions;
-import com.googlecode.objectify.Result;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
-import com.googlecode.objectify.util.ResultWrapper;
-
-import java.util.concurrent.Future;
 
 /**
  * Implementation for when we start a transaction.  Maintains a separate session, but then copies all
@@ -18,7 +12,7 @@ import java.util.concurrent.Future;
 class TransactorYes extends Transactor
 {
 	/** Our transaction. */
-	private final Result<TransactionImpl> transaction;
+	private final AsyncTransaction transaction;
 
 	/** The non-transactional transactor that spawned us */
 	private final TransactorNo parentTransactor;
@@ -28,27 +22,16 @@ class TransactorYes extends Transactor
 	TransactorYes(final ObjectifyImpl current, final TransactorNo parentTransactor) {
 		super(current);
 
+		this.transaction = factory.asyncDatastore(current.getOptions().isCache()).newTransaction(this::committed);
 		this.parentTransactor = parentTransactor;
-
-		// There is no overhead for XG transactions on a single entity group, so there is
-		// no good reason to ever have withXG false when on the HRD.
-		final Future<Transaction> fut = current.createAsyncDatastoreService().beginTransaction(TransactionOptions.Builder.withXG(true));
-		transaction = new ResultWrapper<Transaction, TransactionImpl>(new ResultAdapter<>(fut)) {
-			private static final long serialVersionUID = 1L;
-
-			@Override
-			protected TransactionImpl wrap(final Transaction raw) {
-				return new TransactionImpl(raw, TransactorYes.this);
-			}
-		};
 	}
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.impl.cmd.Transactor#getTransaction()
 	 */
 	@Override
-	public TransactionImpl getTransaction() {
-		return this.transaction.now();
+	public AsyncTransaction getTransaction() {
+		return this.transaction;
 	}
 
 	/**
@@ -118,5 +101,10 @@ class TransactorYes extends Transactor
 	 */
 	public void committed() {
 		parentTransactor.getSession().addAll(getSession());
+	}
+
+	@Override
+	public AsyncDatastoreReaderWriter asyncDatastore() {
+		return this.transaction;
 	}
 }

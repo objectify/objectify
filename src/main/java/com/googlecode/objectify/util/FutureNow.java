@@ -14,11 +14,11 @@ import java.util.concurrent.TimeoutException;
 public class FutureNow<T> implements Future<T>
 {
 	/** */
-	T value;
+	private final T value;
 	
 	/**
 	 */
-	public FutureNow(T value)
+	public FutureNow(final T value)
 	{
 		this.value = value;
 	}
@@ -27,7 +27,7 @@ public class FutureNow<T> implements Future<T>
 	 * @see java.util.concurrent.Future#cancel(boolean)
 	 */
 	@Override
-	public boolean cancel(boolean mayInterruptIfRunning)
+	public boolean cancel(final boolean mayInterruptIfRunning)
 	{
 		throw new UnsupportedOperationException();
 	}
@@ -54,8 +54,7 @@ public class FutureNow<T> implements Future<T>
 	 * @see java.util.concurrent.Future#get()
 	 */
 	@Override
-	public T get() throws InterruptedException, ExecutionException
-	{
+	public T get() throws InterruptedException, ExecutionException {
 		return this.value;
 	}
 
@@ -63,8 +62,7 @@ public class FutureNow<T> implements Future<T>
 	 * @see java.util.concurrent.Future#get(long, java.util.concurrent.TimeUnit)
 	 */
 	@Override
-	public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException
-	{
+	public T get(final long timeout, final TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
 		return this.value;
 	}
 }

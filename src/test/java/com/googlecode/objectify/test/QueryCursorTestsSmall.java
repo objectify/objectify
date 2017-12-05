@@ -3,11 +3,10 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.cloud.datastore.Cursor;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.EntityQuery;
+import com.google.cloud.datastore.QueryResults;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -52,14 +51,14 @@ class QueryCursorTestsSmall extends TestBase {
 	@Test
 	void cursorEnd() throws Exception {
 		final Query<Trivial> q = ofy().load().type(Trivial.class);
-		QueryResultIterator<Trivial> it = q.limit(1).iterator();
+		QueryResults<Trivial> it = q.limit(1).iterator();
 
 		assertThat(it.hasNext()).isTrue();
 		final Trivial t1 = it.next();
 		assertThat(t1).isEqualTo(triv1);
 		assertThat(it.hasNext()).isFalse();
 
-		Cursor cursor = it.getCursor();
+		Cursor cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();
 
 		it = q.startAt(cursor).limit(1).iterator();
@@ -70,13 +69,13 @@ class QueryCursorTestsSmall extends TestBase {
 		assertThat(it.hasNext()).isFalse();
 
 		// We should be at end
-		cursor = it.getCursor();
+		cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();;
 		it = q.startAt(cursor).iterator();
 		assertThat(it.hasNext()).isFalse();
 
 		// Try that again just to be sure
-		cursor = it.getCursor();
+		cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();
 		it = q.startAt(cursor).iterator();
 		assertThat(it.hasNext()).isFalse();
@@ -85,82 +84,49 @@ class QueryCursorTestsSmall extends TestBase {
 	/** */
 	@Test
 	void cursorEndLowLevelBehavior() throws Exception {
-		final com.google.appengine.api.datastore.Query query = new com.google.appengine.api.datastore.Query("Trivial");
-		final PreparedQuery pq = ds().prepare(query);
+		final com.google.cloud.datastore.Query<Entity> query = com.google.cloud.datastore.Query.newEntityQueryBuilder().setKind("Trivial").build();
 
-		final QueryResultIterator<Entity> it = pq.asQueryResultIterable().iterator();
+		final QueryResults<Entity> it = datastore().run(query);
 		it.next();
 		it.next();
 		assertThat(it.hasNext()).isFalse();
 
-		final Cursor cursor = it.getCursor();
+		final Cursor cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();
 
-		final QueryResultIterator<Entity> it2 = pq.asQueryResultIterable(FetchOptions.Builder.withStartCursor(cursor)).iterator();
+		final EntityQuery query2 = com.google.cloud.datastore.Query.newEntityQueryBuilder().setKind("Trivial").setStartCursor(cursor).build();
+		final QueryResults<Entity> it2 = datastore().run(query2);
 		assertThat(it2.hasNext()).isFalse();
 
-		final Cursor cursor2 = it2.getCursor();
+		final Cursor cursor2 = it2.getCursorAfter();
 		assertThat(cursor2).isNotNull();
 
-		final QueryResultIterator<Entity> it3 = pq.asQueryResultIterable(FetchOptions.Builder.withStartCursor(cursor2)).iterator();
+		final EntityQuery query3 = com.google.cloud.datastore.Query.newEntityQueryBuilder().setKind("Trivial").setStartCursor(cursor2).build();
+		final QueryResults<Entity> it3 = datastore().run(query3);
 		assertThat(it3.hasNext()).isFalse();
-		assertThat(it3.getCursor()).isNotNull();
+		assertThat(it3.getCursorAfter()).isNotNull();
 	}
 
 	/** */
 	@Test
 	void cursorOneFetchToEnd() throws Exception {
 		final Query<Trivial> q = ofy().load().type(Trivial.class);
-		QueryResultIterator<Trivial> it = q.iterator();
+		QueryResults<Trivial> it = q.iterator();
 
 		it.next();
 		it.next();
 		assertThat(it.hasNext()).isFalse();
 
 		// We should be at end
-		Cursor cursor = it.getCursor();
+		Cursor cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();
 		it = q.startAt(cursor).iterator();
 		assertThat(it.hasNext()).isFalse();
 
 		// Try that again just to be sure
-		cursor = it.getCursor();
+		cursor = it.getCursorAfter();
 		assertThat(cursor).isNotNull();
 		it = q.startAt(cursor).iterator();
-		assertThat(it.hasNext()).isFalse();
-	}
-
-	/** */
-	@Test
-	void cursorReverses() throws Exception {
-		final Query<Trivial> q = ofy().load().type(Trivial.class).order("__key__");
-		QueryResultIterator<Trivial> it = q.iterator();
-
-		final Cursor cursor0 = it.getCursor();
-		final Trivial item1 = it.next();
-
-		final Cursor cursor1 = it.getCursor();
-		final Trivial item2 = it.next();
-		assertThat(it.hasNext()).isFalse();
-
-		final Cursor cursor2 = it.getCursor();
-		final Cursor cursor2Rev = it.getCursor().reverse();
-
-		it = q.reverse().startAt(cursor2Rev).iterator();
-
-		final Trivial item2Rev = it.next();
-
-		// This worked in 1.9.5 but fails in 1.9.9. Equality test seems a little sketchy anyways.
-		//assert it.getCursor().equals(cursor2);
-
-		assertThat(item2Rev).isEqualTo(item2);
-
-		assertThat(it.hasNext()).isTrue();
-
-		final Trivial item1Rev = it.next();
-
-		//assert it.getCursor().equals(cursor1);
-		assertThat(item1Rev).isEqualTo(item1);
 		assertThat(it.hasNext()).isFalse();
 	}
 }

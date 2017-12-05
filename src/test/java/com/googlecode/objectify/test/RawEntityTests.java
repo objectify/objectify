@@ -3,7 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
@@ -20,8 +21,9 @@ class RawEntityTests extends TestBase {
 	/** */
 	@Test
 	void saveAndLoadRawEntityWorks() throws Exception {
-		final Entity ent = new Entity("asdf");
-		ent.setProperty("foo", "bar");
+		final FullEntity<?> ent = makeEntity("asdf")
+				.set("foo", "bar")
+				.build();
 
 		ofy().save().entity(ent).now();
 		ofy().clear();
@@ -34,8 +36,9 @@ class RawEntityTests extends TestBase {
 	/** */
 	@Test
 	void deleteRawEntityWorks() throws Exception {
-		final Entity ent = new Entity("asdf");
-		ent.setProperty("foo", "bar");
+		final FullEntity<?> ent = makeEntity("asdf")
+				.set("foo", "bar")
+				.build();
 
 		ofy().save().entity(ent).now();
 		ofy().clear();

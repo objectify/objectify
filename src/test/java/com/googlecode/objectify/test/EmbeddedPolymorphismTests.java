@@ -5,7 +5,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.StringValue;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -250,12 +251,12 @@ class EmbeddedPolymorphismTests extends TestBase {
 		factory().register(Handler.class);
 		factory().register(Platypus.class);
 
-		final com.google.appengine.api.datastore.Entity handler = ofy().save().toEntity(new Handler());
-		final EmbeddedEntity animal = new EmbeddedEntity();
-		animal.setUnindexedProperty("^d", "FakeDuck");
-		handler.setUnindexedProperty("animal", animal);
+		final FullEntity<?> animal = FullEntity.newBuilder().set("^d", StringValue.newBuilder("FakeDuck").setExcludeFromIndexes(true).build()).build();
 
-		final com.google.appengine.api.datastore.Key key = ds().put(handler);
+		final FullEntity<?> handlerInitial = ofy().save().toEntity(new Handler());
+		final FullEntity<?> handler = FullEntity.newBuilder(handlerInitial).set("animal", animal).build();
+
+		final com.google.cloud.datastore.Key key = datastore().put(handler).getKey();
 
 		final Handler fetched = (Handler)ofy().load().value(key).now();
 		assertThat(fetched.animal).isInstanceOf(Platypus.class);

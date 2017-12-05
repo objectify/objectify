@@ -17,6 +17,9 @@ abstract class Transactor
 	/** */
 	protected final ObjectifyFactory factory;
 
+	/** */
+	protected final ObjectifyImpl ofy;
+
 	/** The session associated with this transaction state */
 	@Getter
 	private final Session session;
@@ -28,14 +31,15 @@ abstract class Transactor
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	Transactor(final Objectify ofy) {
+	Transactor(final ObjectifyImpl ofy) {
 		this(ofy, new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	Transactor(final Objectify ofy, final Session session) {
+	Transactor(final ObjectifyImpl ofy, final Session session) {
+		this.ofy = ofy;
 		this.factory = ofy.factory();
 		this.session = session;
 		this.deferrer = new Deferrer(ofy, session);
@@ -44,7 +48,7 @@ abstract class Transactor
 	/**
 	 * @return the transaction appropriate to this transaction state, or null if there is no transaction.
 	 */
-	abstract public TransactionImpl getTransaction();
+	abstract public AsyncTransaction getTransaction();
 
 	/**
 	 * @param parent is the parent objectify instance; the one being transitioned from
@@ -73,4 +77,7 @@ abstract class Transactor
 	 * @see Objectify#transactNew(int, Work)
 	 */
 	abstract public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work);
+
+	/** */
+	abstract public AsyncDatastoreReaderWriter asyncDatastore();
 }

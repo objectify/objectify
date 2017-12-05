@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 
@@ -26,25 +26,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Translators
 {
 	/** */
-	ObjectifyFactory fact;
+	private final ObjectifyFactory fact;
 
 	/** */
-	List<TranslatorFactory<?, ?>> translatorFactories = new ArrayList<>();
+	private final List<TranslatorFactory<?, ?>> translatorFactories = new ArrayList<>();
 
 	/** Where we should insert new translators */
-	int insertPoint;
+	private int insertPoint;
 	
 	/** Where we should insert new early translators */
-	int earlyInsertPoint;
+	private int earlyInsertPoint;
 
 	/** */
-	Map<TypeKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
+	private final Map<TypeKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
 
 	/**
 	 * Initialize the default set of converters in the proper order.
 	 */
-	public Translators(ObjectifyFactory fact)
-	{
+	public Translators(final ObjectifyFactory fact) {
 		this.fact = fact;
 
 		// The order is CRITICAL!
@@ -68,16 +67,19 @@ public class Translators
 		this.translatorFactories.add(new TranslateTranslatorFactory(false));	// Late translators get a shot after collections
 
 		this.translatorFactories.add(new StringTranslatorFactory());
-		this.translatorFactories.add(new TextTranslatorFactory());
-		this.translatorFactories.add(new NumberTranslatorFactory());
+		this.translatorFactories.add(new IntegerTranslatorFactory());
+		this.translatorFactories.add(new FloatTranslatorFactory());
+		this.translatorFactories.add(new BooleanTranslatorFactory());
 		this.translatorFactories.add(new KeyTranslatorFactory());
+		this.translatorFactories.add(new RawKeyTranslatorFactory());
+		this.translatorFactories.add(new TimestampTranslatorFactory());
 		this.translatorFactories.add(new RefTranslatorFactory());
 		this.translatorFactories.add(new EnumTranslatorFactory());
+		this.translatorFactories.add(new DateTranslatorFactory());
 		this.translatorFactories.add(new SqlDateTranslatorFactory());
 		this.translatorFactories.add(new TimeZoneTranslatorFactory());
 		this.translatorFactories.add(new URLTranslatorFactory());
-
-		// Things that just work as they are (fundamental datastore classes)
+		this.translatorFactories.add(new LatLngTranslatorFactory());
 		this.translatorFactories.add(new AsIsTranslatorFactory());
 
 		// LAST! It catches everything.
@@ -91,7 +93,7 @@ public class Translators
 	 *
 	 * <p>Translators are added in-order so earlier translaters pre-empt later translators.</p>
 	 */
-	public void add(TranslatorFactory<?, ?> trans) {
+	public void add(final TranslatorFactory<?, ?> trans) {
 		this.translatorFactories.add(insertPoint, trans);
 		insertPoint++;
 	}
@@ -100,7 +102,7 @@ public class Translators
 	 * <p>Add a new translator to the beginning of the list, before all other translators
 	 * except other translators that have been added early.</p>
 	 */
-	public void addEarly(TranslatorFactory<?, ?> trans) {
+	public void addEarly(final TranslatorFactory<?, ?> trans) {
 		this.translatorFactories.add(earlyInsertPoint, trans);
 		earlyInsertPoint++;
 		insertPoint++;
@@ -110,7 +112,7 @@ public class Translators
 	 * Obtains the Translator appropriate for this type and annotations. May be a cached
 	 * translator; if not, one will be discovered and cached.
 	 */
-	public <P, D> Translator<P, D> get(TypeKey tk, CreateContext ctx, Path path) {
+	public <P, D> Translator<P, D> get(final TypeKey tk, final CreateContext ctx, final Path path) {
 
 		Translator<?, ?> translator = translators.get(tk);
 		if (translator == null) {
@@ -125,17 +127,17 @@ public class Translators
 	/**
 	 * Get the translator for a root entity class
 	 */
-	public <P> Translator<P, PropertyContainer> getRoot(Class<P> clazz) {
+	public <P> Translator<P, FullEntity<?>> getRoot(final Class<P> clazz) {
 		return get(new TypeKey(clazz), new CreateContext(fact), Path.root());
 	}
 
 	/**
 	 * Create a translator from scratch by going through the discovery process.
 	 */
-	private Translator<?, ?> create(TypeKey tk, CreateContext ctx, Path path) {
-		for (TranslatorFactory<?, ?> trans: this.translatorFactories) {
+	private Translator<?, ?> create(final TypeKey tk, final CreateContext ctx, final Path path) {
+		for (final TranslatorFactory<?, ?> trans: this.translatorFactories) {
 			@SuppressWarnings("unchecked")
-			Translator<?, ?> soFar = trans.create(tk, ctx, path);
+			final Translator<?, ?> soFar = trans.create(tk, ctx, path);
 			if (soFar != null)
 				return soFar;
 		}

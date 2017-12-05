@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.PropertyContainer;
 import com.google.common.base.Predicate;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
@@ -15,6 +14,7 @@ import com.googlecode.objectify.impl.FieldProperty;
 import com.googlecode.objectify.impl.MethodProperty;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
+import com.googlecode.objectify.impl.PropertyContainer;
 import com.googlecode.objectify.impl.PropertyPopulator;
 import com.googlecode.objectify.impl.TypeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -42,12 +42,7 @@ public class ClassPopulator<P> implements Populator<P>
 	private static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 
 	/** We don't want to include the key fields in population */
-	private static final Predicate<Property> INCLUDED_FIELDS = new Predicate<Property>() {
-		@Override
-		public boolean apply(Property prop) {
-			return prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
-		}
-	};
+	private static final Predicate<Property> INCLUDED_FIELDS = prop -> prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
 
 	/** */
 	private final Class<P> clazz;
@@ -78,12 +73,12 @@ public class ClassPopulator<P> implements Populator<P>
 		indexInstruction = getIndexInstruction(clazz);
 
 		// Find all the basic properties
-		for (Property prop: getDeclaredProperties(ctx.getFactory(), clazz)) {
+		for (final Property prop: getDeclaredProperties(ctx.getFactory(), clazz)) {
 			if (INCLUDED_FIELDS.apply(prop)) {
-				Path propPath = path.extend(prop.getName());
+				final Path propPath = path.extend(prop.getName());
 				try {
-					Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
-					PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
+					final Translator<Object, Object> translator = ctx.getTranslator(new TypeKey<>(prop), ctx, propPath);
+					final PropertyPopulator<Object, Object> tprop = new PropertyPopulator<>(prop, translator);
 					props.add(tprop);
 				} catch (Exception ex) {
 					// Catch any errors during this process and wrap them in an exception that exposes more useful information.
@@ -93,7 +88,7 @@ public class ClassPopulator<P> implements Populator<P>
 		}
 
 		// Find the @OnSave methods
-		for (Method method: clazz.getDeclaredMethods()) {
+		for (final Method method: clazz.getDeclaredMethods()) {
 			if (method.isAnnotationPresent(OnSave.class))
 				onSaveMethods.add(new LifecycleMethod(method));
 

@@ -1,7 +1,9 @@
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
@@ -58,10 +60,10 @@ class EmbeddingFormatTests extends TestBase {
 
 		final Key<Outer> key = ofy().save().entity(outer).now();
 
-		final Entity entity = ds().get(key.getRaw());
+		final Entity entity = datastore().get(key.getRaw());
 
-		final EmbeddedEntity entityInner = (EmbeddedEntity)entity.getProperty("inner");
-		assertThat(entityInner.getProperty("stuff")).isEqualTo("stuff");
+		final FullEntity<?> entityInner = entity.getEntity("inner");
+		assertThat(entityInner.getString("stuff")).isEqualTo("stuff");
 		
 		ofy().clear();
 		final Outer fetched = ofy().load().key(key).now();
@@ -88,13 +90,12 @@ class EmbeddingFormatTests extends TestBase {
 
 		final Key<OuterWithList> key = ofy().save().entity(outer).now();
 
-		final Entity entity = ds().get(key.getRaw());
+		final Entity entity = datastore().get(key.getRaw());
 		
-		@SuppressWarnings("unchecked")
-		final List<EmbeddedEntity> entityInner = (List<EmbeddedEntity>)entity.getProperty("inner");
+		final List<Value<Entity>> entityInner = entity.getList("inner");
 		assertThat(entityInner.size()).isEqualTo(2);
-		assertThat(entityInner.get(0).getProperty("stuff")).isEqualTo("stuff0");
-		assertThat(entityInner.get(1).getProperty("stuff")).isEqualTo("stuff1");
+		assertThat(entityInner.get(0).get().getString("stuff")).isEqualTo("stuff0");
+		assertThat(entityInner.get(1).get().getString("stuff")).isEqualTo("stuff1");
 
 		ofy().clear();
 		final OuterWithList fetched = ofy().load().key(key).now();
@@ -109,7 +110,7 @@ class EmbeddingFormatTests extends TestBase {
 	private static class HasEmbeddedEntity {
 		@Id
 		private Long id;
-		private EmbeddedEntity normal;
+		private FullEntity<?> normal;
 	}
 	
 	/** */
@@ -118,9 +119,8 @@ class EmbeddingFormatTests extends TestBase {
 		factory().register(HasEmbeddedEntity.class);
 
 		final HasEmbeddedEntity h = new HasEmbeddedEntity();
-		h.normal = new EmbeddedEntity();
-		h.normal.setProperty("stuff", "stuff");
-		
+		h.normal = FullEntity.newBuilder().set("stuff", "stuff").build();
+
 		final HasEmbeddedEntity fetched = saveClearLoad(h);
 		assertThat(fetched.normal).isEqualTo(h.normal);
 	}
@@ -132,7 +132,7 @@ class EmbeddingFormatTests extends TestBase {
 	private static class HasEmbeddedEntityList {
 		@Id
 		private Long id;
-		private List<EmbeddedEntity> list = Lists.newArrayList();
+		private List<FullEntity<?>> list = Lists.newArrayList();
 	}
 	
 	/** */
@@ -142,8 +142,7 @@ class EmbeddingFormatTests extends TestBase {
 
 		final HasEmbeddedEntityList h = new HasEmbeddedEntityList();
 
-		final EmbeddedEntity emb0 = new EmbeddedEntity();
-		emb0.setProperty("stuff", "stuff0");
+		final FullEntity<?> emb0 = FullEntity.newBuilder().set("stuff", "stuff0").build();
 		h.list.add(emb0);
 		
 		final HasEmbeddedEntityList fetched = saveClearLoad(h);
@@ -183,11 +182,11 @@ class EmbeddingFormatTests extends TestBase {
 
 		final Key<OuterWithIndex> key = ofy().save().entity(outer).now();
 
-		final Entity entity = ds().get(key.getRaw());
-		assertThat(entity.getProperties()).hasSize(2);
-		assertThat(entity.getProperty("inner.stuff")).isEqualTo(Collections.singletonList("stuff"));
-		assertThat(entity.isUnindexedProperty("inner.stuff")).isFalse();
-		
+		final Entity entity = datastore().get(key.getRaw());
+		assertThat(entity.getNames()).hasSize(2);
+		// This checks for an indexed value too
+		assertThat(entity.getList("inner.stuff")).isEqualTo(Collections.singletonList(StringValue.of("stuff")));
+
 		ofy().clear();
 		final OuterWithIndex fetched = ofy().load().type(OuterWithIndex.class).filter("inner.stuff", "stuff").iterator().next();
 		assertThat(fetched.inner).isEqualTo(inner);

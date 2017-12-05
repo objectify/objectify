@@ -1,8 +1,13 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
+import com.google.cloud.datastore.KeyValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -12,7 +17,6 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-import com.googlecode.objectify.util.DatastoreUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Field;
@@ -28,6 +32,8 @@ import java.util.Set;
 @Slf4j
 public class KeyMetadata<P>
 {
+	private final ObjectifyFactory factory;
+
 	/** The @Id field on the pojo - it will be Long, long, or String */
 	private PropertyPopulator<Object, Object> idMeta;
 
@@ -35,13 +41,14 @@ public class KeyMetadata<P>
 	private PropertyPopulator<Object, Object> parentMeta;
 
 	/** */
-	private Class<P> clazz;
+	private final Class<P> clazz;
 
 	/** The kind that is associated with the class, ala ObjectifyFactory.getKind(Class<?>) */
-	private String kind;
+	private final String kind;
 
 	/** */
-	public KeyMetadata(Class<P> clazz, CreateContext ctx, Path path) {
+	public KeyMetadata(final Class<P> clazz, final CreateContext ctx, final Path path) {
+		this.factory = ctx.getFactory();
 		this.clazz = clazz;
 
 		findKeyFields(clazz, ctx, path);
@@ -96,7 +103,7 @@ public class KeyMetadata<P>
 
 		Class<?> erased = GenericTypeReflector.erase(type);
 
-		return com.google.appengine.api.datastore.Key.class.isAssignableFrom(erased)
+		return com.google.cloud.datastore.Key.class.isAssignableFrom(erased)
 				|| Key.class.isAssignableFrom(erased)
 				|| Ref.class.isAssignableFrom(erased);
 	}
@@ -105,20 +112,20 @@ public class KeyMetadata<P>
 	 * Sets the key (from the container) onto the POJO id/parent fields. Also doublechecks to make sure
 	 * that the key fields aren't present in the container, which means we're in a very bad state.
 	 */
-	public void setKey(P pojo, PropertyContainer container, LoadContext ctx, Path containerPath) {
+	public void setKey(final P pojo, final PropertyContainer container, final LoadContext ctx, final Path containerPath) {
 		if (container.hasProperty(idMeta.getProperty().getName()))
 			throw new IllegalStateException("Datastore has a property present for the id field " + idMeta.getProperty() + " which would conflict with the key: " + container);
 
 		if (parentMeta != null && container.hasProperty(parentMeta.getProperty().getName()))
 			throw new IllegalStateException("Datastore has a property present for the parent field " + parentMeta.getProperty() + " which would conflict with the key: " + container);
 
-		this.setKey(pojo, DatastoreUtils.getKey(container), ctx, containerPath);
+		this.setKey(pojo, container.getKey(), ctx, containerPath);
 	}
 
 	/**
 	 * Sets the key onto the POJO id/parent fields
 	 */
-	private void setKey(P pojo, com.google.appengine.api.datastore.Key key, LoadContext ctx, Path containerPath) {
+	private void setKey(final P pojo, final IncompleteKey key, final LoadContext ctx, final Path containerPath) {
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
 
@@ -126,14 +133,14 @@ public class KeyMetadata<P>
 		if (key == null)
 			return;
 
-		idMeta.setValue(pojo, DatastoreUtils.getId(key), ctx, containerPath);
+		idMeta.setValue(pojo, Keys.getId(key), ctx, containerPath);
 
-		com.google.appengine.api.datastore.Key parentKey = key.getParent();
+		final com.google.cloud.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
 			if (this.parentMeta == null)
 				throw new IllegalStateException("Loaded Entity has parent but " + clazz.getName() + " has no @Parent");
 
-			parentMeta.setValue(pojo, parentKey, ctx, containerPath);
+			parentMeta.setValue(pojo, (Value)KeyValue.of(parentKey), ctx, containerPath);
 		}
 	}
 
@@ -150,55 +157,54 @@ public class KeyMetadata<P>
 	 * <li>Might have a parent key</li>
 	 * </ul>
 	 *
-	 * @return an empty Entity object whose key has been set but no other properties.
+	 * @return an empty PropertyContainer object whose key has been set but no other properties.
 	 */
-	public Entity initEntity(P pojo) {
-		Object id = getId(pojo);
-		if (id == null)
-			if (isIdNumeric()) {
-				log.trace("Getting parent key from {}", pojo);
-				return new com.google.appengine.api.datastore.Entity(this.kind, getParentRaw(pojo));
-			} else
-				throw new IllegalStateException("Cannot save an entity with a null String @Id: " + pojo);
-		else
-			return new com.google.appengine.api.datastore.Entity(getRawKey(pojo));
+	public PropertyContainer initPropertyContainer(final P pojo) {
+		final IncompleteKey rawKey = getIncompleteKey(pojo);
+
+		if (!(rawKey instanceof com.google.cloud.datastore.Key)) {
+			// it's incomplete, make sure we can save it
+			Preconditions.checkState(isIdNumeric(), "Cannot save an entity with a null String @Id: %s", pojo);
+		}
+
+		final FullEntity.Builder<IncompleteKey> builder = FullEntity.newBuilder(rawKey);
+		return new SavePropertyContainer(builder);
 	}
 
 	/**
 	 * Gets a key composed of the relevant id and parent fields in the object.
 	 *
 	 * @param pojo must be of the entityClass type for this metadata.
-	 * @return null if the id is null (ie, null Long)
+	 * @return either a Key or IncompleteKey depending on whether the id is null or not
 	 */
-	public com.google.appengine.api.datastore.Key getRawKeyOrNull(P pojo) {
+	public IncompleteKey getIncompleteKey(final P pojo) {
 		log.trace("Getting key from {}", pojo);
 
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to get key of " + pojo.getClass().getName());
 
 		final Object id = getId(pojo);
+		final com.google.cloud.datastore.Key parent = getParentRaw(pojo);
 
 		if (id == null)
-			return null;
-
-		final com.google.appengine.api.datastore.Key parent = getParentRaw(pojo);
-
-		return DatastoreUtils.createKey(parent, kind, id);
+			return factory.keys().createRawIncomplete(parent, kind);
+		else
+			return factory.keys().createRawAny(parent, kind, id);
 	}
 
 	/**
 	 * Gets a key composed of the relevant id and parent fields in the object.
 	 *
 	 * @param pojo must be of the entityClass type for this metadata.
-	 * @throws IllegalArgumentException if pojo has a null id
+	 * @throws IllegalArgumentException if pojo has an incomplete key
 	 */
-	public com.google.appengine.api.datastore.Key getRawKey(P pojo) {
-		final com.google.appengine.api.datastore.Key key = getRawKeyOrNull(pojo);
+	public com.google.cloud.datastore.Key getCompleteKey(final P pojo) {
+		final com.google.cloud.datastore.IncompleteKey key = getIncompleteKey(pojo);
 
-		if (key == null)
-			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
+		if (key instanceof com.google.cloud.datastore.Key)
+			return (com.google.cloud.datastore.Key)key;
 		else
-			return key;
+			throw new IllegalArgumentException("You cannot create a Key for an object with a null @Id. Object was " + pojo);
 	}
 
 	/** @return the name of the parent field, or null if there wasn't one */
@@ -262,11 +268,14 @@ public class KeyMetadata<P>
 	 * Get the contents of the @Parent field as a datastore key.
 	 * @return null if there was no @Parent field, or the field is null.
 	 */
-	private com.google.appengine.api.datastore.Key getParentRaw(P pojo) {
+	private com.google.cloud.datastore.Key getParentRaw(P pojo) {
 		if (parentMeta == null)
 			return null;
 
-		return (com.google.appengine.api.datastore.Key)parentMeta.getValue(pojo, new SaveContext(), Path.root());
+		final Value<Object> value = parentMeta.getValue(pojo, new SaveContext(), Path.root());
+		return (value == null || value.getType() == ValueType.NULL)
+				? null
+				: (com.google.cloud.datastore.Key)value.get();
 	}
 
 	/**

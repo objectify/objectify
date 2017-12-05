@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
@@ -28,10 +28,10 @@ class Round {
 	private final int depth;
 
 	/** The keys we will need to fetch; might not be any if everything came from the session */
-	private final Set<com.google.appengine.api.datastore.Key> pending = new HashSet<>();
+	private final Set<com.google.cloud.datastore.Key> pending = new HashSet<>();
 
 	/** Sometimes we get a bunch of Entity data from queries that eliminates our need to go to the backing datastore */
-	private final Map<com.google.appengine.api.datastore.Key, Entity> stuffed = new HashMap<>();
+	private final Map<com.google.cloud.datastore.Key, Entity> stuffed = new HashMap<>();
 
 	/** Entities that have been fetched and translated this round. There will be an entry for each pending. */
 	private Result<Map<Key<?>, Object>> translated;
@@ -93,8 +93,8 @@ class Round {
 						}
 
 						@Override
-						public com.google.appengine.api.datastore.Key saveRef(Ref<?> value, LoadConditions loadConditions) {
-							com.google.appengine.api.datastore.Key key = super.saveRef(value, loadConditions);
+						public com.google.cloud.datastore.Key saveRef(Ref<?> value, LoadConditions loadConditions) {
+							com.google.cloud.datastore.Key key = super.saveRef(value, loadConditions);
 
 							if (loadEngine.shouldLoad(loadConditions)) {
 								log.trace("Upgrading key {}", key);
@@ -124,7 +124,7 @@ class Round {
 		if (needsExecution()) {
 			log.trace("Executing round: {}", pending);
 
-			Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = fetchPending();
+			Result<Map<com.google.cloud.datastore.Key, Entity>> fetched = fetchPending();
 			translated = loadEngine.translate(fetched);
 
 			// If we're in a transaction (and beyond the first round), force all subsequent rounds to complete.
@@ -138,13 +138,13 @@ class Round {
 	}
 
 	/** Possibly pulls some values from the stuffed collection */
-	private Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetchPending() {
+	private Result<Map<com.google.cloud.datastore.Key, Entity>> fetchPending() {
 		// We don't need to fetch anything that has been stuffed
 
-		final Map<com.google.appengine.api.datastore.Key, Entity> combined = new HashMap<>();
-		Set<com.google.appengine.api.datastore.Key> fetch = new HashSet<>();
+		final Map<com.google.cloud.datastore.Key, Entity> combined = new HashMap<>();
+		Set<com.google.cloud.datastore.Key> fetch = new HashSet<>();
 
-		for (com.google.appengine.api.datastore.Key key: pending) {
+		for (com.google.cloud.datastore.Key key: pending) {
 			Entity ent = stuffed.get(key);
 			if (ent == null)
 				fetch.add(key);
@@ -155,7 +155,7 @@ class Round {
 		if (fetch.isEmpty()) {
 			return new ResultNow<>(combined);
 		} else {
-			final Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetched = loadEngine.fetch(fetch);
+			final Result<Map<com.google.cloud.datastore.Key, Entity>> fetched = loadEngine.fetch(fetch);
 
 			return () -> {
 				combined.putAll(fetched.now());

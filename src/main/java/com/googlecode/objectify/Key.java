@@ -1,10 +1,13 @@
 package com.googlecode.objectify;
 
-import com.google.appengine.api.datastore.KeyFactory;
+import com.google.cloud.datastore.KeyFactory;
+import com.google.cloud.datastore.PathElement;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.TypeUtils;
+import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * <p>A typesafe wrapper for the datastore Key object.</p>
@@ -12,12 +15,13 @@ import java.io.Serializable;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  * @author Scott Hernandez
  */
+@EqualsAndHashCode(of="raw")
 public class Key<T> implements Serializable, Comparable<Key<?>>
 {
-	private static final long serialVersionUID = 2L;
+	private static final long serialVersionUID = -262390393952444121L;
 
 	/** Key.create(key) is easier to type than new Key<Blah>(key) */
-	public static <T> Key<T> create(com.google.appengine.api.datastore.Key raw) {
+	public static <T> Key<T> create(final com.google.cloud.datastore.Key raw) {
 		if (raw == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
 
@@ -25,27 +29,27 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
-	public static <T> Key<T> create(Class<? extends T> kindClass, long id) {
+	public static <T> Key<T> create(final Class<? extends T> kindClass, final long id) {
 		return new Key<>(kindClass, id);
 	}
 
 	/** Key.create(Blah.class, name) is easier to type than new Key<Blah>(Blah.class, name) */
-	public static <T> Key<T> create(Class<? extends T> kindClass, String name) {
+	public static <T> Key<T> create(final Class<? extends T> kindClass, final String name) {
 		return new Key<>(kindClass, name);
 	}
 
 	/** Key.create(parent, Blah.class, id) is easier to type than new Key<Blah>(parent, Blah.class, id) */
-	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, long id) {
+	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
 		return new Key<>(parent, kindClass, id);
 	}
 
 	/** Key.create(parent, Blah.class, name) is easier to type than new Key<Blah>(parent, Blah.class, name) */
-	public static <T> Key<T> create(Key<?> parent, Class<? extends T> kindClass, String name) {
+	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
 		return new Key<>(parent, kindClass, name);
 	}
 
 	/** Key.create(webSafeString) is easier to type than new Key<Blah>(webSafeString) */
-	public static <T> Key<T> create(String webSafeString) {
+	public static <T> Key<T> create(final String webSafeString) {
 		if (webSafeString == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null String");
 
@@ -53,63 +57,80 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
-	public static <T> Key<T> valueOf(String webSafeString) {
+	public static <T> Key<T> valueOf(final String webSafeString) {
 		return Key.create(webSafeString);
 	}
 
 	/** Create a key from a registered POJO entity. */
-	public static <T> Key<T> create(T pojo) {
+	public static <T> Key<T> create(final T pojo) {
 		return ObjectifyService.factory().keys().keyOf(pojo);
 	}
 
 	/** */
-	protected com.google.appengine.api.datastore.Key raw;
+	protected final com.google.cloud.datastore.Key raw;
 
 	/** Cache the instance of the parent wrapper to avoid unnecessary garbage */
 	transient protected Key<?> parent;
 
-	/** For GWT serialization */
-	private Key() {}
-
 	/** Wrap a raw Key */
-	private Key(com.google.appengine.api.datastore.Key raw) {
+	private Key(final com.google.cloud.datastore.Key raw) {
 		this.raw = raw;
+		this.parent = null;
 	}
 
 	/** Create a key with a long id */
-	private Key(Class<? extends T> kindClass, long id) {
+	private Key(final Class<? extends T> kindClass, final long id) {
 		this(null, kindClass, id);
 	}
 
 	/** Create a key with a String name */
-	private Key(Class<? extends T> kindClass, String name) {
+	private Key(final Class<? extends T> kindClass, final String name) {
 		this(null, kindClass, name);
 	}
 
 	/** Create a key with a parent and a long id */
-	private Key(Key<?> parent, Class<? extends T> kindClass, long id) {
-		this.raw = KeyFactory.createKey(key(parent), getKind(kindClass), id);
+	private Key(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
+		final String kind = getKind(kindClass);
+
+		if (parent == null) {
+			this.raw = newKeyFactory().setKind(kind).newKey(id);
+		} else {
+			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, id).build();
+		}
+
 		this.parent = parent;
 	}
 
 	/** Create a key with a parent and a String name */
-	private Key(Key<?> parent, Class<? extends T> kindClass, String name) {
-		this.raw = KeyFactory.createKey(key(parent), getKind(kindClass), name);
+	private Key(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
+		final String kind = getKind(kindClass);
+
+		if (parent == null) {
+			this.raw = newKeyFactory().setKind(kind).newKey(name);
+		} else {
+			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, name).build();
+		}
+
 		this.parent = parent;
 	}
 
 	/**
 	 * Reconstitute a Key from a web safe string.  This can be generated with getString()/toWebSafeString()
-	 * or KeyFactory.stringToKey().
+	 * or com.google.cloud.datastore.Key.toUrlSafe().
 	 */
-	private Key(String webSafe) {
-		this(KeyFactory.stringToKey(webSafe));
+	private Key(final String webSafe) {
+		this(com.google.cloud.datastore.Key.fromUrlSafe(webSafe));
+	}
+
+	/** Obtain it from the global ObjectifyFactory */
+	private KeyFactory newKeyFactory() {
+		return ObjectifyService.factory().datastore().newKeyFactory();
 	}
 
 	/**
 	 * @return the raw datastore version of this key
 	 */
-	public com.google.appengine.api.datastore.Key getRaw() {
+	public com.google.cloud.datastore.Key getRaw() {
 		return this.raw;
 	}
 
@@ -161,39 +182,102 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * <p>Compares based on comparison of the raw key</p>
+	 * <p>The new cloud sdk Key doesn't have compareTo(), so we reimplement the logic from the old GAE SDK.</p>
 	 */
 	@Override
-	public int compareTo(Key<?> other) {
-		return this.raw.compareTo(other.raw);
+	public int compareTo(final Key<?> other) {
+		if (this.raw == other.raw) {
+			return 0;
+		}
+
+		{
+			final int result = this.raw.getProjectId().compareTo(other.raw.getProjectId());
+			if (result != 0)
+				return result;
+		}
+
+		{
+			final int result = this.raw.getNamespace().compareTo(other.raw.getNamespace());
+			if (result != 0)
+				return result;
+		}
+
+		{
+			final int result = this.compareAncestors(other);
+			if (result != 0)
+				return result;
+		}
+
+		{
+			// Too bad PathElement and Key don't share any kind of interface grrr
+			final int result = this.getRaw().getKind().compareTo(other.getRaw().getKind());
+			if (result != 0) {
+				return result;
+			}
+			else if (this.raw.getNameOrId() == null && other.raw.getNameOrId() == null) {
+				return compareToWithIdentityHash(this.raw, other.raw);
+			}
+			else if (this.raw.hasId()) {
+				return other.raw.hasId() ? Long.compare(this.raw.getId(), other.raw.getId()) : -1;
+			}
+			else {
+				return other.raw.hasId() ? 1 : this.raw.getName().compareTo(other.raw.getName());
+			}
+		}
 	}
 
-	/** */
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
+	private int compareAncestors(final Key<?> other) {
+		final Iterator<PathElement> thisPath = this.raw.getAncestors().iterator();
+		final Iterator<PathElement> otherPath = other.raw.getAncestors().iterator();
 
-		if (!(obj instanceof Key<?>))
-			return false;
+		int result;
+		do {
+			if (!thisPath.hasNext()) {
+				return otherPath.hasNext() ? -1 : 0;
+			}
 
-		return this.compareTo((Key<?>)obj) == 0;
+			if (!otherPath.hasNext()) {
+				return 1;
+			}
+
+			final PathElement thisKey = thisPath.next();
+			final PathElement otherKey = otherPath.next();
+
+			result = comparePathElements(thisKey, otherKey);
+		} while (result == 0);
+
+		return result;
+	}
+
+	private int comparePathElements(final PathElement here, final PathElement there) {
+		final int result = here.getKind().compareTo(there.getKind());
+		if (result != 0) {
+			return result;
+		}
+		else if (here.getNameOrId() == null && there.getNameOrId() == null) {
+			return compareToWithIdentityHash(here, there);
+		}
+		else if (here.hasId()) {
+			return there.hasId() ? Long.compare(here.getId(), there.getId()) : -1;
+		}
+		else {
+			return there.hasId() ? 1 : here.getName().compareTo(there.getName());
+		}
+	}
+
+	/** I have no idea what this is about, it was in the old logic */
+	private int compareToWithIdentityHash(final Object k1, final Object k2) {
+		return Integer.compare(System.identityHashCode(k1), System.identityHashCode(k2));
 	}
 
 	/** A type-safe equivalence comparison */
-	public boolean equivalent(Key<T> other) {
+	public boolean equivalent(final Key<T> other) {
 		return equals(other);
 	}
 
 	/** A type-safe equivalence comparison */
-	public boolean equivalent(Ref<T> other) {
+	public boolean equivalent(final Ref<T> other) {
 		return (other != null) && equals(other.key());
-	}
-
-	/** */
-	@Override
-	public int hashCode() {
-		return this.raw.hashCode();
 	}
 
 	/** Creates a human-readable version of this key */
@@ -203,7 +287,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
+	 * Call toUrlSafe() on the underlying Key.  You can reconstitute a Key<?> using the
 	 * constructor that takes a websafe string. This is a javabeans-style alias for toWebSafeString().
 	 */
 	public String getString() {
@@ -211,18 +295,18 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * Call KeyFactory.keyToString() on the underlying Key.  You can reconstitute a Key<?> using the
+	 * Call toUrlSafe() on the underlying Key.  You can reconstitute a Key<?> using the
 	 * constructor that takes a websafe string. Note that toString() is only useful for debugging;
 	 * it cannot be used to create a key with Key.create(String).
 	 */
 	public String toWebSafeString() {
-		return KeyFactory.keyToString(this.raw);
+		return this.raw.toUrlSafe();
 	}
 
 	/**
 	 * Easy null-safe conversion of the raw key.
 	 */
-	public static <V> Key<V> key(com.google.appengine.api.datastore.Key raw) {
+	public static <V> Key<V> key(final com.google.cloud.datastore.Key raw) {
 		if (raw == null)
 			return null;
 		else
@@ -232,7 +316,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	/**
 	 * Easy null-safe conversion of the typed key.
 	 */
-	public static com.google.appengine.api.datastore.Key key(Key<?> typed) {
+	public static com.google.cloud.datastore.Key key(final Key<?> typed) {
 		if (typed == null)
 			return null;
 		else
@@ -245,8 +329,8 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 *
 	 * <p>If no @Entity annotation is found, just uses the simplename as is.</p>
 	 */
-	public static String getKind(Class<?> clazz) {
-		String kind = getKindRecursive(clazz);
+	public static String getKind(final Class<?> clazz) {
+		final String kind = getKindRecursive(clazz);
 		if (kind == null)
 			return clazz.getSimpleName();
 		else
@@ -258,11 +342,11 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 *
 	 * @return null if kind cannot be found
 	 */
-	private static String getKindRecursive(Class<?> clazz) {
+	private static String getKindRecursive(final Class<?> clazz) {
 		if (clazz == Object.class)
 			return null;
 
-		String kind = getKindHere(clazz);
+		final String kind = getKindHere(clazz);
 		if (kind != null)
 			return kind;
 		else
@@ -272,11 +356,11 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	/**
 	 * Get the kind from the class if the class has an @Entity annotation, otherwise return null.
 	 */
-	private static String getKindHere(Class<?> clazz) {
+	private static String getKindHere(final Class<?> clazz) {
 		// @Entity is inherited so we have to be explicit about the declared annotations
-		Entity ourAnn = TypeUtils.getDeclaredAnnotation(clazz, Entity.class);
+		final Entity ourAnn = TypeUtils.getDeclaredAnnotation(clazz, Entity.class);
 		if (ourAnn != null)
-			if (ourAnn.name() != null && ourAnn.name().length() != 0)
+			if (ourAnn.name().length() != 0)
 				return ourAnn.name();
 			else
 				return clazz.getSimpleName();

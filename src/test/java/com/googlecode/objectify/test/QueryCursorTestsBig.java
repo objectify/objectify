@@ -3,8 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.cloud.datastore.Cursor;
+import com.google.cloud.datastore.QueryResults;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.test.entity.Trivial;
@@ -56,7 +56,7 @@ class QueryCursorTestsBig extends TestBase {
 	@Test
 	void simpleOrder() throws Exception {
 		final Query<Trivial> q1 = query();
-		final QueryResultIterator<Trivial> i1 = q1.iterator();
+		final QueryResults<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
@@ -69,12 +69,12 @@ class QueryCursorTestsBig extends TestBase {
 	}
 
 	private void walkQuery(final Query<Trivial> q1, final int expectedEnd) {
-		final QueryResultIterator<Trivial> i1 = q1.iterator();
+		final QueryResults<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
 			which++;
-			final Cursor cursor = i1.getCursor();
+			final Cursor cursor = i1.getCursorAfter();
 			assertCursorAt(cursor, which);
 			i1.next();
 		}
@@ -121,7 +121,7 @@ class QueryCursorTestsBig extends TestBase {
 		Cursor cursor = null;
 
 		final Query<Trivial> q1 = query().limit(20);
-		final QueryResultIterator<Trivial> i1 = q1.iterator();
+		final QueryResults<Trivial> i1 = q1.iterator();
 
 		int which = 0;
 		while (i1.hasNext()) {
@@ -130,7 +130,7 @@ class QueryCursorTestsBig extends TestBase {
 			l1.add(trivial);
 
 			if (which == 15)
-				cursor = i1.getCursor();
+				cursor = i1.getCursorAfter();
 		}
 
 		assertThat(l1).hasSize(20);

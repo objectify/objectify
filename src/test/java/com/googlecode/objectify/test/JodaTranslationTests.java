@@ -3,7 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.repackaged.org.joda.time.YearMonth;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -15,6 +14,7 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.LocalDateTime;
 import org.joda.time.LocalTime;
+import org.joda.time.YearMonth;
 import org.junit.jupiter.api.Test;
 
 import static com.google.common.truth.Truth.assertThat;

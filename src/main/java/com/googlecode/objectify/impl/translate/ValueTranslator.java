@@ -1,41 +1,30 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
+import lombok.RequiredArgsConstructor;
 
 /**
- * <p>A bit of code that does the required type checking and casting so that we have nice typed methods.
- * Also handles the RawValue case of projection queries. Note that null checking has already been done.</p>
+ * <p>Does a little bit of expected type checking.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class ValueTranslator<P, D> extends ProjectionSafeTranslator<P, D>
+@RequiredArgsConstructor
+abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 {
-	private Class<D> datastoreClass;
+	private final ValueType expectedValueType;
 
-	/** */
-	public ValueTranslator(Class<D> datastoreClass) {
-		this(datastoreClass, datastoreClass);
-	}
+	@Override
+	final protected P loadSafe(final Value<D> value, final LoadContext ctx, final Path path) throws SkipException {
+		if (value.getType() != expectedValueType)
+			path.throwIllegalState("Expected value type " + expectedValueType + ", got " + value.getType() + ": " + value);
 
-	/** Sometimes the projection class is more specific than the datastore class */
-	public ValueTranslator(Class<D> datastoreClass, Class<? extends D> projectionClass) {
-		super(projectionClass);
-		this.datastoreClass = datastoreClass;
+		return loadValue(value, ctx, path);
 	}
 
 	@Override
-	final protected P loadSafe2(D value, LoadContext ctx, Path path) throws SkipException {
-		if (!datastoreClass.isAssignableFrom(value.getClass()))
-			path.throwIllegalState("Expected " + datastoreClass + ", got " + value.getClass() + ": " + value);
-
-		@SuppressWarnings("unchecked")
-		D d = (D)value;
-
-		return loadValue(d, ctx, path);
-	}
-
-	@Override
-	final protected D saveSafe(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+	final protected Value<D> saveSafe(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 		return saveValue(pojo, index, ctx, path);
 	}
 
@@ -46,7 +35,7 @@ abstract public class ValueTranslator<P, D> extends ProjectionSafeTranslator<P, 
 	 * @return the format which should be stored in the pojo; a null means store a literal null!
 	 * @throws SkipException if this field subtree should be skipped
 	 */
-	abstract protected P loadValue(D value, LoadContext ctx, Path path) throws SkipException;
+	abstract protected P loadValue(Value<D> value, LoadContext ctx, Path path) throws SkipException;
 
 	/**
 	 * Encode from a normal pojo value to a format that the datastore understands.  Note that a null return value
@@ -56,5 +45,5 @@ abstract public class ValueTranslator<P, D> extends ProjectionSafeTranslator<P, 
 	 * @return the format which should be stored in the datastore; null means actually store a null!
 	 * @throws SkipException if this subtree should be skipped
 	 */
-	abstract protected D saveValue(P value, boolean index, SaveContext ctx, Path path) throws SkipException;
+	abstract protected Value<D> saveValue(P value, boolean index, SaveContext ctx, Path path) throws SkipException;
 }

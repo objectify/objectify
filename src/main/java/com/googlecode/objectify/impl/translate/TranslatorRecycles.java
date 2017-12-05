@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -11,11 +12,11 @@ import com.googlecode.objectify.impl.Path;
  */
 abstract public class TranslatorRecycles<P, D> implements Translator<P, D>, Recycles {
 	@Override
-	final public P load(D node, LoadContext ctx, Path path) throws SkipException {
+	final public P load(final Value<D> node, final LoadContext ctx, final Path path) throws SkipException {
 		@SuppressWarnings("unchecked")
-		P into = (P)ctx.useRecycled();
+		final P into = (P)ctx.useRecycled();
 
-		P loaded = loadInto(node, ctx, path, into);
+		final P loaded = loadInto(node, ctx, path, into);
 
 		if (loaded == into)
 			throw new SkipException();
@@ -25,5 +26,5 @@ abstract public class TranslatorRecycles<P, D> implements Translator<P, D>, Recy
 
 	/**
 	 */
-	abstract protected P loadInto(D node, LoadContext ctx, Path path, P into);
+	abstract protected P loadInto(Value<D> node, LoadContext ctx, Path path, P into);
 }

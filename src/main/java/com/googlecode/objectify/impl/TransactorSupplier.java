@@ -6,5 +6,5 @@ package com.googlecode.objectify.impl;
  */
 @FunctionalInterface
 public interface TransactorSupplier {
-	Transactor create(final ObjectifyImpl ofy);
+	Transactor get(final ObjectifyImpl ofy);
 }

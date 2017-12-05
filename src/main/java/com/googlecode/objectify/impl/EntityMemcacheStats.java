@@ -1,7 +1,8 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Key;
+import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.cache.MemcacheStats;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;

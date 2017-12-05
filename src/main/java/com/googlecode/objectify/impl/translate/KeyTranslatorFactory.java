@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.KeyValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.impl.Path;
 
 
 /**
@@ -9,25 +11,20 @@ import com.googlecode.objectify.impl.Path;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class KeyTranslatorFactory extends ValueTranslatorFactory<Key<?>, com.google.appengine.api.datastore.Key>
+public class KeyTranslatorFactory extends SimpleValueTranslatorFactory<Key<?>, com.google.cloud.datastore.Key>
 {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public KeyTranslatorFactory() {
-		super((Class)Key.class);
+		super((Class)Key.class, ValueType.KEY);
 	}
 
 	@Override
-	protected ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Key<?>> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<Key<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
-			@Override
-			protected Key<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {
-				return Key.create(value);
-			}
+	protected Key<?> toPojo(final Value<com.google.cloud.datastore.Key> value) {
+		return Key.create(value.get());
+	}
 
-			@Override
-			protected com.google.appengine.api.datastore.Key saveValue(Key<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.getRaw();
-			}
-		};
+	@Override
+	protected Value<com.google.cloud.datastore.Key> toDatastore(final Key<?> value) {
+		return KeyValue.of(value.getRaw());
 	}
 }

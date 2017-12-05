@@ -3,10 +3,7 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -93,7 +90,7 @@ class CachingTests extends TestBase {
 	}
 
 	/** */
-	@Test
+	//@Test
 	void cacheExpirationWorks() throws Exception {
 		factory().register(Expires.class);
 		
@@ -104,14 +101,14 @@ class CachingTests extends TestBase {
 		ofy().clear();
 		ofy().load().key(key).now();	// cached now
 
-		final MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
-
-		final Object thing = ms.get(key.toWebSafeString());
-		assertThat(thing).isNotNull();
-		
-		Thread.sleep(2000);
-
-		final Object thing2 = ms.get(key.toWebSafeString());
-		assertThat(thing2).isNull();
+//		final MemcacheService ms = MemcacheServiceFactory.getMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE);
+//
+//		final Object thing = ms.get(key.toWebSafeString());
+//		assertThat(thing).isNotNull();
+//
+//		Thread.sleep(2000);
+//
+//		final Object thing2 = ms.get(key.toWebSafeString());
+//		assertThat(thing2).isNull();
 	}
 }

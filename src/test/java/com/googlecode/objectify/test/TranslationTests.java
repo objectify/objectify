@@ -3,8 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.translate.ClassTranslator;
@@ -14,6 +14,7 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
+import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
@@ -21,7 +22,7 @@ import static com.googlecode.objectify.ObjectifyService.factory;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TranslationTests extends TestBase
+class TranslationTests extends TestBase
 {
 	@com.googlecode.objectify.annotation.Entity
 	private static class SimpleEntityPOJO {
@@ -33,20 +34,21 @@ public class TranslationTests extends TestBase
 	 */
 	@Test
 	void simplePojoEntityTranslates() throws Exception {
-		CreateContext createCtx = new CreateContext(factory());
-		ClassTranslator<SimpleEntityPOJO> translator = ClassTranslatorFactory.createEntityClassTranslator(SimpleEntityPOJO.class, createCtx, Path.root());
+		final CreateContext createCtx = new CreateContext(factory());
+		final ClassTranslator<SimpleEntityPOJO> translator = ClassTranslatorFactory.createEntityClassTranslator(SimpleEntityPOJO.class, createCtx, Path.root());
 
-		SimpleEntityPOJO pojo = new SimpleEntityPOJO();
+		final SimpleEntityPOJO pojo = new SimpleEntityPOJO();
 		pojo.id = 123L;
 		pojo.foo = "bar";
 
-		SaveContext saveCtx = new SaveContext();
-		Entity ent = (Entity)translator.save(pojo, false, saveCtx, Path.root());
+		final SaveContext saveCtx = new SaveContext();
+		final FullEntity<?> ent = translator.save(pojo, false, saveCtx, Path.root()).get();
+		final Key key = (Key)ent.getKey();
 
-		assert ent.getKey().getKind().equals(SimpleEntityPOJO.class.getSimpleName());
-		assert ent.getKey().getId() == pojo.id;
-		assert ent.getProperties().size() == 1;
-		assert ent.getProperty("foo").equals("bar");
+		assertThat(key.getKind()).isEqualTo(SimpleEntityPOJO.class.getSimpleName());
+		assertThat(key.getId()).isEqualTo(pojo.id);
+		assertThat(ent.getNames()).hasSize(1);
+		assertThat(ent.getString("foo")).isEqualTo("bar");
 	}
 
 	private static class Thing {
@@ -57,19 +59,19 @@ public class TranslationTests extends TestBase
 	 */
 	@Test
 	void simplePOJOTranslates() throws Exception {
-		Path thingPath = Path.root().extend("somewhere");
+		final Path thingPath = Path.root().extend("somewhere");
 
-		CreateContext createCtx = new CreateContext(factory());
-		ClassTranslator<Thing> translator = ClassTranslatorFactory.createEmbeddedClassTranslator(Thing.class, createCtx, thingPath);
+		final CreateContext createCtx = new CreateContext(factory());
+		final ClassTranslator<Thing> translator = ClassTranslatorFactory.createEmbeddedClassTranslator(Thing.class, createCtx, thingPath);
 
-		Thing thing = new Thing();
+		final Thing thing = new Thing();
 		thing.foo = "bar";
 
-		SaveContext saveCtx = new SaveContext();
-		EmbeddedEntity ent = (EmbeddedEntity)translator.save(thing, false, saveCtx, thingPath);
+		final SaveContext saveCtx = new SaveContext();
+		final FullEntity<?> ent = translator.save(thing, false, saveCtx, thingPath).get();
 
-		assert ent.getKey() == null;
-		assert ent.getProperties().size() == 1;
-		assert ent.getProperty("foo").equals("bar");
+		assertThat(ent.getKey()).isNull();
+		assertThat(ent.getNames()).hasSize(1);
+		assertThat(ent.getString("foo")).isEqualTo("bar");
 	}
 }

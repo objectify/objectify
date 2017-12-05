@@ -1,13 +1,9 @@
 package com.googlecode.objectify.impl.translate.opt;
 
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.translate.CreateContext;
-import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.impl.translate.SkipException;
-import com.googlecode.objectify.impl.translate.TypeKey;
-import com.googlecode.objectify.impl.translate.ValueTranslator;
-import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+import com.google.cloud.datastore.LongValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
 
 import java.math.BigDecimal;
 
@@ -29,7 +25,7 @@ import java.math.BigDecimal;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigDecimal, Long>
+public class BigDecimalLongTranslatorFactory extends SimpleValueTranslatorFactory<BigDecimal, Long>
 {
 	/** Default factor is 1000, which gives you three digits of precision past the decimal point */
 	public static final long DEFAULT_FACTOR = 1000;
@@ -53,23 +49,18 @@ public class BigDecimalLongTranslatorFactory extends ValueTranslatorFactory<BigD
 	 * @param factor number multiplied by before storage and divided by on retrieval.
 	 */
 	public BigDecimalLongTranslatorFactory(long factor) {
-		super(BigDecimal.class);
+		super(BigDecimal.class, ValueType.LONG);
 		
 		this.factor = new BigDecimal(factor);
 	}
 
 	@Override
-	protected ValueTranslator<BigDecimal, Long> createValueTranslator(TypeKey<BigDecimal> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<BigDecimal, Long>(Long.class) {
-			@Override
-			protected BigDecimal loadValue(Long value, LoadContext ctx, Path path) throws SkipException {
-				return new BigDecimal(value).divide(factor);
-			}
+	protected BigDecimal toPojo(final Value<Long> value) {
+		return new BigDecimal(value.get()).divide(factor);
+	}
 
-			@Override
-			protected Long saveValue(BigDecimal value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.multiply(factor).longValueExact();
-			}
-		};
+	@Override
+	protected Value<Long> toDatastore(final BigDecimal value) {
+		return LongValue.of(value.multiply(factor).longValueExact());
 	}
 }

@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;

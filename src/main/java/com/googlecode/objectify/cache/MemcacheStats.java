@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cache;
 
-import com.google.appengine.api.datastore.Key;
+import com.google.cloud.datastore.Key;
 
 
 /**

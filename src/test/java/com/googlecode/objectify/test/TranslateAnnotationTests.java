@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -11,12 +14,12 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
+import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
 import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.impl.translate.ValueTranslator;
-import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
@@ -37,47 +40,42 @@ import static com.googlecode.objectify.ObjectifyService.factory;
 class TranslateAnnotationTests extends TestBase {
 
 	/** Random translator that just prepends some junk and does an uppercase conversion on save so we know it was executed */
-	private static class FunkyStringTranslatorFactory extends ValueTranslatorFactory<String, String> {
+	private static class FunkyStringTranslatorFactory extends SimpleValueTranslatorFactory<String, String> {
 		public FunkyStringTranslatorFactory() {
-			super(String.class);
+			super(String.class, ValueType.STRING);
 		}
 
 		@Override
-		protected ValueTranslator<String, String> createValueTranslator(TypeKey tk, CreateContext ctx, Path path) {
-			return new ValueTranslator<String, String>(String.class) {
-				@Override
-				protected String loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-					return value.substring("FOO".length());
-				}
+		protected String toPojo(final Value<String> value) {
+			return value.get().substring("FOO".length());
+		}
 
-				@Override
-				protected String saveValue(String value, boolean index, SaveContext ctx, Path path) throws SkipException {
-					return "FOO" + value.toUpperCase();
-				}
-			};
+		@Override
+		protected Value<String> toDatastore(final String value) {
+			return StringValue.of("FOO" + value.toUpperCase());
 		}
 	}
 
 	/** Translates String collections to comma separated lists of strings, not really intended to be used (no escaping) */
 	private static class CommaSeparatedStringCollectionTranslatorFactory implements TranslatorFactory<Collection<String>, String> {
 		@Override
-		public Translator<Collection<String>, String> create(TypeKey<Collection<String>> tk, CreateContext ctx, Path path) {
+		public Translator<Collection<String>, String> create(final TypeKey<Collection<String>> tk, final CreateContext ctx, final Path path) {
 			if (!tk.isAssignableTo(Collection.class))
 				return null;
 
 			if (GenericTypeReflector.getTypeParameter(tk.getType(), Collection.class.getTypeParameters()[0]) != String.class)
 				return null;
 
-			return new ValueTranslator<Collection<String>, String>(String.class) {
+			return new ValueTranslator<Collection<String>, String>(ValueType.STRING) {
 				@Override
-				protected Collection<String> loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-					String[] split = value.split(",");
+				protected Collection<String> loadValue(final Value<String> value, final LoadContext ctx, final Path path) throws SkipException {
+					final String[] split = value.get().split(",");
 					return Arrays.asList(split);
 				}
 
 				@Override
-				protected String saveValue(Collection<String> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-					StringBuilder bld = new StringBuilder();
+				protected Value<String> saveValue(final Collection<String> value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+					final StringBuilder bld = new StringBuilder();
 					boolean afterFirst = false;
 
 					for (String str: value) {
@@ -89,7 +87,7 @@ class TranslateAnnotationTests extends TestBase {
 						bld.append(str.toUpperCase());
 					}
 
-					return bld.toString();
+					return StringValue.of(bld.toString());
 				}
 			};
 		}
@@ -119,8 +117,8 @@ class TranslateAnnotationTests extends TestBase {
 
 		assertThat(fetched.getString()).isEqualTo("BAR");
 
-		final com.google.appengine.api.datastore.Entity entity = ds().get(Key.create(ht).getRaw());
-		assertThat(entity.getProperty("string")).isEqualTo("FOOBAR");
+		final com.google.cloud.datastore.Entity entity = datastore().get(Key.create(ht).getRaw());
+		assertThat(entity.getString("string")).isEqualTo("FOOBAR");
 	}
 
 	/** */
@@ -147,7 +145,7 @@ class TranslateAnnotationTests extends TestBase {
 
 		assertThat(fetched.strings).isEqualTo(Arrays.asList("FOO", "BAR"));
 
-		final com.google.appengine.api.datastore.Entity entity = ds().get(Key.create(ht).getRaw());
-		assertThat(entity.getProperty("strings")).isEqualTo("FOO,BAR");
+		final com.google.cloud.datastore.Entity entity = datastore().get(Key.create(ht).getRaw());
+		assertThat(entity.getString("strings")).isEqualTo("FOO,BAR");
 	}
 }

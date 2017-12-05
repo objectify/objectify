@@ -1,13 +1,9 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
-import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.translate.CreateContext;
-import com.googlecode.objectify.impl.translate.LoadContext;
-import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.impl.translate.SkipException;
-import com.googlecode.objectify.impl.translate.TypeKey;
-import com.googlecode.objectify.impl.translate.ValueTranslator;
-import com.googlecode.objectify.impl.translate.ValueTranslatorFactory;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
 import org.joda.money.BigMoney;
 
 /**
@@ -19,24 +15,19 @@ import org.joda.money.BigMoney;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BigMoneyStringTranslatorFactory extends ValueTranslatorFactory<BigMoney, String>
+public class BigMoneyStringTranslatorFactory extends SimpleValueTranslatorFactory<BigMoney, String>
 {
 	public BigMoneyStringTranslatorFactory() {
-		super(BigMoney.class);
+		super(BigMoney.class, ValueType.STRING);
 	}
-	
-	@Override
-	protected ValueTranslator<BigMoney, String> createValueTranslator(TypeKey<BigMoney> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<BigMoney, String>(String.class) {
-			@Override
-			protected BigMoney loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-				return BigMoney.parse(value);
-			}
 
-			@Override
-			protected String saveValue(BigMoney value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.toString();
-			}
-		};
+	@Override
+	protected BigMoney toPojo(final Value<String> value) {
+		return BigMoney.parse(value.get());
+	}
+
+	@Override
+	protected Value<String> toDatastore(final BigMoney value) {
+		return StringValue.of(value.toString());
 	}
 }

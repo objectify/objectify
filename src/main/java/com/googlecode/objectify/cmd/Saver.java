@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 
@@ -52,5 +52,5 @@ public interface Saver
 	 * @param pojo must be an instance of a registered pojo entity type.
 	 * @return the native datastore Entity equivalent of the pojo; exactly what Objectify would save if you saved the POJO normally.
 	 */
-	Entity toEntity(Object pojo);
+	FullEntity toEntity(Object pojo);
 }

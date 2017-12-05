@@ -3,13 +3,12 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Query;
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.GAEExtensionEventual;
+import com.googlecode.objectify.test.util.LocalDatastoreExtensionEventual;
 import com.googlecode.objectify.test.util.MockitoExtension;
 import com.googlecode.objectify.test.util.ObjectifyExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +30,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
  */
 @ExtendWith({
 		MockitoExtension.class,
-		GAEExtensionEventual.class,
+		LocalDatastoreExtensionEventual.class,
 		ObjectifyExtension.class,
 })
 class QueryEventualityTests {
@@ -54,9 +53,8 @@ class QueryEventualityTests {
 		this.keys = new ArrayList<>(result.keySet());
 
 		// This should apply the writes
-		final Query q = new Query("Trivial");
-		final PreparedQuery pq = DatastoreServiceFactory.getDatastoreService().prepare(q);
-		pq.asList(FetchOptions.Builder.withDefaults());
+		final Query<Entity> q = Query.newEntityQueryBuilder().setKind("Trivial").build();
+		Lists.newArrayList(factory().datastore().run(q));
 
 		// For some reason this doesn't.
 		ofy().load().keys(keys).size();

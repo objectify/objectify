@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.impl.Path;
@@ -8,7 +10,7 @@ import com.googlecode.objectify.util.GenericUtils;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 
@@ -18,11 +20,11 @@ import java.util.Map;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Object>, Collection<Object>>
+public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Object>, List<? extends Value<?>>>
 {
 	@Override
-	public Translator<Map<Object, Object>, Collection<Object>> create(TypeKey<Map<Object, Object>> tk, CreateContext ctx, Path path) {
-		Mapify mapify = tk.getAnnotation(Mapify.class);
+	public Translator<Map<Object, Object>, List<? extends Value<?>>> create(final TypeKey<Map<Object, Object>> tk, final CreateContext ctx, final Path path) {
+		final Mapify mapify = tk.getAnnotation(Mapify.class);
 		if (mapify == null)
 			return null;
 
@@ -34,15 +36,15 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 
 		final ObjectifyFactory fact = ctx.getFactory();
 
-		Type componentType = GenericUtils.getMapValueType(tk.getType());
-		final Translator<Object, Object> componentTranslator = fact.getTranslators().get(new TypeKey(componentType, tk), ctx, path);
+		final Type componentType = GenericUtils.getMapValueType(tk.getType());
+		final Translator<Object, ?> componentTranslator = fact.getTranslators().get(new TypeKey(componentType, tk), ctx, path);
 
 		@SuppressWarnings("unchecked")
 		final Mapper<Object, Object> mapper = (Mapper<Object, Object>)fact.construct(mapify.value());
 
-		return new TranslatorRecycles<Map<Object, Object>, Collection<Object>>() {
+		return new TranslatorRecycles<Map<Object, Object>, List<? extends Value<?>>>() {
 			@Override
-			public Map<Object, Object> loadInto(Collection<Object> node, LoadContext ctx, Path path, Map<Object, Object> map) throws SkipException {
+			public Map<Object, Object> loadInto(final Value<List<? extends Value<?>>> node, final LoadContext ctx, final Path path, Map<Object, Object> map) throws SkipException {
 				if (node == null)
 					throw new SkipException();
 
@@ -52,11 +54,11 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 				else
 					map.clear();
 
-				for (Object child: node) {
+				for (final Value<?> child: node.get()) {
 					try {
-						Object translatedChild = componentTranslator.load(child, ctx, path);
-
-						Object key = mapper.getKey(translatedChild);
+						@SuppressWarnings("unchecked")
+						final Object translatedChild = componentTranslator.load((Value)child, ctx, path);
+						final Object key = mapper.getKey(translatedChild);
 						map.put(key, translatedChild);
 					}
 					catch (SkipException ex) {
@@ -68,17 +70,17 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 			}
 
 			@Override
-			public Collection<Object> save(Map<Object, Object> pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+			public Value<List<? extends Value<?>>> save(final Map<Object, Object> pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 
 				// If it's empty, might as well skip it - the datastore doesn't store empty lists
 				if (pojo == null || pojo.isEmpty())
 					throw new SkipException();
 
-				Collection<Object> list = new ArrayList<>(pojo.size());
+				final List<Value<?>> list = new ArrayList<>(pojo.size());
 
-				for (Object obj: pojo.values()) {
+				for (final Object obj: pojo.values()) {
 					try {
-						Object child = componentTranslator.save(obj, index, ctx, path);
+						final Value<?> child = componentTranslator.save(obj, index, ctx, path);
 						list.add(child);
 					}
 					catch (SkipException ex) {
@@ -86,7 +88,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 					}
 				}
 
-				return list;
+				return ListValue.of(list);
 			}
 		};
 	}

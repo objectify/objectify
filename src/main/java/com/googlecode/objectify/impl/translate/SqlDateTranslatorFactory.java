@@ -1,31 +1,31 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.googlecode.objectify.impl.Path;
+import com.google.cloud.Timestamp;
+import com.google.cloud.datastore.TimestampValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+
+import java.sql.Date;
 
 /**
- * The datastore can't store java.sql.Date, but it can do java.util.Date.
+ * The datastore can't store java.sql.Date natively
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class SqlDateTranslatorFactory extends ValueTranslatorFactory<java.sql.Date, java.util.Date>
+public class SqlDateTranslatorFactory extends SimpleValueTranslatorFactory<java.sql.Date, Timestamp>
 {
 	/** */
 	public SqlDateTranslatorFactory() {
-		super(java.sql.Date.class);
+		super(java.sql.Date.class, ValueType.TIMESTAMP);
 	}
 
 	@Override
-	protected ValueTranslator<java.sql.Date, java.util.Date> createValueTranslator(TypeKey<java.sql.Date> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<java.sql.Date, java.util.Date>(java.util.Date.class) {
-			@Override
-			protected java.sql.Date loadValue(java.util.Date value, LoadContext ctx, Path path) throws SkipException {
-				return new java.sql.Date(value.getTime());
-			}
+	protected Date toPojo(final Value<Timestamp> value) {
+		return new java.sql.Date(value.get().getSeconds() * 1000);
+	}
 
-			@Override
-			protected java.util.Date saveValue(java.sql.Date value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return new java.util.Date(value.getTime());
-			}
-		};
+	@Override
+	protected Value<Timestamp> toDatastore(final Date value) {
+		return TimestampValue.of(Timestamp.of(value));
 	}
 }

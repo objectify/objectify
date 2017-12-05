@@ -3,8 +3,8 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Query.Filter;
-import com.google.appengine.api.datastore.Query.FilterOperator;
+import com.google.cloud.datastore.StructuredQuery.Filter;
+import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
@@ -133,7 +133,7 @@ class QueryTests extends TestBase {
 	/** */
 	@Test
 	void filterWithLowLevelFilterObject() throws Exception {
-		final Filter filter = FilterOperator.GREATER_THAN.of("someString", triv1.getSomeString());
+		final Filter filter = PropertyFilter.gt("someString", triv1.getSomeString());
 
 		final List<Trivial> list = ofy().load().type(Trivial.class).filter(filter).list();
 		assertThat(list).containsExactly(triv2);

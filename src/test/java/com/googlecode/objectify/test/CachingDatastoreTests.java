@@ -3,17 +3,17 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.googlecode.objectify.cache.CachingAsyncDatastoreService;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Key;
+import com.googlecode.objectify.cache.CachingAsyncDatastore;
 import com.googlecode.objectify.cache.EntityMemcache;
-import com.googlecode.objectify.test.util.MockAsyncDatastoreService;
+import com.googlecode.objectify.impl.AsyncDatastore;
+import com.googlecode.objectify.impl.AsyncDatastoreImpl;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +30,10 @@ import static com.google.common.truth.Truth.assertThat;
  */
 class CachingDatastoreTests extends TestBase {
 	/** Caching */
-	private CachingAsyncDatastoreService cads;
+	private CachingAsyncDatastore cads;
 	
 	/** No datastore */
-	private CachingAsyncDatastoreService nods;
+	private CachingAsyncDatastore nods;
 
 	/** Simple bits of data to use */
 	private Key key;
@@ -46,40 +46,43 @@ class CachingDatastoreTests extends TestBase {
 	@BeforeEach
 	void setUpExtra() {
 		final EntityMemcache mc = new EntityMemcache(null);
-		cads = new CachingAsyncDatastoreService(DatastoreServiceFactory.getAsyncDatastoreService(), mc);
-		nods = new CachingAsyncDatastoreService(new MockAsyncDatastoreService(), mc);
+		cads = new CachingAsyncDatastore(new AsyncDatastoreImpl(datastore()), mc);
+		nods = new CachingAsyncDatastore(allOperationsUnsupported(), mc);
 		
-		key = KeyFactory.createKey("thing", 1);
+		key = datastore().newKeyFactory().setKind("thing").newKey(1);
 		keyInSet = Collections.singleton(key);
-		entity = new Entity(key);
-		entity.setProperty("foo", "bar");
+		entity = Entity.newBuilder(key).set("foo", "bar").build();
 		entityInList = Collections.singletonList(entity);
+	}
+
+	private AsyncDatastore allOperationsUnsupported() {
+		return (AsyncDatastore)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[] { AsyncDatastore.class }, (p, m, a) -> { throw new UnsupportedOperationException(); });
 	}
 	
 	/** */
 	@Test
 	void negativeCacheWorks() throws Exception {
-		final Future<Map<Key, Entity>> fent = cads.get(null, keyInSet);
+		final Future<Map<Key, Entity>> fent = cads.get(key);
 		assertThat(fent.get()).isEmpty();
 		
 		// Now that it's called, make sure we have a negative cache entry
-		final Future<Map<Key, Entity>> cached = nods.get(null, keyInSet);
+		final Future<Map<Key, Entity>> cached = nods.get(key);
 		assertThat(cached.get()).isEmpty();
 	}
 
 	/** */
 	@Test
 	void basicCacheWorks() throws Exception {
-		final Future<List<Key>> fkey = cads.put(null, entityInList);
+		final Future<List<Key>> fkey = cads.put(entityInList);
 		final List<Key> putResult = fkey.get();
 
-		final Future<Map<Key, Entity>> fent = cads.get(null, putResult);
+		final Future<Map<Key, Entity>> fent = cads.get(putResult);
 		final Entity fentEntity = fent.get().values().iterator().next();
-		assertThat(fentEntity.getProperty("foo")).isEqualTo("bar");
+		assertThat(fentEntity.getString("foo")).isEqualTo("bar");
 		
 		// Now make sure it is in the cache
-		final Future<Map<Key, Entity>> cached = nods.get(null, putResult);
+		final Future<Map<Key, Entity>> cached = nods.get(putResult);
 		final Entity cachedEntity = cached.get().values().iterator().next();
-		assertThat(cachedEntity.getProperty("foo")).isEqualTo("bar");
+		assertThat(cachedEntity.getString("foo")).isEqualTo("bar");
 	}
 }

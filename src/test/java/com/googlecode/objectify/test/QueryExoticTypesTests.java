@@ -60,54 +60,6 @@ class QueryExoticTypesTests extends TestBase {
 		assertThat(result).containsExactly(laterEntity);
 	}
 
-	/** */
-	@Entity
-	@Data
-	private static class HasUser {
-		@Id Long id;
-		@Index com.google.appengine.api.users.User who;
-	}
-
-	/** */
-	@Test
-	void userFiltering() throws Exception {
-		factory().register(HasUser.class);
-
-		final HasUser hu = new HasUser();
-		hu.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
-
-		ofy().save().entity(hu).now();
-
-		final List<HasUser> result = ofy().load().type(HasUser.class).filter("who", hu.who).list();
-		assertThat(result).containsExactly(hu);
-	}
-
-	/**
-	 * Deliberately confusing name.  It can't be an inner class because inner classes
-	 * have a different basename, and we had a bug relating to identical basenames for
-	 * field classes.
-	 */
-	@Entity
-	@Data
-	private static class User {
-		@Id Long id;
-		@Index com.google.appengine.api.users.User who;
-	}
-
-	/** */
-	@Test
-	void badlyNamedUserFiltering() throws Exception {
-		factory().register(User.class);
-
-		final User hu = new User();
-		hu.who = new com.google.appengine.api.users.User("samiam@gmail.com", "gmail.com");
-
-		ofy().save().entity(hu).now();
-
-		final List<User> result = ofy().load().type(User.class).filter("who", hu.who).list();
-		assertThat(result).containsExactly(hu);
-	}
-
 	/**
 	 * @author aswath satrasala
 	 */
@@ -152,7 +104,7 @@ class QueryExoticTypesTests extends TestBase {
 		cal1.set(2010, 7, 26);
 		final Date thruDate = cal1.getTime();
 		
-//		List<com.google.appengine.api.datastore.Entity> ents = new ArrayList<>(ds().prepare(new com.google.appengine.api.datastore.Query()).asList(FetchOptions.Builder.withDefaults()));
+//		List<com.google.cloud.datastore.Entity> ents = new ArrayList<>(ds().prepare(new com.google.cloud.datastore.Query()).asList(FetchOptions.Builder.withDefaults()));
 
 		final Query<HasFromThruDate> q =
 			ofy().load().type(HasFromThruDate.class)

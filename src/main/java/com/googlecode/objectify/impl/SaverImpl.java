@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.Saver;
@@ -64,9 +64,9 @@ public class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#toEntity(java.lang.Object)
 	 */
 	@Override
-	public Entity toEntity(final Object pojo) {
-		if (pojo instanceof Entity) {
-			return (Entity)pojo;
+	public FullEntity toEntity(final Object pojo) {
+		if (pojo instanceof FullEntity) {
+			return (FullEntity)pojo;
 		} else {
 			@SuppressWarnings("unchecked")
 			final EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());

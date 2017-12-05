@@ -1,26 +1,26 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.common.primitives.Primitives;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
+import lombok.RequiredArgsConstructor;
 
 /**
- * Provides a little boilerplate for translators that work on simple atomic types.
+ * Provides a little boilerplate for translators that work on simple atomic types. Automatically
+ * wraps primitives so we don't have to worry about them.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@RequiredArgsConstructor
 abstract public class ValueTranslatorFactory<P, D> implements TranslatorFactory<P, D>
 {
 	/** */
-	Class<? extends P> pojoType;
+	private final Class<? extends P> pojoType;
 	
-	/** */
-	protected ValueTranslatorFactory(Class<? extends P> pojoType) {
-		this.pojoType = pojoType;
-	}
-
 	@Override
-	final public Translator<P, D> create(TypeKey<P> tk, CreateContext ctx, Path path) {
-		if (this.pojoType.isAssignableFrom(GenericTypeReflector.erase(tk.getType()))) {
+	final public Translator<P, D> create(final TypeKey<P> tk, final CreateContext ctx, final Path path) {
+		final Class<P> clazz = Primitives.wrap(tk.getTypeAsClass());
+
+		if (this.pojoType.isAssignableFrom(clazz)) {
 			return createValueTranslator(tk, ctx, path);
 		} else {
 			return null;

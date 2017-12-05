@@ -3,8 +3,9 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.AlsoLoad;
 import com.googlecode.objectify.annotation.Cache;
@@ -111,11 +112,12 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadOnFieldWorks() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
-		ent.setProperty("oldStuff", "oldStuff");
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasAlsoLoads.class)
+				.set("oldStuff", "oldStuff")
+				.build();
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
 
-		final Key<HasAlsoLoads> key = Key.create(ent.getKey());
+		final Key<HasAlsoLoads> key = Key.create(gkey);
 		final HasAlsoLoads fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.getStuff()).isEqualTo("oldStuff");
@@ -125,13 +127,14 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadThrowsExceptionIfDuplicateKey() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
-		ent.setProperty("stuff", "stuff");
-		ent.setProperty("oldStuff", "oldStuff");
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasAlsoLoads.class)
+				.set("stuff", "stuff")
+				.set("oldStuff", "oldStuff")
+				.build();
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
 
 		assertThrows(Exception.class, () -> {
-			final Key<HasAlsoLoads> key = Key.create(ent.getKey());
+			final Key<HasAlsoLoads> key = Key.create(gkey);
 			ofy().load().key(key).now();
 		}, "Shouldn't be able to read data duplicated with @AlsoLoad");
 	}
@@ -139,11 +142,12 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadOnMethodWorks() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasAlsoLoads.class));
-		ent.setProperty("weirdStuff", "5");
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasAlsoLoads.class)
+				.set("weirdStuff", "5")
+				.build();
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
 
-		final Key<HasAlsoLoads> key = Key.create(ent.getKey());
+		final Key<HasAlsoLoads> key = Key.create(gkey);
 		final HasAlsoLoads fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.getWeird()).isEqualTo(5);
@@ -152,12 +156,14 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadWorksWithinEmbeddedObjects() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasEmbedded.class));
-		ent.setProperty("fieldUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
-		ent.setProperty("methodUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasEmbedded.class)
+			.set("fieldUser", makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)))
+			.set("methodUser", makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)))
+			.build();
 
-		final Key<HasEmbedded> key = Key.create(ent.getKey());
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<HasEmbedded> key = Key.create(gkey);
 		final HasEmbedded fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.fieldUser.foo).isEqualTo(TEST_VALUE);
@@ -167,12 +173,14 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadWorksWithinAlsoLoadEmbeddedObjects() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasEmbedded.class));
-		ent.setProperty("oldFieldUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
-		ent.setProperty("oldMethodUser", makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE));
-		ds().put(ent);
+		final FullEntity<?> ent = makeEntity(HasEmbedded.class)
+				.set("oldFieldUser", makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)))
+				.set("oldMethodUser", makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)))
+				.build();
 
-		final Key<HasEmbedded> key = Key.create(ent.getKey());
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<HasEmbedded> key = Key.create(gkey);
 		final HasEmbedded fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.fieldUser.foo).isEqualTo(TEST_VALUE);
@@ -182,16 +190,19 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadWorksWithinEmbeddedArrays() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
-		final List<EmbeddedEntity> list = Arrays.asList(
-			makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE),
-			makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE)
+		final List<Value<FullEntity<?>>> list = Arrays.asList(
+			makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)),
+			makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE))
 		);
-		ent.setProperty("fieldUsers", list);
-		ent.setProperty("methodUsers", list);
-		ds().put(ent);
 
-		final Key<HasEmbeddedArray> key = Key.create(ent.getKey());
+		final FullEntity<?> ent = makeEntity(HasEmbeddedArray.class)
+				.set("fieldUsers", list)
+				.set("methodUsers", list)
+				.build();
+
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<HasEmbeddedArray> key = Key.create(gkey);
 		final HasEmbeddedArray fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.fieldUsers).asList()
@@ -204,16 +215,19 @@ class AlsoLoadTests extends TestBase {
 	/** */
 	@Test
 	void alsoLoadWorksWithinAlsoLoadEmbeddedArrays() throws Exception {
-		final Entity ent = new Entity(Key.getKind(HasEmbeddedArray.class));
-		final List<EmbeddedEntity> list = Arrays.asList(
-				makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE),
-				makeEmbeddedEntityWithProperty("oldFoo", TEST_VALUE)
+		final List<Value<FullEntity<?>>> list = Arrays.asList(
+				makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE)),
+				makeEmbeddedEntityWithProperty("oldFoo", StringValue.of(TEST_VALUE))
 		);
-		ent.setProperty("oldFieldUsers", list);
-		ent.setProperty("oldMethodUsers", list);
-		ds().put(ent);
 
-		final Key<HasEmbeddedArray> key = Key.create(ent.getKey());
+		final FullEntity<?> ent = makeEntity(HasEmbeddedArray.class)
+				.set("oldFieldUsers", list)
+				.set("oldMethodUsers", list)
+				.build();
+
+		final com.google.cloud.datastore.Key gkey = datastore().put(ent).getKey();
+
+		final Key<HasEmbeddedArray> key = Key.create(gkey);
 		final HasEmbeddedArray fetched = ofy().load().key(key).now();
 
 		assertThat(fetched.fieldUsers).asList()

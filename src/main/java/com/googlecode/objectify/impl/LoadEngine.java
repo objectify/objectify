@@ -1,20 +1,21 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.AsyncDatastoreService;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Transaction;
+import com.google.cloud.datastore.BaseEntity;
+import com.google.cloud.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
+
+import static com.googlecode.objectify.impl.Keys.toArray;
 
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
@@ -23,12 +24,12 @@ import java.util.logging.Level;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Log
+@Slf4j
 public class LoadEngine
 {
 	/** */
 	final ObjectifyImpl ofy;
-	private final AsyncDatastoreService ads;
+	private final AsyncDatastoreReaderWriter datastore;
 	private final Session session;
 	private final LoadArrangement loadArrangement;
 
@@ -37,16 +38,19 @@ public class LoadEngine
 
 	/**
 	 */
-	public LoadEngine(ObjectifyImpl ofy, Session session, AsyncDatastoreService ads, LoadArrangement loadArrangement) {
+	public LoadEngine(
+			final ObjectifyImpl ofy,
+			final Session session,
+			final AsyncDatastoreReaderWriter datastore,
+			final LoadArrangement loadArrangement) {
 		this.ofy = ofy;
 		this.session = session;
-		this.ads = ads;
+		this.datastore = datastore;
 		this.loadArrangement = loadArrangement;
 
 		this.round = new Round(this, 0);
 
-		if (log.isLoggable(Level.FINEST))
-			log.finest("Starting load engine with groups " + loadArrangement);
+		log.trace("Starting load engine with groups {}", loadArrangement);
 	}
 
 	/**
@@ -58,16 +62,16 @@ public class LoadEngine
 		if (key == null)
 			throw new NullPointerException("You tried to load a null key!");
 
-		Result<T> result = round.get(key);
+		final Result<T> result = round.get(key);
 
 		// If we are running a transaction, enlist the result so that it gets processed on commit even
 		// if the client never materializes the result.
 		if (ofy.getTransaction() != null)
-			ofy.getTransaction().enlist(result);
+			((PrivateAsyncTransaction)ofy.getTransaction()).enlist(result);
 
 		// Now check to see if we need to recurse and add our parent(s) to the round
 		if (key.getParent() != null) {
-			KeyMetadata<?> meta = ofy.factory().keys().getMetadata(key);
+			final KeyMetadata<?> meta = ofy.factory().keys().getMetadata(key);
 			// Is it really possible for this to be null?
 			if (meta != null) {
 				if (meta.shouldLoadParent(loadArrangement)) {
@@ -95,8 +99,8 @@ public class LoadEngine
 	 *
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
-	public <T> Ref<T> makeRef(Key<?> rootEntity, LoadConditions loadConditions, Key<T> key) {
-		Ref<T> ref = new LiveRef<>(key, ofy);
+	public <T> Ref<T> makeRef(final Key<?> rootEntity, final LoadConditions loadConditions, final Key<T> key) {
+		final Ref<T> ref = new LiveRef<>(key, ofy);
 
 		if (shouldLoad(loadConditions)) {
 			load(key);
@@ -108,7 +112,7 @@ public class LoadEngine
 	/**
 	 * @return true if the specified property should be loaded in this batch
 	 */
-	public boolean shouldLoad(LoadConditions loadConditions) {
+	public boolean shouldLoad(final LoadConditions loadConditions) {
 		return loadConditions.shouldLoad(loadArrangement, ofy.getTransaction() != null);
 	}
 
@@ -116,29 +120,29 @@ public class LoadEngine
 	 * Stuffs an Entity into a place where values in the round can be obtained instead of going to the datastore.
 	 * Called by non-hybrid queries to add results and eliminate batch fetching.
 	 */
-	public void stuff(Entity ent) {
+	public void stuff(final Entity ent) {
 		round.stuff(ent);
 	}
 
 	/**
 	 * Asynchronously translate raw to processed; might produce successive load operations as refs are filled in
 	 */
-	public Result<Map<Key<?>, Object>> translate(final Result<Map<com.google.appengine.api.datastore.Key, Entity>> raw) {
+	public Result<Map<Key<?>, Object>> translate(final Result<Map<com.google.cloud.datastore.Key, Entity>> raw) {
 		return new ResultCache<Map<Key<?>, Object>>() {
 
 			/** */
-			LoadContext ctx;
+			private LoadContext ctx;
 
 			/** */
 			@Override
 			public Map<Key<?>, Object> nowUncached() {
-				Map<Key<?>, Object> result = new HashMap<>(raw.now().size() * 2);
+				final Map<Key<?>, Object> result = new HashMap<>(raw.now().size() * 2);
 
 				ctx = new LoadContext(LoadEngine.this);
 
-				for (Entity ent: raw.now().values()) {
-					Key<?> key = Key.create(ent.getKey());
-					Object entity = load(ent, ctx);
+				for (final Entity ent: raw.now().values()) {
+					final Key<?> key = Key.create(ent.getKey());
+					final Object entity = load(ent, ctx);
 					result.put(key, entity);
 				}
 
@@ -160,12 +164,10 @@ public class LoadEngine
 	/**
 	 * Fetch the keys from the async datastore using the current transaction context
 	 */
-	public Result<Map<com.google.appengine.api.datastore.Key, Entity>> fetch(Set<com.google.appengine.api.datastore.Key> keys) {
-		Transaction txn = (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
+	public Result<Map<com.google.cloud.datastore.Key, Entity>> fetch(Set<com.google.cloud.datastore.Key> keys) {
+		log.debug("Fetching {} keys: {}", keys.size(), keys);
 
-		log.log(Level.FINER, "Fetching " + keys.size() + " keys" + (txn == null ? ": " : " in txn: ") + keys);
-
-		Future<Map<com.google.appengine.api.datastore.Key, Entity>> fut = ads.get(txn, keys);
+		final Future<Map<com.google.cloud.datastore.Key, Entity>> fut = datastore.get(toArray(keys));
 		return ResultAdapter.create(fut);
 	}
 
@@ -174,11 +176,11 @@ public class LoadEngine
 	 * @return an assembled pojo, or the Entity itself if the kind is not registered, or null if the input value was null
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> T load(Entity ent, LoadContext ctx) {
+	public <T> T load(final BaseEntity<com.google.cloud.datastore.Key> ent, final LoadContext ctx) {
 		if (ent == null)
 			return null;
 
-		EntityMetadata<T> meta = ofy.factory().getMetadata(ent.getKind());
+		final EntityMetadata<T> meta = ofy.factory().getMetadata(ent.getKey().getKind());
 		if (meta == null)
 			return (T)ent;
 		else

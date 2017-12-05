@@ -1,35 +1,88 @@
 package com.googlecode.objectify.util.cmd;
 
-import com.google.appengine.api.datastore.Transaction;
+import com.google.cloud.datastore.Datastore;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.Key;
+import com.google.cloud.datastore.Query;
+import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.Transaction;
+import lombok.Data;
 
-import java.util.concurrent.Future;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Simple pass-through to the base methods. 
  */
-public class TransactionWrapper implements Transaction
-{
+@Data
+public class TransactionWrapper implements Transaction {
 	/** The real implementation */
-	Transaction raw;
-	
-	/** */
-	public TransactionWrapper(Transaction raw) {
-		this.raw = raw;
-	}
+	private final Transaction raw;
 
-	/** Just in case something needs this */
-	public Transaction getRaw() {
-		return this.raw;
-	}
-	
 	@Override
-	public void commit() {
-		this.raw.commit();
+	public Entity get(final Key key) {
+		return raw.get(key);
 	}
 
 	@Override
-	public String getId() {
-		return this.raw.getId();
+	public Iterator<Entity> get(final Key... key) {
+		return raw.get(key);
+	}
+
+	@Override
+	public List<Entity> fetch(final Key... keys) {
+		return raw.fetch(keys);
+	}
+
+	@Override
+	public <T> QueryResults<T> run(final Query<T> query) {
+		return raw.run(query);
+	}
+
+	@Override
+	public void addWithDeferredIdAllocation(final FullEntity<?>... entities) {
+		raw.addWithDeferredIdAllocation(entities);
+	}
+
+	@Override
+	public Entity add(final FullEntity<?> entity) {
+		return raw.add(entity);
+	}
+
+	@Override
+	public List<Entity> add(final FullEntity<?>... entities) {
+		return raw.add(entities);
+	}
+
+	@Override
+	public void update(final Entity... entities) {
+		raw.update(entities);
+	}
+
+	@Override
+	public void delete(final Key... keys) {
+		raw.delete(keys);
+	}
+
+	@Override
+	public void putWithDeferredIdAllocation(final FullEntity<?>... entities) {
+		raw.putWithDeferredIdAllocation(entities);
+	}
+
+	@Override
+	public Entity put(final FullEntity<?> entity) {
+		return raw.put(entity);
+	}
+
+	@Override
+	public List<Entity> put(final FullEntity<?>... entities) {
+		return raw.put(entities);
+	}
+
+	@Override
+	public Response commit() {
+		return this.raw.commit();
 	}
 
 	@Override
@@ -38,22 +91,12 @@ public class TransactionWrapper implements Transaction
 	}
 
 	@Override
+	public Datastore getDatastore() {
+		return raw.getDatastore();
+	}
+
+	@Override
 	public void rollback() {
 		this.raw.rollback();
-	}
-
-	@Override
-	public String getApp() {
-		return this.raw.getApp();
-	}
-
-	@Override
-	public Future<Void> commitAsync() {
-		return this.raw.commitAsync();
-	}
-
-	@Override
-	public Future<Void> rollbackAsync() {
-		return this.raw.rollbackAsync();
 	}
 }

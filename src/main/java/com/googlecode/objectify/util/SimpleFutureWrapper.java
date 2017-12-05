@@ -1,7 +1,5 @@
 package com.googlecode.objectify.util;
 
-import com.google.appengine.api.utils.FutureWrapper;
-
 import java.util.concurrent.Future;
 
 /**

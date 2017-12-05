@@ -6,7 +6,6 @@ package com.googlecode.objectify;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public interface Work<R>
-{
+public interface Work<R> {
 	R run();
 }

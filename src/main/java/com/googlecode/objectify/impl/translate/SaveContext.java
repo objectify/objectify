@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.Key;
+import com.google.cloud.datastore.Key;
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.Value;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.SetMultimap;
 import com.googlecode.objectify.Ref;
@@ -21,20 +23,20 @@ public class SaveContext
 	 * Track all indexed values here. We may need to use some of this data to create synthetic
 	 * indexes at the top level (ie, dot-separated indexes for v2 embedded saves).
 	 */
-	private final SetMultimap<Path, Object> indexes = HashMultimap.create();
+	private final SetMultimap<Path, Value<?>> indexes = HashMultimap.create();
 
 	/**
 	 * @param object can be either a single thing or an iterable list of things to index at this path
 	 */
-	public void addIndex(Path path, Object object) {
-		if (object instanceof Iterable<?>)
-			indexes.putAll(path, (Iterable<?>)object);
+	public void addIndex(final Path path, final Value<?> object) {
+		if (object instanceof ListValue)
+			indexes.putAll(path, ((ListValue)object).get());
 		else
 			indexes.put(path, object);
 	}
 	
 	/** */
-	public Map<Path, Collection<Object>> getIndexes() {
+	public Map<Path, Collection<Value<?>>> getIndexes() {
 		return indexes.asMap();
 	}
 
@@ -49,7 +51,7 @@ public class SaveContext
 	 * Callback that we found a Ref in the object graph. Subclasses of this context may want to do something
 	 * special with this.
 	 */
-	public Key saveRef(Ref<?> value, LoadConditions loadConditions) {
+	public Key saveRef(final Ref<?> value, final LoadConditions loadConditions) {
 		return value.key().getRaw();
 	}
 

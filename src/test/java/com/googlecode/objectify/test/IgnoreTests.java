@@ -1,6 +1,6 @@
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
@@ -40,8 +40,10 @@ class IgnoreTests extends TestBase {
 		assertThat(fetched.transientKeyword).isEqualTo(42);	// persisted normally
 		assertThat(fetched.ignoreAnnotation).isEqualTo(0);	// would fail without session clear
 
-		final Entity e = ds().get(null, Key.create(fetched).getRaw());
+		final Entity e = datastore().get(Key.create(fetched).getRaw());
 
-		assertThat(e.getProperties()).containsExactly("name", "saved", "transientKeyword", 42L);
+		assertThat(e.getString("name")).isEqualTo("saved");
+		assertThat(e.getLong("transientKeyword")).isEqualTo(42L);
+		assertThat(e.getNames()).doesNotContain("ignoreAnnotation");
 	}
 }

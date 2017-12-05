@@ -18,23 +18,20 @@ public class ResultAdapter<T> implements Result<T>
 	}
 
 	/** */
-	Future<T> future;
+	private final Future<T> future;
 
 	/** */
-	public ResultAdapter(Future<T> fut)
+	public ResultAdapter(final Future<T> fut)
 	{
 		this.future = fut;
 	}
 
 	@Override
-	public T now()
-	{
-		try
-		{
+	public T now() {
+		try {
 			return this.future.get();
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			FutureHelper.unwrapAndThrow(e);
 			return null;	// make compiler happy
 		}

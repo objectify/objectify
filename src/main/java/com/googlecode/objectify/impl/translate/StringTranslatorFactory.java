@@ -1,71 +1,30 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.DataTypeUtils;
-import com.google.appengine.api.datastore.Text;
-import com.googlecode.objectify.impl.Path;
-import lombok.extern.java.Log;
-
-import java.nio.charset.StandardCharsets;
-import java.util.logging.Level;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+import lombok.extern.slf4j.Slf4j;
 
 
 /**
- * Knows how to convert Strings.  Datastore representation might be String or it might be Text.
- * Will work with anything that's in the datastore just by calling toString() on what we get back;
- * convenient for converting between say Number and the String representation, possibly dangerous
- * otherwise. 
+ * Knows how to convert Strings. Thankfully, string handling in the new cloud SDK is much simpler;
+ * there is no longer a Text type.
  */
-@Log
-public class StringTranslatorFactory extends ValueTranslatorFactory<String, Object>
+@Slf4j
+public class StringTranslatorFactory extends SimpleValueTranslatorFactory<String, String>
 {
-	/**
-	 * Maximum number of BYTES we can store in a String before we have to convert to Text.
-	 */
-	public static final int MAX_STRING_BYTES = DataTypeUtils.MAX_STRING_PROPERTY_LENGTH;
-
-	/**
-	 * Google isn't explicit that UTF-8 encoding is used, but it's a safe assumption. Worst case is
-	 * 4 bytes per character. So if we have more than that number of chars, we have to convert to
-	 * UTF-8 to test the actual length.
-	 */
-	public static final int SAFE_STRING_CHARS = 1500 / 4;
-
 	/** */
 	public StringTranslatorFactory() {
-		super(String.class);
+		super(String.class, ValueType.STRING);
 	}
-	
+
 	@Override
-	protected ValueTranslator<String, Object> createValueTranslator(TypeKey<String> tk, CreateContext ctx, Path path) {
-		return new ValueTranslator<String, Object>(Object.class, String.class) {
-			@Override
-			protected String loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
-				if (value instanceof Text)
-					return ((Text)value).getValue();
-				else
-					return value.toString();
-			}
+	protected String toPojo(final Value<String> value) {
+		return value.get();
+	}
 
-			@Override
-			protected Object saveValue(String value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				// Check to see if it's too long and needs to be Text instead
-				if (needsConversion(value)) {
-					if (index)
-						log.log(Level.WARNING, "Attempt to index a String which has been automatically converted to Text. The property is at " + path);
-
-					return new Text(value);
-				} else {
-					return value;
-				}
-			}
-
-			private boolean needsConversion(final String value) {
-				if (value.length() < SAFE_STRING_CHARS)
-					return false;
-
-				final byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
-				return bytes.length > MAX_STRING_BYTES;
-			}
-		};
+	@Override
+	protected Value<String> toDatastore(final String value) {
+		return StringValue.of(value);
 	}
 }

@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.appengine.api.datastore.Cursor;
+import com.google.cloud.datastore.Cursor;
 
 
 /**
@@ -32,7 +32,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the filter
 	 */
-	public SimpleQuery<T> filterKey(String condition, Object value);
+	SimpleQuery<T> filterKey(String condition, Object value);
 
 	/**
 	 * An alias for {@code filterKey("=", value)}
@@ -42,7 +42,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the filter
 	 */
-	public SimpleQuery<T> filterKey(Object value);
+	SimpleQuery<T> filterKey(Object value);
 
 	/**
 	 * Orders results by the key.
@@ -53,7 +53,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the sort order
 	 */
-	public SimpleQuery<T> orderKey(boolean descending);
+	SimpleQuery<T> orderKey(boolean descending);
 
 	/**
 	 * Restricts result set only to objects which have the given ancestor
@@ -67,7 +67,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @param keyOrEntity can be a Key, a Key<T>, or an Objectify entity object.
 	 * @return a new immutable query object that applies the ancestor filter
 	 */
-	public SimpleQuery<T> ancestor(Object keyOrEntity);
+	SimpleQuery<T> ancestor(Object keyOrEntity);
 
 	/**
 	 * Limit the fetched result set to a certain number of values.
@@ -78,7 +78,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @param value must be >= 0.  A value of 0 indicates no limit.
 	 * @return a new immutable query object that applies the limit
 	 */
-	public SimpleQuery<T> limit(int value);
+	SimpleQuery<T> limit(int value);
 
 	/**
 	 * Starts the query results at a particular zero-based offset.  This can be extraordinarily
@@ -91,7 +91,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @param value must be >= 0
 	 * @return a new immutable query object that applies the offset
 	 */
-	public SimpleQuery<T> offset(int value);
+	SimpleQuery<T> offset(int value);
 
 	/**
 	 * Starts query results at the specified Cursor.  You can obtain a Cursor from
@@ -105,7 +105,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the cursor
 	 */
-	public SimpleQuery<T> startAt(Cursor value);
+	SimpleQuery<T> startAt(Cursor value);
 
 	/**
 	 * Ends query results at the specified Cursor.  You can obtain a Cursor from
@@ -119,7 +119,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the cursor
 	 */
-	public SimpleQuery<T> endAt(Cursor value);
+	SimpleQuery<T> endAt(Cursor value);
 
 	/**
 	 * Sets the internal chunking and prefetching strategy within the low-level API.  Affects
@@ -131,7 +131,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @param value must be >= 0
 	 * @return a new immutable query object that applies the chunk size
 	 */
-	public SimpleQuery<T> chunk(int value);
+	SimpleQuery<T> chunk(int value);
 
 	/**
 	 * <p>Sets the internal chunking and prefetching strategy within the low-level API to attempt to get all
@@ -144,7 +144,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the chunk size
 	 */
-	public SimpleQuery<T> chunkAll();
+	SimpleQuery<T> chunkAll();
 
 	/**
 	 * <p>Converts this query into a <a href="https://developers.google.com/appengine/docs/java/datastore/projectionqueries">projection query</a>.
@@ -160,7 +160,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * @param fields is one or more field names
 	 * @return a new immutable query object that projects the specified fields
 	 */
-	public SimpleQuery<T> project(String... fields);
+	SimpleQuery<T> project(String... fields);
 
 	/**
 	 * Determines whether this is a SELECT DISTINCT query.
@@ -170,18 +170,8 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that applies the distinct operator
 	 */
-	public SimpleQuery<T> distinct(boolean value);
+	SimpleQuery<T> distinct(boolean value);
 	
-	/**
-	 * Reverse the query, as described in the <a href="https://developers.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/Query#reverse()">GAE docs</a>.
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
-	 * current command object.</b></p>
-	 *
-	 * @return a new immutable query object that reverses the order of results
-	 */
-	public SimpleQuery<T> reverse();
-
 	/**
 	 * <p>This method forces Objectify to (or not to) hybridize the query into a keys-only fetch plus batch get.</p>
 	 *
@@ -215,7 +205,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that forces hybridization on or off
 	 */
-	public SimpleQuery<T> hybrid(boolean force);
+	SimpleQuery<T> hybrid(boolean force);
 
 	/**
 	 * Switches to a keys-only query.  Keys-only responses are billed as "minor datastore operations"
@@ -226,7 +216,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * @return a new immutable query object that returns keys rather than whole entities
 	 */
-	public QueryKeys<T> keys();
+	QueryKeys<T> keys();
 
 	/**
 	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.
@@ -238,7 +228,7 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Even though these
 	 * are free, they may take significant time because they require an index walk.</p>
 	 */
-	public int count();
+	int count();
 
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
@@ -247,5 +237,5 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	 *
 	 * <p>In particular, this value is useful as a key for a simple memcache query cache.</p>
 	 */
-	public String toString();
+	String toString();
 }

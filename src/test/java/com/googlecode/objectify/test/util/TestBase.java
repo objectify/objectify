@@ -3,12 +3,16 @@
 
 package com.googlecode.objectify.test.util;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.EmbeddedEntity;
+import com.google.cloud.datastore.Datastore;
+import com.google.cloud.datastore.EntityValue;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.impl.AsyncDatastore;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
@@ -19,20 +23,22 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
  */
 @ExtendWith({
 		MockitoExtension.class,
-		GAEExtension.class,
+		LocalDatastoreExtension.class,
 		ObjectifyExtension.class,
 })
 public class TestBase {
 	/** */
-	protected EmbeddedEntity makeEmbeddedEntityWithProperty(String name, Object value) {
-		EmbeddedEntity emb = new EmbeddedEntity();
-		emb.setProperty(name, value);
-		return emb;
+	protected Value<FullEntity<?>> makeEmbeddedEntityWithProperty(final String name, final Value<?> value) {
+		return EntityValue.of(FullEntity.newBuilder().set(name, value).build());
 	}
 
 	/** */
-	protected DatastoreService ds() {
-		return DatastoreServiceFactory.getDatastoreService();
+	protected Datastore datastore() {
+		return factory().datastore();
+	}
+
+	protected AsyncDatastore asyncDatastore() {
+		return factory().asyncDatastore();
 	}
 
 	/** */
@@ -40,5 +46,16 @@ public class TestBase {
 		final Key<E> key = ofy().save().entity(thing).now();
 		ofy().clear();
 		return ofy().load().key(key).now();
+	}
+
+	/** */
+	protected FullEntity.Builder<?> makeEntity(final Class<?> kind) {
+		return makeEntity(Key.getKind(kind));
+	}
+
+	/** */
+	protected FullEntity.Builder<?> makeEntity(final String kind) {
+		final IncompleteKey incompleteKey = factory().datastore().newKeyFactory().setKind(kind).newKey();
+		return FullEntity.newBuilder(incompleteKey);
 	}
 }

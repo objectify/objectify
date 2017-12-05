@@ -3,10 +3,6 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.memcache.AsyncMemcacheService;
-import com.google.appengine.api.memcache.IMemcacheServiceFactory;
-import com.google.appengine.api.memcache.MemcacheService;
-import com.google.appengine.api.memcache.MemcacheServiceFactory;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
@@ -14,6 +10,8 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.cache.EntityMemcache;
+import com.googlecode.objectify.cache.tmp.IMemcacheServiceFactory;
+import com.googlecode.objectify.cache.tmp.MemcacheService;
 import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.Closeable;
@@ -79,7 +77,7 @@ class CachingUncacheableTests extends TestBase {
 	 */
 	@BeforeEach
 	void setUpExtra() {
-		counter = new CallCounter(MemcacheServiceFactory.getAsyncMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE));
+		counter = new CallCounter(null);//(MemcacheServiceFactory.getAsyncMemcacheService(ObjectifyFactory.MEMCACHE_NAMESPACE));
 
 		final MemcacheService proxy = (MemcacheService)Proxy.newProxyInstance(
 				this.getClass().getClassLoader(),
@@ -91,11 +89,6 @@ class CachingUncacheableTests extends TestBase {
 			@Override
 			public MemcacheService getMemcacheService(final String s) {
 				return proxy;
-			}
-
-			@Override
-			public AsyncMemcacheService getAsyncMemcacheService(final String s) {
-				throw new UnsupportedOperationException();
 			}
 		});
 

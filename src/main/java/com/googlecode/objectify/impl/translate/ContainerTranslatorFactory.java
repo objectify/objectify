@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.annotation.Container;
 import com.googlecode.objectify.impl.Path;
+import lombok.RequiredArgsConstructor;
 
 
 /**
@@ -13,27 +15,24 @@ import com.googlecode.objectify.impl.Path;
  */
 public class ContainerTranslatorFactory implements TranslatorFactory<Object, Object>
 {
+	@RequiredArgsConstructor
 	private static class ContainerTranslator implements Translator<Object, Object>, Synthetic {
 		private final TypeKey<Object> tk;
 
-		public ContainerTranslator(TypeKey<Object> tk) {
-			this.tk = tk;
-		}
-
 		@Override
-		public Object load(Object node, LoadContext ctx, Path path) throws SkipException {
+		public Object load(final Value<Object> node, final LoadContext ctx, final Path path) throws SkipException {
 			return ctx.getContainer(tk.getType(), path);
 		}
 
 		@Override
-		public Object save(Object pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
+		public Value<Object> save(final Object pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 			// We never save these
 			throw new SkipException();
 		}
 	}
 
 	@Override
-	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
+	public Translator<Object, Object> create(final TypeKey<Object> tk, final CreateContext ctx, final Path path) {
 
 		if (!tk.isAnnotationPresent(Container.class))
 			return null;

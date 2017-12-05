@@ -1,7 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.PropertyContainer;
 
 /**
  * <p>A populator knows how to copy properties between POJO objects and a PropertiesContainer.

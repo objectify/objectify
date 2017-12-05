@@ -3,10 +3,9 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.Query;
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -34,9 +33,8 @@ class QueryBasicTests extends TestBase {
 		final Trivial triv = new Trivial(123L, "foo", 12);
 		ofy().save().entity(triv).now();
 
-		final Query q = new Query("Trivial");
-		final PreparedQuery pq = ds().prepare(q);
-		final List<Entity> stuff = pq.asList(FetchOptions.Builder.withDefaults());
+		final Query<Entity> q = Query.newEntityQueryBuilder().setKind("Trivial").build();
+		final List<Entity> stuff = Lists.newArrayList(datastore().run(q));
 		assertThat(stuff).hasSize(1);
 
 		assertThat(ofy().load().type(Trivial.class)).containsExactly(triv);

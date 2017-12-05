@@ -3,8 +3,7 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Blob;
-import com.google.appengine.api.datastore.ReadPolicy.Consistency;
+import com.google.cloud.datastore.Blob;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.SaveException;
@@ -148,15 +147,6 @@ class BasicTests extends TestBase {
 
 		final List<Employee> subordinates = ofy().load().type(Employee.class).filter("manager", fred).list();
 		assertThat(subordinates).hasSize(100);
-	}
-
-	/** */
-	@Test
-	void saveWithConsistencySetting() throws Exception {
-		factory().register(Trivial.class);
-
-		final Trivial triv = new Trivial("foo", 5);
-		ofy().consistency(Consistency.EVENTUAL).save().entity(triv).now();
 	}
 
 	/** */
@@ -317,20 +307,38 @@ class BasicTests extends TestBase {
 		private Blob blob;
 	}
 
-	/** Just verifies that nothing bad happens; the index should be silently ignored */
+	/**
+	 * This isn't much of a test anymore; it used to be that blobs couldn't be indexed, now it's just 1500 chars
+	 * that can be indexed.
+	 */
 	@Test
-	void indexSomethingThatCannotBeIndexed() throws Exception {
+	void saveAnIndexedBlob() throws Exception {
 		factory().register(HasIndexedBlob.class);
 
 		final byte[] stuff = "asdf".getBytes();
 
 		final HasIndexedBlob hib = new HasIndexedBlob();
-		hib.blob = new Blob(stuff);
+		hib.blob = Blob.copyFrom(stuff);
 
 		final HasIndexedBlob fetched = saveClearLoad(hib);
-		final byte[] fetchedStuff = fetched.blob.getBytes();
+		final byte[] fetchedStuff = fetched.blob.toByteArray();
 
 		assertThat(fetchedStuff).isEqualTo(stuff);
 	}
 
+	@Test
+	void saveAnIndexedBlobThatIsTooLargeToBeIndexed() throws Exception {
+		factory().register(HasIndexedBlob.class);
+
+		final byte[] stuff = new byte[1501];
+		Arrays.fill(stuff, (byte)42);
+
+		final HasIndexedBlob hib = new HasIndexedBlob();
+		hib.blob = Blob.copyFrom(stuff);
+
+		final HasIndexedBlob fetched = saveClearLoad(hib);
+		final byte[] fetchedStuff = fetched.blob.toByteArray();
+
+		assertThat(fetchedStuff).isEqualTo(stuff);
+	}
 }

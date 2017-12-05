@@ -1,11 +1,10 @@
 package com.googlecode.objectify;
 
-import com.google.appengine.api.datastore.ReadPolicy.Consistency;
-import com.google.appengine.api.datastore.Transaction;
 import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
+import com.googlecode.objectify.impl.AsyncTransaction;
 
 /**
  * <p>This is the main "business end" of Objectify.  It lets you load, save, and delete your typed POJO entities.</p>
@@ -92,25 +91,6 @@ public interface Objectify
 	ObjectifyFactory factory();
 
 	/**
-	 * <p>Provides a new Objectify instance with the specified Consistency.  Generally speaking, STRONG consistency
-	 * provides more consistent results more slowly; EVENTUAL consistency produces results quickly but they
-	 * might be out of date.  See the
-	 * <a href="http://code.google.com/appengine/docs/java/javadoc/com/google/appengine/api/datastore/ReadPolicy.Consistency.html">Appengine Docs</a>
-	 * for more explanation.</p>
-	 *
-	 * <p>The new instance will inherit all other characteristics (transaction, cache policy, session cache contents, etc)
-	 * from this instance.</p>
-	 *
-	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
-	 * current command object.</b></p>
-	 *
-	 * @param policy the consistency policy to use.  STRONG load()s are more consistent but EVENTUAL load()s
-	 *  are faster.
-	 * @return a new immutable Objectify instance with the consistency policy replaced
-	 */
-	Objectify consistency(Consistency policy);
-
-	/**
 	 * <p>Provides a new Objectify instance with a limit, in seconds, for datastore calls.  If datastore calls take longer
 	 * than this amount, a timeout exception will be thrown.</p>
 	 *
@@ -122,7 +102,12 @@ public interface Objectify
 	 *
 	 * @param value - limit in seconds, or null to indicate no deadline (other than the standard whole request deadline of 30s/10m).
 	 * @return a new immutable Objectify instance with the specified deadline
+	 *
+	 * @deprecated This no longer does anything. Transport-level behavior is set via DatastoreOptions when you create
+	 * the ObjectifyFactory. Altering this would require tearing down and re-establishing connections, which will have
+	 * a negative performance impact. For better or worse, deadline is now a global setting.
 	 */
+	@Deprecated
 	Objectify deadline(Double value);
 
 	/**
@@ -158,17 +143,11 @@ public interface Objectify
 	Objectify mandatoryTransactions(boolean value);
 
 	/**
-	 * <p>Get the underlying transaction object associated with this Objectify instance.  You typically
-	 * do not need to use this; use transact() instead.</p>
-	 *
-	 * <p>Note that this is *not* the same as {@code DatastoreService.getCurrentTransaction()},
-	 * which uses the Low-Level API's implicit transaction management.  Every transactional {@code Objectify}
-	 * instance is associated with a specific {@code Transaction} object.</p>
-	 *
-	 * @return the low-level transaction associated with this Objectify instance,
-	 *  or null if no transaction is associated with this instance.
+	 * <p>This used to have meaning in the old GAE SDK but no longer does. Right now this is pretty much
+	 * only useful as a null test to see if you are currently in a transaction. This method will probably
+	 * be removed.</p>
 	 */
-	Transaction getTransaction();
+	AsyncTransaction getTransaction();
 
 	/**
 	 * @deprecated This method has very poorly defined behavior and will be removed SOON. Instead you should

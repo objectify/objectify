@@ -12,29 +12,29 @@ import java.util.Set;
  */
 abstract public class AbstractProperty implements Property
 {
-	private String name;
-	private String[] names;
-	private Annotation[] annotations;
+	private final String name;
+	private final String[] names;
+	private final Annotation[] annotations;
 	
 	/** */
-	public AbstractProperty(String name, Annotation[] annotations, Object thingForDebug) {
+	AbstractProperty(String name, Annotation[] annotations, Object thingForDebug) {
 		this.name = name;
 		this.annotations = annotations;
 
 		// Figure out names from the @IgnoreLoad and @AlsoLoad annotations
-		Set<String> nameSet = new LinkedHashSet<>();
+		final Set<String> nameSet = new LinkedHashSet<>();
 		
 		// If we have @IgnoreLoad, don't add priamry name to the names collection (which is used for loading)
 		if (this.getAnnotation(IgnoreLoad.class) == null)
 			nameSet.add(name);
 		
 		// Now any additional names
-		AlsoLoad alsoLoad = this.getAnnotation(AlsoLoad.class);
+		final AlsoLoad alsoLoad = this.getAnnotation(AlsoLoad.class);
 		if (alsoLoad != null)
-			if (alsoLoad.value() == null || alsoLoad.value().length == 0)
+			if (alsoLoad.value().length == 0)
 				throw new IllegalStateException("If specified, @AlsoLoad must specify at least one value: " + thingForDebug);
 			else
-				for (String value: alsoLoad.value())
+				for (final String value: alsoLoad.value())
 					if (value == null || value.trim().length() == 0)
 						throw new IllegalStateException("Illegal empty value in @AlsoLoad for " + thingForDebug);
 					else
@@ -54,7 +54,7 @@ abstract public class AbstractProperty implements Property
 	}
 	
 	@Override
-	public <A extends Annotation> A getAnnotation(Class<A> annoClass) {
+	public <A extends Annotation> A getAnnotation(final Class<A> annoClass) {
 		return TypeUtils.getAnnotation(annotations, annoClass);
 	}
 

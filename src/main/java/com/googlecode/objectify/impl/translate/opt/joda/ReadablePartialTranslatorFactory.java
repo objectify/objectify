@@ -1,5 +1,8 @@
 package com.googlecode.objectify.impl.translate.opt.joda;
 
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.CreateContext;
@@ -28,21 +31,21 @@ public class ReadablePartialTranslatorFactory extends ValueTranslatorFactory<Rea
 	}
 
 	@Override
-	protected ValueTranslator<ReadablePartial, String> createValueTranslator(TypeKey<ReadablePartial> tk, CreateContext ctx, Path path) {
+	protected ValueTranslator<ReadablePartial, String> createValueTranslator(final TypeKey<ReadablePartial> tk, final CreateContext ctx, final Path path) {
 		final Class<?> clazz = tk.getTypeAsClass();
 
 		// All the Joda partials have a constructor that will accept a String
 		final MethodHandle ctor = TypeUtils.getConstructor(clazz, Object.class);
 
-		return new ValueTranslator<ReadablePartial, String>(String.class) {
+		return new ValueTranslator<ReadablePartial, String>(ValueType.STRING) {
 			@Override
-			protected ReadablePartial loadValue(String value, LoadContext ctx, Path path) throws SkipException {
-				return TypeUtils.invoke(ctor, value);
+			protected ReadablePartial loadValue(final Value<String> value, final LoadContext ctx, final Path path) throws SkipException {
+				return TypeUtils.invoke(ctor, value.get());
 			}
 
 			@Override
-			protected String saveValue(ReadablePartial value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return value.toString();
+			protected Value<String> saveValue(ReadablePartial value, boolean index, SaveContext ctx, Path path) throws SkipException {
+				return StringValue.of(value.toString());
 			}
 		};
 	}

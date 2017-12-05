@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Key;
+import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.cache.CacheControl;
 
@@ -10,19 +10,18 @@ import com.googlecode.objectify.cache.CacheControl;
 public class CacheControlImpl implements CacheControl
 {
 	/** */
-	private ObjectifyFactory fact;
+	private final ObjectifyFactory fact;
 
 	/** */
-	public CacheControlImpl(ObjectifyFactory fact)
+	public CacheControlImpl(final ObjectifyFactory fact)
 	{
 		this.fact = fact;
 	}
 
 	/** */
 	@Override
-	public Integer getExpirySeconds(Key key)
-	{
-		EntityMetadata<?> meta = fact.getMetadata(key.getKind());
+	public Integer getExpirySeconds(Key key) {
+		final EntityMetadata<?> meta = fact.getMetadata(key.getKind());
 		return meta == null ? null : meta.getCacheExpirySeconds();
 	}
 }

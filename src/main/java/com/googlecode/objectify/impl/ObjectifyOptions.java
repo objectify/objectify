@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.ReadPolicy.Consistency;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
@@ -13,30 +12,17 @@ import lombok.RequiredArgsConstructor;
 public class ObjectifyOptions {
 
 	private final boolean cache;
-	private final Consistency consistency;
-	private final Double deadline;
 	private final boolean mandatoryTransactions;
 
 	ObjectifyOptions() {
-		this(true, Consistency.STRONG, null, false);
-	}
-
-	public ObjectifyOptions consistency(final Consistency value) {
-		if (value == null)
-			throw new IllegalArgumentException("Consistency cannot be null");
-
-		return new ObjectifyOptions(cache, value, deadline, mandatoryTransactions);
-	}
-
-	public ObjectifyOptions deadline(final Double value) {
-		return new ObjectifyOptions(cache, consistency, value, mandatoryTransactions);
+		this(true, false);
 	}
 
 	public ObjectifyOptions cache(final boolean value) {
-		return new ObjectifyOptions(value, consistency, deadline, mandatoryTransactions);
+		return new ObjectifyOptions(value, mandatoryTransactions);
 	}
 
 	public ObjectifyOptions mandatoryTransactions(final boolean value) {
-		return new ObjectifyOptions(cache, consistency, deadline, value);
+		return new ObjectifyOptions(cache, value);
 	}
 }

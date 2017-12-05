@@ -1,9 +1,10 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.EmbeddedEntity;
-import com.google.appengine.api.datastore.PropertyContainer;
+import com.google.cloud.datastore.FullEntity;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.PropertyContainer;
+import com.googlecode.objectify.impl.SavePropertyContainer;
 
 
 /**
@@ -15,17 +16,17 @@ public class EmbeddedCreator<P> extends Creator<P>
 {
 	/**
 	 */
-	public EmbeddedCreator(Class<P> clazz, Forge forge) {
+	public EmbeddedCreator(final Class<P> clazz, final Forge forge) {
 		super(clazz, forge);
 	}
 
 	@Override
-	public P load(PropertyContainer node, LoadContext ctx, Path path) throws SkipException {
+	public P load(final PropertyContainer node, final LoadContext ctx, final Path path) throws SkipException {
 		return construct(path);
 	}
 
 	@Override
-	public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException {
-		return new EmbeddedEntity();
+	public PropertyContainer save(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+		return new SavePropertyContainer(FullEntity.newBuilder());
 	}
 }

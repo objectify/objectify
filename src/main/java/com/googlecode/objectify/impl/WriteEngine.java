@@ -1,10 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.AsyncDatastoreService;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Transaction;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.ResultWrapper;
@@ -31,7 +31,7 @@ public class WriteEngine
 	protected final ObjectifyImpl ofy;
 
 	/** */
-	protected final AsyncDatastoreService ads;
+	protected final AsyncDatastoreReaderWriter datastore;
 
 	/** */
 	protected final Session session;
@@ -41,16 +41,11 @@ public class WriteEngine
 
 	/**
 	 */
-	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreService ads, Session session, Deferrer deferrer) {
+	public WriteEngine(ObjectifyImpl ofy, AsyncDatastoreReaderWriter datastore, Session session, Deferrer deferrer) {
 		this.ofy = ofy;
-		this.ads = ads;
+		this.datastore = datastore;
 		this.session = session;
 		this.deferrer = deferrer;
-	}
-
-	/** @return the transaction, or null if not */
-	private Transaction getTransactionRaw() {
-		return (ofy.getTransaction() == null) ? null : ofy.getTransaction().getRaw();
 	}
 
 	/**
@@ -61,18 +56,19 @@ public class WriteEngine
 
 		final SaveContext ctx = new SaveContext();
 
-		final List<Entity> entityList = new ArrayList<>();
-		for (E obj: entities) {
+		final List<FullEntity<?>> entityList = new ArrayList<>();
+		for (final E obj: entities) {
 			if (obj == null)
 				throw new NullPointerException("Attempted to save a null entity");
 
 			deferrer.undefer(obj);
 
-			if (obj instanceof Entity) {
-				entityList.add((Entity)obj);
+			if (obj instanceof FullEntity) {
+				entityList.add((FullEntity<?>)obj);
 			} else {
-				EntityMetadata<E> metadata = ofy.factory().getMetadataForEntity(obj);
-				entityList.add(metadata.save(obj, ctx));
+				final EntityMetadata<E> metadata = factory().getMetadataForEntity(obj);
+				final FullEntity<?> translated = metadata.save(obj, ctx);
+				entityList.add(translated);
 			}
 		}
 
@@ -80,24 +76,24 @@ public class WriteEngine
 		final List<? extends E> original = Lists.newArrayList(entities);
 
 		// The CachingDatastoreService needs its own raw transaction
-		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(getTransactionRaw(), entityList);
-		Result<List<com.google.appengine.api.datastore.Key>> adapted = new ResultAdapter<>(raw);
+		final Future<List<com.google.cloud.datastore.Key>> raw = datastore.put(entityList);
+		final Result<List<com.google.cloud.datastore.Key>> adapted = new ResultAdapter<>(raw);
 
-		Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.appengine.api.datastore.Key>, Map<Key<E>, E>>(adapted) {
+		final Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.cloud.datastore.Key>, Map<Key<E>, E>>(adapted) {
 			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected Map<Key<E>, E> wrap(List<com.google.appengine.api.datastore.Key> base) {
+			protected Map<Key<E>, E> wrap(List<com.google.cloud.datastore.Key> base) {
 				Map<Key<E>, E> result = new LinkedHashMap<>(base.size() * 2);
 
 				// One pass through the translated pojos to patch up any generated ids in the original objects
 				// Iterator order should be exactly the same for keys and values
-				Iterator<com.google.appengine.api.datastore.Key> keysIt = base.iterator();
+				Iterator<com.google.cloud.datastore.Key> keysIt = base.iterator();
 				for (E obj: original)
 				{
-					com.google.appengine.api.datastore.Key k = keysIt.next();
+					com.google.cloud.datastore.Key k = keysIt.next();
 					if (!(obj instanceof Entity)) {
-						KeyMetadata<E> metadata = ofy.factory().keys().getMetadataSafe(obj);
+						KeyMetadata<E> metadata = factory().keys().getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
 							metadata.setLongId(obj, k.getId());
 					}
@@ -116,26 +112,28 @@ public class WriteEngine
 		};
 
 		if (ofy.getTransaction() != null)
-			ofy.getTransaction().enlist(result);
+			((PrivateAsyncTransaction)ofy.getTransaction()).enlist(result);
 
 		return result;
+	}
+
+	private ObjectifyFactory factory() {
+		return ofy.factory();
 	}
 
 	/**
 	 * The fundamental delete() operation.
 	 */
-	public Result<Void> delete(final Iterable<com.google.appengine.api.datastore.Key> keys) {
-		for (com.google.appengine.api.datastore.Key key: keys)
+	public Result<Void> delete(final Iterable<com.google.cloud.datastore.Key> keys) {
+		for (com.google.cloud.datastore.Key key: keys)
 			deferrer.undefer(Key.create(key));
 
-		Future<Void> fut = ads.delete(getTransactionRaw(), keys);
-		Result<Void> adapted = new ResultAdapter<>(fut);
-		Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
-			private static final long serialVersionUID = 1L;
-
+		final Future<Void> fut = datastore.delete(keys);
+		final Result<Void> adapted = new ResultAdapter<>(fut);
+		final Result<Void> result = new ResultWrapper<Void, Void>(adapted) {
 			@Override
-			protected Void wrap(Void orig) {
-				for (com.google.appengine.api.datastore.Key key: keys)
+			protected Void wrap(final Void orig) {
+				for (com.google.cloud.datastore.Key key: keys)
 					session.addValue(Key.create(key), null);
 
 				return orig;
@@ -143,7 +141,7 @@ public class WriteEngine
 		};
 
 		if (ofy.getTransaction() != null)
-			ofy.getTransaction().enlist(result);
+			((PrivateAsyncTransaction)ofy.getTransaction()).enlist(result);
 
 		return result;
 	}

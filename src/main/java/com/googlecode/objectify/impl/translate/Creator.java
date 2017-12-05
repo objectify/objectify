@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
-import com.google.appengine.api.datastore.PropertyContainer;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.impl.PropertyContainer;
 import com.googlecode.objectify.util.LogUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -14,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Slf4j
-abstract public class Creator<P> implements Translator<P, PropertyContainer>
+abstract public class Creator<P>
 {
 	private final Class<P> clazz;
 	private final Forge forge;
@@ -35,4 +35,8 @@ abstract public class Creator<P> implements Translator<P, PropertyContainer>
 
 		return forge.construct(clazz);
 	}
+
+	abstract public P load(PropertyContainer node, LoadContext ctx, Path path) throws SkipException;
+	abstract public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
+
 }

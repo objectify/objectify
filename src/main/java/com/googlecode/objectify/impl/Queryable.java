@@ -1,8 +1,8 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.QueryResultIterable;
-import com.google.appengine.api.datastore.QueryResultIterator;
+import com.google.cloud.datastore.QueryResults;
 import com.googlecode.objectify.LoadResult;
+import com.googlecode.objectify.cmd.QueryResultIterable;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ abstract class Queryable<T> extends SimpleQueryImpl<T>
 	}
 
 	@Override
-	public QueryResultIterator<T> iterator() {
+	public QueryResults<T> iterator() {
 		final QueryImpl<T> q = createQuery();
 		return q.iterator();
 	}

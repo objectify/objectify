@@ -3,6 +3,9 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
@@ -23,12 +26,15 @@ class EntityConversionTests extends TestBase {
 
 		final Trivial triv = new Trivial(123L, "blah", 456);
 
-		final com.google.appengine.api.datastore.Entity ent = ofy().save().toEntity(triv);
-		assertThat(ent.getKey().getId()).isEqualTo(123L);
-		assertThat(ent.getProperty("someString")).isEqualTo("blah");
-		assertThat(ent.getProperty("someNumber")).isEqualTo(456L);
+		final FullEntity<?> ent = ofy().save().toEntity(triv);
+		final Key key = (Key)ent.getKey();
+		assertThat(key.getId()).isEqualTo(123L);
+		assertThat(ent.getString("someString")).isEqualTo("blah");
+		assertThat(ent.getLong("someNumber")).isEqualTo(456L);
 
-		final Trivial converted = ofy().load().fromEntity(ent);
+		final Entity completeEnt = Entity.newBuilder(key, ent).build();
+
+		final Trivial converted = ofy().load().fromEntity(completeEnt);
 		assertThat(converted).isEqualTo(triv);
 	}
 

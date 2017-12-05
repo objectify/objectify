@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cache;
 
-import com.google.appengine.api.datastore.Key;
+import com.google.cloud.datastore.Key;
 
 
 /**
@@ -18,7 +18,7 @@ public interface CacheControl
 	 * 
 	 * @return null means DO NOT CACHE.  0 means "no limit".  Any other value is a # of seconds.
 	 */
-	public Integer getExpirySeconds(Key key);
+	Integer getExpirySeconds(Key key);
 }
 
 

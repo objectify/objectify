@@ -1,6 +1,6 @@
 package com.googlecode.objectify.impl;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
@@ -235,7 +235,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	LoadEngine createLoadEngine() {
-		return new LoadEngine(ofy, ofy.getSession(), ofy.createAsyncDatastoreService(), loadArrangement);
+		return new LoadEngine(ofy, ofy.getSession(), ofy.asyncDatastore(), loadArrangement);
 	}
 
 	/**
@@ -243,7 +243,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 * @return a fresh engine that handles fundamental datastore operations for queries
 	 */
 	QueryEngine createQueryEngine() {
-		return new QueryEngine(this, ofy.createAsyncDatastoreService(), ofy.getTransaction() == null ? null : ofy.getTransaction().getRaw());
+		return new QueryEngine(this, ofy.asyncDatastore());
 	}
 
 	/* (non-Javadoc)
@@ -255,7 +255,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.appengine.api.datastore.Entity)
+	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.cloud.datastore.Entity)
 	 */
 	@Override
 	public <T> T fromEntity(final Entity entity) {

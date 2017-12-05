@@ -1,5 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.KeyValue;
+import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Load;
@@ -13,7 +16,7 @@ import com.googlecode.objectify.impl.Path;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.google.appengine.api.datastore.Key>
+public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.google.cloud.datastore.Key>
 {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public RefTranslatorFactory() {
@@ -21,20 +24,20 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 	}
 
 	@Override
-	protected ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key> createValueTranslator(TypeKey<Ref<?>> tk, CreateContext ctx, Path path) {
+	protected ValueTranslator<Ref<?>, com.google.cloud.datastore.Key> createValueTranslator(final TypeKey<Ref<?>> tk, final CreateContext ctx, final Path path) {
 
 		final LoadConditions loadConditions = new LoadConditions(tk.getAnnotation(Load.class), tk.getAnnotation(Parent.class));
 
-		return new ValueTranslator<Ref<?>, com.google.appengine.api.datastore.Key>(com.google.appengine.api.datastore.Key.class) {
+		return new ValueTranslator<Ref<?>, com.google.cloud.datastore.Key>(ValueType.KEY) {
 
 			@Override
-			protected Ref<?> loadValue(com.google.appengine.api.datastore.Key value, LoadContext ctx, Path path) throws SkipException {
-				return ctx.loadRef(Key.create(value), loadConditions);
+			protected Ref<?> loadValue(final Value<com.google.cloud.datastore.Key> value, final LoadContext ctx, final Path path) throws SkipException {
+				return ctx.loadRef(Key.create(value.get()), loadConditions);
 			}
 
 			@Override
-			protected com.google.appengine.api.datastore.Key saveValue(Ref<?> value, boolean index, SaveContext ctx, Path path) throws SkipException {
-				return ctx.saveRef(value, loadConditions);
+			protected Value<com.google.cloud.datastore.Key> saveValue(final Ref<?> value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+				return KeyValue.of(ctx.saveRef(value, loadConditions));
 			}
 		};
 	}

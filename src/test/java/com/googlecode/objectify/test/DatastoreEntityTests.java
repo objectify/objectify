@@ -5,7 +5,9 @@
 
 package com.googlecode.objectify.test;
 
-import com.google.appengine.api.datastore.Entity;
+import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,11 +16,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * This is a set of tests that clarify exactly what happens when you put different
@@ -45,41 +46,19 @@ class DatastoreEntityTests extends TestBase {
 	}
 	
 	/**
-	 * What happens when you put an object in an Entity?
-	 */
-	@Test
-	void propertiesCannotBeArbitraryObjects() throws Exception {
-		final Thing thing = new Thing("foo", 10);
-
-		final Entity ent = new Entity("Test");
-		assertThrows(IllegalArgumentException.class, () -> ent.setProperty("thing", thing));
-	}
-
-	/**
-	 * What happens if it is serializable?
-	 */
-	@Test
-	void propertiesCannotBeArbitraryObjectsNotEvenIfSerializable() throws Exception {
-		final SerializableThing thing = new SerializableThing("foo", 10);
-
-		final Entity ent = new Entity("Test");
-		assertThrows(IllegalArgumentException.class, () -> ent.setProperty("thing", thing));
-	}
-
-	/**
 	 * What happens when you put empty collections in an Entity?
 	 */
 	@Test
 	void emptyCollectionPropertiesDisappear() throws Exception {
-		final Entity ent = new Entity("Test");
-		ent.setProperty("empty", new ArrayList<>());
+		final FullEntity<?> ent = makeEntity("Test")
+				.set("empty", new ArrayList<>())
+				.build();
 
-		ds().put(ent);
+		final Entity completed = datastore().put(ent);
+
+		final Entity fetched = datastore().get(completed.getKey());
 		
-		final Entity fetched = ds().get(ent.getKey());
-		
-		Object whatIsIt = fetched.getProperty("empty");
-		assertThat(whatIsIt).isNull();
+		assertThat(fetched.getNames()).doesNotContain("empty");
 	}
 
 	/**
@@ -87,15 +66,15 @@ class DatastoreEntityTests extends TestBase {
 	 */
 	@Test
 	void collectionPropertiesCanContainNull() throws Exception {
-		final Entity ent = new Entity("Test");
-		ent.setProperty("hasNull", Collections.singletonList(null));
+		final FullEntity<?> ent = makeEntity("Test")
+				.set("hasNull", Collections.singletonList(null))
+				.build();
 
-		ds().put(ent);
-		
-		final Entity fetched = ds().get(ent.getKey());
-		
-		@SuppressWarnings("unchecked")
-		Collection<Object> whatIsIt = (Collection<Object>)fetched.getProperty("hasNull");
+		final Entity completed = datastore().put(ent);
+
+		final Entity fetched = datastore().get(completed.getKey());
+
+		final List<Value<?>> whatIsIt = fetched.getList("hasNull");
 
 		assertThat(whatIsIt).containsExactly((Object)null);
 	}

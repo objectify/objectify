@@ -1,7 +1,7 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.Query.Filter;
+import com.google.cloud.datastore.Cursor;
+import com.google.cloud.datastore.StructuredQuery.Filter;
 
 
 /**
@@ -105,13 +105,13 @@ public interface Query<T> extends SimpleQuery<T>
 	public Query<T> offset(int value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.SimpleQuery#startAt(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#startAt(com.google.cloud.datastore.Cursor)
 	 */
 	@Override
 	public Query<T> startAt(Cursor value);
 	
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.SimpleQuery#endAt(com.google.appengine.api.datastore.Cursor)
+	 * @see com.googlecode.objectify.cmd.SimpleQuery#endAt(com.google.cloud.datastore.Cursor)
 	 */
 	@Override
 	public Query<T> endAt(Cursor value);
@@ -134,12 +134,6 @@ public interface Query<T> extends SimpleQuery<T>
 	@Override
 	public Query<T> hybrid(boolean force);
 	
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.SimpleQuery#reverse()
-	 */
-	@Override
-	public Query<T> reverse();
-
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.SimpleQuery#project(String...)
 	 */
