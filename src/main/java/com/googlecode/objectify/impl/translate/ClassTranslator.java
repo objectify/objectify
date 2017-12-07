@@ -94,7 +94,7 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 				// translator expects for loading that subclass. Otherwise we'll get the error above since the
 				// translator discriminator and the container discriminator won't match.
 				final StringValue discriminatorValue = StringValue.newBuilder(translator.getDiscriminator()).setExcludeFromIndexes(true).build();
-				final FullEntity<?> updatedEntity = FullEntity.newBuilder(container.get()).set(DISCRIMINATOR_INDEX_PROPERTY, discriminatorValue).build();
+				final FullEntity<?> updatedEntity = FullEntity.newBuilder(container.get()).set(DISCRIMINATOR_PROPERTY, discriminatorValue).build();
 				return translator.load(EntityValue.of(updatedEntity), ctx, path);
 			}
 		} else {
