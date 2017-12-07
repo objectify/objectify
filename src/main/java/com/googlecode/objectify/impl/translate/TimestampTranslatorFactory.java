@@ -10,7 +10,7 @@ import com.google.cloud.datastore.ValueType;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class TimestampTranslatorFactory extends SimpleValueTranslatorFactory<Timestamp, Timestamp> {
+public class TimestampTranslatorFactory extends SimpleTranslatorFactory<Timestamp, Timestamp> {
 
 	public TimestampTranslatorFactory() {
 		super(Timestamp.class, ValueType.TIMESTAMP);

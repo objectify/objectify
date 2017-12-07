@@ -11,7 +11,7 @@ import com.googlecode.objectify.Key;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class KeyTranslatorFactory extends SimpleValueTranslatorFactory<Key<?>, com.google.cloud.datastore.Key>
+public class KeyTranslatorFactory extends SimpleTranslatorFactory<Key<?>, com.google.cloud.datastore.Key>
 {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public KeyTranslatorFactory() {

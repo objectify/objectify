@@ -9,7 +9,7 @@ import com.google.cloud.datastore.ValueType;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BooleanTranslatorFactory extends SimpleValueTranslatorFactory<Boolean, Boolean> {
+public class BooleanTranslatorFactory extends SimpleTranslatorFactory<Boolean, Boolean> {
 
 	public BooleanTranslatorFactory() {
 		super(Boolean.class, ValueType.BOOLEAN);

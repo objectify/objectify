@@ -36,7 +36,7 @@ public class RefTranslatorFactory extends ValueTranslatorFactory<Ref<?>, com.goo
 			}
 
 			@Override
-			protected Value<com.google.cloud.datastore.Key> saveValue(final Ref<?> value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<com.google.cloud.datastore.Key> saveValue(final Ref<?> value, final SaveContext ctx, final Path path) throws SkipException {
 				return KeyValue.of(ctx.saveRef(value, loadConditions));
 			}
 		};

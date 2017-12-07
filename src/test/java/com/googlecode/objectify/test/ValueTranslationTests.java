@@ -14,7 +14,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.annotation.Unindex;
-import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
@@ -260,7 +260,7 @@ class ValueTranslationTests extends TestBase {
 
 	@Test
 	void arbitraryTranslatorIsRegistered() throws Exception {
-		factory().getTranslators().add(new SimpleValueTranslatorFactory<BigDecimal, String>(BigDecimal.class, ValueType.STRING) {
+		factory().getTranslators().add(new SimpleTranslatorFactory<BigDecimal, String>(BigDecimal.class, ValueType.STRING) {
 			@Override
 			protected BigDecimal toPojo(final Value<String> value) {
 				return new BigDecimal(value.get());

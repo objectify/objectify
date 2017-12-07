@@ -62,7 +62,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 			}
 
 			@Override
-			protected Value<Blob> saveValue(final Object value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<Blob> saveValue(final Object value, final SaveContext ctx, final Path path) throws SkipException {
 				try {
 					final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					OutputStream out = baos;

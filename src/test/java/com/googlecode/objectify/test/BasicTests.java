@@ -4,6 +4,7 @@
 package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Blob;
+import com.google.cloud.datastore.DatastoreException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.SaveException;
@@ -336,9 +337,14 @@ class BasicTests extends TestBase {
 		final HasIndexedBlob hib = new HasIndexedBlob();
 		hib.blob = Blob.copyFrom(stuff);
 
-		final HasIndexedBlob fetched = saveClearLoad(hib);
-		final byte[] fetchedStuff = fetched.blob.toByteArray();
-
-		assertThat(fetchedStuff).isEqualTo(stuff);
+		// Blobs used to never be indexed but now they can. Caveat is that if it's bigger than 1500 bytes it will
+		// throw an exception. We could simply skip indexing of larger blobs but that seems odd, so we'll follow the
+		// underlying SDK behavior and let the exception propagate.
+		assertThrows(DatastoreException.class, () -> {
+			final HasIndexedBlob fetched = saveClearLoad(hib);
+			// Old behavior
+//			final byte[] fetchedStuff = fetched.blob.toByteArray();
+//			assertThat(fetchedStuff).isEqualTo(stuff);
+		}, "The value of property \"blob\" is longer than 1500 bytes.");
 	}
 }

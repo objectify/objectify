@@ -133,7 +133,7 @@ public class KeyMetadata<P>
 		if (key == null)
 			return;
 
-		idMeta.setValue(pojo, Keys.getId(key), ctx, containerPath);
+		idMeta.setValue(pojo, Keys.getIdValue(key), ctx, containerPath);
 
 		final com.google.cloud.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {

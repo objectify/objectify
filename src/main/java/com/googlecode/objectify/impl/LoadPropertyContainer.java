@@ -24,11 +24,6 @@ public class LoadPropertyContainer extends PropertyContainer
 	}
 
 	@Override
-	public void setUnindexedProperty(final String name, final Value<?> value) {
-		throw new UnsupportedOperationException();
-	}
-
-	@Override
 	public void setProperty(final String name, final Value<?> value) {
 		throw new UnsupportedOperationException();
 	}

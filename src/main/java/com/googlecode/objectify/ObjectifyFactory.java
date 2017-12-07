@@ -7,7 +7,6 @@ import com.googlecode.objectify.cache.CachingAsyncDatastore;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.impl.AsyncDatastoreImpl;
-import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Forge;
@@ -71,7 +70,7 @@ public class ObjectifyFactory implements Forge
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 
 	/** Manages caching of entities at a low level */
-	protected EntityMemcache entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+	protected EntityMemcache entityMemcache = null;//new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 
 	/** */
 	public Datastore datastore() {
@@ -87,7 +86,7 @@ public class ObjectifyFactory implements Forge
 	 * Might produce a caching version if caching is enabled.
 	 */
 	public AsyncDatastore asyncDatastore(final boolean enableGlobalCache) {
-		if (enableGlobalCache && this.registrar.isCacheEnabled())
+		if (false && enableGlobalCache && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastore(asyncDatastore(), this.entityMemcache);
 		else
 			return asyncDatastore();

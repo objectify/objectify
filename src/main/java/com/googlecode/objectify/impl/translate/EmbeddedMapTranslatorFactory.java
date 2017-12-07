@@ -109,7 +109,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 						final Path propPath = path.extend(key);
 						final Value<?> value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
 
-						emb.setProperty(key, value, index, ctx, propPath);
+						emb.setProperty(key, value, ctx, propPath);
 					} catch (SkipException e) {
 						// do nothing
 					}

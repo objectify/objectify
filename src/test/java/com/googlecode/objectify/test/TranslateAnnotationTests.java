@@ -14,7 +14,7 @@ import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
-import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 import com.googlecode.objectify.impl.translate.SkipException;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TranslatorFactory;
@@ -40,7 +40,7 @@ import static com.googlecode.objectify.ObjectifyService.factory;
 class TranslateAnnotationTests extends TestBase {
 
 	/** Random translator that just prepends some junk and does an uppercase conversion on save so we know it was executed */
-	private static class FunkyStringTranslatorFactory extends SimpleValueTranslatorFactory<String, String> {
+	private static class FunkyStringTranslatorFactory extends SimpleTranslatorFactory<String, String> {
 		public FunkyStringTranslatorFactory() {
 			super(String.class, ValueType.STRING);
 		}
@@ -74,7 +74,7 @@ class TranslateAnnotationTests extends TestBase {
 				}
 
 				@Override
-				protected Value<String> saveValue(final Collection<String> value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+				protected Value<String> saveValue(final Collection<String> value, final SaveContext ctx, final Path path) throws SkipException {
 					final StringBuilder bld = new StringBuilder();
 					boolean afterFirst = false;
 

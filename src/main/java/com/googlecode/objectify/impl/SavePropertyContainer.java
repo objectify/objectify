@@ -26,11 +26,6 @@ public class SavePropertyContainer extends PropertyContainer
 	}
 
 	@Override
-	public void setUnindexedProperty(final String name, final Value<?> value) {
-		builder.set(name, value.toBuilder().setExcludeFromIndexes(true).build());
-	}
-
-	@Override
 	public void setProperty(final String name, final Value<?> value) {
 		builder.set(name, value);
 	}

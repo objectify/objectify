@@ -80,7 +80,9 @@ public class Translators
 		this.translatorFactories.add(new TimeZoneTranslatorFactory());
 		this.translatorFactories.add(new URLTranslatorFactory());
 		this.translatorFactories.add(new LatLngTranslatorFactory());
-		this.translatorFactories.add(new AsIsTranslatorFactory());
+		this.translatorFactories.add(new BlobTranslatorFactory());
+		this.translatorFactories.add(new RawValueTranslatorFactory());
+		this.translatorFactories.add(new ObjectTranslatorFactory(this));
 
 		// LAST! It catches everything.
 		this.translatorFactories.add(new ClassTranslatorFactory<>());

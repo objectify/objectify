@@ -84,7 +84,7 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 	@Override
 	public P loadSafe(final Value<FullEntity<?>> container, final LoadContext ctx, final Path path) throws SkipException {
 		// check if we need to redirect to a different translator
-		final String containerDiscriminator = container.get().getString(DISCRIMINATOR_PROPERTY);
+		final String containerDiscriminator = container.get().contains(DISCRIMINATOR_PROPERTY) ? container.get().getString(DISCRIMINATOR_PROPERTY) : null;	// wow no Optional or nullable get
 		if (!Objects.equals(discriminator, containerDiscriminator)) {
 			final ClassTranslator<? extends P> translator = byDiscriminator.get(containerDiscriminator);
 			if (translator == null) {
@@ -122,17 +122,19 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 				return translator.save(pojo, index, ctx, path);
 		} else {
 			// This is a normal save
-			final PropertyContainer into = creator.save(pojo, index, ctx, path);
+			final PropertyContainer into = creator.save(pojo, ctx, path);
 
 			populator.save(pojo, index, ctx, path, into);
 
 			if (discriminator != null) {
-				into.setUnindexedProperty(DISCRIMINATOR_PROPERTY, StringValue.of(discriminator));
+				into.setProperty(DISCRIMINATOR_PROPERTY, StringValue.newBuilder(discriminator).setExcludeFromIndexes(true).build());
 
 				if (!indexedDiscriminators.isEmpty())
 					into.setProperty(DISCRIMINATOR_INDEX_PROPERTY, ListValue.of(indexedDiscriminators));
 			}
 
+			// Interesting question, what do we do about indexing this Value? Going to assume for now
+			// that the safest thing is to always index.
 			return EntityValue.of(into.toFullEntity());
 		}
 	}

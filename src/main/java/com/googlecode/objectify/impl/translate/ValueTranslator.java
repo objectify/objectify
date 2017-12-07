@@ -3,10 +3,12 @@ package com.googlecode.objectify.impl.translate;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
+import com.googlecode.objectify.util.Values;
 import lombok.RequiredArgsConstructor;
 
 /**
- * <p>Does a little bit of expected type checking.</p>
+ * <p>Translator that should be extended for typical atomic values. Does a little bit of expected type
+ * checking and handles indexing for us.</p>
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -25,7 +27,7 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 
 	@Override
 	final protected Value<D> saveSafe(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
-		return saveValue(pojo, index, ctx, path);
+		return Values.index(saveValue(pojo, ctx, path), index);
 	}
 
 	/**
@@ -45,5 +47,5 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 	 * @return the format which should be stored in the datastore; null means actually store a null!
 	 * @throws SkipException if this subtree should be skipped
 	 */
-	abstract protected Value<D> saveValue(P value, boolean index, SaveContext ctx, Path path) throws SkipException;
+	abstract protected Value<D> saveValue(P value, SaveContext ctx, Path path) throws SkipException;
 }

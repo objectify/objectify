@@ -37,6 +37,6 @@ abstract public class Creator<P>
 	}
 
 	abstract public P load(PropertyContainer node, LoadContext ctx, Path path) throws SkipException;
-	abstract public PropertyContainer save(P pojo, boolean index, SaveContext ctx, Path path) throws SkipException;
+	abstract public PropertyContainer save(P pojo, SaveContext ctx, Path path) throws SkipException;
 
 }

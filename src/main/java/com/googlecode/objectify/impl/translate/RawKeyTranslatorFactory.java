@@ -10,7 +10,7 @@ import com.google.cloud.datastore.ValueType;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class RawKeyTranslatorFactory extends SimpleValueTranslatorFactory<Key, Key> {
+public class RawKeyTranslatorFactory extends SimpleTranslatorFactory<Key, Key> {
 
 	public RawKeyTranslatorFactory() {
 		super(Key.class, ValueType.KEY);

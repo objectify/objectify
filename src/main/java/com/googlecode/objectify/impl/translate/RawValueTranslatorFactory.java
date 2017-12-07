@@ -9,7 +9,7 @@ import com.googlecode.objectify.impl.Path;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class AsIsTranslatorFactory implements TranslatorFactory<Value<Object>, Object>
+public class RawValueTranslatorFactory implements TranslatorFactory<Value<Object>, Object>
 {
 	/* */
 	@Override

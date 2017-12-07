@@ -16,8 +16,6 @@ abstract public class PropertyContainer
 {
 	abstract public Value<?> getProperty(final String name);
 
-	abstract public void setUnindexedProperty(final String name, final Value<?> value);
-
 	abstract public void setProperty(final String name, final Value<?> value);
 
 	abstract public FullEntity<IncompleteKey> toFullEntity();
@@ -29,16 +27,13 @@ abstract public class PropertyContainer
 	abstract public Map<String, Value<?>> getProperties();
 
 	/**
-	 * Calls setProperty() or setUnindexedProperty() as determined by the index parameter.
 	 * Also stuffs any values in the savecontext index.
 	 */
-	public void setProperty(final String propertyName, final Value<?> value, final boolean index, final SaveContext ctx, final Path propPath) {
-		if (index) {
-			this.setProperty(propertyName, value);
+	public void setProperty(final String propertyName, final Value<?> value, final SaveContext ctx, final Path propPath) {
+		this.setProperty(propertyName, value);
+
+		if (!value.excludeFromIndexes())
 			ctx.addIndex(propPath, value);
-		} else {
-			this.setUnindexedProperty(propertyName, value);
-		}
 	}
 
 }

@@ -29,7 +29,7 @@ public class EnumTranslatorFactory<E extends Enum<E>> extends ValueTranslatorFac
 			}
 
 			@Override
-			protected Value<String> saveValue(final Enum<E> value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<String> saveValue(final Enum<E> value, final SaveContext ctx, final Path path) throws SkipException {
 				return StringValue.of(value.name());
 			}
 		};

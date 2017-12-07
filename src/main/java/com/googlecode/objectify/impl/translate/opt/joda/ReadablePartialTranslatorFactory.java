@@ -44,7 +44,7 @@ public class ReadablePartialTranslatorFactory extends ValueTranslatorFactory<Rea
 			}
 
 			@Override
-			protected Value<String> saveValue(ReadablePartial value, boolean index, SaveContext ctx, Path path) throws SkipException {
+			protected Value<String> saveValue(ReadablePartial value, SaveContext ctx, Path path) throws SkipException {
 				return StringValue.of(value.toString());
 			}
 		};

@@ -12,7 +12,7 @@ import java.util.Date;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class DateTranslatorFactory extends SimpleValueTranslatorFactory<Date, Timestamp>
+public class DateTranslatorFactory extends SimpleTranslatorFactory<Date, Timestamp>
 {
 	/** */
 	public DateTranslatorFactory() {

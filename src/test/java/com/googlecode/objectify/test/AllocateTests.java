@@ -4,8 +4,8 @@
 package com.googlecode.objectify.test;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.KeyRange;
 import com.googlecode.objectify.test.entity.Child;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
@@ -29,22 +29,17 @@ class AllocateTests extends TestBase {
 	void canAllocateIdsInARange() throws Exception {
 		factory().register(Trivial.class);
 
-		final KeyRange<Trivial> range = factory().allocateIds(Trivial.class, 5);
+		final List<Key<Trivial>> range = factory().allocateIds(Trivial.class, 5);
 
 		final List<Key<Trivial>> keys = Lists.newArrayList(range.iterator());
 		assertThat(keys).hasSize(5);
+		assertThat(Sets.newHashSet(keys)).containsExactlyElementsIn(range);
 
-		long previousId = 0;
-		for (final Key<Trivial> key : keys) {
-			assertThat(key.getId()).isGreaterThan(previousId);
-			previousId = key.getId();
-		}
-
-		// Create an id with a put and verify it is > than the last
+		// Create an id with a put and verify it is not one of the previous
 		final Trivial triv = new Trivial("foo", 3);
-		ofy().save().entity(triv).now();
+		final Key<Trivial> key = ofy().save().entity(triv).now();
 
-		assertThat(triv.getId()).isGreaterThan(previousId);
+		assertThat(key).isNotIn(range);
 	}
 
 	/** */
@@ -54,21 +49,16 @@ class AllocateTests extends TestBase {
 		factory().register(Child.class);
 
 		final Key<Trivial> parentKey = Key.create(Trivial.class, 123);
-		final KeyRange<Child> range = factory().allocateIds(parentKey, Child.class, 5);
+		final List<Key<Child>> range = factory().allocateIds(parentKey, Child.class, 5);
 
 		final List<Key<Child>> keys = Lists.newArrayList(range.iterator());
 		assertThat(keys).hasSize(5);
+		assertThat(Sets.newHashSet(keys)).containsExactlyElementsIn(range);
 
-		long previousId = 0;
-		for (final Key<Child> key : keys) {
-			assertThat(key.getId()).isGreaterThan(previousId);
-			previousId = key.getId();
-		}
-
-		// Create an id with a put and verify it is > than the last
+		// Create an id with a put and verify it is not one of the previous
 		final Child ch = new Child(parentKey, "foo");
-		ofy().save().entity(ch).now();
+		final Key<Child> key = ofy().save().entity(ch).now();
 
-		assertThat(ch.getId()).isGreaterThan(previousId);
+		assertThat(key).isNotIn(range);
 	}
 }

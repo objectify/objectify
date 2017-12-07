@@ -12,7 +12,7 @@ import java.net.URL;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class URLTranslatorFactory extends SimpleValueTranslatorFactory<URL, String>
+public class URLTranslatorFactory extends SimpleTranslatorFactory<URL, String>
 {
 	/** */
 	public URLTranslatorFactory() {

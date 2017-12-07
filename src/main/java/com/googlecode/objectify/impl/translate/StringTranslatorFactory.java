@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
  * there is no longer a Text type.
  */
 @Slf4j
-public class StringTranslatorFactory extends SimpleValueTranslatorFactory<String, String>
+public class StringTranslatorFactory extends SimpleTranslatorFactory<String, String>
 {
 	/** */
 	public StringTranslatorFactory() {

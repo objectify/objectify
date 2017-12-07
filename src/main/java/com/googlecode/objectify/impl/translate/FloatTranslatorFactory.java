@@ -40,7 +40,7 @@ public class FloatTranslatorFactory implements TranslatorFactory<Number, Double>
 			}
 
 			@Override
-			protected Value<Double> saveValue(final Number value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<Double> saveValue(final Number value, final SaveContext ctx, final Path path) throws SkipException {
 				return DoubleValue.of(value.doubleValue());
 			}
 		};

@@ -45,7 +45,7 @@ public class EntityCreator<P> extends Creator<P>
 	}
 
 	@Override
-	public PropertyContainer save(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+	public PropertyContainer save(final P pojo, final SaveContext ctx, final Path path) throws SkipException {
 		return keyMetadata.initPropertyContainer(pojo);
 	}
 }

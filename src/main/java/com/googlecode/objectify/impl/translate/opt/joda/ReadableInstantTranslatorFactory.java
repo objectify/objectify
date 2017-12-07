@@ -45,7 +45,7 @@ public class ReadableInstantTranslatorFactory extends ValueTranslatorFactory<Rea
 			}
 
 			@Override
-			protected Value<Timestamp> saveValue(final ReadableInstant value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<Timestamp> saveValue(final ReadableInstant value, final SaveContext ctx, final Path path) throws SkipException {
 				return TimestampValue.of(Timestamp.of(value.toInstant().toDate()));
 			}
 		};

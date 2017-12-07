@@ -10,7 +10,7 @@ import com.google.cloud.datastore.ValueType;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class LatLngTranslatorFactory extends SimpleValueTranslatorFactory<LatLng, LatLng> {
+public class LatLngTranslatorFactory extends SimpleTranslatorFactory<LatLng, LatLng> {
 
 	public LatLngTranslatorFactory() {
 		super(LatLng.class, ValueType.LAT_LNG);

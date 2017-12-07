@@ -79,7 +79,7 @@ public class EntityMetadata<P>
 	public P load(final BaseEntity<?> ent, final LoadContext ctx) {
 		try {
 			// The context needs to know the root entity for any given point
-			ctx.setCurrentRoot(Key.create(ent.getKey()));
+			ctx.setCurrentRoot(Key.create((com.google.cloud.datastore.Key)ent.getKey()));
 
 			final EntityValue entityValue = makeLoadEntityValue(ent);
 			return translator.load(entityValue, ctx, Path.root());
@@ -130,6 +130,11 @@ public class EntityMetadata<P>
 	 * Establish any synthetic dot-separate indexes for embedded things that are indexed.
 	 */
 	private FullEntity<?> createSyntheticIndexes(final FullEntity<?> entity, final SaveContext ctx) {
+
+		// The datastore rejects our synthetic x.y.z indexes, possibly because it creates its own. It appears to
+		// be undocumented, needs to run some tests.
+		// TODO decide whether we can throw out this whole function
+		if (true) return entity;
 
 		// Maybe we can just leave it as-is
 		if (ctx.getIndexes().keySet().stream().noneMatch(Path::isEmbedded)) {

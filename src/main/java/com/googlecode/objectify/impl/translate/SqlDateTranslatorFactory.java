@@ -12,7 +12,7 @@ import java.sql.Date;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class SqlDateTranslatorFactory extends SimpleValueTranslatorFactory<java.sql.Date, Timestamp>
+public class SqlDateTranslatorFactory extends SimpleTranslatorFactory<Date, Timestamp>
 {
 	/** */
 	public SqlDateTranslatorFactory() {

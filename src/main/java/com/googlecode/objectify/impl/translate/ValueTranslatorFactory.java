@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Provides a little boilerplate for translators that work on simple atomic types. Automatically
- * wraps primitives so we don't have to worry about them.
+ * wraps primitives so we don't have to worry about them. Handles indexing for us.
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */

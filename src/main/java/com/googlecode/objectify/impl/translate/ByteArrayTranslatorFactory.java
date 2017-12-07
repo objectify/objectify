@@ -12,7 +12,7 @@ import com.google.cloud.datastore.ValueType;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ByteArrayTranslatorFactory extends SimpleValueTranslatorFactory<byte[], Blob> {
+public class ByteArrayTranslatorFactory extends SimpleTranslatorFactory<byte[], Blob> {
 
 	/** The pojo type this factory recognizes */
 	private static final Class<? extends byte[]> BYTE_ARRAY_TYPE = byte[].class;

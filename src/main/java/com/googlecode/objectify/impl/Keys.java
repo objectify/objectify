@@ -3,6 +3,9 @@ package com.googlecode.objectify.impl;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.IncompleteKey;
+import com.google.cloud.datastore.LongValue;
+import com.google.cloud.datastore.StringValue;
+import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import lombok.RequiredArgsConstructor;
@@ -211,22 +214,18 @@ public class Keys
 	}
 
 	/**
-	 * Gets the String or Long id from the key, or null if incomplete
+	 * Gets the String or Long id from the key as a Value, or null if incomplete
 	 */
 	@SuppressWarnings("unchecked")
-	public static <S> S getId(final IncompleteKey key) {
+	public static <S> Value<S> getIdValue(final IncompleteKey key) {
 		if (key instanceof com.google.cloud.datastore.Key) {
-			return (S)((com.google.cloud.datastore.Key)key).getNameOrId();
+			final com.google.cloud.datastore.Key completeKey = (com.google.cloud.datastore.Key)key;
+			if (completeKey.hasId())
+				return (Value<S>)LongValue.of(completeKey.getId());
+			else
+				return (Value<S>)StringValue.of(completeKey.getName());
 		} else {
 			return null;
 		}
 	}
-
-	/**
-	 * Gets the String or Long id from the key, or null if incomplete
-	 */
-	public static <S> S getId(final Key<?> key) {
-		return getId(key.getRaw());
-	}
-
 }

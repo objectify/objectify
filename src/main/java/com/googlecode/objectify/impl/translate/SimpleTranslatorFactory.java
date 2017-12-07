@@ -9,12 +9,12 @@ import com.googlecode.objectify.impl.Path;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-abstract public class SimpleValueTranslatorFactory<P, D> extends ValueTranslatorFactory<P, D>
+abstract public class SimpleTranslatorFactory<P, D> extends ValueTranslatorFactory<P, D>
 {
 	private final ValueType datastoreValueType;
 
 	/** */
-	public SimpleValueTranslatorFactory(final Class<? extends P> pojoType, final ValueType datastoreValueType) {
+	public SimpleTranslatorFactory(final Class<? extends P> pojoType, final ValueType datastoreValueType) {
 		super(pojoType);
 		this.datastoreValueType = datastoreValueType;
 	}
@@ -31,7 +31,7 @@ abstract public class SimpleValueTranslatorFactory<P, D> extends ValueTranslator
 			}
 
 			@Override
-			protected Value<D> saveValue(final P value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<D> saveValue(final P value, final SaveContext ctx, final Path path) throws SkipException {
 				return toDatastore(value);
 			}
 		};

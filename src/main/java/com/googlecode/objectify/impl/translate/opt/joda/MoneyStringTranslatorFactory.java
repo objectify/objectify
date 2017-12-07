@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.translate.opt.joda;
 import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
-import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 import org.joda.money.Money;
 
 /**
@@ -15,7 +15,7 @@ import org.joda.money.Money;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class MoneyStringTranslatorFactory extends SimpleValueTranslatorFactory<Money, String>
+public class MoneyStringTranslatorFactory extends SimpleTranslatorFactory<Money, String>
 {
 	public MoneyStringTranslatorFactory() {
 		super(Money.class, ValueType.STRING);

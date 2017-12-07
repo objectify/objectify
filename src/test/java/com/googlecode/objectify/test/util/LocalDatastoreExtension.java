@@ -25,7 +25,7 @@ public class LocalDatastoreExtension implements BeforeAllCallback, AfterAllCallb
 
 	@Override
 	public void beforeAll(final ExtensionContext context) throws Exception {
-		final LocalDatastoreHelper helper = LocalDatastoreHelper.create(1.0);
+		final LocalDatastoreHelper helper = LocalDatastoreHelper.create(consistency);
 		context.getStore(NAMESPACE).put(LocalDatastoreHelper.class, helper);
 
 		helper.start();

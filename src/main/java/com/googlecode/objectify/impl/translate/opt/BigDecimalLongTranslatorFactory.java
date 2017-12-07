@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.translate.opt;
 import com.google.cloud.datastore.LongValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
-import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 
 import java.math.BigDecimal;
 
@@ -25,7 +25,7 @@ import java.math.BigDecimal;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class BigDecimalLongTranslatorFactory extends SimpleValueTranslatorFactory<BigDecimal, Long>
+public class BigDecimalLongTranslatorFactory extends SimpleTranslatorFactory<BigDecimal, Long>
 {
 	/** Default factor is 1000, which gives you three digits of precision past the decimal point */
 	public static final long DEFAULT_FACTOR = 1000;

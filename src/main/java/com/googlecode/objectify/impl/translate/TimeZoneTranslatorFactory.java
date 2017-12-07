@@ -12,7 +12,7 @@ import java.util.TimeZone;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org> 
  */
-public class TimeZoneTranslatorFactory extends SimpleValueTranslatorFactory<TimeZone, String>
+public class TimeZoneTranslatorFactory extends SimpleTranslatorFactory<TimeZone, String>
 {
 	public TimeZoneTranslatorFactory() {
 		super(TimeZone.class, ValueType.STRING);

@@ -3,7 +3,7 @@ package com.googlecode.objectify.impl.translate.opt.joda;
 import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
-import com.googlecode.objectify.impl.translate.SimpleValueTranslatorFactory;
+import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 import org.joda.time.DateTimeZone;
 
 
@@ -14,7 +14,7 @@ import org.joda.time.DateTimeZone;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class DateTimeZoneTranslatorFactory extends SimpleValueTranslatorFactory<DateTimeZone, String>
+public class DateTimeZoneTranslatorFactory extends SimpleTranslatorFactory<DateTimeZone, String>
 {
 	public DateTimeZoneTranslatorFactory() {
 		super(DateTimeZone.class, ValueType.STRING);

@@ -41,7 +41,7 @@ public class IntegerTranslatorFactory implements TranslatorFactory<Number, Long>
 			}
 
 			@Override
-			protected Value<Long> saveValue(final Number value, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<Long> saveValue(final Number value, final SaveContext ctx, final Path path) throws SkipException {
 				return LongValue.of(value.longValue());
 			}
 		};

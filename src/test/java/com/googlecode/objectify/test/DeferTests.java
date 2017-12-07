@@ -56,7 +56,8 @@ class DeferTests extends TestBase {
 			assertThat(ofy().load().entity(triv).now()).isEqualTo(triv);
 
 			// But not the datastore
-			assertThat(datastore().get(Key.create(triv).getRaw())).isNull();
+			final com.google.cloud.datastore.Entity indatastore = datastore().get(Key.create(triv).getRaw());
+			assertThat(indatastore).isNull();
 		}
 
 		try (final Closeable root = ObjectifyService.begin()) {

@@ -21,11 +21,12 @@ abstract public class NullSafeTranslator<P, D> implements Translator<P, D>
 			return loadSafe(node, ctx, path);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	final public Value<D> save(final P pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
 		if (pojo == null)
-			//noinspection unchecked
-			return (Value<D>)NullValue.of();
+			// Watch out for indexing this
+			return (Value<D>)NullValue.newBuilder().setExcludeFromIndexes(!index).build();
 		else
 			return saveSafe(pojo, index, ctx, path);
 	}
