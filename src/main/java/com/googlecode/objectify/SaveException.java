@@ -12,8 +12,8 @@ public class SaveException extends TranslateException
 	private final Object pojo;
 
 	/** Constructor to use when you're saving an entity with a known key */
-	public SaveException(Object pojo, String message, Throwable cause) {
-		super("Error saving " + pojo + ": " + message, cause);
+	public SaveException(final Object pojo, final Throwable cause) {
+		super("Error saving " + pojo + ": " + cause, cause);
 		
 		this.pojo = pojo;
 	}

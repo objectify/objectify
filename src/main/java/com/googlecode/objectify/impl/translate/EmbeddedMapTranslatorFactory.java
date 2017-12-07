@@ -106,6 +106,9 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 				for (final Map.Entry<Object, Object> entry: pojo.entrySet()) {
 					try {
 						final String key = stringifier.toString(entry.getKey());
+						if (key == null)
+							path.throwNullPointer("null is not allowed as a map key");
+
 						final Path propPath = path.extend(key);
 						final Value<?> value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
 

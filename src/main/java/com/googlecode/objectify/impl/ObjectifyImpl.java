@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.KeyValue;
 import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.NullValue;
 import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
@@ -271,7 +272,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	 */
 	protected Value<?> makeFilterable(Object value) {
 		if (value == null)
-			return null;
+			return NullValue.of();
 
 		// This is really quite a dilemma.  We need to convert that value into something we can filter by, but we don't
 		// really have a lot of information about it.  We could use type information from the matched field, but there's

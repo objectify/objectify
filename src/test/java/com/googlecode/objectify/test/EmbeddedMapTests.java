@@ -1,6 +1,7 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -64,7 +65,7 @@ class EmbeddedMapTests extends TestBase
 		final HasMapLong hml = new HasMapLong();
 		hml.primitives.put(null, 123L);
 
-		assertThrows(NullPointerException.class, () -> ofy().save().entity(hml).now());
+		assertThrows(SaveException.class, () -> ofy().save().entity(hml).now());
 	}
 
 	@Test

@@ -106,7 +106,12 @@ public class Path
 	public Object throwIllegalState(String message, Throwable cause) {
 		throw new IllegalStateException("At path '" + this + "': " + message, cause);
 	}
-	
+
+	/** Convenient way to include path location in the exception message.  Never returns. */
+	public Object throwNullPointer(String message) {
+		throw new NullPointerException("At path '" + this + "': " + message);
+	}
+
 	/**
 	 * ROOT is 0, top level Entity properties are 1, embedded things are higher.
 	 */

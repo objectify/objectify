@@ -122,7 +122,7 @@ public class EntityMetadata<P>
 		}
 		catch (SaveException ex) { throw ex; }
 		catch (Exception ex) {
-			throw new SaveException(pojo, ex.getMessage(), ex);
+			throw new SaveException(pojo, ex);
 		}
 	}
 
