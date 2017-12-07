@@ -54,23 +54,37 @@ public class ObjectifyFactory implements Forge
 	 */
 	private final ThreadLocal<Deque<Objectify>> stacks = ThreadLocal.withInitial(ArrayDeque::new);
 
-	/** This probably cannot be this simple */
-	protected Datastore datastore = DatastoreOptions.getDefaultInstance().getService();
+	/** The raw interface to the datastore from the Cloud SDK */
+	protected Datastore datastore;
 
 	/** Encapsulates entity registration info */
-	protected Registrar registrar = new Registrar(this);
+	protected Registrar registrar;
 
-	/** Some useful bits for working with keys */
-	protected Keys keys = new Keys(datastore, registrar);
+	/** Some useful tools for working with keys */
+	protected Keys keys;
 
-	/** All the various loaders */
-	protected Translators translators = new Translators(this);
+	/** */
+	protected Translators translators;
 
-	/** Tracks stats */
+	/** */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 
 	/** Manages caching of entities at a low level */
-	protected EntityMemcache entityMemcache = null;//new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+	protected EntityMemcache entityMemcache;
+
+	/** */
+	public ObjectifyFactory() {
+		this(DatastoreOptions.getDefaultInstance().getService());
+	}
+
+	/** */
+	public ObjectifyFactory(final Datastore datastore) {
+		this.datastore = datastore;
+		this.registrar = new Registrar(this);
+		this.keys = new Keys(datastore, registrar);
+		this.translators = new Translators(this);
+		//this.entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+	}
 
 	/** */
 	public Datastore datastore() {

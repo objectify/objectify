@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test.util;
 
+import com.google.cloud.datastore.Datastore;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.util.Closeable;
@@ -17,7 +18,9 @@ public class ObjectifyExtension implements BeforeEachCallback, AfterEachCallback
 
 	@Override
 	public void beforeEach(final ExtensionContext context) throws Exception {
-		ObjectifyService.setFactory(new ObjectifyFactory());
+		final Datastore datastore = LocalDatastoreExtension.getHelper(context).getOptions().getService();
+
+		ObjectifyService.setFactory(new ObjectifyFactory(datastore));
 
 		final Closeable rootService = ObjectifyService.begin();
 

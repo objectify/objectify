@@ -69,7 +69,7 @@ class DatastoreTests extends TestBase {
 	}
 
 	/**
-	 * What happens when you put a single null in a collection in an Entity?
+	 * Just making sure that queries work the same way they used to
 	 */
 	@Test
 	void doesTheDatastoreDetectUnindexedProperties() throws Exception {
