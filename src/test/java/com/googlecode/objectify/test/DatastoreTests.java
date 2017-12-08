@@ -4,18 +4,16 @@
 package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
-import com.google.cloud.datastore.EntityQuery;
 import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.ListValue;
+import com.google.cloud.datastore.LongValue;
 import com.google.cloud.datastore.NullValue;
-import com.google.cloud.datastore.StringValue;
-import com.google.cloud.datastore.StructuredQuery;
-import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
-import com.google.common.collect.Lists;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,26 +65,26 @@ class DatastoreTests extends TestBase {
 	}
 
 	/**
-	 * Just making sure that queries work the same way they used to
+	 * Weird, the datastore reorders nonindexed things ahead of indexed things in a list
 	 */
 	@Test
-	void doesTheDatastoreDetectUnindexedProperties() throws Exception {
+	void datastoreReordersLists() throws Exception {
+		final LongValue longValue1 = LongValue.newBuilder(123L).setExcludeFromIndexes(true).build();
+		final LongValue longValue2 = LongValue.newBuilder(456L).setExcludeFromIndexes(false).build();
+
+		final List<Value<?>> list = Arrays.asList(longValue1, longValue2);
+		final ListValue listValue = ListValue.of(list);
+
 		final FullEntity<?> ent = makeEntity("Test")
-				.set("indexed", StringValue.newBuilder("foo").setExcludeFromIndexes(false).build())
-				.set("unindexed", StringValue.newBuilder("foo").setExcludeFromIndexes(true).build())
+				.set("list", listValue)
 				.build();
 
-		datastore().put(ent);
+		final Entity completed = datastore().put(ent);
+		final Entity fetched = datastore().get(completed.getKey());
 
-		final EntityQuery indexedQuery = StructuredQuery.newEntityQueryBuilder().setKind("Test").setFilter(PropertyFilter.eq("indexed", "foo")).build();
-		final List<Entity> indexedResults = Lists.newArrayList(datastore().run(indexedQuery));
-		assertThat(indexedResults).hasSize(1);
+		final List<Value<?>> whatIsIt = fetched.getList("list");
 
-		final EntityQuery unindexedQuery = StructuredQuery.newEntityQueryBuilder().setKind("Test").setFilter(PropertyFilter.eq("unindexed", "foo")).build();
-		final List<Entity> unindexedResults = Lists.newArrayList(datastore().run(unindexedQuery));
-		assertThat(unindexedResults).hasSize(0);
-
+		// WTF???
+		assertThat(whatIsIt).containsExactly(longValue2, longValue1).inOrder();
 	}
-
-
 }

@@ -133,9 +133,10 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 					into.setProperty(DISCRIMINATOR_INDEX_PROPERTY, ListValue.of(indexedDiscriminators));
 			}
 
-			// Interesting question, what do we do about indexing this Value? Going to assume for now
-			// that the safest thing is to always index.
-			return EntityValue.of(into.toFullEntity());
+			// Interesting question, what do we do about indexing this Value? It turns out that if we don't index
+			// things in a list identically, the datastore will reorder the list - not good. So just apply the usual
+			// indexing behavior.
+			return EntityValue.newBuilder(into.toFullEntity()).setExcludeFromIndexes(!index).build();
 		}
 	}
 

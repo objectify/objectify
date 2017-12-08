@@ -90,7 +90,7 @@ class EnumTests extends TestBase {
 		he.color = Color.GREEN;
 		ofy().save().entity(he).now();
 
-		HasEnums fetched = ofy().load().type(HasEnums.class).filter("color =", Color.GREEN).first().now();
+		final HasEnums fetched = ofy().load().type(HasEnums.class).filter("color =", Color.GREEN).first().now();
 		assertThat(fetched).isEqualTo(he);
 	}
 }

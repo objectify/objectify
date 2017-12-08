@@ -20,6 +20,7 @@ import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.impl.translate.Translator;
 import com.googlecode.objectify.impl.translate.TypeKey;
 import com.googlecode.objectify.util.Closeable;
+import com.googlecode.objectify.util.Values;
 import lombok.Getter;
 
 import java.lang.reflect.Array;
@@ -309,7 +310,9 @@ public class ObjectifyImpl implements Objectify, Closeable
 			} else {
 				// Run it through a translator
 				final Translator<Object, Value<?>> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());
-				return translator.save(value, false, new SaveContext(), Path.root());
+
+				// For some reason we have to force all values used as filters to be indexed
+				return Values.index(translator.save(value, false, new SaveContext(), Path.root()), true);
 			}
 		}
 	}
