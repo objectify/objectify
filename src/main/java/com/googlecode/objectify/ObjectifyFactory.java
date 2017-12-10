@@ -374,7 +374,7 @@ public class ObjectifyFactory implements Forge
 	 * <p>Start a scope of work. This is the outermost scope of work, typically created by the ObjectifyFilter
 	 * or by one of the methods on ObjectifyService. You need one of these to do anything at all.</p>
 	 */
-	ObjectifyImpl open() {
+	public ObjectifyImpl open() {
 		final ObjectifyImpl objectify = new ObjectifyImpl(this);
 		stacks.get().add(objectify);
 		return objectify;

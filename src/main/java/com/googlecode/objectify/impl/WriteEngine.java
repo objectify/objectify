@@ -1,6 +1,5 @@
 package com.googlecode.objectify.impl;
 
-import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
@@ -92,7 +91,7 @@ public class WriteEngine
 				for (E obj: original)
 				{
 					com.google.cloud.datastore.Key k = keysIt.next();
-					if (!(obj instanceof Entity)) {
+					if (!(obj instanceof FullEntity<?>)) {
 						KeyMetadata<E> metadata = factory().keys().getMetadataSafe(obj);
 						if (metadata.isIdGeneratable())
 							metadata.setLongId(obj, k.getId());

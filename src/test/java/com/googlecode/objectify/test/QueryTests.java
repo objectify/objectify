@@ -204,8 +204,8 @@ class QueryTests extends TestBase {
 		assertThat(list).containsExactly(triv, child).inOrder();
 	}
 
-	/** */
-	@Test
+	/** No longer supported by the SDK */
+	//@Test
 	void testIN() throws Exception {
 		final Trivial triv1 = new Trivial("foo", 3);
 		final Trivial triv2 = new Trivial("bar", 3);
@@ -218,8 +218,8 @@ class QueryTests extends TestBase {
 		assertThat(result).containsExactly(triv1, triv2);
 	}
 
-	/** */
-	@Test
+	/** IN no longer supported by SDK */
+	//@Test
 	void specialKeyFilteringByIN() throws Exception {
 		final Trivial triv1 = new Trivial("foo", 3);
 		final Key<Trivial> key1 = ofy().save().entity(triv1).now();
@@ -229,8 +229,8 @@ class QueryTests extends TestBase {
 		assertThat(result).containsExactly(triv1);
 	}
 
-	/** */
-	@Test
+	/** IN no longer supported by SDK */
+	//@Test
 	void testINfilteringWithKeyField() throws Exception {
 		factory().register(Employee.class);
 

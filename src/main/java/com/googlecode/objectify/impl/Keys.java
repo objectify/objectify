@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.LongValue;
 import com.google.cloud.datastore.StringValue;
@@ -85,7 +86,7 @@ public class Keys
 			return Key.create((com.google.cloud.datastore.Key)keyOrEntity);
 		else if (keyOrEntity instanceof Ref)
 			return ((Ref<T>)keyOrEntity).key();
-		else if (keyOrEntity instanceof Entity)
+		else if (keyOrEntity instanceof FullEntity<?>)
 			return Key.create(((Entity)keyOrEntity).getKey());
 		else
 			return keyOf((T)keyOrEntity);
@@ -106,7 +107,7 @@ public class Keys
 			return ((Key<?>)keyOrEntity).getRaw();
 		else if (keyOrEntity instanceof Ref)
 			return ((Ref<?>)keyOrEntity).key().getRaw();
-		else if (keyOrEntity instanceof Entity)
+		else if (keyOrEntity instanceof FullEntity<?>)
 			return ((Entity)keyOrEntity).getKey();
 		else
 			return rawKeyOf(keyOrEntity);

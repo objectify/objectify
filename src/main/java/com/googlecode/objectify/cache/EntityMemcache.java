@@ -1,6 +1,7 @@
 package com.googlecode.objectify.cache;
 
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.cache.tmp.Expiration;
 import com.googlecode.objectify.cache.tmp.IMemcacheServiceFactory;
@@ -99,12 +100,12 @@ public class EntityMemcache
 		 */
 		public boolean isEmpty()
 		{
-			return !this.isCacheable() || (!this.isNegative() && !(iv.getValue() instanceof Entity));
+			return !this.isCacheable() || (!this.isNegative() && !(iv.getValue() instanceof FullEntity<?>));
 		}
 
 		/** Get the entity stored at this bucket, possibly the one that was set */
 		public Entity getEntity() {
-			if (iv != null && iv.getValue() instanceof Entity)
+			if (iv != null && iv.getValue() instanceof FullEntity<?>)
 				return (Entity)iv.getValue();
 			else
 				return null;
