@@ -23,7 +23,7 @@ public class IntegerTranslatorFactory implements TranslatorFactory<Number, Long>
 		if (!(clazz == Byte.class || clazz == Short.class || clazz == Integer.class || clazz == Long.class))
 			return null;
 
-		return new ValueTranslator<Number, Long>(ValueType.LONG) {
+		return new ValueTranslator<Number, Long>(ValueType.LONG, ValueType.STRING) {
 			@Override
 			protected Number loadValue(final Value<Long> value, final LoadContext ctx, final Path path) throws SkipException {
 				// In theory it's a number, but maybe there was a string instead? We'll have to remove the typecheck

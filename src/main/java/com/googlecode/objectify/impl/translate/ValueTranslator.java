@@ -4,7 +4,8 @@ import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.Values;
-import lombok.RequiredArgsConstructor;
+
+import java.util.Arrays;
 
 /**
  * <p>Translator that should be extended for typical atomic values. Does a little bit of expected type
@@ -12,15 +13,27 @@ import lombok.RequiredArgsConstructor;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@RequiredArgsConstructor
 abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 {
-	private final ValueType expectedValueType;
+	private final ValueType[] expectedValueTypes;
+
+	public ValueTranslator(final ValueType... expectedValueTypes) {
+		this.expectedValueTypes = expectedValueTypes;
+	}
+
+	private boolean isTypeExpected(final ValueType type) {
+		for (final ValueType expectedValueType : expectedValueTypes) {
+			if (type == expectedValueType)
+				return true;
+		}
+
+		return false;
+	}
 
 	@Override
 	final protected P loadSafe(final Value<D> value, final LoadContext ctx, final Path path) throws SkipException {
-		if (value.getType() != expectedValueType)
-			path.throwIllegalState("Expected value type " + expectedValueType + ", got " + value.getType() + ": " + value);
+		if (!isTypeExpected(value.getType()))
+			path.throwIllegalState("Expected value of type " + Arrays.toString(expectedValueTypes) + ", got " + value.getType() + ": " + value);
 
 		return loadValue(value, ctx, path);
 	}

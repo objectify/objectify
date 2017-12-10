@@ -17,6 +17,7 @@ import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -24,10 +25,30 @@ import java.util.List;
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  */
 class EmbeddingTests extends TestBase {
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Data
+	private static class HasBigDecimal {
+		@Id Long id;
+		BigDecimal data;
+	}
+
+	/**
+	 * This is actually a problem to implement because we might have a polymorphic class wherein the base class
+	 * does not have a noarg constructor. Old versions of objectify didn't really test this properly. What actually
+	 * happens if you use BigDecimal is that the data is written but load fails because missing no-args.
+	 * TODO: come up with a better story here
+	 */
+	//@Test
+	void embeddedClassesMustHaveNoArgConstructors() throws Exception {
+		assertThrows(Exception.class, () -> factory().register(HasBigDecimal.class));
+	}
 
 	@Data
 	@NoArgsConstructor

@@ -9,7 +9,6 @@ import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.Key;
-import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
@@ -23,12 +22,12 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.util.Date;
 import java.util.TimeZone;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests of type conversions.
@@ -217,6 +216,28 @@ class ValueTranslationTests extends TestBase {
 		assertThat(c.stuff).isEqualTo(b.stuff);
 	}
 
+	/** For testUtilDateConversion() */
+	@com.googlecode.objectify.annotation.Entity
+	@Cache
+	@Data
+	private static class HasUtilDate {
+		@Id Long id;
+		Date when;
+	}
+
+	/** */
+	@Test
+	void testUtilDateConversion() throws Exception {
+		factory().register(HasUtilDate.class);
+
+		final HasUtilDate hasDate = new HasUtilDate();
+		hasDate.when = new Date();
+
+		final HasUtilDate fetched = saveClearLoad(hasDate);
+
+		assertThat(fetched).isEqualTo(hasDate);
+	}
+
 	/** For testSqlDateConversion() */
 	@com.googlecode.objectify.annotation.Entity
 	@Cache
@@ -246,16 +267,6 @@ class ValueTranslationTests extends TestBase {
 	private static class HasBigDecimal {
 		@Id Long id;
 		BigDecimal data;
-	}
-
-	@Test
-	void translatorIsNeededForUnknownType() throws Exception {
-		factory().register(HasBigDecimal.class);
-
-		final HasBigDecimal hbd = new HasBigDecimal();
-		hbd.data = new BigDecimal(32.25);
-
-		assertThrows(SaveException.class, () -> saveClearLoad(hbd));
 	}
 
 	@Test

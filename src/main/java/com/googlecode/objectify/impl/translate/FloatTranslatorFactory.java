@@ -23,7 +23,7 @@ public class FloatTranslatorFactory implements TranslatorFactory<Number, Double>
 		if (!(clazz == Float.class || clazz == Double.class))
 			return null;
 
-		return new ValueTranslator<Number, Double>(ValueType.DOUBLE) {
+		return new ValueTranslator<Number, Double>(ValueType.DOUBLE, ValueType.STRING) {
 			@Override
 			protected Number loadValue(final Value<Double> value, final LoadContext ctx, final Path path) throws SkipException {
 				if (value.getType() == ValueType.STRING) {
@@ -52,7 +52,7 @@ public class FloatTranslatorFactory implements TranslatorFactory<Number, Double>
 	 * any type that expects something smaller. We don't need to worry about primitive
 	 * types because we wrapped the class earlier.
 	 */
-	private Number coerceNumber(Number value, Class<?> type) {
+	private Number coerceNumber(final Number value, final Class<?> type) {
 		if (type == Float.class) return value.floatValue();
 		else if (type == Double.class) return value.doubleValue();
 		else throw new IllegalArgumentException();	// should be impossible

@@ -11,12 +11,12 @@ import com.googlecode.objectify.impl.Path;
  */
 abstract public class SimpleTranslatorFactory<P, D> extends ValueTranslatorFactory<P, D>
 {
-	private final ValueType datastoreValueType;
+	private final ValueType[] datastoreValueTypes;
 
 	/** */
-	public SimpleTranslatorFactory(final Class<? extends P> pojoType, final ValueType datastoreValueType) {
+	public SimpleTranslatorFactory(final Class<? extends P> pojoType, final ValueType... datastoreValueTypes) {
 		super(pojoType);
-		this.datastoreValueType = datastoreValueType;
+		this.datastoreValueTypes = datastoreValueTypes;
 	}
 
 	abstract protected P toPojo(final Value<D> value);
@@ -24,7 +24,7 @@ abstract public class SimpleTranslatorFactory<P, D> extends ValueTranslatorFacto
 	
 	@Override
 	final protected ValueTranslator<P, D> createValueTranslator(final TypeKey<P> tk, final CreateContext ctx, final Path path) {
-		return new ValueTranslator<P, D>(datastoreValueType) {
+		return new ValueTranslator<P, D>(datastoreValueTypes) {
 			@Override
 			protected P loadValue(final Value<D> value, final LoadContext ctx, final Path path) throws SkipException {
 				return toPojo(value);

@@ -21,7 +21,7 @@ public class SqlDateTranslatorFactory extends SimpleTranslatorFactory<Date, Time
 
 	@Override
 	protected Date toPojo(final Value<Timestamp> value) {
-		return new java.sql.Date(value.get().getSeconds() * 1000);
+		return new java.sql.Date(value.get().toSqlTimestamp().getTime());
 	}
 
 	@Override

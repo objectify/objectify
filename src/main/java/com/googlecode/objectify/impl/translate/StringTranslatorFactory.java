@@ -15,12 +15,14 @@ public class StringTranslatorFactory extends SimpleTranslatorFactory<String, Str
 {
 	/** */
 	public StringTranslatorFactory() {
-		super(String.class, ValueType.STRING);
+		super(String.class, ValueType.STRING, ValueType.LONG, ValueType.DOUBLE, ValueType.BOOLEAN);
 	}
 
 	@Override
 	protected String toPojo(final Value<String> value) {
-		return value.get();
+		// Careful - if you inline this variable, the compiler will optimize out the toString() and we'll throw CCE
+		final Object thing = value.get();
+		return thing.toString();
 	}
 
 	@Override
