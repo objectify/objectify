@@ -5,6 +5,7 @@ import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.GenericUtils;
+import com.googlecode.objectify.util.Values;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -87,6 +88,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 					}
 				}
 
+				Values.homogenizeIndexes(list);
 				return ListValue.of(list);
 			}
 		};

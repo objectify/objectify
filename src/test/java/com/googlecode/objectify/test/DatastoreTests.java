@@ -4,11 +4,17 @@
 package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.EntityQuery;
+import com.google.cloud.datastore.EntityValue;
 import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.LongValue;
 import com.google.cloud.datastore.NullValue;
+import com.google.cloud.datastore.StructuredQuery;
+import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
@@ -86,5 +92,31 @@ class DatastoreTests extends TestBase {
 
 		// WTF???
 		assertThat(whatIsIt).containsExactly(longValue2, longValue1).inOrder();
+	}
+
+	/**
+	 * This isn't currently documented, so figure it out through trial and error
+	 */
+	@Test
+	void intermediateEmbeddedEntitiesAlwaysNeedToBeIndexed() throws Exception {
+		final FullEntity<IncompleteKey> thing = FullEntity.newBuilder().set("foo", "bar").build();
+
+		final FullEntity<?> ent = makeEntity("Test")
+				.set("thing", EntityValue.newBuilder(thing).setExcludeFromIndexes(true).build())
+				.build();
+
+		final Entity completed = datastore().put(ent);
+
+		final EntityQuery query = StructuredQuery.newEntityQueryBuilder()
+				.setKind("Test")
+				.setFilter(PropertyFilter.eq("thing.foo", "bar"))
+				.build();
+
+		final List<Entity> fetched = Lists.newArrayList(datastore().run(query));
+
+		// If we don't exclude, this works
+		//assertThat(fetched).containsExactly(completed);
+		// Because we excluded "thing", everything below is not indexed
+		assertThat(fetched).isEmpty();
 	}
 }

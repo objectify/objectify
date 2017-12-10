@@ -7,6 +7,7 @@ import com.googlecode.objectify.annotation.Mapify;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.util.GenericUtils;
+import com.googlecode.objectify.util.Values;
 
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -88,6 +89,7 @@ public class MapifyTranslatorFactory implements TranslatorFactory<Map<Object, Ob
 					}
 				}
 
+				Values.homogenizeIndexes(list);
 				return ListValue.of(list);
 			}
 		};

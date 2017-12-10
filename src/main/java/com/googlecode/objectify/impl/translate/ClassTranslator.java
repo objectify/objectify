@@ -133,10 +133,11 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 					into.setProperty(DISCRIMINATOR_INDEX_PROPERTY, ListValue.of(indexedDiscriminators));
 			}
 
-			// Interesting question, what do we do about indexing this Value? It turns out that if we don't index
-			// things in a list identically, the datastore will reorder the list - not good. So just apply the usual
-			// indexing behavior.
-			return EntityValue.newBuilder(into.toFullEntity()).setExcludeFromIndexes(!index).build();
+			// The question of whether to index this is weird. In order for subthings to be indexed, the entity needs
+			// to be indexed. But then lists with index-heterogeous values (say, nulls) get reordered (!)
+			// by the datastore. So we always index EntityValues and force all the list translators homogenize their lists.
+			// Gross but seems to be the only way.
+			return EntityValue.of(into.toFullEntity());
 		}
 	}
 
