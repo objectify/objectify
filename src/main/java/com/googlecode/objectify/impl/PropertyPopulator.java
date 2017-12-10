@@ -128,7 +128,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 				final Path propPath = containerPath.extend(property.getName());
 				final Value<D> propValue = translator.save(value, index, ctx, propPath);
 
-				into.setProperty(property.getName(), propValue, ctx, propPath);
+				into.setProperty(property.getName(), propValue);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing

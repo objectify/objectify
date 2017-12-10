@@ -72,6 +72,7 @@ public class Translators
 		this.translatorFactories.add(new BooleanTranslatorFactory());
 		this.translatorFactories.add(new KeyTranslatorFactory());
 		this.translatorFactories.add(new RawKeyTranslatorFactory());
+		this.translatorFactories.add(new RawEntityTranslatorFactory());
 		this.translatorFactories.add(new TimestampTranslatorFactory());
 		this.translatorFactories.add(new RefTranslatorFactory());
 		this.translatorFactories.add(new EnumTranslatorFactory());

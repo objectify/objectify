@@ -2,7 +2,6 @@ package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
-import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
@@ -15,7 +14,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -92,7 +90,7 @@ class EmbeddingFormatTests extends TestBase {
 
 		final Entity entity = datastore().get(key.getRaw());
 		
-		final List<Value<Entity>> entityInner = entity.getList("inner");
+		final List<Value<FullEntity<?>>> entityInner = entity.getList("inner");
 		assertThat(entityInner.size()).isEqualTo(2);
 		assertThat(entityInner.get(0).get().getString("stuff")).isEqualTo("stuff0");
 		assertThat(entityInner.get(1).get().getString("stuff")).isEqualTo("stuff1");
@@ -174,7 +172,7 @@ class EmbeddingFormatTests extends TestBase {
 	
 	/** */
 	@Test
-	void indexFormatIsCorrect() throws Exception {
+	void weDoNotNeedSyntheticIndexes() throws Exception {
 		factory().register(OuterWithIndex.class);
 
 		final InnerIndexed inner = new InnerIndexed("stuff");
@@ -183,9 +181,10 @@ class EmbeddingFormatTests extends TestBase {
 		final Key<OuterWithIndex> key = ofy().save().entity(outer).now();
 
 		final Entity entity = datastore().get(key.getRaw());
-		assertThat(entity.getNames()).hasSize(2);
-		// This checks for an indexed value too
-		assertThat(entity.getList("inner.stuff")).isEqualTo(Collections.singletonList(StringValue.of("stuff")));
+		assertThat(entity.getNames()).hasSize(1);
+		assertThat(entity.getNames()).doesNotContain("inner.stuff");
+		// No more synthetic indexes!
+		//assertThat(entity.getList("inner.stuff")).isEqualTo(Collections.singletonList(StringValue.of("stuff")));
 
 		ofy().clear();
 		final OuterWithIndex fetched = ofy().load().type(OuterWithIndex.class).filter("inner.stuff", "stuff").iterator().next();

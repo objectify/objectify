@@ -3,7 +3,6 @@ package com.googlecode.objectify.impl;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.Value;
-import com.googlecode.objectify.impl.translate.SaveContext;
 
 import java.util.Map;
 
@@ -25,15 +24,4 @@ abstract public class PropertyContainer
 	abstract public IncompleteKey getKey();
 
 	abstract public Map<String, Value<?>> getProperties();
-
-	/**
-	 * Also stuffs any values in the savecontext index.
-	 */
-	public void setProperty(final String propertyName, final Value<?> value, final SaveContext ctx, final Path propPath) {
-		this.setProperty(propertyName, value);
-
-		if (!value.excludeFromIndexes())
-			ctx.addIndex(propPath, value);
-	}
-
 }

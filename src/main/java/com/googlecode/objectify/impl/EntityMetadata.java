@@ -5,7 +5,6 @@ import com.google.cloud.datastore.EntityValue;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.FullEntity.Builder;
 import com.google.cloud.datastore.Value;
-import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadException;
 import com.googlecode.objectify.ObjectifyFactory;
@@ -16,9 +15,6 @@ import com.googlecode.objectify.impl.translate.EntityCreator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import lombok.Getter;
-
-import java.util.Collection;
-import java.util.Map;
 
 
 /**
@@ -115,46 +111,11 @@ public class EntityMetadata<P>
 	 */
 	public FullEntity<?> save(final P pojo, final SaveContext ctx) {
 		try {
-			ctx.startOneEntity();
-
-			final FullEntity<?> ent = translator.save(pojo, false, ctx, Path.root()).get();
-			return createSyntheticIndexes(ent, ctx);
+			return translator.save(pojo, false, ctx, Path.root()).get();
 		}
 		catch (SaveException ex) { throw ex; }
 		catch (Exception ex) {
 			throw new SaveException(pojo, ex);
 		}
 	}
-
-	/**
-	 * Establish any synthetic dot-separate indexes for embedded things that are indexed.
-	 */
-	private FullEntity<?> createSyntheticIndexes(final FullEntity<?> entity, final SaveContext ctx) {
-
-		// The datastore rejects our synthetic x.y.z indexes, possibly because it creates its own. It appears to
-		// be undocumented, needs to run some tests.
-		// TODO decide whether we can throw out this whole function
-		if (true) return entity;
-
-		// Maybe we can just leave it as-is
-		if (ctx.getIndexes().keySet().stream().noneMatch(Path::isEmbedded)) {
-			return entity;
-		}
-
-		final Builder<?> withIndexes = FullEntity.newBuilder(entity);
-
-		// Look for anything which is embedded and therefore won't be automatically indexed
-		for (final Map.Entry<Path, Collection<Value<?>>> index: ctx.getIndexes().entrySet()) {
-			final Path path = index.getKey();
-			final Collection<Value<?>> values = index.getValue();
-
-			if (path.isEmbedded()) {
-				// Need to copy the values list otherwise it will clear when we reset the context indexes
-				withIndexes.set(path.toPathString(), Lists.newArrayList(values));
-			}
-		}
-
-		return withIndexes.build();
-	}
-
 }
