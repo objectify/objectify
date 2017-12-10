@@ -75,8 +75,8 @@ public class Translators
 		this.translatorFactories.add(new TimestampTranslatorFactory());
 		this.translatorFactories.add(new RefTranslatorFactory());
 		this.translatorFactories.add(new EnumTranslatorFactory());
-		this.translatorFactories.add(new DateTranslatorFactory());
 		this.translatorFactories.add(new SqlDateTranslatorFactory());
+		this.translatorFactories.add(new DateTranslatorFactory());
 		this.translatorFactories.add(new TimeZoneTranslatorFactory());
 		this.translatorFactories.add(new URLTranslatorFactory());
 		this.translatorFactories.add(new LatLngTranslatorFactory());
