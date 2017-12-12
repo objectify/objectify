@@ -58,7 +58,7 @@ public class LoadEngine
 	 * Also will recursively prepare the session with @Load parents as appropriate.
 	 * @throws NullPointerException if key is null
 	 */
-	public <T> Result<T> load(Key<T> key) {
+	public <T> Result<T> load(final Key<T> key) {
 		if (key == null)
 			throw new NullPointerException("You tried to load a null key!");
 

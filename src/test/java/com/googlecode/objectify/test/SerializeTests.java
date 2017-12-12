@@ -5,6 +5,7 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
+import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
@@ -97,11 +98,15 @@ class SerializeTests extends TestBase {
 		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the non-zip annotation
-		final ObjectifyFactory fact2 = new ObjectifyFactory();
+		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore());
 		fact2.register(HasSerialize.class);
 
-		final HasSerialize fetched = fact2.begin().load().type(HasSerialize.class).id(hs.id).now();
+		final ObjectifyImpl ofy2 = fact2.open();
+
+		final HasSerialize fetched = ofy2.load().type(HasSerialize.class).id(hs.id).now();
 		assertThat(fetched.numbers).isEqualTo(hs.numbers);
+
+		ofy2.close();
 	}
 
 	@Test
@@ -115,10 +120,13 @@ class SerializeTests extends TestBase {
 		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the zip annotation
-		final ObjectifyFactory fact2 = new ObjectifyFactory();
+		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore());
 		fact2.register(HasSerializeZip.class);
 
-		final HasSerializeZip fetched = fact2.begin().load().type(HasSerializeZip.class).id(hs.id).now();
+		final ObjectifyImpl ofy2 = fact2.open();
+		final HasSerializeZip fetched = ofy2.load().type(HasSerializeZip.class).id(hs.id).now();
 		assertThat(fetched.numbers).isEqualTo(hs.numbers);
+
+		ofy2.close();
 	}
 }
