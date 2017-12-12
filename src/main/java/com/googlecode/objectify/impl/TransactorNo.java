@@ -1,11 +1,10 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.DatastoreException;
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import lombok.extern.slf4j.Slf4j;
-
-import java.util.ConcurrentModificationException;
 
 /**
  * Transactor which represents the absence of a transaction.
@@ -91,7 +90,11 @@ class TransactorNo extends Transactor
 		while (true) {
 			try {
 				return transactOnce(parent, work);
-			} catch (ConcurrentModificationException ex) {
+			} catch (DatastoreException ex) {
+				// This is a terrible way to distinguish contention, but it's all the SDK offers for now
+				if (!ex.getMessage().startsWith("too much contention on these datastore entities"))
+					throw ex;
+
 				if (--limitTries > 0) {
 					log.warn("Optimistic concurrency failure for {} (retrying): {}", work, ex);
 					log.trace("Details of optimistic concurrency failure", ex);

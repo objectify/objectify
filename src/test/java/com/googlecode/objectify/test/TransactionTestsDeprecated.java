@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.cloud.datastore.DatastoreException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
@@ -14,8 +15,6 @@ import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
-
-import java.util.ConcurrentModificationException;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
@@ -52,7 +51,7 @@ class TransactionTestsDeprecated extends TestBase {
 			});
 			assert false;	// must throw exception
 		}
-		catch (ConcurrentModificationException ex) {}
+		catch (DatastoreException ex) {}
 
 		Trivial fetched = ofy().load().key(tk).now();
 
@@ -158,7 +157,7 @@ class TransactionTestsDeprecated extends TestBase {
 			});
 			assert false;	// must throw exception
 		}
-		catch (ConcurrentModificationException ex) {}
+		catch (DatastoreException ex) {}
 
 		assertThat(listener.hasRun()).isFalse();
 	}

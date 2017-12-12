@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify.test;
 
+import com.google.cloud.datastore.DatastoreException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.annotation.Cache;
@@ -101,9 +102,9 @@ class TransactionTests extends TestBase {
 			});
 			assert false;	// must throw exception
 		}
-		catch (ConcurrentModificationException ex) {}
+		catch (DatastoreException ex) {}
 
-		Trivial fetched = ofy().load().key(tk).now();
+		final Trivial fetched = ofy().load().key(tk).now();
 
 		// This will be fetched from the cache, and must not be the "shouldn't work"
 		assertThat(fetched.getSomeString()).isEqualTo("bar");
@@ -240,9 +241,9 @@ class TransactionTests extends TestBase {
 		try {
 			ofy().transactNew(3, () -> {
 				counter.counter++;
-				throw new ConcurrentModificationException();
+				throw new DatastoreException(123, "too much contention on these datastore entities", "too much contention on these datastore entities");
 			});
-		} catch (ConcurrentModificationException e) {}
+		} catch (DatastoreException e) {}
 
 		assertThat(counter.counter).isEqualTo(3);
 	}
@@ -322,7 +323,7 @@ class TransactionTests extends TestBase {
 			txn.listenForCommit(listener);
 
 			if (counter.counter < 3) {
-				throw new ConcurrentModificationException();
+				throw new DatastoreException(123, "too much contention on these datastore entities", "too much contention on these datastore entities");
 			}
 		});
 
@@ -353,7 +354,7 @@ class TransactionTests extends TestBase {
 			});
 			assert false;	// must throw exception
 		}
-		catch (ConcurrentModificationException ex) {}
+		catch (DatastoreException ex) {}
 
 		assertThat(listener.hasRun()).isFalse();
 	}
