@@ -50,7 +50,7 @@ class QueryPerformanceTests extends TestBase {
 	private Trivial triv1;
 	private int getCount;
 
-	/** TODO: kill when stack in factory */
+	/** */
 	private Closeable rootService;
 
 	/** */
@@ -59,7 +59,7 @@ class QueryPerformanceTests extends TestBase {
 		getCount = 0;
 
 		// throw away the current factory and replace it with one that tracks calls
-		ObjectifyService.setFactory(new ObjectifyFactory() {
+		ObjectifyService.setFactory(new ObjectifyFactory(datastore()) {
 			@Override
 			public AsyncDatastore asyncDatastore() {
 				return (AsyncDatastore)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{AsyncDatastore.class}, new CountingProxy(super.asyncDatastore()));
@@ -68,8 +68,6 @@ class QueryPerformanceTests extends TestBase {
 
 		factory().register(Trivial.class);
 
-		// Need to push down the ofy from the extension; this goes away when the stack is owned by the factory
-		// TODO: kill when stack in factory
 		rootService = ObjectifyService.begin();
 
 		this.triv1 = new Trivial("foo1", 1);
@@ -78,7 +76,7 @@ class QueryPerformanceTests extends TestBase {
 		ofy().clear();
 	}
 
-	/** TODO: kill when stack in factory */
+	/** */
 	@AfterEach
 	void tearDownExtra() {
 		rootService.close();
@@ -101,9 +99,10 @@ class QueryPerformanceTests extends TestBase {
 	}
 
 	/**
-	 * At one point you couldn't have an IN query with keysonly and sort.
+	 * IN queries not supported by new SDK
+	 * //At one point you couldn't have an IN query with keysonly and sort.
 	 */
-	@Test
+	//@Test
 	void hybridQueryWithSortAndIN() throws Exception {
 		final List<Trivial> list = ofy().load()
 				.type(Trivial.class)
@@ -115,9 +114,10 @@ class QueryPerformanceTests extends TestBase {
 	}
 
 	/**
-	 * At one point you couldn't have a NOT query with keysonly and sort.
+	 * NOT queries not supported by new SDK
+	 * //At one point you couldn't have a NOT query with keysonly and sort.
 	 */
-	@Test
+	//@Test
 	void hybridQueryWithSortAndNOT() throws Exception {
 		final List<Trivial> list = ofy().load()
 				.type(Trivial.class)
