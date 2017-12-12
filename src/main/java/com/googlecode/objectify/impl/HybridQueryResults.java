@@ -27,6 +27,9 @@ public class HybridQueryResults<T> implements QueryResults<T> {
 	/** */
 	private final Iterator<ResultWithCursor<T>> stream;
 
+	/** We need this so we can acquire the cursor at the end */
+	private final QueryResults<Key<T>> source;
+
 	/** Track the values for the next time we need to get this */
 	@Getter
 	private Cursor cursorAfter;
@@ -40,6 +43,7 @@ public class HybridQueryResults<T> implements QueryResults<T> {
 			final int chunkSize) {
 
 		this.loadEngine = loadEngine;
+		this.source = source;
 
 		// Always start with whatever was in the source to begin with
 		this.cursorAfter = source.getCursorAfter();
@@ -85,7 +89,14 @@ public class HybridQueryResults<T> implements QueryResults<T> {
 
 	@Override
 	public boolean hasNext() {
-		return stream.hasNext();
+		final boolean hasNext = stream.hasNext();
+
+		// This addresses the edge case of iterating on an empty result set. In that case, the
+		// cursor we get after calling source.hasNext() is different from the one we get before.
+		if (!hasNext)
+			this.cursorAfter = source.getCursorAfter();
+
+		return hasNext;
 	}
 
 	@Override

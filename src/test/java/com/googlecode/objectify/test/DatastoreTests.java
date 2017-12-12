@@ -11,6 +11,7 @@ import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.LongValue;
 import com.google.cloud.datastore.NullValue;
+import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
@@ -119,4 +120,35 @@ class DatastoreTests extends TestBase {
 		// Because we excluded "thing", everything below is not indexed
 		assertThat(fetched).isEmpty();
 	}
+
+	/**
+	 * Weird, it looks like cursors restart if you grab them at the end of iteration?
+	 */
+	@Test
+	void cursorBehaviorAtTheEndOfIteration() throws Exception {
+		final FullEntity<?> ent = makeEntity("Test").build();
+		datastore().put(ent, ent);	// make two
+
+		final QueryResults<Entity> from0 = datastore().run(
+				StructuredQuery.newEntityQueryBuilder()
+						.setKind("Test")
+						.build());
+		final Entity ent1 = from0.next();
+		final Entity ent2 = from0.next();
+
+		assertThat(from0.hasNext()).isFalse();
+
+		final QueryResults<Entity> from2 = datastore().run(
+				StructuredQuery.newEntityQueryBuilder()
+						.setStartCursor(from0.getCursorAfter())
+						.build());
+		assertThat(from2.hasNext()).isFalse();
+
+		final QueryResults<Entity> from2Again = datastore().run(
+				StructuredQuery.newEntityQueryBuilder()
+						.setStartCursor(from2.getCursorAfter())
+						.build());
+		assertThat(from2Again.hasNext()).isFalse();
+	}
+
 }

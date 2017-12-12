@@ -51,34 +51,26 @@ class QueryCursorTestsSmall extends TestBase {
 	@Test
 	void cursorEnd() throws Exception {
 		final Query<Trivial> q = ofy().load().type(Trivial.class);
-		QueryResults<Trivial> it = q.limit(1).iterator();
 
-		assertThat(it.hasNext()).isTrue();
-		final Trivial t1 = it.next();
+		final QueryResults<Trivial> from0 = q.limit(1).iterator();
+		assertThat(from0.hasNext()).isTrue();
+		final Trivial t1 = from0.next();
 		assertThat(t1).isEqualTo(triv1);
-		assertThat(it.hasNext()).isFalse();
+		assertThat(from0.hasNext()).isFalse();
 
-		Cursor cursor = it.getCursorAfter();
-		assertThat(cursor).isNotNull();
-
-		it = q.startAt(cursor).limit(1).iterator();
-
-		assertThat(it.hasNext()).isTrue();
-		final Trivial t2 = it.next();
+		final QueryResults<Trivial> from1 = q.startAt(from0.getCursorAfter()).limit(1).iterator();
+		assertThat(from1.hasNext()).isTrue();
+		final Trivial t2 = from1.next();
 		assertThat(t2).isEqualTo(triv2);
-		assertThat(it.hasNext()).isFalse();
+		assertThat(from1.hasNext()).isFalse();
 
 		// We should be at end
-		cursor = it.getCursorAfter();
-		assertThat(cursor).isNotNull();;
-		it = q.startAt(cursor).iterator();
-		assertThat(it.hasNext()).isFalse();
+		final QueryResults<Trivial> from2 = q.startAt(from1.getCursorAfter()).iterator();
+		assertThat(from2.hasNext()).isFalse();
 
 		// Try that again just to be sure
-		cursor = it.getCursorAfter();
-		assertThat(cursor).isNotNull();
-		it = q.startAt(cursor).iterator();
-		assertThat(it.hasNext()).isFalse();
+		final QueryResults<Trivial> from2Again = q.startAt(from2.getCursorAfter()).iterator();
+		assertThat(from2Again.hasNext()).isFalse();
 	}
 
 	/** */
