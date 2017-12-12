@@ -64,9 +64,9 @@ public class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#toEntity(java.lang.Object)
 	 */
 	@Override
-	public FullEntity toEntity(final Object pojo) {
-		if (pojo instanceof FullEntity) {
-			return (FullEntity)pojo;
+	public FullEntity<?> toEntity(final Object pojo) {
+		if (pojo instanceof FullEntity<?>) {
+			return (FullEntity<?>)pojo;
 		} else {
 			@SuppressWarnings("unchecked")
 			final EntityMetadata<Object> meta = (EntityMetadata<Object>)ofy.factory().getMetadata(pojo.getClass());

@@ -5,6 +5,7 @@ package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
+import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
@@ -25,12 +26,15 @@ class RawEntityTests extends TestBase {
 				.set("foo", "bar")
 				.build();
 
-		ofy().save().entity(ent).now();
+		final Key<?> key = ofy().save().entity(ent).now();
 		ofy().clear();
 
-		final Entity fetched = ofy().load().<Entity>value(ent).now();
+		final Entity fetched1 = (Entity)ofy().load().key(key).now();
+		ofy().clear();
 
-		assertThat(fetched).isEqualTo(ent);
+		final Entity fetched2 = ofy().load().<Entity>value(fetched1).now();
+
+		assertThat(fetched2).isEqualTo(fetched1);
 	}
 
 	/** */
@@ -40,12 +44,12 @@ class RawEntityTests extends TestBase {
 				.set("foo", "bar")
 				.build();
 
-		ofy().save().entity(ent).now();
+		final Entity saved = datastore().put(ent);
 		ofy().clear();
 
-		ofy().delete().entity(ent);
+		ofy().delete().entity(saved);
 
-		final Entity fetched = ofy().load().<Entity>value(ent).now();
+		final Entity fetched = ofy().load().<Entity>value(saved).now();
 		assertThat(fetched).isNull();
 	}
 }
