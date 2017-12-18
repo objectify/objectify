@@ -10,6 +10,7 @@ import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.impl.AsyncDatastore;
+import net.spy.memcached.MemcachedClient;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.googlecode.objectify.ObjectifyService.factory;
@@ -24,6 +25,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 @ExtendWith({
 		MockitoExtension.class,
 		LocalDatastoreExtension.class,
+		LocalMemcacheExtension.class,
 		ObjectifyExtension.class,
 })
 public class TestBase {
@@ -35,6 +37,11 @@ public class TestBase {
 	/** */
 	protected Datastore datastore() {
 		return factory().datastore();
+	}
+
+	/** */
+	protected MemcachedClient memcache() {
+		return factory().memcache();
 	}
 
 	protected AsyncDatastore asyncDatastore() {

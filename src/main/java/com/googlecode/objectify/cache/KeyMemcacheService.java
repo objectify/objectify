@@ -2,25 +2,25 @@ package com.googlecode.objectify.cache;
 
 import com.google.cloud.datastore.Key;
 import com.google.common.collect.Collections2;
-import com.googlecode.objectify.cache.tmp.MemcacheService;
-import com.googlecode.objectify.cache.tmp.MemcacheService.CasValues;
-import com.googlecode.objectify.cache.tmp.MemcacheService.IdentifiableValue;
+import com.googlecode.objectify.cache.MemcacheService.CasValues;
 import lombok.RequiredArgsConstructor;
+import net.spy.memcached.CASValue;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.function.BinaryOperator;
 import java.util.stream.Collectors;
 
 /**
  * Subset of MemcacheService used by EntityMemcache, but smart enough to translate Key into the stringified
  * version so that the memcache keys are intelligible. Also guards against calling through to the underlying
  * service when the operation is a no-op (ie, the collection of keys to operate on is empty).
+ *
+ * Also handles storing a sentinel value for null and replacing it will null on fetch. Memcached doesn't store
+ * nulls (the old GAE SDK hid this from us).
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
@@ -31,8 +31,9 @@ public class KeyMemcacheService
 	private final MemcacheService service;
 
 	private <T> Map<Key, T> keyify(final Map<String, T> stringified) {
-		return stringified.entrySet().stream()
-				.collect(Collectors.toMap(e -> Key.fromUrlSafe(e.getKey()), Entry::getValue, throwingMerger(), LinkedHashMap::new));
+		final Map<Key, T> keyified = new LinkedHashMap<>();
+		stringified.forEach((key, value) -> keyified.put(Key.fromUrlSafe(key), (T)unhideNulls(value)));
+		return keyified;
 	}
 
 	private Set<Key> keyify(final Set<String> stringified) {
@@ -42,19 +43,28 @@ public class KeyMemcacheService
 	}
 
 	private <T> Map<String, T> stringify(final Map<Key, T> keyified) {
-		return keyified.entrySet().stream()
-				.collect(Collectors.toMap(e -> e.getKey().toUrlSafe(), Entry::getValue, throwingMerger(), LinkedHashMap::new));
+		final Map<String, T> stringified = new LinkedHashMap<>();
+		keyified.forEach((key, value) -> stringified.put(key.toUrlSafe(), (T)hideNulls(value)));
+		return stringified;
 	}
 
 	private Collection<String> stringify(final Collection<Key> keys) {
 		return Collections2.transform(keys, Key::toUrlSafe);
 	}
 
-	public Map<Key, IdentifiableValue> getIdentifiables(Collection<Key> keys) {
+	private Object hideNulls(final Object thing) {
+		return thing == null ? "" : null;
+	}
+
+	private Object unhideNulls(final Object thing) {
+		return "".equals(thing) ? null : thing;
+	}
+
+	public Map<Key, CASValue<Object>> getIdentifiables(Collection<Key> keys) {
 		if (keys.isEmpty())
 			return Collections.emptyMap();
 		
-		final Map<String, IdentifiableValue> map = service.getIdentifiables(stringify(keys));
+		final Map<String, CASValue<Object>> map = service.getIdentifiables(stringify(keys));
 		return keyify(map);
 	}
 
@@ -86,9 +96,5 @@ public class KeyMemcacheService
 			return;
 		
 		service.deleteAll(stringify(keys));
-	}
-
-	private static <T> BinaryOperator<T> throwingMerger() {
-		return (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); };
 	}
 }

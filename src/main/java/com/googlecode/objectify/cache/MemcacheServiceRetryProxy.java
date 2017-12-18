@@ -1,6 +1,6 @@
 package com.googlecode.objectify.cache;
 
-import com.googlecode.objectify.cache.tmp.MemcacheService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.InvocationHandler;
@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
+@RequiredArgsConstructor
 @Slf4j
 public class MemcacheServiceRetryProxy implements InvocationHandler
 {
@@ -22,7 +23,7 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
-	public static MemcacheService createProxy(MemcacheService raw)
+	public static MemcacheService createProxy(final MemcacheService raw)
 	{
 		return createProxy(raw, DEFAULT_TRIES);
 	}
@@ -30,9 +31,7 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	/**
 	 * Create the proxy that does retries. Adds a strict error handler to the service.
 	 */
-	public static MemcacheService createProxy(MemcacheService raw, int retryCount) {
-//		raw.setErrorHandler(ErrorHandlers.getStrict());
-		
+	public static MemcacheService createProxy(final MemcacheService raw, final int retryCount) {
 		return (MemcacheService)java.lang.reflect.Proxy.newProxyInstance(
 			raw.getClass().getClassLoader(),
 			raw.getClass().getInterfaces(),
@@ -45,12 +44,6 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 	/** */
 	private final int tries;
 	
-	/** */
-	public MemcacheServiceRetryProxy(MemcacheService raw, int tries) {
-		this.raw = raw;
-		this.tries = tries;
-	}
-
 	/* (non-Javadoc)
 	 * @see java.lang.reflect.InvocationHandler#invoke(java.lang.Object, java.lang.reflect.Method, java.lang.Object[])
 	 */
@@ -67,7 +60,7 @@ public class MemcacheServiceRetryProxy implements InvocationHandler
 			}
 		}
 		
-		// Will reach this point of we have exhausted our retries.
+		// Will reach this point when we have exhausted our retries.
 		return null;
 	}
 

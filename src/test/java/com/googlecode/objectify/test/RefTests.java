@@ -9,14 +9,17 @@ import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
-import com.googlecode.objectify.cache.tmp.MemcacheService;
-import com.googlecode.objectify.cache.tmp.MemcacheServiceFactory;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -136,14 +139,19 @@ class RefTests extends TestBase {
 		hr.triv = Ref.create(k1);
 
 		final HasRef fetched = saveClearLoad(hr);
-
-		// Now try to serialize it in memcache.
-		final MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
-		ms.put("thing", fetched);
-
-		final HasRef serialized = (HasRef)ms.get("thing");
+		final Object serialized = serializeDeserialize(fetched);
 
 		assertThat(serialized).isEqualTo(hr);
+	}
+
+	private Object serializeDeserialize(final Object thing) throws IOException, ClassNotFoundException {
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		final ObjectOutputStream oos = new ObjectOutputStream(baos);
+		oos.writeObject(thing);
+		oos.close();
+
+		final ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()));
+		return ois.readObject();
 	}
 
 	/** */
@@ -157,12 +165,7 @@ class RefTests extends TestBase {
 		ofy().save().entity(hr).now();
 		ofy().clear();
 		final HasRef fetched = ofy().load().group(HasRef.Foo.class).entity(hr).now();
-
-		// Now try to serialize it in memcache.
-		final MemcacheService ms = MemcacheServiceFactory.getMemcacheService();
-		ms.put("thing", fetched);
-
-		final HasRef serialized = (HasRef)ms.get("thing");
+		final HasRef serialized = (HasRef)serializeDeserialize(fetched);
 		assertThat(serialized).isEqualTo(hr);
 		assertThat(serialized.triv.get()).isEqualTo(t1);
 	}

@@ -7,6 +7,7 @@ import com.googlecode.objectify.cache.CachingAsyncDatastore;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.impl.AsyncDatastoreImpl;
+import com.googlecode.objectify.impl.CacheControlImpl;
 import com.googlecode.objectify.impl.EntityMemcacheStats;
 import com.googlecode.objectify.impl.EntityMetadata;
 import com.googlecode.objectify.impl.Forge;
@@ -17,8 +18,11 @@ import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.TransactorSupplier;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
+import lombok.SneakyThrows;
+import net.spy.memcached.MemcachedClient;
 
 import java.lang.reflect.Constructor;
+import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -57,6 +61,9 @@ public class ObjectifyFactory implements Forge
 	/** The raw interface to the datastore from the Cloud SDK */
 	protected Datastore datastore;
 
+	/** The raw interface to memcache */
+	protected MemcachedClient memcache;
+
 	/** Encapsulates entity registration info */
 	protected Registrar registrar;
 
@@ -74,21 +81,32 @@ public class ObjectifyFactory implements Forge
 
 	/** */
 	public ObjectifyFactory() {
-		this(DatastoreOptions.getDefaultInstance().getService());
+		this(DatastoreOptions.getDefaultInstance().getService(), defaultMemcachedClient());
+	}
+
+	@SneakyThrows
+	private static MemcachedClient defaultMemcachedClient() {
+		return new MemcachedClient(new InetSocketAddress("localhost", 11211));
 	}
 
 	/** */
-	public ObjectifyFactory(final Datastore datastore) {
+	public ObjectifyFactory(final Datastore datastore, final MemcachedClient memcache) {
 		this.datastore = datastore;
 		this.registrar = new Registrar(this);
 		this.keys = new Keys(datastore, registrar);
 		this.translators = new Translators(this);
-		//this.entityMemcache = new EntityMemcache(MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+		this.memcache = memcache;
+		this.entityMemcache = new EntityMemcache(memcache, MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	}
 
 	/** */
 	public Datastore datastore() {
 		return this.datastore;
+	}
+
+	/** */
+	public MemcachedClient memcache() {
+		return this.memcache;
 	}
 
 	/** Always the non-caching version */
@@ -100,7 +118,7 @@ public class ObjectifyFactory implements Forge
 	 * Might produce a caching version if caching is enabled.
 	 */
 	public AsyncDatastore asyncDatastore(final boolean enableGlobalCache) {
-		if (false && enableGlobalCache && this.registrar.isCacheEnabled())
+		if (enableGlobalCache && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastore(asyncDatastore(), this.entityMemcache);
 		else
 			return asyncDatastore();

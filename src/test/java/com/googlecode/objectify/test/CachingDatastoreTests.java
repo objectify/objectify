@@ -8,11 +8,11 @@ import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.cache.CachingAsyncDatastore;
 import com.googlecode.objectify.cache.EntityMemcache;
 import com.googlecode.objectify.impl.AsyncDatastore;
-import com.googlecode.objectify.impl.AsyncDatastoreImpl;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.List;
@@ -44,9 +44,9 @@ class CachingDatastoreTests extends TestBase {
 	/**
 	 */
 	@BeforeEach
-	void setUpExtra() {
-		final EntityMemcache mc = new EntityMemcache(null);
-		cads = new CachingAsyncDatastore(new AsyncDatastoreImpl(datastore()), mc);
+	void setUpExtra() throws IOException {
+		final EntityMemcache mc = new EntityMemcache(memcache(), "somenamespace");
+		cads = new CachingAsyncDatastore(asyncDatastore(), mc);
 		nods = new CachingAsyncDatastore(allOperationsUnsupported(), mc);
 		
 		key = datastore().newKeyFactory().setKind("thing").newKey(1);

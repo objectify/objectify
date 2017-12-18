@@ -98,7 +98,7 @@ class SerializeTests extends TestBase {
 		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the non-zip annotation
-		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore());
+		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore(), memcache());
 		fact2.register(HasSerialize.class);
 
 		final ObjectifyImpl ofy2 = fact2.open();
@@ -120,7 +120,7 @@ class SerializeTests extends TestBase {
 		ofy().save().entity(hs).now();
 
 		// Now we need to read it using the zip annotation
-		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore());
+		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore(), memcache());
 		fact2.register(HasSerializeZip.class);
 
 		final ObjectifyImpl ofy2 = fact2.open();

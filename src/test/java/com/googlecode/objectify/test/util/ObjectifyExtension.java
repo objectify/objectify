@@ -4,6 +4,7 @@ import com.google.cloud.datastore.Datastore;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.ObjectifyService;
 import com.googlecode.objectify.util.Closeable;
+import net.spy.memcached.MemcachedClient;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -19,8 +20,9 @@ public class ObjectifyExtension implements BeforeEachCallback, AfterEachCallback
 	@Override
 	public void beforeEach(final ExtensionContext context) throws Exception {
 		final Datastore datastore = LocalDatastoreExtension.getHelper(context).getOptions().getService();
+		final MemcachedClient memcachedClient = LocalMemcacheExtension.getClient(context);
 
-		ObjectifyService.setFactory(new ObjectifyFactory(datastore));
+		ObjectifyService.setFactory(new ObjectifyFactory(datastore, memcachedClient));
 
 		final Closeable rootService = ObjectifyService.begin();
 

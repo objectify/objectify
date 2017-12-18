@@ -71,7 +71,7 @@ class EvilMemcacheBugTests extends TestBase {
 		// Need to register it so the entity kind becomes cacheable
 		factory().register(SimpleEntity.class);
 
-		final EntityMemcache mc = new EntityMemcache(null);
+		final EntityMemcache mc = new EntityMemcache(memcache(), "somenamespace");
 		final AsyncDatastore cacheds = new CachingAsyncDatastore(new AsyncDatastoreImpl(datastore()), mc);
 
 		// This is the weirdest thing.  If you change the *name* of one of these two keys, the test passes.

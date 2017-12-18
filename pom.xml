@@ -190,6 +190,12 @@
 			<version>22.0</version>
 		</dependency>
 
+		<dependency>
+			<groupId>net.spy</groupId>
+			<artifactId>spymemcached</artifactId>
+			<version>2.12.3</version>
+		</dependency>
+
 		<!-- Optional -->
 		<dependency>
 			<groupId>joda-time</groupId>
