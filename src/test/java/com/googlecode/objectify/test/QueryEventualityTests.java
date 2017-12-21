@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.LocalDatastoreExtensionEventual;
+import com.googlecode.objectify.test.util.LocalMemcacheExtension;
 import com.googlecode.objectify.test.util.MockitoExtension;
 import com.googlecode.objectify.test.util.ObjectifyExtension;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 @ExtendWith({
 		MockitoExtension.class,
 		LocalDatastoreExtensionEventual.class,
+		LocalMemcacheExtension.class,
 		ObjectifyExtension.class,
 })
 class QueryEventualityTests {
