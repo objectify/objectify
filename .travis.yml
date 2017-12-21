@@ -7,3 +7,6 @@ cache:
   - $HOME/.m2
 
 script: mvn package
+
+services:
+  - memcached
