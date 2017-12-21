@@ -3,7 +3,6 @@ package com.googlecode.objectify.test.util;
 import com.google.cloud.datastore.testing.LocalDatastoreHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -14,9 +13,7 @@ import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class LocalDatastoreExtension implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
-
-	private static final Namespace NAMESPACE = Namespace.create(LocalDatastoreExtension.class);
+public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCallback {
 
 	private final double consistency;
 
@@ -34,14 +31,6 @@ public class LocalDatastoreExtension implements BeforeAllCallback, AfterAllCallb
 			helper.start();
 		}
 
-	}
-
-	@Override
-	public void afterAll(final ExtensionContext context) throws Exception {
-		// We don't really have a way of shutting this down; we need a hook for when the all tests
-		// are complete, not just one class. But the java process dies anyways.
-//		final LocalDatastoreHelper helper = getHelper(context);
-//		helper.stop(Duration.ofSeconds(5));
 	}
 
 	@Override
