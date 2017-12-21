@@ -19,6 +19,11 @@ public interface CacheControl
 	 * @return null means DO NOT CACHE.  0 means "no limit".  Any other value is a # of seconds.
 	 */
 	Integer getExpirySeconds(Key key);
+
+	/** Convenience method */
+	default boolean isCacheable(final Key key) {
+		return getExpirySeconds(key) != null;
+	}
 }
 
 

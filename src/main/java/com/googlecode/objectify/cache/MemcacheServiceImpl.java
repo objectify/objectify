@@ -21,16 +21,26 @@ public class MemcacheServiceImpl implements MemcacheService {
 	}
 
 	public Map<String, CASValue<Object>> getIdentifiables(final Collection<String> keys) {
-		// There is no bulk operation.
-		// Can't use streams beacuse they don't allow nulls
+		// Can't use streams because they don't allow nulls
 		//return keys.stream().collect(Collectors.toMap(Functions.identity(), this::getIdentifiable));
 		final Map<String, CASValue<Object>> result = new LinkedHashMap<>();
-		keys.forEach(key -> result.put(key, getIdentifiable(key)));
+
+		for (final String key : keys) {
+			final CASValue<Object> casValue = getIdentifiable(key);
+			result.put(key, casValue);
+		}
+
 		return result;
 	}
 
 	private CASValue<Object> getIdentifiable(final String key) {
-		return client.gets(key);
+		final CASValue<Object> casValue = client.gets(key);
+		if (casValue != null) {
+			return casValue;
+		} else {
+			client.set(key, 0, KeyMemcacheService.NULL_VALUE);	// use the fakenull so that no other fetches get confused
+			return client.gets(key);
+		}
 	}
 
 	public Map<String, Object> getAll(final Collection<String> keys) {
@@ -41,7 +51,7 @@ public class MemcacheServiceImpl implements MemcacheService {
 		client.set(key, 0, value);
 	}
 
-	public Set<String> putIfUntouched(final Map<String, CasValues> values) {
+	public Set<String> putIfUntouched(final Map<String, CasPut> values) {
 		final Set<String> successes = new HashSet<>();
 
 		values.forEach((key, vals) -> {

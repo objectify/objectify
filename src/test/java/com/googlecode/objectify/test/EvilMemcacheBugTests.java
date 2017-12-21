@@ -22,8 +22,6 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 
 /**
- * Tests of a bizarre bug in Google's memcache serialization of Key objects.
- *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 class EvilMemcacheBugTests extends TestBase {
@@ -103,46 +101,4 @@ class EvilMemcacheBugTests extends TestBase {
 
 		assertThat(ent3.getString("foo")).isEqualTo("changed");
 	}
-
-	/** */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	@Test
-	void testRawCaching() throws Exception {
-		// I can not for the life of me figure out why this test passes when the
-		// previous test fails.
-
-//		final MemcacheService cs1 = MemcacheServiceFactory.getMemcacheService("blah");
-//
-//		final com.google.cloud.datastore.Key parentKey = KeyFactory.createKey("SimpleParent", "asdf");
-//		final com.google.cloud.datastore.Key childKey = KeyFactory.createKey(parentKey, "SimpleEntity", "asdf");
-//
-//		final Entity ent = new Entity(childKey);
-//		ent.setProperty("foo", "original");
-//		cs1.put(childKey, ent);
-//
-//		datastore().put(ent);
-//
-//		final Transaction txn = datastore().beginTransaction();
-//		try {
-//			final Entity ent2 = datastore().get(txn, childKey);
-//
-//			//Entity ent2 = (Entity)cs1.get(childKey);
-//			assertThat(ent2.getProperty("foo")).isEqualTo("original");
-//			ent2.setProperty("foo", "changed");
-//
-//			final Map<Object, Object> holder = new HashMap<>();
-//			holder.put(childKey, ent2);
-//			cs1.putAll(holder);
-//
-//			final Map<Object, Object> fetched = cs1.getAll((Collection)Collections.singleton(childKey));
-//			final Entity ent3 = (Entity)fetched.get(childKey);
-//			assertThat(ent3.getProperty("foo")).isEqualTo("changed");
-//		} finally {
-//			if (txn.isActive())
-//				txn.rollback();
-//		}
-
-		throw new UnsupportedOperationException("TODO fix this test");
-	}
-
 }

@@ -18,8 +18,7 @@ import java.util.concurrent.Future;
 abstract public class TriggerSuccessFuture<T> extends TriggerFuture<T>
 {
 	/** Wrap a normal Future<?> */
-	public TriggerSuccessFuture(Future<T> raw)
-	{
+	public TriggerSuccessFuture(Future<T> raw) {
 		super(raw);
 	}
 	

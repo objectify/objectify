@@ -81,11 +81,12 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 		if (!uncached.isEmpty()) {
 			final Key[] uncachedArray = EntityMemcache.keysOf(uncached).toArray(new Key[uncached.size()]);
 			final Future<Map<Key, Entity>> fromDatastore = this.raw.get(uncachedArray);
+
 			pending = new TriggerSuccessFuture<Map<Key, Entity>>(fromDatastore) {
 				@Override
-				public void success(Map<Key, Entity> result) {
-					for (Bucket buck: uncached) {
-						Entity value = result.get(buck.getKey());
+				public void success(final Map<Key, Entity> result) {
+					for (final Bucket buck: uncached) {
+						final Entity value = result.get(buck.getKey());
 						if (value != null)
 							buck.setNext(value);
 					}

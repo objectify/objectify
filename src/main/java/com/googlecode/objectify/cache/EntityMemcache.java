@@ -2,7 +2,7 @@ package com.googlecode.objectify.cache;
 
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Key;
-import com.googlecode.objectify.cache.MemcacheService.CasValues;
+import com.googlecode.objectify.cache.MemcacheService.CasPut;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -51,9 +51,9 @@ public class EntityMemcache
 
 		/**
 		 * If null, this means the key is uncacheable (possibly because the cache is down).
-		 * If not null, the IV holds the Entity or NEGATIVE or EMPTY.
+		 * If not null, the IV holds the Entity or NEGATIVE.
 		 */
-		private final CASValue<Object> iv;
+		private final CASValue<Object> casValue;
 
 		/**
 		 * The Entity to store in this bucket in a put().  Can be null to indicate a negative cache
@@ -70,21 +70,21 @@ public class EntityMemcache
 		}
 
 		/**
-		 * @param iv can be null to indicate an uncacheable key
+		 * @param casValue can be null to indicate an uncacheable key
 		 */
-		public Bucket(final Key key, final CASValue<Object> iv) {
+		public Bucket(final Key key, final CASValue<Object> casValue) {
 			this.key = key;
-			this.iv = iv;
+			this.casValue = casValue;
 		}
 
 		/** */
 		public Key getKey() { return this.key; }
 
 		/** @return true if we can cache this bucket; false if the key isn't cacheable or the memcache was down when we created the bucket */
-		public boolean isCacheable() { return this.iv != null; }
+		public boolean isCacheable() { return this.casValue != null; }
 
 		/** @return true if this is a negative cache result */
-		public boolean isNegative() { return this.isCacheable() && NEGATIVE.equals(iv.getValue()); }
+		public boolean isNegative() { return this.isCacheable() && NEGATIVE.equals(casValue.getValue()); }
 
 		/**
 		 * "Empty" means we don't know the value - it could be null, it could be uncacheable, or we could have some
@@ -94,13 +94,13 @@ public class EntityMemcache
 		 * @return true if this is empty or uncacheable or something other than a nice entity or negative result.
 		 */
 		public boolean isEmpty() {
-			return !this.isCacheable() || (!this.isNegative() && !(iv.getValue() instanceof Entity));
+			return !this.isCacheable() || (!this.isNegative() && !(casValue.getValue() instanceof Entity));
 		}
 
 		/** Get the entity stored at this bucket, possibly the one that was set */
 		public Entity getEntity() {
-			if (iv != null && iv.getValue() instanceof Entity)
-				return (Entity)iv.getValue();
+			if (casValue != null && casValue.getValue() instanceof Entity)
+				return (Entity)casValue.getValue();
 			else
 				return null;
 		}
@@ -117,8 +117,7 @@ public class EntityMemcache
 		/**
 		 * @return the actual value we should store in memcache based on the next value, ie possibly NEGATIVE
 		 */
-		private Object getNextToStore()
-		{
+		private Object getNextToStore() {
 			return (this.next == null) ? NEGATIVE : this.next;
 		}
 	}
@@ -178,7 +177,7 @@ public class EntityMemcache
 	 * underlying details of storage for negative, empty, and uncacheable results.</p>
 	 *
 	 * <p>Note that worst case (a cold cache), obtaining each bucket might require three memcache requests:
-	 * a getIdentifiable() which returns null, a put(EMPTY), and another getIdentifiable().  Since
+	 * a getIdentifiable() which returns null, a put(null), and another getIdentifiable().  Since
 	 * there is no batch getIdentifiable(), this is *per key*.</p>
 	 *
 	 * <p>When keys are uncacheable (per CacheControl) or the memcache is down, you will still get an empty
@@ -193,45 +192,26 @@ public class EntityMemcache
 		final Set<Key> potentials = new HashSet<>();
 
 		for (final Key key: keys) {
-			if (cacheControl.getExpirySeconds(key) == null)
+			if (!cacheControl.isCacheable(key))
 				result.put(key, new Bucket(key));
 			else
 				potentials.add(key);
 		}
 
-		Map<Key, CASValue<Object>> ivs;
+		Map<Key, CASValue<Object>> casValues;
 		try {
-			ivs = this.memcache.getIdentifiables(potentials);
+			casValues = this.memcache.getIdentifiables(potentials);
 		} catch (Exception ex) {
 			// This should really only be a problem if the serialization format for an Entity changes,
 			// or someone put a badly-serializing object in the cache underneath us.
 			log.warn("Error obtaining cache for " + potentials, ex);
-			ivs = new HashMap<>();
-		}
-
-		// Figure out cold cache values
-		final Map<Key, Object> cold = new HashMap<>();
-		for (final Key key: potentials)
-			if (ivs.get(key) == null)
-				cold.put(key, null);
-
-		if (!cold.isEmpty()) {
-			// The cache is cold for those values, so start them out with nulls that we can make an IV for
-			this.memcache.putAll(cold);
-
-			try {
-				final Map<Key, CASValue<Object>> ivs2 = this.memcache.getIdentifiables(cold.keySet());
-				ivs.putAll(ivs2);
-			} catch (Exception ex) {
-				// At this point we should just not worry about it, the ivs will be null and uncacheable
-			}
+			casValues = new HashMap<>();
 		}
 
 		// Now create the remaining buckets
 		for (final Key key: keys) {
-			// iv might still be null, which is ok - that means uncacheable
-			final CASValue<Object> iv = ivs.get(key);
-			final Bucket buck = (iv == null) ? new Bucket(key) : new Bucket(key, iv);
+			final CASValue<Object> casValue = casValues.get(key);	// Might be null, which means uncacheable
+			final Bucket buck = new Bucket(key, casValue);
 			result.put(key, buck);
 
 			if (buck.isEmpty())
@@ -284,7 +264,7 @@ public class EntityMemcache
 		final Map<Key, Object> updates = new HashMap<>();
 
 		for (final Key key: keys)
-			if (cacheControl.getExpirySeconds(key) != null)
+			if (cacheControl.isCacheable(key))
 				updates.put(key, null);
 
 		this.memcacheWithRetry.putAll(updates);
@@ -296,7 +276,7 @@ public class EntityMemcache
 	 * and buckets that didn't need to be cached.
 	 */
 	private Set<Key> cachePutIfUntouched(final Iterable<Bucket> buckets) {
-		final Map<Key, CasValues> payload = new HashMap<>();
+		final Map<Key, CasPut> payload = new HashMap<>();
 		final Set<Key> successes = new HashSet<>();
 
 		for (final Bucket buck: buckets) {
@@ -311,7 +291,7 @@ public class EntityMemcache
 				continue;
 			}
 
-			payload.put(buck.getKey(), new CasValues(buck.iv, buck.getNextToStore(), expirySeconds));
+			payload.put(buck.getKey(), new CasPut(buck.casValue, buck.getNextToStore(), expirySeconds));
 		}
 
 		successes.addAll(this.memcache.putIfUntouched(payload));
