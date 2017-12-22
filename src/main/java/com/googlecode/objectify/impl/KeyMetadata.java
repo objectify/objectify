@@ -112,11 +112,11 @@ public class KeyMetadata<P>
 	 * Sets the key (from the container) onto the POJO id/parent fields. Also doublechecks to make sure
 	 * that the key fields aren't present in the container, which means we're in a very bad state.
 	 */
-	public void setKey(final P pojo, final PropertyContainer container, final LoadContext ctx, final Path containerPath) {
-		if (container.hasProperty(idMeta.getProperty().getName()))
+	public void setKey(final P pojo, final FullEntity<?> container, final LoadContext ctx, final Path containerPath) {
+		if (container.contains(idMeta.getProperty().getName()))
 			throw new IllegalStateException("Datastore has a property present for the id field " + idMeta.getProperty() + " which would conflict with the key: " + container);
 
-		if (parentMeta != null && container.hasProperty(parentMeta.getProperty().getName()))
+		if (parentMeta != null && container.contains(parentMeta.getProperty().getName()))
 			throw new IllegalStateException("Datastore has a property present for the parent field " + parentMeta.getProperty() + " which would conflict with the key: " + container);
 
 		this.setKey(pojo, container.getKey(), ctx, containerPath);
@@ -125,6 +125,7 @@ public class KeyMetadata<P>
 	/**
 	 * Sets the key onto the POJO id/parent fields
 	 */
+	@SuppressWarnings("unchecked")
 	private void setKey(final P pojo, final IncompleteKey key, final LoadContext ctx, final Path containerPath) {
 		if (!clazz.isAssignableFrom(pojo.getClass()))
 			throw new IllegalArgumentException("Trying to use metadata for " + clazz.getName() + " to set key of " + pojo.getClass().getName());
@@ -144,22 +145,11 @@ public class KeyMetadata<P>
 		}
 	}
 
-	/** @return the datastore kind associated with this metadata */
-	public String getKind() {
-		return kind;
-	}
-
 	/**
-	 * <p>This hides all the messiness of trying to create an Entity from an object that:</p>
-	 * <ul>
-	 * <li>Might have a long id, might have a String name</li>
-	 * <li>If it's a Long id, might be null and require autogeneration</li>
-	 * <li>Might have a parent key</li>
-	 * </ul>
-	 *
-	 * @return an empty PropertyContainer object whose key has been set but no other properties.
+	 * Sets the key on a container from the POJO.
 	 */
-	public PropertyContainer initPropertyContainer(final P pojo) {
+	@SuppressWarnings("unchecked")
+	public <K extends IncompleteKey> void setKey(final FullEntity.Builder<K> container, final P pojo) {
 		final IncompleteKey rawKey = getIncompleteKey(pojo);
 
 		if (!(rawKey instanceof com.google.cloud.datastore.Key)) {
@@ -167,8 +157,12 @@ public class KeyMetadata<P>
 			Preconditions.checkState(isIdNumeric(), "Cannot save an entity with a null String @Id: %s", pojo);
 		}
 
-		final FullEntity.Builder<IncompleteKey> builder = FullEntity.newBuilder(rawKey);
-		return new SavePropertyContainer(builder);
+		container.setKey((K)rawKey);
+	}
+
+	/** @return the datastore kind associated with this metadata */
+	public String getKind() {
+		return kind;
 	}
 
 	/**

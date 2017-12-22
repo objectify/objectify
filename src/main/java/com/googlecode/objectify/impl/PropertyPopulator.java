@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
@@ -42,7 +43,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	 * Gets the appropriate value from the container and sets it on the appropriate field of the pojo.
 	 */
 	@Override
-	public void load(final PropertyContainer container, final LoadContext ctx, final Path containerPath, final Object intoPojo) {
+	public void load(final FullEntity<?> container, final LoadContext ctx, final Path containerPath, final P intoPojo) {
 		try {
 			if (translator instanceof Recycles)
 				ctx.recycle(property.get(intoPojo));
@@ -64,18 +65,18 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	 * @return the value obtained from the container
 	 * @throws IllegalStateException if there are multiple alsoload name matches
 	 */
-	private Value<D> getPropertyFromContainer(final PropertyContainer container, final Path containerPath) {
+	private Value<D> getPropertyFromContainer(final FullEntity<?> container, final Path containerPath) {
 		String foundName = null;
 		Value<D> value = null;
 
 		for (String name: property.getLoadNames()) {
-			if (container.hasProperty(name)) {
+			if (container.contains(name)) {
 				if (foundName != null)
 					throw new IllegalStateException("Collision trying to load field; multiple name matches for '"
 							+ property.getName() + "' at '" + containerPath.extend(foundName) + "' and '" + containerPath.extend(name) + "'");
 
 				//noinspection unchecked
-				value = (Value<D>)container.getProperty(name);
+				value = container.getValue(name);
 				foundName = name;
 			}
 		}
@@ -115,7 +116,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 	 * @param containerPath is the path to the container; each property will extend this path.
 	 */
 	@Override
-	public void save(final Object onPojo, boolean index, final SaveContext ctx, final Path containerPath, final PropertyContainer into) {
+	public void save(final P onPojo, boolean index, final SaveContext ctx, final Path containerPath, final FullEntity.Builder<?> into) {
 		if (property.isSaved(onPojo)) {
 			// Look for an override on indexing
 			final Boolean propertyIndexInstruction = property.getIndexInstruction(onPojo);
@@ -128,7 +129,7 @@ public class PropertyPopulator<P, D> implements Populator<P> {
 				final Path propPath = containerPath.extend(property.getName());
 				final Value<D> propValue = translator.save(value, index, ctx, propPath);
 
-				into.setProperty(property.getName(), propValue);
+				into.set(property.getName(), propValue);
 			}
 			catch (SkipException ex) {
 				// No problem, do nothing

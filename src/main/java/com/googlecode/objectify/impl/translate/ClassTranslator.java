@@ -2,13 +2,15 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.datastore.EntityValue;
 import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.annotation.Subclass;
-import com.googlecode.objectify.impl.LoadPropertyContainer;
+import com.googlecode.objectify.impl.Forge;
+import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.PropertyContainer;
+import com.googlecode.objectify.util.LogUtils;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,11 +41,11 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 
 	/** Lets us construct the initial objects */
 	@Getter
-	private final Creator<P> creator;
+	private final Forge forge;
 
 	/** Does the heavy lifting of copying properties */
 	@Getter
-	private final Populator<P> populator;
+	private final ClassPopulator<P> populator;
 
 	/**
 	 * The discriminator for this subclass, or null if this is not a @Subclass
@@ -64,12 +66,12 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 	private Map<Class<? extends P>, ClassTranslator<? extends P>> byClass = new HashMap<>();
 
 	/** */
-	public ClassTranslator(final Class<P> declaredClass, final Path path, final Creator<P> creator, final Populator<P> populator) {
+	public ClassTranslator(final Class<P> declaredClass, final CreateContext ctx, final Path path) {
 		log.trace("Creating class translator for {} at path '{}'", declaredClass.getName(), path);
 
 		this.declaredClass = declaredClass;
-		this.creator = creator;
-		this.populator = populator;
+		this.forge = ctx.getFactory();
+		this.populator = new ClassPopulator<>(declaredClass, ctx, path);
 
 		final Subclass sub = declaredClass.getAnnotation(Subclass.class);
 		if (sub != null) {
@@ -99,10 +101,12 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 			}
 		} else {
 			// This is a normal load
-			final LoadPropertyContainer pc = new LoadPropertyContainer(container.get());
+			if (log.isTraceEnabled())
+				log.trace(LogUtils.msg(path, "Instantiating a " + declaredClass.getName()));
 
-			final P into = creator.load(pc, ctx, path);
-			populator.load(pc, ctx, path, into);
+			final P into = forge.construct(declaredClass);
+
+			populator.load(container.get(), ctx, path, into);
 
 			return into;
 		}
@@ -122,22 +126,22 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 				return translator.save(pojo, index, ctx, path);
 		} else {
 			// This is a normal save
-			final PropertyContainer into = creator.save(pojo, ctx, path);
+			final FullEntity.Builder<IncompleteKey> into = FullEntity.newBuilder();
 
 			populator.save(pojo, index, ctx, path, into);
 
 			if (discriminator != null) {
-				into.setProperty(DISCRIMINATOR_PROPERTY, StringValue.newBuilder(discriminator).setExcludeFromIndexes(true).build());
+				into.set(DISCRIMINATOR_PROPERTY, StringValue.newBuilder(discriminator).setExcludeFromIndexes(true).build());
 
 				if (!indexedDiscriminators.isEmpty())
-					into.setProperty(DISCRIMINATOR_INDEX_PROPERTY, ListValue.of(indexedDiscriminators));
+					into.set(DISCRIMINATOR_INDEX_PROPERTY, ListValue.of(indexedDiscriminators));
 			}
 
 			// The question of whether to index this is weird. In order for subthings to be indexed, the entity needs
 			// to be indexed. But then lists with index-heterogeous values (say, nulls) get reordered (!)
 			// by the datastore. So we always index EntityValues and force all the list translators homogenize their lists.
 			// Gross but seems to be the only way.
-			return EntityValue.of(into.toFullEntity());
+			return EntityValue.of(into.build());
 		}
 	}
 
@@ -171,4 +175,8 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 		byClass.put(translator.getDeclaredClass(), translator);
 	}
 
+	/** Only works on @Entity classes */
+	public KeyMetadata<P> getKeyMetadata() {
+		return populator.getKeyMetadata();
+	}
 }

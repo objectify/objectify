@@ -11,7 +11,6 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.impl.translate.ClassTranslator;
-import com.googlecode.objectify.impl.translate.EntityCreator;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import lombok.Getter;
@@ -53,7 +52,7 @@ public class EntityMetadata<P>
 		this.entityClass = clazz;
 		this.cached = clazz.getAnnotation(Cache.class);
 		this.translator = (ClassTranslator<P>)fact.getTranslators().getRoot(clazz);
-		this.keyMetadata = ((EntityCreator<P>)translator.getCreator()).getKeyMetadata();
+		this.keyMetadata = translator.getKeyMetadata();
 	}
 
 	/**

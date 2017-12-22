@@ -8,7 +8,6 @@ import com.google.cloud.datastore.Key;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.translate.ClassTranslator;
-import com.googlecode.objectify.impl.translate.ClassTranslatorFactory;
 import com.googlecode.objectify.impl.translate.CreateContext;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.test.util.TestBase;
@@ -35,7 +34,7 @@ class TranslationTests extends TestBase
 	@Test
 	void simplePojoEntityTranslates() throws Exception {
 		final CreateContext createCtx = new CreateContext(factory());
-		final ClassTranslator<SimpleEntityPOJO> translator = ClassTranslatorFactory.createEntityClassTranslator(SimpleEntityPOJO.class, createCtx, Path.root());
+		final ClassTranslator<SimpleEntityPOJO> translator = new ClassTranslator<>(SimpleEntityPOJO.class, createCtx, Path.root());
 
 		final SimpleEntityPOJO pojo = new SimpleEntityPOJO();
 		pojo.id = 123L;
@@ -62,7 +61,7 @@ class TranslationTests extends TestBase
 		final Path thingPath = Path.root().extend("somewhere");
 
 		final CreateContext createCtx = new CreateContext(factory());
-		final ClassTranslator<Thing> translator = ClassTranslatorFactory.createEmbeddedClassTranslator(Thing.class, createCtx, thingPath);
+		final ClassTranslator<Thing> translator = new ClassTranslator<>(Thing.class, createCtx, thingPath);
 
 		final Thing thing = new Thing();
 		thing.foo = "bar";

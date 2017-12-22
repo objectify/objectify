@@ -1,8 +1,11 @@
 package com.googlecode.objectify.impl.translate;
 
+import com.google.cloud.datastore.FullEntity;
+import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.AlsoLoad;
+import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
@@ -11,10 +14,11 @@ import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.annotation.Unindex;
 import com.googlecode.objectify.impl.FieldProperty;
+import com.googlecode.objectify.impl.KeyMetadata;
+import com.googlecode.objectify.impl.KeyPopulator;
 import com.googlecode.objectify.impl.MethodProperty;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.impl.Property;
-import com.googlecode.objectify.impl.PropertyContainer;
 import com.googlecode.objectify.impl.PropertyPopulator;
 import com.googlecode.objectify.impl.TypeUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +55,7 @@ public class ClassPopulator<P> implements Populator<P>
 	private final Populator<? super P> superPopulator;
 
 	/** Only includes fields declared on this class */
-	private final List<PropertyPopulator<Object, Object>> props = new ArrayList<>();
+	private final List<Populator<Object>> props = new ArrayList<>();
 
 	/** Three-state index instruction for the whole class. Null means "leave it as-is". */
 	private final Boolean indexInstruction;
@@ -62,13 +66,19 @@ public class ClassPopulator<P> implements Populator<P>
 
 	/**
 	 */
-	public ClassPopulator(Class<P> clazz, CreateContext ctx, Path path) {
+	public ClassPopulator(final Class<P> clazz, final CreateContext ctx, final Path path) {
 		this.clazz = clazz;
 
 		// Recursively climb the superclass chain
 		this.superPopulator = ctx.getPopulator(clazz.getSuperclass(), path);
 
 		log.trace("Creating class translator for {} at path '{}'", clazz.getName(), path);
+
+		if (clazz.isAnnotationPresent(Entity.class)) {
+			@SuppressWarnings("unchecked")
+			final Populator<Object> keyPopulator = (Populator<Object>)new KeyPopulator<>(clazz, ctx, path);
+			props.add(keyPopulator);
+		}
 
 		indexInstruction = getIndexInstruction(clazz);
 
@@ -99,12 +109,12 @@ public class ClassPopulator<P> implements Populator<P>
 
 	/* */
 	@Override
-	public void load(PropertyContainer node, LoadContext ctx, Path path, final P into) {
+	public void load(FullEntity<?> node, LoadContext ctx, Path path, final P into) {
 		superPopulator.load(node, ctx, path, into);
 
 		ctx.enterContainerContext(into);
 		try {
-			for (PropertyPopulator<Object, Object> prop: props) {
+			for (final Populator<Object> prop: props) {
 				prop.load(node, ctx, path, into);
 			}
 		} finally {
@@ -130,7 +140,7 @@ public class ClassPopulator<P> implements Populator<P>
 
 	/* */
 	@Override
-	public void save(P pojo, boolean index, SaveContext ctx, Path path, PropertyContainer into) {
+	public void save(P pojo, boolean index, SaveContext ctx, Path path, FullEntity.Builder<?> into) {
 
 		superPopulator.save(pojo, index, ctx, path, into);
 
@@ -142,7 +152,7 @@ public class ClassPopulator<P> implements Populator<P>
 		if (indexInstruction != null)
 			index = indexInstruction;
 
-		for (PropertyPopulator<Object, Object> prop: props) {
+		for (final Populator<Object> prop: props) {
 			prop.save(pojo, index, ctx, path, into);
 		}
 	}
@@ -205,5 +215,14 @@ public class ClassPopulator<P> implements Populator<P>
 				good.add(new MethodProperty(method));
 
 		return good;
+	}
+
+	/**
+	 * Gets the key metadata but only if this was an @Entity annotated class. Should not be called if not.
+	 */
+	public KeyMetadata<P> getKeyMetadata() {
+		final Populator<Object> populator = props.get(0);
+		Preconditions.checkState(populator instanceof KeyPopulator, "Cannot get KeyMetadata for non-@Entity class " + this.clazz);
+		return ((KeyPopulator<P>)populator).getKeyMetadata();
 	}
 }

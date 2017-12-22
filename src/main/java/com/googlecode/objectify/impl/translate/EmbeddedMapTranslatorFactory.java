@@ -7,8 +7,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.impl.Path;
-import com.googlecode.objectify.impl.PropertyContainer;
-import com.googlecode.objectify.impl.SavePropertyContainer;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
 import com.googlecode.objectify.stringifier.EnumStringifier;
 import com.googlecode.objectify.stringifier.InitializeStringifier;
@@ -101,7 +99,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 				if (pojo == null || pojo.isEmpty())
 					throw new SkipException();
 
-				final PropertyContainer emb = new SavePropertyContainer();
+				final FullEntity.Builder<?> emb = FullEntity.newBuilder();
 
 				for (final Map.Entry<Object, Object> entry: pojo.entrySet()) {
 					try {
@@ -112,13 +110,13 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 						final Path propPath = path.extend(key);
 						final Value<?> value = componentTranslator.save(entry.getValue(), index, ctx, propPath);
 
-						emb.setProperty(key, value);
+						emb.set(key, value);
 					} catch (SkipException e) {
 						// do nothing
 					}
 				}
 
-				return EntityValue.of(emb.toFullEntity());
+				return EntityValue.of(emb.build());
 			}
 		};
 	}

@@ -1,9 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.datastore.FullEntity;
-import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Subclass;
-import com.googlecode.objectify.impl.KeyMetadata;
 import com.googlecode.objectify.impl.Path;
 
 import java.util.HashMap;
@@ -44,10 +42,7 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, FullEntit
 
 		ClassTranslator<P> classTranslator = translators.get(clazz);
 		if (classTranslator == null) {
-			// Entity is an inherited annotation; this checks up the hierarchy
-			classTranslator = (clazz.isAnnotationPresent(Entity.class))
-					? createEntityClassTranslator(clazz, ctx, path)
-					: createEmbeddedClassTranslator(clazz, ctx, path);
+			classTranslator = new ClassTranslator<>(clazz, ctx, path);
 
 			translators.put(clazz, classTranslator);
 
@@ -56,25 +51,6 @@ public class ClassTranslatorFactory<P> implements TranslatorFactory<P, FullEntit
 		}
 
 		return classTranslator;
-	}
-
-	/**
-	 */
-	public static <P> ClassTranslator<P> createEntityClassTranslator(final Class<P> clazz, final CreateContext ctx, final Path path) {
-		final KeyMetadata<P> keyMetadata = new KeyMetadata<>(clazz, ctx, path);
-		final Creator<P> creator = new EntityCreator<>(clazz, ctx.getFactory(), keyMetadata);
-		final Populator<P> populator = new ClassPopulator<>(clazz, ctx, path);
-
-		return new ClassTranslator<>(clazz, path, creator, populator);
-	}
-
-	/**
-	 */
-	public static <P> ClassTranslator<P> createEmbeddedClassTranslator(final Class<P> clazz, final CreateContext ctx, final Path path) {
-		final Creator<P> creator = new EmbeddedCreator<>(clazz, ctx.getFactory());
-		final Populator<P> populator = new ClassPopulator<>(clazz, ctx, path);
-
-		return new ClassTranslator<>(clazz, path, creator, populator);
 	}
 
 	/**
