@@ -9,9 +9,12 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Index;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 
+import java.util.Date;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
@@ -19,8 +22,6 @@ import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
- * Tests of basic query operations
- *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 class QueryProjectionTests extends TestBase {
@@ -122,5 +123,55 @@ class QueryProjectionTests extends TestBase {
 		final HasBool fetched = ofy().load().type(HasBool.class).project("t").first().now();
 		assertThat(fetched.t).isTrue();
 		assertThat(fetched.f).isFalse();
+	}
+
+	@Entity
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class HasDate {
+		@Id Long id;
+		@Index Date date;
+	}
+
+	/** */
+	@Test
+	void datesCanBeProjected() throws Exception {
+		factory().register(HasDate.class);
+
+		final HasDate hd = new HasDate(null, new Date());
+		ofy().save().entity(hd).now();
+		ofy().clear();
+
+		final List<HasDate> projected = ofy().load().type(HasDate.class).project("date").list();
+		assertThat(projected).hasSize(1);
+
+		final HasDate phd = projected.get(0);
+		assertThat(phd.getDate()).isEqualTo(hd.getDate());
+	}
+
+	@Entity
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	static class HasBlob {
+		@Id Long id;
+		@Index byte[] blob;
+	}
+
+	/** */
+	@Test
+	void blobsCanBeProjected() throws Exception {
+		factory().register(HasBlob.class);
+
+		final HasBlob hb = new HasBlob(null, new byte[] { 1, 2, 3 });
+		ofy().save().entity(hb).now();
+		ofy().clear();
+
+		final List<HasBlob> projected = ofy().load().type(HasBlob.class).project("blob").list();
+		assertThat(projected).hasSize(1);
+
+		final HasBlob phb = projected.get(0);
+		assertThat(phb.getBlob()).isEqualTo(hb.getBlob());
 	}
 }
