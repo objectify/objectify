@@ -76,17 +76,27 @@ public class ObjectifyFactory implements Forge
 	/** */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 
-	/** Manages caching of entities at a low level */
+	/** Manages caching of entities at a low level; might be null to indicate "no cache" */
 	protected EntityMemcache entityMemcache;
 
-	/** */
+	/** Uses default datastore, no memcache */
 	public ObjectifyFactory() {
-		this(DatastoreOptions.getDefaultInstance().getService(), defaultMemcachedClient());
+		this(DatastoreOptions.getDefaultInstance().getService());
 	}
 
 	@SneakyThrows
 	private static MemcachedClient defaultMemcachedClient() {
 		return new MemcachedClient(new InetSocketAddress("localhost", 11211));
+	}
+
+	/** */
+	public ObjectifyFactory(final Datastore datastore) {
+		this(datastore, null);
+	}
+
+	/** Uses default datastore */
+	public ObjectifyFactory(final MemcachedClient memcache) {
+		this(DatastoreOptions.getDefaultInstance().getService(), memcache);
 	}
 
 	/** */
@@ -96,7 +106,8 @@ public class ObjectifyFactory implements Forge
 		this.keys = new Keys(datastore, registrar);
 		this.translators = new Translators(this);
 		this.memcache = memcache;
-		this.entityMemcache = new EntityMemcache(memcache, MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+
+		this.entityMemcache = memcache == null ? null : new EntityMemcache(memcache, MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
 	}
 
 	/** */
@@ -118,7 +129,7 @@ public class ObjectifyFactory implements Forge
 	 * Might produce a caching version if caching is enabled.
 	 */
 	public AsyncDatastore asyncDatastore(final boolean enableGlobalCache) {
-		if (enableGlobalCache && this.registrar.isCacheEnabled())
+		if (this.entityMemcache != null && enableGlobalCache && this.registrar.isCacheEnabled())
 			return new CachingAsyncDatastore(asyncDatastore(), this.entityMemcache);
 		else
 			return asyncDatastore();
