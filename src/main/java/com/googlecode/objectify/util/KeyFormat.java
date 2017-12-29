@@ -6,15 +6,18 @@ import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
+import lombok.SneakyThrows;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Translates between the Cloud Datastore and App Engine Datastore
- * key representations.
+ * The new Cloud SDK has a new format for "url safe strings". This code lets us read and write the old-style
+ * GAE standard web safe string format.
+ *
+ * @author Fred Wulff
  */
-public enum KeyTranslator {
+public enum KeyFormat {
     INSTANCE;
 
     // We build the descriptor for the App Engine Onestore Reference type in code
@@ -26,12 +29,9 @@ public enum KeyTranslator {
     // Format was copied from https://github.com/golang/appengine/blob/master/internal/datastore/datastore_v3.proto
     private Descriptors.FileDescriptor keyDescriptor;
 
-    KeyTranslator() {
-        try {
-            keyDescriptor = initializeFileDescriptor();
-        } catch (Descriptors.DescriptorValidationException e) {
-            throw new RuntimeException(e);
-        }
+    @SneakyThrows
+    KeyFormat() {
+        keyDescriptor = initializeFileDescriptor();
     }
 
     private Descriptors.FileDescriptor initializeFileDescriptor() throws Descriptors.DescriptorValidationException {
@@ -110,16 +110,16 @@ public enum KeyTranslator {
                 .build(), new Descriptors.FileDescriptor[]{});
     }
 
-    public <T> com.googlecode.objectify.Key<T> parseAppEngineUrlsafeKey(String urlsafeKey) throws InvalidProtocolBufferException {
-        Descriptors.Descriptor referenceDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Reference");
+    public Key parseOldStyleAppEngineKey(final String urlsafeKey) throws InvalidProtocolBufferException {
+        Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
         byte[] userKey = Base64.decodeBase64(urlsafeKey);
         DynamicMessage userKeyMessage = DynamicMessage.newBuilder(referenceDescriptor).mergeFrom(userKey).build();
         String app = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("app"));
         // TODO(frew): Does Google Cloud Datastore have the concept of namespace?
         // String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
         DynamicMessage path = (DynamicMessage) userKeyMessage.getField(referenceDescriptor.findFieldByName("path"));
-        Descriptors.Descriptor pathDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Path");
-        Descriptors.Descriptor elementDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Element");
+        Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
+        Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         Descriptors.FieldDescriptor elementFieldDescriptor = pathDescriptor.findFieldByName("Element");
         int elementCount = path.getRepeatedFieldCount(elementFieldDescriptor);
@@ -144,14 +144,14 @@ public enum KeyTranslator {
             }
         }
 
-        return com.googlecode.objectify.Key.create(key);
+        return key;
     }
 
-    public String generateAppEngineUrlSafeKey(com.googlecode.objectify.Key<?> key) {
-        Descriptors.Descriptor referenceDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Reference");
+    public String formatOldStyleAppEngineKey(Key key) {
+        Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
         DynamicMessage.Builder keyMessageBuilder = DynamicMessage.newBuilder(referenceDescriptor);
-        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), key.getRaw().getProjectId());
-        Descriptors.Descriptor elementDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Element");
+        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), key.getProjectId());
+        Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         List<DynamicMessage> elementMessages = new ArrayList<>();
         do {
@@ -165,20 +165,12 @@ public enum KeyTranslator {
             elementMessages.add(0, elementMessageBuilder.build());
         } while ((key = key.getParent()) != null);
 
-        Descriptors.Descriptor pathDescriptor = KeyTranslator.INSTANCE.keyDescriptor.findMessageTypeByName("Path");
+        Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
         DynamicMessage.Builder pathBuilder = DynamicMessage.newBuilder(pathDescriptor);
         for (DynamicMessage elementMessage: elementMessages) {
             pathBuilder.addRepeatedField(pathDescriptor.findFieldByName("Element"), elementMessage);
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("path"), pathBuilder.build());
         return Base64.encodeBase64URLSafeString(keyMessageBuilder.build().toByteArray());
-    }
-
-    public static void main(String[] args) throws Descriptors.DescriptorValidationException, InvalidProtocolBufferException {
-        String urlsafeKey = "agxzfm1haWxmb29nYWVyKAsSDE9yZ2FuaXphdGlvbiIKc3RyZWFrLmNvbQwLEgRVc2VyGJneWww";
-        System.out.println(KeyTranslator.INSTANCE.parseAppEngineUrlsafeKey(urlsafeKey));
-        System.out.println(
-                KeyTranslator.INSTANCE.generateAppEngineUrlSafeKey(
-                        KeyTranslator.INSTANCE.parseAppEngineUrlsafeKey(urlsafeKey)));
     }
 }
