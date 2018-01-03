@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test;
 
+import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
@@ -10,6 +11,7 @@ import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.testng.annotations.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -114,9 +116,30 @@ public class EmbeddedMapTests extends TestBase
 
 		final MapWithSetIssue mws = new MapWithSetIssue();
 		mws.mapWithSet.put("key", Collections.singleton("value"));
-		ofy().saveClearLoad(mws); //failure here: java.util.HashMap cannot be cast to java.util.Collection
+
+		final MapWithSetIssue fetched = ofy().saveClearLoad(mws);
+
+		assert fetched.mapWithSet.equals(mws.mapWithSet);
 	}
 
+	@Entity
+	public static class MapWithArrayList {
+		@Id Long id;
+		@Index
+		private Map<String, ArrayList<String>> map = new HashMap<>();
+	}
+
+	@Test
+	public void testMapWithArrayList() throws Exception {
+		fact().register(MapWithArrayList.class);
+
+		final MapWithArrayList mwa = new MapWithArrayList();
+		mwa.map.put("key", Lists.newArrayList("value"));
+
+		final MapWithArrayList fetched = ofy().saveClearLoad(mwa);
+
+		assert fetched.map.equals(mwa.map);
+	}
 
 	//
 	//
