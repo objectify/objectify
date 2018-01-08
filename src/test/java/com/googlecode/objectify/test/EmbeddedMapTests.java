@@ -1,5 +1,6 @@
 package com.googlecode.objectify.test;
 
+import com.google.cloud.datastore.DatastoreException;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Entity;
@@ -47,15 +48,16 @@ class EmbeddedMapTests extends TestBase
 	}
 
 	@Test
-	void dotsAreAllowed() {
+	void dotsAreNotAllowed() {
 		factory().register(HasMapLong.class);
 
 		final HasMapLong hml = new HasMapLong();
 		hml.primitives.put("legal.name", 123L);
 
-		final HasMapLong fetched = saveClearLoad(hml);
-
-		assertThat(fetched.primitives).isEqualTo(hml.primitives);
+		assertThrows(DatastoreException.class, () -> {
+			final HasMapLong fetched = saveClearLoad(hml);
+			//assertThat(fetched.primitives).isEqualTo(hml.primitives);	// this doesn't work anymore, we throw
+		});
 	}
 
 	@Test
