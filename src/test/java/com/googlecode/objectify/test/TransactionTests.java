@@ -241,7 +241,7 @@ class TransactionTests extends TestBase {
 		try {
 			ofy().transactNew(3, () -> {
 				counter.counter++;
-				throw new DatastoreException(123, "too much contention on these datastore entities", "too much contention on these datastore entities");
+				throw new DatastoreException(10, "too much contention on these datastore entities", "ABORTED");
 			});
 		} catch (DatastoreException e) {}
 
@@ -323,7 +323,7 @@ class TransactionTests extends TestBase {
 			txn.listenForCommit(listener);
 
 			if (counter.counter < 3) {
-				throw new DatastoreException(123, "too much contention on these datastore entities", "too much contention on these datastore entities");
+				throw new DatastoreException(10, "too much contention on these datastore entities", "ABORTED");
 			}
 		});
 

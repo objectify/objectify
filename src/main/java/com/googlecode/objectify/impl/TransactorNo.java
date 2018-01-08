@@ -91,13 +91,18 @@ class TransactorNo extends Transactor
 			try {
 				return transactOnce(parent, work);
 			} catch (DatastoreException ex) {
-				// This is a terrible way to distinguish contention, but it's all the SDK offers for now
-				if (!ex.getMessage().startsWith("too much contention on these datastore entities"))
+
+				// This doesn't work because the SDK considers all transactions to be non-retryable. Objectify has always
+				// assumed that transactions are idempotent and retries accordingly. So we have to explicitly check against
+				// code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
+//				if (!ex.isRetryable())
+//					throw ex;
+				if (ex.getCode() != 10)
 					throw ex;
 
 				if (--limitTries > 0) {
-					log.warn("Optimistic concurrency failure for {} (retrying): {}", work, ex);
-					log.trace("Details of optimistic concurrency failure", ex);
+					log.warn("Retrying {} failure for {}: {}", ex.getReason(), work, ex);
+					log.trace("Details of transaction failure", ex);
 				} else {
 					throw ex;
 				}
