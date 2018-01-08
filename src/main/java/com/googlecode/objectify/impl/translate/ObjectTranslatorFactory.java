@@ -18,7 +18,7 @@ public class ObjectTranslatorFactory implements TranslatorFactory<Object, Object
 
 	/* */
 	@Override
-	public Translator<Object, Object> create(final TypeKey<Object> tk, final CreateContext ctx, final Path path) {
+	public Translator<Object, Object> create(final TypeKey<Object> tk, final CreateContext createCtx, final Path path) {
 		if (tk.getTypeAsClass() != Object.class)
 			return null;
 
@@ -29,13 +29,12 @@ public class ObjectTranslatorFactory implements TranslatorFactory<Object, Object
 			}
 
 			@Override
-			protected Value<Object> saveSafe(final Object pojo, final boolean index, final SaveContext ctx, final Path path) throws SkipException {
+			protected Value<Object> saveSafe(final Object pojo, final boolean index, final SaveContext saveCtx, final Path path) throws SkipException {
 				final TypeKey<Object> runtimeTypeKey = new TypeKey<>(pojo.getClass());
 
-				// We can ignore the createctx because we will never actually create a translator; we should have already registered
-				// all the possibilities (that is, all the native value types).
-				final Translator<Object, Object> realTranslator = translators.get(runtimeTypeKey, null, path);
-				return realTranslator.save(pojo, index, ctx, path);
+				// We really only need the createctx so that the translators can get a factory.
+				final Translator<Object, Object> realTranslator = translators.get(runtimeTypeKey, createCtx, path);
+				return realTranslator.save(pojo, index, saveCtx, path);
 			}
 		};
 	}

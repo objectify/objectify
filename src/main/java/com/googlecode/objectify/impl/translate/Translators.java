@@ -37,7 +37,10 @@ public class Translators
 	/** Where we should insert new early translators */
 	private int earlyInsertPoint;
 
-	/** */
+	/**
+	 * This needs to be threadsafe because new translators can show up at runtime. Filtering
+	 * and ObjectTranslatorFactory can both create new translators dynamically.
+	 */
 	private final Map<TypeKey, Translator<?, ?>> translators = new ConcurrentHashMap<>();
 
 	/**
