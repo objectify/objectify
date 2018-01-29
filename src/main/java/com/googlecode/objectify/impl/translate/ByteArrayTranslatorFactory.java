@@ -30,13 +30,7 @@ public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], O
 		return new ValueTranslator<byte[], Object>(Object.class) {
 			@Override
 			public byte[] loadValue(Object node, LoadContext ctx, Path path) throws SkipException {
-				if (node instanceof Blob) {
-					return ((Blob)node).getBytes();
-				} else if (node instanceof ShortBlob) {
-					return ((ShortBlob)node).getBytes();
-				} else {
-					throw new IllegalStateException("Can't convert " + node + " to a byte array");
-				}
+				return getBytesFromBlob(node);
 			}
 
 			@Override
@@ -44,5 +38,15 @@ public class ByteArrayTranslatorFactory extends ValueTranslatorFactory<byte[], O
 				return new Blob(pojo);
 			}
 		};
+	}
+
+	public static byte[] getBytesFromBlob(final Object node) {
+		if (node instanceof Blob) {
+			return ((Blob)node).getBytes();
+		} else if (node instanceof ShortBlob) {
+			return ((ShortBlob)node).getBytes();
+		} else {
+			throw new IllegalStateException("Can't convert " + node + " to a byte array");
+		}
 	}
 }

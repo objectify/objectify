@@ -23,25 +23,27 @@ import java.util.zip.InflaterInputStream;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blob>
+public class SerializeTranslatorFactory implements TranslatorFactory<Object, Object>
 {
 	private static final Logger log = Logger.getLogger(SerializeTranslatorFactory.class.getName());
 
 	@Override
-	public Translator<Object, Blob> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
+	public Translator<Object, Object> create(TypeKey<Object> tk, CreateContext ctx, Path path) {
 		final Serialize serializeAnno = tk.getAnnotationAnywhere(Serialize.class);
 
 		// We only work with @Serialize classes
 		if (serializeAnno == null)
 			return null;
 
-		return new ValueTranslator<Object, Blob>(Blob.class) {
+		return new ValueTranslator<Object, Object>(Object.class) {
 			@Override
-			protected Object loadValue(Blob value, LoadContext ctx, Path path) throws SkipException {
+			protected Object loadValue(Object value, LoadContext ctx, Path path) throws SkipException {
+				final byte[] bytes = ByteArrayTranslatorFactory.getBytesFromBlob(value);
+
 				// Need to be careful here because we don't really know if the data was serialized or not.  Start
 				// with whatever the annotation says, and if that doesn't work, try the other option.
 				try {
-					ByteArrayInputStream bais = new ByteArrayInputStream(value.getBytes());
+					ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
 
 					// Start with the annotation
 					boolean unzip = serializeAnno.zip();
@@ -61,7 +63,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 			}
 
 			@Override
-			protected Blob saveValue(Object value, boolean index, SaveContext ctx, Path path) throws SkipException {
+			protected Object saveValue(Object value, boolean index, SaveContext ctx, Path path) throws SkipException {
 				try {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
 					OutputStream out = baos;
@@ -91,7 +93,7 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 				if (unzip)
 					in = new InflaterInputStream(in);
 
-				ObjectInputStream ois = new ObjectInputStream(in);
+				final ObjectInputStream ois = new ObjectInputStream(in);
 				return ois.readObject();
 			}
 		};
