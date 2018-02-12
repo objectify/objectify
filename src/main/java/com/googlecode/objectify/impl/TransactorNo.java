@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.DatastoreException;
 import com.google.common.base.Preconditions;
+import com.google.rpc.Code;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import lombok.extern.slf4j.Slf4j;
@@ -97,7 +98,7 @@ class TransactorNo extends Transactor
 				// code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
 //				if (!ex.isRetryable())
 //					throw ex;
-				if (!Code.ABORTED.getNumber() == ex.getCode())
+				if (Code.ABORTED.getNumber() != ex.getCode())
 					throw ex;
 
 				if (--limitTries > 0) {

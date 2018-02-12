@@ -7,6 +7,7 @@ import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.Transaction;
+import com.google.protobuf.ByteString;
 import lombok.Data;
 
 import java.util.Iterator;
@@ -93,6 +94,11 @@ public class TransactionWrapper implements Transaction {
 	@Override
 	public Datastore getDatastore() {
 		return raw.getDatastore();
+	}
+
+	@Override
+	public ByteString getTransactionId() {
+		return raw.getTransactionId();
 	}
 
 	@Override
