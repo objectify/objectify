@@ -97,7 +97,7 @@ class TransactorNo extends Transactor
 				// code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
 //				if (!ex.isRetryable())
 //					throw ex;
-				if (ex.getCode() != 10)
+				if (!Code.ABORTED.getNumber() == ex.getCode())
 					throw ex;
 
 				if (--limitTries > 0) {
