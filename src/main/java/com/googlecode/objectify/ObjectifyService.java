@@ -3,6 +3,7 @@
 
 package com.googlecode.objectify;
 
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.util.Closeable;
 
 /**
@@ -14,10 +15,15 @@ import com.googlecode.objectify.util.Closeable;
 public class ObjectifyService
 {
 	/** */
-	private static ObjectifyFactory factory = new ObjectifyFactory();
+	private static ObjectifyFactory factory;
+
+	/** This is a shortcut for {@code ObjectifyService.init(new ObjectifyFactory())}*/
+	public static void init() {
+		init(new ObjectifyFactory());
+	}
 
 	/** */
-	public static void setFactory(final ObjectifyFactory fact) {
+	public static void init(final ObjectifyFactory fact) {
 		factory = fact;
 	}
 
@@ -25,11 +31,12 @@ public class ObjectifyService
 	 * @return the current factory
 	 */
 	public static ObjectifyFactory factory() {
+		Preconditions.checkState(factory != null, "You must call ObjectifyService.init() before using Objectify");
 		return factory;
 	}
 
 	/**
-	 * A shortcut for {@code ObjectifyFactory.register()}
+	 * A shortcut for {@code factory().register()}
 	 *  
 	 * @see ObjectifyFactory#register(Class) 
 	 */

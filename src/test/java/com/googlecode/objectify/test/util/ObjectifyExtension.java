@@ -22,7 +22,7 @@ public class ObjectifyExtension implements BeforeEachCallback, AfterEachCallback
 		final Datastore datastore = LocalDatastoreExtension.getHelper(context).getOptions().getService();
 		final MemcachedClient memcachedClient = LocalMemcacheExtension.getClient(context);
 
-		ObjectifyService.setFactory(new ObjectifyFactory(datastore, memcachedClient));
+		ObjectifyService.init(new ObjectifyFactory(datastore, memcachedClient));
 
 		final Closeable rootService = ObjectifyService.begin();
 

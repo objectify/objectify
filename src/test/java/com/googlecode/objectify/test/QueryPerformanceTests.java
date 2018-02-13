@@ -59,7 +59,7 @@ class QueryPerformanceTests extends TestBase {
 		getCount = 0;
 
 		// throw away the current factory and replace it with one that tracks calls
-		ObjectifyService.setFactory(new ObjectifyFactory(datastore(), memcache()) {
+		ObjectifyService.init(new ObjectifyFactory(datastore(), memcache()) {
 			@Override
 			public AsyncDatastore asyncDatastore() {
 				return (AsyncDatastore)Proxy.newProxyInstance(this.getClass().getClassLoader(), new Class[]{AsyncDatastore.class}, new CountingProxy(super.asyncDatastore()));

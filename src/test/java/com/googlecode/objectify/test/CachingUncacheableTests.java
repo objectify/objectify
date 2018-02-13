@@ -52,7 +52,7 @@ class CachingUncacheableTests extends TestBase {
 	 */
 	@BeforeEach
 	void setUpExtra() {
-		ObjectifyService.setFactory(new ObjectifyFactory(datastore(), memcachedClient));
+		ObjectifyService.init(new ObjectifyFactory(datastore(), memcachedClient));
 		factory().register(Uncacheable.class);
 		factory().register(Cacheable.class);	// needed to get caching in the code path
 
