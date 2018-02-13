@@ -2,12 +2,15 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.BaseEntity;
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.ReadOption;
+import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -30,8 +33,14 @@ public class LoadEngine
 	/** */
 	final ObjectifyImpl ofy;
 	private final AsyncDatastoreReaderWriter datastore;
+
+	@Getter
 	private final Session session;
+
+	@Getter
 	private final LoadArrangement loadArrangement;
+
+	private final ImmutableSet<ReadOption> readOptions;
 
 	/** The current round, replaced whenever the round executes */
 	Round round;
@@ -42,11 +51,13 @@ public class LoadEngine
 			final ObjectifyImpl ofy,
 			final Session session,
 			final AsyncDatastoreReaderWriter datastore,
-			final LoadArrangement loadArrangement) {
+			final LoadArrangement loadArrangement,
+			final ImmutableSet<ReadOption> readOptions) {
 		this.ofy = ofy;
 		this.session = session;
 		this.datastore = datastore;
 		this.loadArrangement = loadArrangement;
+		this.readOptions = readOptions;
 
 		this.round = new Round(this, 0);
 
@@ -167,6 +178,8 @@ public class LoadEngine
 	public Result<Map<com.google.cloud.datastore.Key, Entity>> fetch(Set<com.google.cloud.datastore.Key> keys) {
 		log.debug("Fetching {} keys: {}", keys.size(), keys);
 
+		// TODO: add readoptions when google adds it to the SDK
+		// https://github.com/GoogleCloudPlatform/google-cloud-java/issues/2901
 		final Future<Map<com.google.cloud.datastore.Key, Entity>> fut = datastore.get(toArray(keys));
 		return ResultAdapter.create(fut);
 	}
@@ -185,15 +198,5 @@ public class LoadEngine
 			return (T)ent;
 		else
 			return meta.load(ent, ctx);
-	}
-
-	/** */
-	public Session getSession() {
-		return session;
-	}
-
-	/** */
-	public LoadArrangement getLoadArrangement() {
-		return loadArrangement;
 	}
 }

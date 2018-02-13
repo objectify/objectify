@@ -1,6 +1,7 @@
 package com.googlecode.objectify.cmd;
 
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.ReadOption;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
@@ -39,6 +40,14 @@ public interface Loader extends SimpleQuery<Object>
 	 * @return a continuation of the immutable command pattern, enabled for fetching this group.
 	 */
 	Loader group(Class<?>... groups);
+
+	/**
+	 * Enable the specified read option for this load. For example, {@code ReadOption.eventualConsistency()}
+	 *
+	 * @param option is defined by the Google Cloud SDK.
+	 * @return a continuation of the immutable command pattern, with the specified option enabled
+	 */
+	Loader option(ReadOption... option);
 
 	/**
 	 * <p>Restricts the find operation to entities of a particular type.  The type may be the

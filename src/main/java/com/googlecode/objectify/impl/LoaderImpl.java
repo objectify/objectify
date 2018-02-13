@@ -1,7 +1,9 @@
 package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.ReadOption;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
@@ -39,15 +41,19 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	private final LoadArrangement loadArrangement;
 
 	/** */
+	private final ImmutableSet<ReadOption> readOptions;
+
+	/** */
 	LoaderImpl(final ObjectifyImpl ofy) {
-		this(ofy, new LoadArrangement());
+		this(ofy, new LoadArrangement(), ImmutableSet.of());
 	}
 
 	/** */
-	private LoaderImpl(final ObjectifyImpl ofy, final LoadArrangement loadArrangement) {
+	private LoaderImpl(final ObjectifyImpl ofy, final LoadArrangement loadArrangement, final ImmutableSet<ReadOption> readOptions) {
 		super(null);
 		this.ofy = ofy;
 		this.loadArrangement = loadArrangement;
+		this.readOptions = readOptions;
 	}
 
 	/* (non-Javadoc)
@@ -67,7 +73,16 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		arrangement.addAll(Arrays.asList(groups));
 		arrangement.addAll(this.loadArrangement);
 
-		return new LoaderImpl(ofy, arrangement);
+		return new LoaderImpl(ofy, arrangement, readOptions);
+	}
+
+	@Override
+	public Loader option(final ReadOption... options) {
+		final ImmutableSet<ReadOption> newOptions = ImmutableSet.<ReadOption>builder()
+				.addAll(readOptions)
+				.addAll(Arrays.asList(options))
+				.build();
+		return new LoaderImpl(ofy, loadArrangement, newOptions);
 	}
 
 	/* (non-Javadoc)
@@ -235,7 +250,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 * @return a fresh engine that handles fundamental datastore operations for load commands
 	 */
 	LoadEngine createLoadEngine() {
-		return new LoadEngine(ofy, ofy.getSession(), ofy.asyncDatastore(), loadArrangement);
+		return new LoadEngine(ofy, ofy.getSession(), ofy.asyncDatastore(), loadArrangement, readOptions);
 	}
 
 	/**
