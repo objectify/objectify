@@ -9,7 +9,9 @@ import com.google.cloud.datastore.Value;
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
+import com.googlecode.objectify.util.KeyFormat;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 
 import java.util.Collection;
 import java.util.List;
@@ -241,6 +243,19 @@ public class Keys
 				return (Value<S>)StringValue.of(completeKey.getName());
 		} else {
 			return null;
+		}
+	}
+
+	/**
+	 * Understands both the legacy format "ag1zfnZvb2Rvb2R5bmUwcgcLEgFCGAEM" and new format,
+	 * providing the key either way.
+	 */
+	@SneakyThrows
+	public static com.google.cloud.datastore.Key fromUrlSafe(final String urlSafeKey) {
+		if (urlSafeKey.startsWith("a")) {
+			return KeyFormat.INSTANCE.parseOldStyleAppEngineKey(urlSafeKey);
+		} else {
+			return com.google.cloud.datastore.Key.fromUrlSafe(urlSafeKey);
 		}
 	}
 }
