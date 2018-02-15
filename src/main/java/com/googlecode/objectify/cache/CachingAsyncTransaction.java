@@ -5,6 +5,7 @@ import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.ReadOption;
 import com.google.cloud.datastore.Transaction.Response;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.AsyncTransaction;
@@ -13,6 +14,7 @@ import com.googlecode.objectify.util.FutureHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -152,9 +154,9 @@ public class CachingAsyncTransaction extends CachingAsyncDatastoreReaderWriter i
 	}
 
 	@Override
-	public Future<Map<Key, Entity>> get(final Key... keys) {
+	public Future<Map<Key, Entity>> get(final Collection<Key> keys, final ReadOption... options) {
 		// Must not populate the cache since we are looking at a frozen moment in time.
-		return this.raw.get(keys);
+		return this.raw.get(keys, options);
 	}
 
 	@Override

@@ -5,6 +5,7 @@ import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.ReadOption;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,8 +19,7 @@ import java.util.concurrent.Future;
  * support it when it becomes available. We'll remove this parallel hierarchy then.
  */
 public interface AsyncDatastoreReaderWriter {
-	/** Odd that this is array and the others are iterable, but that's how the underlying API is */
-	Future<Map<Key, Entity>> get(final Key... keys);
+	Future<Map<Key, Entity>> get(final Collection<Key> keys, final ReadOption... options);
 
 	<T> QueryResults<T> run(final Query<T> query);
 
@@ -27,8 +27,8 @@ public interface AsyncDatastoreReaderWriter {
 
 	Future<List<Key>> put(final Iterable<? extends FullEntity<?>> entities);
 
-	default Future<Map<Key, Entity>> get(final Collection<Key> keys) {
-		return get(keys.toArray(new Key[keys.size()]));
+	default Future<Map<Key, Entity>> get(final Key... keys) {
+		return get(Arrays.asList(keys));
 	}
 
 	default Future<List<Key>> put(final FullEntity<?>... entities) {

@@ -43,6 +43,7 @@ public interface Loader extends SimpleQuery<Object>
 
 	/**
 	 * Enable the specified read option for this load. For example, {@code ReadOption.eventualConsistency()}
+	 * Note that requests for eventual consistency will be ignored inside a transaction.
 	 *
 	 * @param option is defined by the Google Cloud SDK.
 	 * @return a continuation of the immutable command pattern, with the specified option enabled

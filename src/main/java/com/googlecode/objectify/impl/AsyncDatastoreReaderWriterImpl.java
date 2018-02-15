@@ -1,15 +1,18 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreReaderWriter;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.ReadOption;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.util.FutureNow;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -27,8 +30,10 @@ public class AsyncDatastoreReaderWriterImpl implements AsyncDatastoreReaderWrite
 	private final DatastoreReaderWriter datastoreReaderWriter;
 
 	@Override
-	public Future<Map<Key, Entity>> get(final Key... keys) {
-		final Iterator<Entity> entities = datastoreReaderWriter.get(keys);
+	public Future<Map<Key, Entity>> get(final Collection<Key> keys, final ReadOption... options) {
+		final Iterator<Entity> entities = (datastoreReaderWriter instanceof Datastore)
+			? ((Datastore)datastoreReaderWriter).get(keys, options)
+			: datastoreReaderWriter.get(Keys.toArray(keys));
 
 		final Map<Key, Entity> map = new LinkedHashMap<>();
 		while (entities.hasNext()) {

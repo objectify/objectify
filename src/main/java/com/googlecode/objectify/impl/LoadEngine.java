@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import static com.googlecode.objectify.impl.Keys.toArray;
-
 /**
  * Represents one "batch" of loading.  Get a number of Result<?> objects, then execute().  Some work is done
  * right away, some work is done on the first get().  There might be multiple rounds of execution to process
@@ -178,9 +176,7 @@ public class LoadEngine
 	public Result<Map<com.google.cloud.datastore.Key, Entity>> fetch(Set<com.google.cloud.datastore.Key> keys) {
 		log.debug("Fetching {} keys: {}", keys.size(), keys);
 
-		// TODO: add readoptions when google adds it to the SDK
-		// https://github.com/GoogleCloudPlatform/google-cloud-java/issues/2901
-		final Future<Map<com.google.cloud.datastore.Key, Entity>> fut = datastore.get(toArray(keys));
+		final Future<Map<com.google.cloud.datastore.Key, Entity>> fut = datastore.get(keys, readOptions.toArray(new ReadOption[readOptions.size()]));
 		return ResultAdapter.create(fut);
 	}
 

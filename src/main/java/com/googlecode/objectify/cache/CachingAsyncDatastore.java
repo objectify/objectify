@@ -2,6 +2,7 @@ package com.googlecode.objectify.cache;
 
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Key;
+import com.google.cloud.datastore.ReadOption;
 import com.googlecode.objectify.cache.EntityMemcache.Bucket;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.impl.AsyncTransaction;
@@ -9,7 +10,7 @@ import com.googlecode.objectify.util.FutureNow;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,9 +63,7 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 	}
 
 	@Override
-	public Future<Map<Key, Entity>> get(final Key... keysArray) {
-		final Iterable<Key> keys = Arrays.asList(keysArray);
-
+	public Future<Map<Key, Entity>> get(final Collection<Key> keys, final ReadOption... options) {
 		final Map<Key, Bucket> soFar = this.memcache.getAll(keys);
 
 		final List<Bucket> uncached = new ArrayList<>(soFar.size());
@@ -79,8 +78,7 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 		// Maybe we need to fetch some more
 		Future<Map<Key, Entity>> pending = null;
 		if (!uncached.isEmpty()) {
-			final Key[] uncachedArray = EntityMemcache.keysOf(uncached).toArray(new Key[uncached.size()]);
-			final Future<Map<Key, Entity>> fromDatastore = this.raw.get(uncachedArray);
+			final Future<Map<Key, Entity>> fromDatastore = this.raw.get(EntityMemcache.keysOf(uncached), options);
 
 			pending = new TriggerSuccessFuture<Map<Key, Entity>>(fromDatastore) {
 				@Override
