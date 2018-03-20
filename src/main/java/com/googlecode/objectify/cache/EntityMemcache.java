@@ -6,8 +6,6 @@ import com.googlecode.objectify.cache.MemcacheService.CasPut;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import net.spy.memcached.CASValue;
-import net.spy.memcached.MemcachedClient;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -53,7 +51,7 @@ public class EntityMemcache
 		 * If null, this means the key is uncacheable (possibly because the cache is down).
 		 * If not null, the IV holds the Entity or NEGATIVE.
 		 */
-		private final CASValue<Object> casValue;
+		private final IdentifiableValue identifiableValue;
 
 		/**
 		 * The Entity to store in this bucket in a put().  Can be null to indicate a negative cache
@@ -70,21 +68,21 @@ public class EntityMemcache
 		}
 
 		/**
-		 * @param casValue can be null to indicate an uncacheable key
+		 * @param identifiableValue can be null to indicate an uncacheable key
 		 */
-		public Bucket(final Key key, final CASValue<Object> casValue) {
+		public Bucket(final Key key, final IdentifiableValue identifiableValue) {
 			this.key = key;
-			this.casValue = casValue;
+			this.identifiableValue = identifiableValue;
 		}
 
 		/** */
 		public Key getKey() { return this.key; }
 
 		/** @return true if we can cache this bucket; false if the key isn't cacheable or the memcache was down when we created the bucket */
-		public boolean isCacheable() { return this.casValue != null; }
+		public boolean isCacheable() { return this.identifiableValue != null; }
 
 		/** @return true if this is a negative cache result */
-		public boolean isNegative() { return this.isCacheable() && NEGATIVE.equals(casValue.getValue()); }
+		public boolean isNegative() { return this.isCacheable() && NEGATIVE.equals(identifiableValue.getValue()); }
 
 		/**
 		 * "Empty" means we don't know the value - it could be null, it could be uncacheable, or we could have some
@@ -94,13 +92,13 @@ public class EntityMemcache
 		 * @return true if this is empty or uncacheable or something other than a nice entity or negative result.
 		 */
 		public boolean isEmpty() {
-			return !this.isCacheable() || (!this.isNegative() && !(casValue.getValue() instanceof Entity));
+			return !this.isCacheable() || (!this.isNegative() && !(identifiableValue.getValue() instanceof Entity));
 		}
 
 		/** Get the entity stored at this bucket, possibly the one that was set */
 		public Entity getEntity() {
-			if (casValue != null && casValue.getValue() instanceof Entity)
-				return (Entity)casValue.getValue();
+			if (identifiableValue != null && identifiableValue.getValue() instanceof Entity)
+				return (Entity)identifiableValue.getValue();
 			else
 				return null;
 		}
@@ -142,14 +140,14 @@ public class EntityMemcache
 	/**
 	 * Creates a memcache which caches everything without expiry and doesn't record statistics.
 	 */
-	public EntityMemcache(final MemcachedClient memcache, final String namespace) {
+	public EntityMemcache(final MemcacheService memcache, final String namespace) {
 		this(memcache, namespace, key -> 0);
 	}
 
 	/**
 	 * Creates a memcache which doesn't record stats
 	 */
-	public EntityMemcache(final MemcachedClient memcache, final String namespace, final CacheControl cacheControl) {
+	public EntityMemcache(final MemcacheService memcache, final String namespace, final CacheControl cacheControl) {
 		this(memcache, namespace, cacheControl, new MemcacheStats() {
 			@Override public void recordHit(Key key) { }
 			@Override public void recordMiss(Key key) { }
@@ -157,16 +155,14 @@ public class EntityMemcache
 	}
 
 	public EntityMemcache(
-			final MemcachedClient memcachedClient,
+			final MemcacheService memcacheService,
 			final String namespace,
 			final CacheControl cacheControl,
 			final MemcacheStats stats) {
 
-		final MemcacheServiceImpl service = new MemcacheServiceImpl(memcachedClient);
-
 		this.namespace = namespace;
-		this.memcache = new KeyMemcacheService(service);
-		this.memcacheWithRetry = new KeyMemcacheService(MemcacheServiceRetryProxy.createProxy(service));
+		this.memcache = new KeyMemcacheService(memcacheService);
+		this.memcacheWithRetry = new KeyMemcacheService(MemcacheServiceRetryProxy.createProxy(memcacheService));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
@@ -198,7 +194,7 @@ public class EntityMemcache
 				potentials.add(key);
 		}
 
-		Map<Key, CASValue<Object>> casValues;
+		Map<Key, IdentifiableValue> casValues;
 		try {
 			casValues = this.memcache.getIdentifiables(potentials);
 		} catch (Exception ex) {
@@ -210,7 +206,7 @@ public class EntityMemcache
 
 		// Now create the remaining buckets
 		for (final Key key: keys) {
-			final CASValue<Object> casValue = casValues.get(key);	// Might be null, which means uncacheable
+			final IdentifiableValue casValue = casValues.get(key);	// Might be null, which means uncacheable
 			final Bucket buck = new Bucket(key, casValue);
 			result.put(key, buck);
 
@@ -291,7 +287,7 @@ public class EntityMemcache
 				continue;
 			}
 
-			payload.put(buck.getKey(), new CasPut(buck.casValue, buck.getNextToStore(), expirySeconds));
+			payload.put(buck.getKey(), new CasPut(buck.identifiableValue, buck.getNextToStore(), expirySeconds));
 		}
 
 		successes.addAll(this.memcache.putIfUntouched(payload));

@@ -4,7 +4,6 @@ import com.google.cloud.datastore.Key;
 import com.google.common.collect.Collections2;
 import com.googlecode.objectify.cache.MemcacheService.CasPut;
 import lombok.RequiredArgsConstructor;
-import net.spy.memcached.CASValue;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -16,17 +15,13 @@ import java.util.stream.Collectors;
 
 /**
  * Like MemcacheService but translates keys and values into forms more palatable to the low level service. Also protects
- * against no-ops (empty collections). Also stores a sentinel value for null and replaces it with null on fetch.
- * Memcached doesn't store nulls (the old GAE SDK hid this from us).
+ * against no-ops (empty collections).
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @RequiredArgsConstructor
 public class KeyMemcacheService
 {
-	/** Stored as a value to indicate that this is a null; memcached doesn't store actual nulls */
-	static final String NULL_VALUE = "";
-
 	/** */
 	private final MemcacheService service;
 
@@ -42,27 +37,14 @@ public class KeyMemcacheService
 		return Collections2.transform(keys, this::toCacheKey);
 	}
 
-	private Object toCacheValue(final Object thing) {
-		return thing == null ? NULL_VALUE : thing;
-	}
-
-	private Object fromCacheValue(final Object thing) {
-		return NULL_VALUE.equals(thing) ? null : thing;
-	}
-
-	public Map<Key, CASValue<Object>> getIdentifiables(final Collection<Key> keys) {
+	public Map<Key, IdentifiableValue> getIdentifiables(final Collection<Key> keys) {
 		if (keys.isEmpty())
 			return Collections.emptyMap();
 		
-		final Map<String, CASValue<Object>> map = service.getIdentifiables(toCacheKeys(keys));
+		final Map<String, IdentifiableValue> map = service.getIdentifiables(toCacheKeys(keys));
 
-		final Map<Key, CASValue<Object>> dataForApp = new LinkedHashMap<>();
-		map.forEach((key, value) -> {
-			final CASValue<Object> transformedValue = (value == null)
-					? null
-					: new CASValue<>(value.getCas(), fromCacheValue(value.getValue()));
-			dataForApp.put(fromCacheKey(key), transformedValue);
-		});
+		final Map<Key, IdentifiableValue> dataForApp = new LinkedHashMap<>();
+		map.forEach((key, value) -> dataForApp.put(fromCacheKey(key), value));
 		return dataForApp;
 	}
 
@@ -73,7 +55,7 @@ public class KeyMemcacheService
 		final Map<String, Object> map = service.getAll(toCacheKeys(keys));
 
 		final Map<Key, Object> dataForApp = new LinkedHashMap<>();
-		map.forEach((key, value) -> dataForApp.put(fromCacheKey(key), fromCacheValue(value)));
+		map.forEach((key, value) -> dataForApp.put(fromCacheKey(key), value));
 		return dataForApp;
 	}
 
@@ -82,7 +64,7 @@ public class KeyMemcacheService
 			return;
 
 		final Map<String, Object> dataForCache = new LinkedHashMap<>();
-		map.forEach((key, value) -> dataForCache.put(toCacheKey(key), toCacheValue(value)));
+		map.forEach((key, value) -> dataForCache.put(toCacheKey(key), value));
 
 		service.putAll(dataForCache);
 	}
@@ -93,7 +75,7 @@ public class KeyMemcacheService
 
 		final Map<String, CasPut> dataForCache = new LinkedHashMap<>();
 		map.forEach((key, value) -> {
-			final CasPut actualPut = new CasPut(value.getIv(), toCacheValue(value.getNextToStore()), value.getExpirationSeconds());
+			final CasPut actualPut = new CasPut(value.getIv(), value.getNextToStore(), value.getExpirationSeconds());
 			dataForCache.put(toCacheKey(key), actualPut);
 		});
 

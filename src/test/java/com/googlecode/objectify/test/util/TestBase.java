@@ -9,8 +9,8 @@ import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.cache.MemcacheService;
 import com.googlecode.objectify.impl.AsyncDatastore;
-import net.spy.memcached.MemcachedClient;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static com.googlecode.objectify.ObjectifyService.factory;
@@ -40,7 +40,7 @@ public class TestBase {
 	}
 
 	/** */
-	protected MemcachedClient memcache() {
+	protected MemcacheService memcache() {
 		return factory().memcache();
 	}
 
