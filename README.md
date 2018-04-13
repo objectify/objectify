@@ -33,7 +33,7 @@ of the Datastore.
 
 ## Documentation
 
-Full documentation is availble in the [Objectify Wiki](https://github.com/objectify/objectify/wiki).
+Full documentation is available in the [Objectify Wiki](https://github.com/objectify/objectify/wiki).
 
 ## Downloads
 
