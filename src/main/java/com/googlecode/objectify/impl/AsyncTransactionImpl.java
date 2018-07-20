@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Transaction;
 import com.google.cloud.datastore.Transaction.Response;
+import com.google.protobuf.ByteString;
 import com.googlecode.objectify.Result;
 import lombok.Getter;
 
@@ -59,6 +60,11 @@ public class AsyncTransactionImpl extends AsyncDatastoreReaderWriterImpl impleme
 	@Override
 	public void listenForCommit(final Runnable listener) {
 		listeners.add(listener);
+	}
+
+	@Override
+	public ByteString getTransactionHandle() {
+		return transaction.getTransactionId();
 	}
 
 	@Override
