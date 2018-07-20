@@ -115,6 +115,9 @@ public enum KeyFormat {
         byte[] userKey = Base64.decodeBase64(urlsafeKey);
         DynamicMessage userKeyMessage = DynamicMessage.newBuilder(referenceDescriptor).mergeFrom(userKey).build();
         String app = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("app"));
+        if (app.startsWith("s~")) {
+            app = app.substring(2);
+        }
         // TODO(frew): Does Google Cloud Datastore have the concept of namespace?
         // String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
         DynamicMessage path = (DynamicMessage) userKeyMessage.getField(referenceDescriptor.findFieldByName("path"));
@@ -150,7 +153,11 @@ public enum KeyFormat {
     public String formatOldStyleAppEngineKey(Key key) {
         Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
         DynamicMessage.Builder keyMessageBuilder = DynamicMessage.newBuilder(referenceDescriptor);
-        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), key.getProjectId());
+        String fullProjectId = key.getProjectId();
+        if (!fullProjectId.startsWith("s~")) {
+            fullProjectId = "s~" + fullProjectId;
+        }
+        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), fullProjectId);
         Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         List<DynamicMessage> elementMessages = new ArrayList<>();
