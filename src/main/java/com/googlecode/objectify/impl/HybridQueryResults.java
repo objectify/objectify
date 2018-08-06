@@ -65,12 +65,12 @@ public class HybridQueryResults<T> implements QueryResults<T> {
 	}
 
 	/** Detects Integer.MAX_VALUE and prevents OOM exceptions */
-	private <T> Iterator<Iterator<T>> safePartition(final Iterator<T> input, final int chunkSize) {
-		// Iterators.partition() allocates lists with capacity of whatever batch size you pass in; if batch
-		// size is unlimited, we end up trying to allocate maxint.
-		return (chunkSize == Integer.MAX_VALUE)
-				? Iterators.singletonIterator(input)
-				: Iterators.transform(Iterators.partition(input, chunkSize), IterateFunction.instance());
+	private <T> Iterator<Iterator<T>> safePartition(final Iterator<T> input, int chunkSize) {
+		// Cloud Datastore library errors if you try to fetch more than 1000 keys at a time
+		if (chunkSize > 1000) {
+			chunkSize = 1000;
+		}
+		return Iterators.transform(Iterators.partition(input, chunkSize), IterateFunction.instance());
 	}
 
 	/** Loads them; note that it's possible for some loaded results to be null */
