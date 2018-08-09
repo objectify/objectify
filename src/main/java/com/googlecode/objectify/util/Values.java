@@ -37,7 +37,7 @@ public class Values
 		}
 	}
 
-	/** @return true of all values have the same index status */
+	/** @return true if all values have the same index status */
 	private static boolean isIndexHomogeneous(final List<Value<?>> list) {
 		if (list.isEmpty())
 			return true;
