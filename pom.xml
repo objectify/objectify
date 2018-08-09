@@ -9,7 +9,7 @@
 		<junit.platform.version>1.0.3</junit.platform.version>
 	</properties>
 
-	<groupId>com.streak.objectify</groupId>
+	<groupId>com.googlecode.objectify</groupId>
 	<artifactId>objectify</artifactId>
 	<version>6.1-SNAPSHOT</version>
 
