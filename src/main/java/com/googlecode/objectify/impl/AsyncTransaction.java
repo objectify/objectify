@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Transaction.Response;
+import com.google.protobuf.ByteString;
 
 /**
  * The new datastore SDK has a neat structure of interfaces and implementations (transaction, datastorereader, etc)
@@ -16,4 +17,6 @@ public interface AsyncTransaction extends AsyncDatastoreReaderWriter {
 	void rollback();
 
 	void listenForCommit(final Runnable listener);
+
+	ByteString getTransactionHandle();
 }

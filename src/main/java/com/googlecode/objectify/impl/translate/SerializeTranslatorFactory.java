@@ -38,7 +38,9 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 
 		return new ValueTranslator<Object, Blob>(ValueType.BLOB) {
 			@Override
+
 			protected Object loadValue(final Value<Blob> value, final LoadContext ctx, final Path path) throws SkipException {
+				Exception initialException = null;
 				// Need to be careful here because we don't really know if the data was serialized or not.  Start
 				// with whatever the annotation says, and if that doesn't work, try the other option.
 				try {
@@ -50,13 +52,18 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 					try {
 						return readObject(bais, unzip);
 					} catch (IOException ex) {	// will be one of ZipException or StreamCorruptedException
+
+						initialException = ex;
 						if (log.isInfoEnabled())
 							log.info("Error trying to deserialize object using unzip=" + unzip + ", retrying with " + !unzip, ex);
 
 						return readObject(bais, !unzip);	// this will pass the exception up
 					}
 				} catch (Exception ex) {
-					path.throwIllegalState("Unable to deserialize " + value, ex);
+					if (initialException == null) {
+						initialException = ex;
+					}
+					path.throwIllegalState("Unable to deserialize " + value, initialException);
 					return null;	// never gets here
 				}
 			}
