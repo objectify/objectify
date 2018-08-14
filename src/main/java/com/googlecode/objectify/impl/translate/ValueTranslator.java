@@ -6,11 +6,13 @@ import com.google.cloud.datastore.BlobValue;
 import com.google.cloud.datastore.TimestampValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
+import com.google.protobuf.util.Timestamps;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.Values;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * <p>Translator that should be extended for typical atomic values. Does a little bit of expected type
@@ -43,8 +45,19 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 			// The downside is that a user who changes a field from 'long' to 'Date' will not trigger an error.
 			// The exact logic here comes from com.google.cloud.datastore.ProjectionEntity
 			if (value.getType() == ValueType.LONG && isTypeExpected(ValueType.TIMESTAMP)) {
+				long microseconds = (Long)value.get();
+				long seconds = TimeUnit.MICROSECONDS.toSeconds(microseconds);
+				int nanos = (int)TimeUnit.MICROSECONDS.toNanos(microseconds - TimeUnit.SECONDS.toMicros(seconds));
+				if (!Timestamps.isValid(seconds, 0)) {
+					// Wasn't actually microseconds - try again as nanoseconds
+					seconds = TimeUnit.NANOSECONDS.toSeconds(microseconds);
+					nanos = (int)TimeUnit.NANOSECONDS.toNanos(microseconds - TimeUnit.SECONDS.toNanos(seconds));
+					if (!Timestamps.isValid(seconds, 0)) {
+						throw new IllegalArgumentException("Couldn't load timestamp/long value" + microseconds) ;
+					}
+				}
 				@SuppressWarnings("unchecked")
-				final Value<D> timestampValue = (Value<D>)TimestampValue.of(Timestamp.ofTimeMicroseconds((Long)value.get()));
+				final Value<D> timestampValue = (Value<D>)TimestampValue.of(Timestamp.ofTimeSecondsAndNanos(seconds, nanos));
 				return loadValue(timestampValue, ctx, path);
 			}
 			else if (value.getType() == ValueType.STRING && isTypeExpected(ValueType.BLOB)) {

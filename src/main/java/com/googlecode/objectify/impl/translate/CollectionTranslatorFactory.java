@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.GenericUtils;
@@ -46,7 +47,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			public Collection<Object> loadInto(final Value<List<? extends Value<?>>> node, final LoadContext ctx, final Path path, Collection<Object> collection) throws SkipException {
 				// If the collection does not exist, skip it entirely. This mirrors the OLD underlying behavior
 				// of collections in the datastore; if they are empty, they don't exist.
-				if (node == null)
+				if (node == null || node.getType() == ValueType.NULL)
 					throw new SkipException();
 
 				if (collection == null)
