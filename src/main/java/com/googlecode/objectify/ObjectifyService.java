@@ -117,7 +117,7 @@ public class ObjectifyService
 
 				ofy.flush();
 
-				PendingFutures.completeAllPendingFutures();
+				PendingFutures.completeAllPendingFutures(ofy);
 
 				stack.removeLast();
 			}

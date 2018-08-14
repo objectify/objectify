@@ -47,6 +47,10 @@ public class FutureHelper
 			throw (Error)ex;
 		else if (ex instanceof ExecutionException)
 			unwrapAndThrow(ex.getCause());
+		else if (ex instanceof InterruptedException) {
+			Thread.currentThread().interrupt();
+			throw new UndeclaredThrowableException(ex);
+		}
 		else
 			throw new UndeclaredThrowableException(ex);
 	}
