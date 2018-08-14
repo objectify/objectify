@@ -117,7 +117,15 @@ public class ObjectifyService
 
 				ofy.flush();
 
-				PendingFutures.completeAllPendingFutures(ofy);
+				if (stack.size() > 1) {
+					// we have multiple Objectify instances in the stack
+					// so wait only for the pending futures associated with the currently closed one 
+					PendingFutures.completeAllPendingFutures(ofy);
+				} else {
+					// this is the very last Objectify instance present
+					// we should wait for every pending future just to be sure
+					PendingFutures.completeAllPendingFutures();
+				}
 
 				stack.removeLast();
 			}
