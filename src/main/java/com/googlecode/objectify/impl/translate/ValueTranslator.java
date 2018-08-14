@@ -49,7 +49,9 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 				long seconds = TimeUnit.MICROSECONDS.toSeconds(microseconds);
 				int nanos = (int)TimeUnit.MICROSECONDS.toNanos(microseconds - TimeUnit.SECONDS.toMicros(seconds));
 				if (!Timestamps.isValid(seconds, 0)) {
-					seconds /= 1000;
+					// Wasn't actually microseconds - try again as nanoseconds
+					seconds = TimeUnit.NANOSECONDS.toSeconds(microseconds);
+					nanos = (int)TimeUnit.NANOSECONDS.toNanos(microseconds - TimeUnit.SECONDS.toMicros(seconds));
 					if (!Timestamps.isValid(seconds, 0)) {
 						throw new IllegalArgumentException("Couldn't load timestamp/long value" + microseconds) ;
 					}
