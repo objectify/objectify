@@ -87,6 +87,7 @@ class TransactorNo extends Transactor
 	@Override
 	public <R> R transactNew(final ObjectifyImpl parent, int limitTries, final Work<R> work) {
 		Preconditions.checkArgument(limitTries >= 1);
+		final int ORIGINAL_TRIES = limitTries;
 
 		while (true) {
 			try {
@@ -110,7 +111,7 @@ class TransactorNo extends Transactor
 					log.warn("Retrying {} failure for {}: {}", ex.getReason(), work, ex);
 					log.trace("Details of transaction failure", ex);
 				} else {
-					throw ex;
+					throw new DatastoreException(ex.getCode(), "Failed retrying datastore " + ORIGINAL_TRIES + " times ", ex.getReason(), ex);
 				}
 			}
 		}
