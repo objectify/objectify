@@ -14,6 +14,9 @@ import lombok.Getter;
  */
 abstract class Transactor
 {
+	// Limit default number of retries to something high but non-infinite
+	public static final int DEFAULT_TRY_LIMIT = 20;
+
 	/** */
 	protected final ObjectifyFactory factory;
 

@@ -78,7 +78,7 @@ class TransactorNo extends Transactor
 	 */
 	@Override
 	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
-		return this.transactNew(parent, Integer.MAX_VALUE, work);
+		return this.transactNew(parent, DEFAULT_TRY_LIMIT, work);
 	}
 
 	/* (non-Javadoc)
@@ -98,8 +98,13 @@ class TransactorNo extends Transactor
 				// code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
 //				if (!ex.isRetryable())
 //					throw ex;
-				if (Code.ABORTED.getNumber() != ex.getCode())
+				// I hate this so much. Sometimes the transaction gets closed by the datastore during contention and
+				// then it proceeds to freak out and 503.
+				if (Code.ABORTED.getNumber() == ex.getCode() || (Code.INVALID_ARGUMENT.getNumber() == ex.getCode() && ex.getMessage().contains("transaction closed"))) {
+					// Continue to retry logic
+				} else {
 					throw ex;
+				}
 
 				if (--limitTries > 0) {
 					log.warn("Retrying {} failure for {}: {}", ex.getReason(), work, ex);

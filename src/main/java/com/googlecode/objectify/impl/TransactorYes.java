@@ -61,7 +61,7 @@ class TransactorYes extends Transactor
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
 
 			case REQUIRES_NEW:
-				return transactNew(parent, Integer.MAX_VALUE, work);
+				return transactNew(parent, Transactor.DEFAULT_TRY_LIMIT, work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");

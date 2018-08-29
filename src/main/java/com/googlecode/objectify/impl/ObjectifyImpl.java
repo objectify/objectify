@@ -208,7 +208,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	 */
 	@Override
 	public <R> R transactNew(Work<R> work) {
-		return this.transactNew(Integer.MAX_VALUE, work);
+		return this.transactNew(Transactor.DEFAULT_TRY_LIMIT, work);
 	}
 
 	@Override
