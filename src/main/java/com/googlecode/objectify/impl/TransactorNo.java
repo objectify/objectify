@@ -110,6 +110,11 @@ class TransactorNo extends Transactor
 				if (--limitTries > 0) {
 					log.warn("Retrying {} failure for {}: {}", ex.getReason(), work, ex);
 					log.trace("Details of transaction failure", ex);
+					try {
+						// Do increasing backoffs with randomness
+						Thread.sleep(Math.min(10000, (long) (0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2)));
+					} catch (InterruptedException ignored) {
+					}
 				} else {
 					throw new DatastoreException(ex.getCode(), "Failed retrying datastore " + ORIGINAL_TRIES + " times ", ex.getReason(), ex);
 				}
