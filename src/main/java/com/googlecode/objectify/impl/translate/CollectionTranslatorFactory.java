@@ -46,7 +46,7 @@ public class CollectionTranslatorFactory implements TranslatorFactory<Collection
 			public Collection<Object> loadInto(final Value<List<? extends Value<?>>> node, final LoadContext ctx, final Path path, Collection<Object> collection) throws SkipException {
 				// If the collection does not exist, skip it entirely. This mirrors the OLD underlying behavior
 				// of collections in the datastore; if they are empty, they don't exist.
-				if (node == null)
+				if (node == null || node.get() == null)
 					throw new SkipException();
 
 				if (collection == null)
