@@ -2,7 +2,6 @@ package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.Value;
-import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.GenericUtils;
