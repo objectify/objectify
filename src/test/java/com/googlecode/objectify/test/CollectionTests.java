@@ -4,6 +4,8 @@
 package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
+import com.google.cloud.datastore.FullEntity;
+import com.google.cloud.datastore.NullValue;
 import com.google.common.collect.Sets;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.annotation.Cache;
@@ -26,6 +28,7 @@ import java.util.TreeSet;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of various collection types
@@ -195,6 +198,24 @@ public class CollectionTests extends TestBase {
 		// The initialized one stays initialized
 		assertThat(fetched.initializedList).isNotNull();
 		assertThat(fetched.initializedList).isInstanceOf(LinkedList.class);
+	}
+
+	/**
+	 */
+	@Test
+	void nullValuesInDatastoreAreIgnored() throws Exception {
+		factory().register(HasCollections.class);
+
+		final FullEntity<?> ent = makeEntity(HasCollections.class)
+				.set("integerList", NullValue.of())
+				.set("initializedList", NullValue.of())
+				.build();
+
+		final Entity e = datastore().put(ent);
+
+		final HasCollections fetched = (HasCollections)ofy().load().value(e.getKey()).now();
+		assertThat(fetched.integerList).isNull();
+		assertThat(fetched.initializedList).isEmpty();
 	}
 
 	/** */
