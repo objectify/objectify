@@ -10,7 +10,10 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.Maps;
+
+import lombok.Value;
 
 /**
  */
@@ -122,11 +125,27 @@ public class TypeUtils
 		return null;
 	}
 
+	@Value
+	private static final class DeclaredAnnotationCacheKey {
+		private final Class<?> onClass;
+		private final Class<? extends Annotation> annotationType;
+	}
+	
+	private static final Map<DeclaredAnnotationCacheKey, Optional<? extends Annotation>> declaredAnnotationCache = Maps.newConcurrentMap();
+	
 	/**
 	 * Get the declared annotation, ignoring any inherited annotations
 	 */
 	public static <A extends Annotation> A getDeclaredAnnotation(Class<?> onClass, Class<A> annotationType) {
-		return getAnnotation(onClass.getDeclaredAnnotations(), annotationType);
+		final DeclaredAnnotationCacheKey key = new DeclaredAnnotationCacheKey(onClass, annotationType);
+		
+		@SuppressWarnings("unchecked")
+		Optional<A> value = (Optional<A>) declaredAnnotationCache.get(key);
+		if (value == null) {
+			value = Optional.fromNullable(getAnnotation(onClass.getDeclaredAnnotations(), annotationType));
+			declaredAnnotationCache.put(key, value);
+		}
+		return value.orNull();
 	}
 
 	/**
