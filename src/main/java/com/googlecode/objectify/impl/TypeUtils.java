@@ -10,6 +10,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.common.collect.Maps;
+
 /**
  */
 public class TypeUtils
@@ -30,13 +32,20 @@ public class TypeUtils
 	private TypeUtils() {
 	}
 
+	private static final Map<Class<?>, Constructor<?>> noArgConstructorCache = Maps.newConcurrentMap();
+	
 	/**
 	 * Throw an IllegalStateException if the class does not have a no-arg constructor.
 	 */
 	public static <T> Constructor<T> getNoArgConstructor(Class<T> clazz) {
 		try {
-			Constructor<T> ctor = clazz.getDeclaredConstructor(new Class[0]);
-			ctor.setAccessible(true);
+			@SuppressWarnings("unchecked")
+			Constructor<T> ctor = (Constructor<T>) noArgConstructorCache.get(clazz);
+			if (ctor == null) {
+				ctor = clazz.getDeclaredConstructor(new Class[0]);
+				ctor.setAccessible(true);
+				noArgConstructorCache.put(clazz, ctor);
+			}
 			return ctor;
 		}
 		catch (NoSuchMethodException e) {
