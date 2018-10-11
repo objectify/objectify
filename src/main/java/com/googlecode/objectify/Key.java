@@ -1,10 +1,12 @@
 package com.googlecode.objectify;
 
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.common.collect.Maps;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.TypeUtils;
 
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * <p>A typesafe wrapper for the datastore Key object.</p>
@@ -238,6 +240,8 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		else
 			return typed.getRaw();
 	}
+	
+	private static final Map<Class<?>, String> kindCache = Maps.newConcurrentMap();
 
 	/**
 	 * <p>Determines the kind for a Class, as understood by the datastore.  The first class in a
@@ -246,11 +250,15 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * <p>If no @Entity annotation is found, just uses the simplename as is.</p>
 	 */
 	public static String getKind(Class<?> clazz) {
-		String kind = getKindRecursive(clazz);
-		if (kind == null)
-			return clazz.getSimpleName();
-		else
-			return kind;
+		String kind = kindCache.get(clazz);
+		if (kind == null) {
+			kind = getKindRecursive(clazz);
+			if (kind == null) {
+				kind = clazz.getSimpleName();
+			}
+			kindCache.put(clazz, kind);
+		}
+		return kind;
 	}
 
 	/**
