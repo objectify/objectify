@@ -12,9 +12,4 @@ public class SpyIdentifiableValue implements IdentifiableValue {
 	public Object getValue() {
 		return casValue.getValue();
 	}
-
-	@Override
-	public IdentifiableValue withValue(final Object value) {
-		return new SpyIdentifiableValue(new CASValue<>(casValue.getCas(), value));
-	}
 }
