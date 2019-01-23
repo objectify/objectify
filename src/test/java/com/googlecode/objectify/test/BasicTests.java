@@ -188,6 +188,26 @@ class BasicTests extends TestBase {
 
 	/** */
 	@Test
+	void entitiesCanBeDeletedInBatchOfPrimitiveIds() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv1 = new Trivial("foo5", 5);
+		final Trivial triv2 = new Trivial("foo6", 6);
+		triv1.setId(12345L);
+		triv2.setId(12346L);
+
+		ofy().save().entities(triv1, triv2).now();
+
+		assertThat(ofy().load().entities(triv1, triv2)).hasSize(2);
+
+		ofy().delete().type(Trivial.class).ids(12345L, 12346L).now();
+
+		final Map<Key<Trivial>, Trivial> result = ofy().load().entities(triv1, triv2);
+		assertThat(result).isEmpty();
+	}
+
+	/** */
+	@Test
 	void loadWithManuallyCreatedKey() throws Exception {
 		factory().register(Trivial.class);
 
