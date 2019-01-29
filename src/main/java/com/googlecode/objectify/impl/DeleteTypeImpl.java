@@ -5,6 +5,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.Result;
 import com.googlecode.objectify.cmd.DeleteIds;
 import com.googlecode.objectify.cmd.DeleteType;
+import com.googlecode.objectify.util.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -76,7 +77,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public Result<Void> ids(final long... ids) {
-		return ids(Arrays.asList(ids));
+		return ids(ArrayUtils.asList(ids));
 	}
 
 	/* (non-Javadoc)

@@ -4,6 +4,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.cmd.DeferredDeleteIds;
 import com.googlecode.objectify.cmd.DeferredDeleteType;
+import com.googlecode.objectify.util.ArrayUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -59,7 +60,7 @@ class DeferredDeleteTypeImpl implements DeferredDeleteType
 
 	@Override
 	public void ids(final long... ids) {
-		ids(Arrays.asList(ids));
+		ids(ArrayUtils.asList(ids));
 	}
 
 	@Override

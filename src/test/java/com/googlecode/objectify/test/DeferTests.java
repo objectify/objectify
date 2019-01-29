@@ -45,6 +45,25 @@ class DeferTests extends TestBase {
 
 	/** */
 	@Test
+	void deferredSaveAndDeleteWithPrimitiveIdsArray() throws Exception {
+		final Trivial triv1 = new Trivial("foo", 5);
+		final Trivial triv2 = new Trivial("foo", 5);
+		triv1.setId(12345L);
+		triv2.setId(12346L);
+
+		try (final Closeable root = ObjectifyService.begin()) {
+			ofy().defer().save().entities(triv1, triv2);
+			assertThat(ofy().load().entity(triv1).now()).isEqualTo(triv1);
+			assertThat(ofy().load().entity(triv2).now()).isEqualTo(triv2);
+
+			ofy().defer().delete().type(Trivial.class).ids(12345L, 12346L);
+			assertThat(ofy().load().entity(triv1).now()).isNull();
+			assertThat(ofy().load().entity(triv2).now()).isNull();
+		}
+	}
+
+	/** */
+	@Test
 	void deferredSaveAndDeleteProcessedAtEndOfRequest() throws Exception {
 
 		final Trivial triv = new Trivial(123L, "foo", 5);
