@@ -65,8 +65,11 @@ public class WriteEngine
 
 		final SaveContext ctx = new SaveContext();
 
+		// Need to make a copy of the original list because someone might clear it while we are async
+		final List<? extends E> original = Lists.newArrayList(entities);
+
 		final List<Entity> entityList = new ArrayList<>();
-		for (E obj: entities) {
+		for (E obj: original) {
 			if (obj == null)
 				throw new NullPointerException("Attempted to save a null entity");
 
@@ -79,9 +82,6 @@ public class WriteEngine
 				entityList.add(metadata.save(obj, ctx));
 			}
 		}
-
-		// Need to make a copy of the original list because someone might clear it while we are async
-		final List<? extends E> original = Lists.newArrayList(entities);
 
 		// The CachingDatastoreService needs its own raw transaction
 		Future<List<com.google.appengine.api.datastore.Key>> raw = ads.put(getTransactionRaw(), entityList);
