@@ -91,7 +91,11 @@ public class ObjectifyFactory implements Forge
 		this(datastore, (MemcacheService)null);
 	}
 
-	/** Uses default datastore */
+	/**
+	 * Uses default datastore
+	 * @deprecated call {@code ObjectifyFactory(new SpyMemcacheService(memcache))} instead
+	 */
+	@Deprecated
 	public ObjectifyFactory(final MemcachedClient memcache) {
 		this(DatastoreOptions.getDefaultInstance().getService(), memcache);
 	}
@@ -102,7 +106,9 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
+	 * @deprecated call {@code ObjectifyFactory(datastore, new SpyMemcacheService(memcache))} instead
 	 */
+	@Deprecated
 	public ObjectifyFactory(final Datastore datastore, final MemcachedClient memcache) {
 		this(datastore, new SpyMemcacheService(memcache));
 	}
