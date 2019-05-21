@@ -2,6 +2,7 @@ package com.googlecode.objectify.util;
 
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.QueryResults;
+import com.google.datastore.v1.QueryResultBatch.MoreResultsType;
 
 /**
  * QueryResultIterator wrapper that translates from one type to another
@@ -28,4 +29,15 @@ abstract public class TranslatingQueryResults<F, T> extends TranslatingIterator<
 		// For example, a kind-less query can have lots of kinds!
 		return Object.class;
 	}
+
+	@Override
+	public int getSkippedResults() {
+		return ((QueryResults<F>)this.base).getSkippedResults();
+	}
+
+	@Override
+	public MoreResultsType getMoreResults() {
+		return ((QueryResults<F>)this.base).getMoreResults();
+	}
+
 }

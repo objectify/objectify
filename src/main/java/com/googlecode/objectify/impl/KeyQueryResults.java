@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.QueryResults;
+import com.google.datastore.v1.QueryResultBatch.MoreResultsType;
 import com.googlecode.objectify.Key;
 import lombok.RequiredArgsConstructor;
 
@@ -34,5 +35,15 @@ class KeyQueryResults<T> implements QueryResults<Key<T>> {
 	@Override
 	public Class<?> getResultClass() {
 		return Key.class;
+	}
+
+	@Override
+	public int getSkippedResults() {
+		return source.getSkippedResults();
+	}
+
+	@Override
+	public MoreResultsType getMoreResults() {
+		return source.getMoreResults();
 	}
 }

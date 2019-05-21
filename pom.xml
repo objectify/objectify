@@ -183,11 +183,29 @@
 			<scope>provided</scope>
 		</dependency>
 
-		<!-- Mandatory -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-datastore</artifactId>
+			<version>1.74.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>net.spy</groupId>
 			<artifactId>spymemcached</artifactId>
 			<version>2.12.3</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>${slf4j.version}</version>
 		</dependency>
 
 		<!-- Optional -->
@@ -220,27 +238,6 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Google App Engine -->
-		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>google-cloud-datastore</artifactId>
-			<version>1.16.0</version>
-		</dependency>
-
-		<dependency>
-			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.5</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>${slf4j.version}</version>
-		</dependency>
-
-
 		<!-- Testing -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -252,7 +249,7 @@
 		<dependency>
 			<groupId>com.google.truth</groupId>
 			<artifactId>truth</artifactId>
-			<version>0.36</version>
+			<version>0.44</version>
 			<scope>test</scope>
 		</dependency>
 

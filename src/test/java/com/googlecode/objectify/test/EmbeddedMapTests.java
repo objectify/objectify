@@ -47,7 +47,11 @@ class EmbeddedMapTests extends TestBase
 		assertThat(fetched.primitives).isEqualTo(hml.primitives);
 	}
 
-	@Test
+	/**
+	 * This changed somewhere between google cloud java version 1.16 and 1.74. Apparently you can now
+	 * put dots in names.
+	 */
+//	@Test
 	void dotsAreNotAllowed() {
 		factory().register(HasMapLong.class);
 

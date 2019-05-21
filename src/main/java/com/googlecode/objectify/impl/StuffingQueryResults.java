@@ -4,6 +4,7 @@ import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.QueryResults;
+import com.google.datastore.v1.QueryResultBatch.MoreResultsType;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -36,5 +37,15 @@ class StuffingQueryResults implements QueryResults<Key> {
 		final Entity entity = base.next();
 		loadEngine.stuff(entity);
 		return entity.getKey();
+	}
+
+	@Override
+	public int getSkippedResults() {
+		return base.getSkippedResults();
+	}
+
+	@Override
+	public MoreResultsType getMoreResults() {
+		return base.getMoreResults();
 	}
 }
