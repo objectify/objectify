@@ -22,6 +22,9 @@ public interface MemcacheService {
 		private final int expirationSeconds;
 	}
 
+	/**
+	 * @return the value in memcache for this, or null if there was nothing there
+	 */
 	Object get(final String key);
 
 	/**
@@ -40,7 +43,10 @@ public interface MemcacheService {
 	/** Values can be null */
 	void putAll(final Map<String, Object> values);
 
-	/** Values can be null */
+	/**
+	 * Values can be null
+	 * @return a set of all the keys that succeeded
+	 */
 	Set<String> putIfUntouched(final Map<String, CasPut> values);
 
 	void deleteAll(final Collection<String> keys);
