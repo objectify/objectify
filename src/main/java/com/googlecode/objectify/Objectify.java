@@ -91,6 +91,29 @@ public interface Objectify
 	ObjectifyFactory factory();
 
 	/**
+	 * <p>Explicitly sets the namespace for keys generated in load, save, delete operations.</p>
+	 *
+	 * <p>This overrides the setting of {@code NamespaceManager.set()}.</p>
+	 *
+	 * <p>Note that this only affects implicitly created keys; if you pass key objects into load or delete methods, the
+	 * namespace contained in the key will be used.</p>
+	 *
+	 * <pre>
+	 *     final Key&lt;Foo&gt; key = Key.create(Foo.class, 123);
+	 *     ofy().namespace("blah").load().key(key);  // namespace() has no effect! The key already has the default namespace.
+	 *     ofy().namespace("blah").load().type(Foo.class).id(123);	// namespace() works as expected
+	 * </pre>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object instead of modifying the
+	 * current command object.</b></p>
+	 *
+	 * @param namespace is the namespace to pick; "" (empty string) forces the datastore default namespace; null
+	 *                  restores the check for {@code NamespaceManager.set()}
+	 * @return the next step in the immutable command chain, which allows you to start an operation.
+	 */
+	Objectify namespace(String namespace);
+
+	/**
 	 * <p>Provides a new Objectify instance with a limit, in seconds, for datastore calls.  If datastore calls take longer
 	 * than this amount, a timeout exception will be thrown.</p>
 	 *

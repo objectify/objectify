@@ -93,7 +93,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public <S> Result<Void> ids(final Iterable<S> ids) {
-		return this.deleter.keys(factory().keys().createKeys(parent, type, ids));
+		return this.deleter.keys(factory().keys().createKeys(deleter.ofy.getOptions().getNamespace(), parent, type, ids));
 	}
 
 }

@@ -3,6 +3,7 @@ package com.googlecode.objectify.util;
 import com.google.cloud.datastore.ProjectionEntityQuery;
 import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
+import com.googlecode.objectify.NamespaceManager;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -59,6 +60,15 @@ public class Queries
 		if (!distinctOn.isEmpty()) {
 			builder.addDistinctOn(distinctOn.get(0), distinctOn.subList(1, distinctOn.size()).toArray(new String[distinctOn.size() - 1]));
 		}
+	}
+
+	/**
+	 * Take into account the thread local namespace setting
+	 */
+	public static void adjustNamespace(final StructuredQuery.Builder<?> builder, final String namespace) {
+		final String ns = namespace != null ? namespace : NamespaceManager.get();
+		if (ns != null)
+			builder.setNamespace(ns);
 	}
 }
 

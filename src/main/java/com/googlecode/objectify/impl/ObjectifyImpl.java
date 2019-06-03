@@ -69,6 +69,11 @@ public class ObjectifyImpl implements Objectify, Closeable
 		return this.factory;
 	}
 
+	@Override
+	public Objectify namespace(final String namespace) {
+		return makeNew(options.namespace(namespace));
+	}
+
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.Objectify#find()
 	 */

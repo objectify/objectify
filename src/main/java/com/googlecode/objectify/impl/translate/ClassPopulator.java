@@ -9,6 +9,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Ignore;
 import com.googlecode.objectify.annotation.Index;
+import com.googlecode.objectify.annotation.Namespace;
 import com.googlecode.objectify.annotation.OnLoad;
 import com.googlecode.objectify.annotation.OnSave;
 import com.googlecode.objectify.annotation.Parent;
@@ -46,7 +47,7 @@ public class ClassPopulator<P> implements Populator<P>
 	private static final int NOT_SAVEABLE_MODIFIERS = Modifier.FINAL | Modifier.STATIC;
 
 	/** We don't want to include the key fields in population */
-	private static final Predicate<Property> INCLUDED_FIELDS = prop -> prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null;
+	private static final Predicate<Property> INCLUDED_FIELDS = prop -> prop.getAnnotation(Id.class) == null && prop.getAnnotation(Parent.class) == null && prop.getAnnotation(Namespace.class) == null;
 
 	/** */
 	private final Class<P> clazz;

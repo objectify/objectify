@@ -142,7 +142,11 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	 * Make a key for the given id, which could be either string or long
 	 */
 	private <T> Key<T> makeKey(final Object id) {
-		final com.google.cloud.datastore.Key key = factory().keys().createRawAny(Keys.raw(this.parent), kind, id);
+		final com.google.cloud.datastore.Key key = factory().keys().createRawAny(
+				loader.ofy.getOptions().getNamespace(),
+				Keys.raw(this.parent),
+				kind,
+				id);
 		return Key.create(key);
 	}
 

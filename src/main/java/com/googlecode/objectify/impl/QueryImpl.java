@@ -59,7 +59,9 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	QueryImpl(final LoaderImpl loader, final String kind, final Class<T> clazz) {
 		super(loader);
 
-		this.actual = new QueryDef().kind(kind);
+		this.actual = new QueryDef()
+				.kind(kind)
+				.namespace(loader.getObjectifyImpl().getOptions().getNamespace());
 
 		// If this is a polymorphic subclass, add an extra filter
 		if (clazz != null) {

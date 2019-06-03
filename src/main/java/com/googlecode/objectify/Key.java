@@ -22,7 +22,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = -262390393952444121L;
 
-	/** Key.create(key) is easier to type than new Key<Blah>(key) */
+	/** Create an Objectify key from the native datastore key */
 	public static <T> Key<T> create(final com.google.cloud.datastore.Key raw) {
 		if (raw == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
@@ -30,27 +30,37 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<>(raw);
 	}
 
-	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
+	/** Create an Objectify key from a type and numeric id */
 	public static <T> Key<T> create(final Class<? extends T> kindClass, final long id) {
 		return new Key<>(kindClass, id);
 	}
 
-	/** Key.create(Blah.class, name) is easier to type than new Key<Blah>(Blah.class, name) */
+	/** Create an Objectify key from a type and string id */
 	public static <T> Key<T> create(final Class<? extends T> kindClass, final String name) {
 		return new Key<>(kindClass, name);
 	}
 
-	/** Key.create(parent, Blah.class, id) is easier to type than new Key<Blah>(parent, Blah.class, id) */
+	/** Create an Objectify key from a parent, type, and numeric id */
 	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
 		return new Key<>(parent, kindClass, id);
 	}
 
-	/** Key.create(parent, Blah.class, name) is easier to type than new Key<Blah>(parent, Blah.class, name) */
+	/** Create an Objectify key from a parent, type, and string id */
 	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
 		return new Key<>(parent, kindClass, name);
 	}
 
-	/** Key.create(urlSafeString) is easier to type than new Key<Blah>(urlSafeString) */
+	/** Create an Objectify key from a namespace, type, and numeric id */
+	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final long id) {
+		return new Key<>(namespace, kindClass, id);
+	}
+
+	/** Create an Objectify key from a namespace, type, and string id */
+	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final String name) {
+		return new Key<>(namespace, kindClass, name);
+	}
+
+	/** Create an Objectify key from a web safe string. Understands both 'modern' and 'legacy' GAE formats. */
 	public static <T> Key<T> create(final String urlSafeString) {
 		if (urlSafeString == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null String");
@@ -58,7 +68,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<>(urlSafeString);
 	}
 
-	/** This is an alias for Key.create(String) which exists for JAX-RS compliance. */
+	/** This is an alias for Key.create(String). Helps with JAX-RS compliance. */
 	public static <T> Key<T> valueOf(final String webSafeString) {
 		return Key.create(webSafeString);
 	}
@@ -82,12 +92,12 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** Create a key with a long id */
 	private Key(final Class<? extends T> kindClass, final long id) {
-		this(null, kindClass, id);
+		this((String)null, kindClass, id);
 	}
 
 	/** Create a key with a String name */
 	private Key(final Class<? extends T> kindClass, final String name) {
-		this(null, kindClass, name);
+		this((String)null, kindClass, name);
 	}
 
 	/** Create a key with a parent and a long id */
@@ -95,7 +105,8 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		final String kind = getKind(kindClass);
 
 		if (parent == null) {
-			this.raw = newKeyFactory().setKind(kind).newKey(id);
+			final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), null);
+			this.raw = kf.newKey(id);
 		} else {
 			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, id).build();
 		}
@@ -108,12 +119,29 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		final String kind = getKind(kindClass);
 
 		if (parent == null) {
-			this.raw = newKeyFactory().setKind(kind).newKey(name);
+			final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), null);
+			this.raw = kf.newKey(name);
 		} else {
 			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, name).build();
 		}
 
 		this.parent = parent;
+	}
+
+	/** Create a key with a namespace and a long id */
+	private Key(final String namespace, final Class<? extends T> kindClass, final long id) {
+		final String kind = getKind(kindClass);
+
+		final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), namespace);
+		this.raw = kf.newKey(id);
+	}
+
+	/** Create a key with a namespace and a String name */
+	private Key(final String namespace, final Class<? extends T> kindClass, final String name) {
+		final String kind = getKind(kindClass);
+
+		final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), namespace);
+		this.raw = kf.newKey(name);
 	}
 
 	/**
@@ -155,6 +183,13 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 */
 	public String getKind() {
 		return this.raw.getKind();
+	}
+
+	/**
+	 * @return the namespace associated with this key
+	 */
+	public String getNamespace() {
+		return this.raw.getNamespace();
 	}
 
 	/**

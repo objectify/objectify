@@ -28,6 +28,7 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class QueryDef
 {
+	private final String namespace;
 	private final String kind;
 	private final ImmutableList<String> projection;
 	private final Filter filter;
@@ -46,19 +47,23 @@ public class QueryDef
 	}
 
 	public QueryDef() {
-		this(null, ImmutableList.of(), null, ImmutableList.of(), ImmutableList.of(), null, null, 0, null, false);
+		this(null, null, ImmutableList.of(), null, ImmutableList.of(), ImmutableList.of(), null, null, 0, null, false);
+	}
+
+	public QueryDef namespace(final String namespace) {
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef kind(final String kind) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef project(final String projection) {
-		return new QueryDef(kind, concat(this.projection, projection), filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, concat(this.projection, projection), filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef filter(final Filter filter) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	/** Convenince method that creates a composite filter with any existing filter (if present) */
@@ -67,34 +72,34 @@ public class QueryDef
 	}
 
 	public QueryDef distinctOn(final String distinctOn) {
-		return new QueryDef(kind, projection, filter, concat(this.distinctOn, distinctOn), orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, concat(this.distinctOn, distinctOn), orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	/**
 	 * At the last minute add distinct on all projected fields. This can be called before the projections are added.
 	 */
 	public QueryDef distinctOnAll(final boolean distinctOnAll) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef orderBy(final OrderBy orderBy) {
-		return new QueryDef(kind, projection, filter, distinctOn, concat(this.orderBy, orderBy), startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, concat(this.orderBy, orderBy), startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef startCursor(final Cursor startCursor) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef endCursor(final Cursor endCursor) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef offset(final int offset) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public QueryDef limit(final Integer limit) {
-		return new QueryDef(kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
+		return new QueryDef(namespace, kind, projection, filter, distinctOn, orderBy, startCursor, endCursor, offset, limit, distinctOnAll);
 	}
 
 	public KeyQuery newKeyQuery() {
@@ -119,6 +124,8 @@ public class QueryDef
 
 	private <B extends StructuredQuery.Builder<?>> B build(final Supplier<B> into) {
 		final B builder = into.get();
+
+		Queries.adjustNamespace(builder, namespace);
 
 		builder
 				.setKind(kind)

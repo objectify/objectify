@@ -13,16 +13,21 @@ public class ObjectifyOptions {
 
 	private final boolean cache;
 	private final boolean mandatoryTransactions;
+	private final String namespace;
 
 	ObjectifyOptions() {
-		this(true, false);
+		this(true, false, null);
 	}
 
-	public ObjectifyOptions cache(final boolean value) {
-		return new ObjectifyOptions(value, mandatoryTransactions);
+	public ObjectifyOptions cache(final boolean cache) {
+		return new ObjectifyOptions(cache, mandatoryTransactions, namespace);
 	}
 
-	public ObjectifyOptions mandatoryTransactions(final boolean value) {
-		return new ObjectifyOptions(cache, value);
+	public ObjectifyOptions mandatoryTransactions(final boolean mandatoryTransactions) {
+		return new ObjectifyOptions(cache, mandatoryTransactions, namespace);
+	}
+
+	public ObjectifyOptions namespace(final String namespace) {
+		return new ObjectifyOptions(cache, mandatoryTransactions, namespace);
 	}
 }
