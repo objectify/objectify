@@ -46,6 +46,30 @@ class NamespaceTests extends TestBase {
 
 	/** */
 	@Test
+	void namespaceManagerCanBeNested() throws Exception {
+
+		final Key<Trivial> k1;
+		final Key<Trivial> k2;
+		final Key<Trivial> k3;
+
+		try (final Closeable ignored = NamespaceManager.set("ns1")) {
+
+			try (final Closeable ignored2 = NamespaceManager.set("ns2")) {
+				k1 = Key.create(Trivial.class, 123);
+			}
+
+			k2 = Key.create(Trivial.class, 123);
+		}
+
+		k3 = Key.create(Trivial.class, 123);
+
+		assertThat(k1.getNamespace()).isEqualTo("ns2");
+		assertThat(k2.getNamespace()).isEqualTo("ns1");
+		assertThat(k3.getNamespace()).isEqualTo("");
+	}
+
+	/** */
+	@Test
 	void childrenInheritParentNamespace() throws Exception {
 
 		final Key<Trivial> inside;

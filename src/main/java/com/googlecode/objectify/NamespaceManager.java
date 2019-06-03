@@ -34,8 +34,9 @@ public class NamespaceManager {
 	 * <p>You can call {@code set(null)} to clear the namespace; this is identical to calling {@code close()} on the return value.</p>
 	 */
 	public static Closeable set(final String namespaceName) {
+		final String previous = NAMESPACE.get();
 		NAMESPACE.set(namespaceName);
-		return () -> NAMESPACE.set(null);
+		return () -> NAMESPACE.set(previous);
 	}
 
 	/**
