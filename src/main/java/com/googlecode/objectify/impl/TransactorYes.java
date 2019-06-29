@@ -58,7 +58,7 @@ class TransactorYes extends Transactor
 				return transactionless(parent, work);
 
 			case NEVER:
-				throw new IllegalStateException("MANDATORY transaction but no transaction present");
+				throw new IllegalStateException("NEVER transaction type but transaction present");
 
 			case REQUIRES_NEW:
 				return transactNew(parent, Transactor.DEFAULT_TRY_LIMIT, work);
