@@ -5,6 +5,7 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.memcache.ErrorHandlers;
 import com.google.appengine.api.memcache.Expiration;
 import com.google.appengine.api.memcache.IMemcacheServiceFactory;
+import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.spi.ServiceFactoryFactory;
@@ -19,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.logging.Level;
 
 /**
@@ -175,10 +177,17 @@ public class EntityMemcache
 			MemcacheStats stats,
 			IMemcacheServiceFactory memcacheServiceFactory)
 	{
-		this.memcache = new KeyMemcacheService(memcacheServiceFactory.getMemcacheService(namespace));
+		this(cacheControl, stats, memcacheServiceFactory.getMemcacheService(namespace));
+	}
+
+	public EntityMemcache(
+			CacheControl cacheControl,
+			MemcacheStats stats,
+			MemcacheService memcacheService)
+	{
+		this.memcache = new KeyMemcacheService(memcacheService);
 		this.memcache.setErrorHandler(ErrorHandlers.getConsistentLogAndContinue(Level.SEVERE));
-		this.memcacheWithRetry = new KeyMemcacheService(
-				MemcacheServiceRetryProxy.createProxy(memcacheServiceFactory.getMemcacheService(namespace)));
+		this.memcacheWithRetry = new KeyMemcacheService(MemcacheServiceRetryProxy.createProxy(memcacheService));
 		this.stats = stats;
 		this.cacheControl = cacheControl;
 	}
