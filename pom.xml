@@ -8,7 +8,7 @@
 
 	<groupId>com.googlecode.objectify</groupId>
 	<artifactId>objectify</artifactId>
-	<version>5.1.24-SNAPSHOT</version>
+	<version>5.1.23-SNAPSHOT</version>
 
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
@@ -66,12 +66,6 @@
 								<goals>
 									<goal>sign</goal>
 								</goals>
-								<configuration>
-									<gpgArguments>
-										<arg>--pinentry-mode</arg>
-										<arg>loopback</arg>
-									</gpgArguments>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>
