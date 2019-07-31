@@ -55,8 +55,10 @@ public class ObjectifyFactory implements Forge
 	/** Tracks stats */
 	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 
-	/** Manages caching of entities at a low level */
-	protected EntityMemcache entityMemcache = createEntityMemcache();
+	/**
+	 * Manages caching of entities at a low level. Lazily instantiated on the first register() of a cacheable entity.
+	 */
+	protected EntityMemcache entityMemcache;
 
 	/** Override this if you need special behavior from your EntityMemcache */
 	protected EntityMemcache createEntityMemcache() {
@@ -173,6 +175,9 @@ public class ObjectifyFactory implements Forge
 	 */
 	public <T> void register(Class<T> clazz) {
 		this.registrar.register(clazz);
+
+		if (this.entityMemcache == null && this.registrar.isCacheEnabled())
+			this.entityMemcache = createEntityMemcache();
 	}
 
 	/**
