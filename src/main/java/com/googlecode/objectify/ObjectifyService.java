@@ -5,6 +5,7 @@ package com.googlecode.objectify;
 
 import com.googlecode.objectify.cache.PendingFutures;
 import com.googlecode.objectify.util.Closeable;
+
 import java.util.ArrayDeque;
 import java.util.Deque;
 
@@ -109,17 +110,21 @@ public class ObjectifyService
 				if (stack.isEmpty())
 					throw new IllegalStateException("You have already destroyed the Objectify context.");
 
-				// Same comment as above - we can't make claims about the state of the stack beacuse of dispatch forwarding
-				//if (stack.size() > 1)
-				//	throw new IllegalStateException("You are trying to close the root session before all transactions have been unwound.");
+				try {
+					// Same comment as above - we can't make claims about the state of the stack
+					// beacuse of dispatch forwarding
+					// if (stack.size() > 1)
+					// throw new IllegalStateException("You are trying to close the root session
+					// before all transactions have been unwound.");
 
-				// The order of these three operations is significant
+					// The order of these three operations is significant
 
-				ofy.flush();
+					ofy.flush();
 
-				PendingFutures.completeAllPendingFutures();
-
-				stack.removeLast();
+					PendingFutures.completeAllPendingFutures();
+				} finally {
+					stack.removeLast();
+				}
 			}
 		};
 	}
