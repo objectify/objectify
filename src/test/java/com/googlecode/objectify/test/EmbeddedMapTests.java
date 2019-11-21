@@ -1,6 +1,17 @@
 package com.googlecode.objectify.test;
 
-import com.google.cloud.datastore.DatastoreException;
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.SaveException;
 import com.googlecode.objectify.annotation.Entity;
@@ -10,17 +21,6 @@ import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.stringifier.KeyStringifier;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.googlecode.objectify.ObjectifyService.factory;
-import static com.googlecode.objectify.ObjectifyService.ofy;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test of expando-type maps that hold primitve values
@@ -51,17 +51,17 @@ class EmbeddedMapTests extends TestBase
 	 * This changed somewhere between google cloud java version 1.16 and 1.74. Apparently you can now
 	 * put dots in names.
 	 */
-//	@Test
+	@Test
 	void dotsAreNotAllowed() {
 		factory().register(HasMapLong.class);
 
 		final HasMapLong hml = new HasMapLong();
 		hml.primitives.put("legal.name", 123L);
+		hml.primitives.put("escaped.%2Edot", 123L);
+		hml.primitives.put("escaped.%252Epercent", 123L);
 
-		assertThrows(DatastoreException.class, () -> {
-			final HasMapLong fetched = saveClearLoad(hml);
-			//assertThat(fetched.primitives).isEqualTo(hml.primitives);	// this doesn't work anymore, we throw
-		});
+		final HasMapLong fetched = saveClearLoad(hml);
+		assertThat(fetched.primitives).isEqualTo(hml.primitives);
 	}
 
 	@Test
