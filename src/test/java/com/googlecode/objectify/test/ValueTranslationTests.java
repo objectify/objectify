@@ -3,6 +3,19 @@
 
 package com.googlecode.objectify.test;
 
+import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
+
+import java.math.BigDecimal;
+import java.net.URL;
+import java.time.Instant;
+import java.util.Date;
+import java.util.TimeZone;
+
+import org.junit.jupiter.api.Test;
+
+import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.StringValue;
@@ -17,18 +30,8 @@ import com.googlecode.objectify.impl.translate.SimpleTranslatorFactory;
 import com.googlecode.objectify.impl.translate.opt.BigDecimalLongTranslatorFactory;
 import com.googlecode.objectify.test.entity.Name;
 import com.googlecode.objectify.test.util.TestBase;
+
 import lombok.Data;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigDecimal;
-import java.net.URL;
-import java.time.Instant;
-import java.util.Date;
-import java.util.TimeZone;
-
-import static com.google.common.truth.Truth.assertThat;
-import static com.googlecode.objectify.ObjectifyService.factory;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of type conversions.
@@ -365,4 +368,20 @@ class ValueTranslationTests extends TestBase {
 		final HasInstant fetched = saveClearLoad(hi);
 		assertThat(fetched).isEqualTo(hi);
 	}
+	
+	/** */
+	@Test
+	void javaTimeInstantCanReadISO8601() throws Exception {
+		factory().register(HasInstant.class);
+
+		final Datastore datastore = factory().datastore();
+		final com.google.cloud.datastore.Key key = datastore.newKeyFactory().setKind("HasInstant").newKey(1);
+		final Instant now = Instant.now();
+		final Entity entity = Entity.newBuilder(key).set("instant", now.toString()).build();
+		datastore.put(entity);
+
+		final HasInstant fetched = (HasInstant) ofy().load().key(Key.create(key)).now();
+		assertThat(fetched.instant).isEqualTo(now);
+	}
+
 }

@@ -1,5 +1,8 @@
 package com.googlecode.objectify.impl.translate;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Blob;
 import com.google.cloud.datastore.BlobValue;
@@ -8,9 +11,6 @@ import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.util.Values;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 
 /**
  * <p>Translator that should be extended for typical atomic values. Does a little bit of expected type
@@ -40,12 +40,19 @@ abstract public class ValueTranslator<P, D> extends NullSafeTranslator<P, D>
 		if (!isTypeExpected(value.getType())) {
 			// Normally we would just throw an error here but there are some edge cases caused by projection queries.
 			// For example, timestamps come back as LongValue and blobs come back as StringValue. We'll special-case them.
+			// Another special case are ISO8601 timestamps which was the format for java.time.Instant in Objectify 5
 			// The downside is that a user who changes a field from 'long' to 'Date' will not trigger an error.
 			// The exact logic here comes from com.google.cloud.datastore.ProjectionEntity
-			if (value.getType() == ValueType.LONG && isTypeExpected(ValueType.TIMESTAMP)) {
-				@SuppressWarnings("unchecked")
-				final Value<D> timestampValue = (Value<D>)TimestampValue.of(Timestamp.ofTimeMicroseconds((Long)value.get()));
-				return loadValue(timestampValue, ctx, path);
+			if (isTypeExpected(ValueType.TIMESTAMP)) {
+				if(value.getType() == ValueType.LONG) { 
+					@SuppressWarnings("unchecked")
+					final Value<D> timestampValue = (Value<D>)TimestampValue.of(Timestamp.ofTimeMicroseconds((Long)value.get()));
+					return loadValue(timestampValue, ctx, path);
+				} else if(value.getType() == ValueType.STRING) { 
+					@SuppressWarnings("unchecked")
+					final Value<D> timestampValue = (Value<D>)TimestampValue.of(Timestamp.parseTimestamp((String)value.get()));
+					return loadValue(timestampValue, ctx, path);
+				}
 			}
 			else if (value.getType() == ValueType.STRING && isTypeExpected(ValueType.BLOB)) {
 				@SuppressWarnings("unchecked")
