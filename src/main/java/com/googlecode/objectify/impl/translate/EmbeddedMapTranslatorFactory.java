@@ -1,8 +1,5 @@
 package com.googlecode.objectify.impl.translate;
 
-import java.lang.reflect.Type;
-import java.util.Map;
-
 import com.google.cloud.datastore.EntityValue;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Value;
@@ -11,12 +8,15 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Stringify;
 import com.googlecode.objectify.impl.Path;
 import com.googlecode.objectify.repackaged.gentyref.GenericTypeReflector;
-import com.googlecode.objectify.stringifier.DotEscapingStringifier;
 import com.googlecode.objectify.stringifier.EnumStringifier;
 import com.googlecode.objectify.stringifier.InitializeStringifier;
 import com.googlecode.objectify.stringifier.KeyStringifier;
+import com.googlecode.objectify.stringifier.NullStringifier;
 import com.googlecode.objectify.stringifier.Stringifier;
 import com.googlecode.objectify.util.GenericUtils;
+
+import java.lang.reflect.Type;
+import java.util.Map;
 
 
 /**
@@ -48,7 +48,7 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 		if (stringify != null)
 			stringifierClass = stringify.value();
 		else if (keyTypeErased == String.class)
-			stringifierClass = DotEscapingStringifier.class;
+			stringifierClass = NullStringifier.class;
 		else if (Enum.class.isAssignableFrom(keyTypeErased))
 			stringifierClass = EnumStringifier.class;
 		else if (keyTypeErased == Key.class)
