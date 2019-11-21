@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.net.URL;
+import java.time.Instant;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -343,5 +344,25 @@ class ValueTranslationTests extends TestBase {
 
 		final HasURL fetched = saveClearLoad(hu);
 		assertThat(fetched).isEqualTo(hu);
+	}
+
+	/** */
+	@com.googlecode.objectify.annotation.Entity
+	@Data
+	private static class HasInstant {
+		@Id Long id;
+		Instant instant;
+	}
+
+	/** */
+	@Test
+	void javaTimeInstantWorks() throws Exception {
+		factory().register(HasInstant.class);
+
+		final HasInstant hi = new HasInstant();
+		hi.instant = Instant.now();
+
+		final HasInstant fetched = saveClearLoad(hi);
+		assertThat(fetched).isEqualTo(hi);
 	}
 }
