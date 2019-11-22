@@ -43,7 +43,7 @@ public class EmbeddedContainerTests extends TestBase {
 		he.embedMe.foo = "bar";
 		
 		final HasEmbed fetched = saveClearLoad(he);
-		assertThat(fetched.embedMe.container).isSameAs(fetched);
+		assertThat(fetched.embedMe.container).isSameInstanceAs(fetched);
 	}
 	
 	//
@@ -73,7 +73,7 @@ public class EmbeddedContainerTests extends TestBase {
 		he.embedMe.foo = "bar";
 		
 		final HasSuperEmbed fetched = saveClearLoad(he);
-		assertThat(fetched.embedMe.container).isSameAs(fetched);
+		assertThat(fetched.embedMe.container).isSameInstanceAs(fetched);
 	}
 	
 	//
@@ -112,9 +112,9 @@ public class EmbeddedContainerTests extends TestBase {
 		he.nested.deep.foo = "bar";
 		
 		final HasNestedEmbed fetched = saveClearLoad(he);
-		assertThat(fetched.nested.rootContainer).isSameAs(fetched);
-		assertThat(fetched.nested.deep.rootContainer).isSameAs(fetched);
-		assertThat(fetched.nested.deep.nestedContainer).isSameAs(fetched.nested);
+		assertThat(fetched.nested.rootContainer).isSameInstanceAs(fetched);
+		assertThat(fetched.nested.deep.rootContainer).isSameInstanceAs(fetched);
+		assertThat(fetched.nested.deep.nestedContainer).isSameInstanceAs(fetched.nested);
 	}
 	
 	//

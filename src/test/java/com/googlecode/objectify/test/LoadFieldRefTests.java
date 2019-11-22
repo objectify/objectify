@@ -81,7 +81,7 @@ class LoadFieldRefTests extends TestBase {
 		for (final Ref<?> ref: fetched.multi)
 			assertThat(ref.isLoaded()).isTrue();
 
-		assertThat(fetched.multi.get(0).get()).isSameAs(fetched.single.get());
+		assertThat(fetched.multi.get(0).get()).isSameInstanceAs(fetched.single.get());
 		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
 	}
 
@@ -204,7 +204,7 @@ class LoadFieldRefTests extends TestBase {
 		assertThat(fetched.multi.get(1).isLoaded()).isFalse();
 
 		assertThat(fetched.single.equivalent(fetched.multi.get(0))).isTrue();
-		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
+		assertThat(fetched.single.get()).isSameInstanceAs(fetched.multi.get(0).get());
 
 		assertThat(fetched.single.get()).isEqualTo(t1);
 
@@ -215,7 +215,7 @@ class LoadFieldRefTests extends TestBase {
 		assertThat(fetched.multi.get(1).isLoaded()).isTrue();
 
 		assertThat(fetched.multi.get(0).equivalent(fetched.single)).isTrue();
-		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
+		assertThat(fetched.single.get()).isSameInstanceAs(fetched.multi.get(0).get());
 
 		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
 		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
@@ -228,6 +228,6 @@ class LoadFieldRefTests extends TestBase {
 
 		assertThat(fetched.multi.get(0).get()).isEqualTo(t1);
 		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
-		assertThat(fetched.single.get()).isSameAs(fetched.multi.get(0).get());
+		assertThat(fetched.single.get()).isSameInstanceAs(fetched.multi.get(0).get());
 	}
 }

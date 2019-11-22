@@ -240,7 +240,7 @@ public class CollectionTests extends TestBase {
 
 		final HasInitializedCollection has = new HasInitializedCollection();
 		HasInitializedCollection fetched = saveClearLoad(has);
-		assertThat(fetched.initialized).isSameAs(fetched.copyOf);
+		assertThat(fetched.initialized).isSameInstanceAs(fetched.copyOf);
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class CollectionTests extends TestBase {
 		final HasInitializedCollection has = new HasInitializedCollection();
 		has.initialized.add("blah");
 		HasInitializedCollection fetched = saveClearLoad(has);
-		assertThat(fetched.initialized).isSameAs(fetched.copyOf);
+		assertThat(fetched.initialized).isSameInstanceAs(fetched.copyOf);
 	}
 
 	/**

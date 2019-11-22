@@ -168,14 +168,14 @@ class LoadParentRefTests extends TestBase {
 
 		// Upgrade in the same session
 		final ChildWithGroup fetched2 = ofy().load().group(ChildWithGroup.Group.class).key(kch).now();
-		assertThat(fetched2).isSameAs(fetched);
+		assertThat(fetched2).isSameInstanceAs(fetched);
 		assertThat(fetched2.father.isLoaded()).isTrue();
 		assertThat(fetched2.father.get()).isEqualTo(f);
 
 		// Also should work after session is cleared, but objects will not be same
 		ofy().clear();
 		final ChildWithGroup fetched3 = ofy().load().group(ChildWithGroup.Group.class).key(kch).now();
-		assertThat(fetched3).isNotSameAs(fetched2);
+		assertThat(fetched3).isNotSameInstanceAs(fetched2);
 		assertThat(fetched3.father.isLoaded()).isTrue();
 		assertThat(fetched3.father.get()).isEqualTo(f);
 	}

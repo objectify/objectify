@@ -148,7 +148,7 @@ class MapifyTests extends TestBase {
 		assertThat(topFetched).isEqualTo(top);
 
 		final Bottom bottomFetched = topFetched.bottoms.get(bot.name);
-		assertThat(bottomFetched.top.get()).isSameAs(topFetched);
+		assertThat(bottomFetched.top.get()).isSameInstanceAs(topFetched);
 		assertThat(bottomFetched).isEqualTo(bot);
 	}
 

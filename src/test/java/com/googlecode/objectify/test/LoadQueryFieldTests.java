@@ -79,7 +79,7 @@ class LoadQueryFieldTests extends TestBase {
 		final HasEntities fetched = ofy().load().type(HasEntities.class).filterKey("=", hekey).first().now();
 
 		assertThat(fetched.single.get()).isEqualTo(t0);
-		assertThat(fetched.multi.get(0).get()).isSameAs(fetched.single.get());
+		assertThat(fetched.multi.get(0).get()).isSameInstanceAs(fetched.single.get());
 		assertThat(fetched.multi.get(1).get()).isEqualTo(t1);
 	}
 }

@@ -62,8 +62,8 @@ class LoadBidrectionalTests extends TestBase {
 		final Top topFetched = ofy().load().entity(top).now();
 		final Bottom bottomFetched = ofy().load().entity(bottom).now();
 
-		assertThat(topFetched.bottom.get()).isSameAs(bottomFetched);
-		assertThat(bottomFetched.top.get()).isSameAs(topFetched);
+		assertThat(topFetched.bottom.get()).isSameInstanceAs(bottomFetched);
+		assertThat(bottomFetched.top.get()).isSameInstanceAs(topFetched);
 	}
 
 	/** */
@@ -97,7 +97,7 @@ class LoadBidrectionalTests extends TestBase {
 
 		final TopWithEmbed topFetched = ofy().load().entity(top).now();
 
-		assertThat(topFetched.bottom.top.get()).isSameAs(topFetched);
+		assertThat(topFetched.bottom.top.get()).isSameInstanceAs(topFetched);
 	}
 
 }

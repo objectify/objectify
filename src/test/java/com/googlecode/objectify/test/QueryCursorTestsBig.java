@@ -62,7 +62,7 @@ class QueryCursorTestsBig extends TestBase {
 		while (i1.hasNext()) {
 			which++;
 			final Trivial triv = i1.next();
-			assertThat(triv).isSameAs(entities.get(which-1));
+			assertThat(triv).isSameInstanceAs(entities.get(which-1));
 		}
 
 		assert which == MAX_ID;
@@ -143,7 +143,7 @@ class QueryCursorTestsBig extends TestBase {
 		}
 
 		assertThat(l2).hasSize(15);
-		assertThat(l2.get(0)).isSameAs(l1.get(15));
-		assertThat(l2.get(0)).isSameAs(q2.first().now());
+		assertThat(l2.get(0)).isSameInstanceAs(l1.get(15));
+		assertThat(l2.get(0)).isSameInstanceAs(q2.first().now());
 	}
 }

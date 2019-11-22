@@ -78,7 +78,7 @@ class BasicTests extends TestBase {
 		assertThat(k2).isEqualTo(k);
 
 		final Trivial fetched = ofy().load().key(k).now();
-		assertThat(fetched).isSameAs(triv2);
+		assertThat(fetched).isSameInstanceAs(triv2);
 
 		ofy().clear();
 		final Trivial fetched2 = ofy().load().key(k).now();
@@ -99,7 +99,7 @@ class BasicTests extends TestBase {
 		assertThat(k).isEqualTo(Key.create(NamedTrivial.class, "first"));
 
 		final NamedTrivial fetched = ofy().load().key(k).now();
-		assertThat(fetched).isSameAs(triv);
+		assertThat(fetched).isSameInstanceAs(triv);
 
 		ofy().clear();
 		final NamedTrivial fetched2 = ofy().load().key(k).now();
@@ -215,11 +215,11 @@ class BasicTests extends TestBase {
 		ofy().save().entity(triv1).now();
 
 		final Trivial fetched = ofy().load().key(Key.create(Trivial.class, 123L)).now();
-		assertThat(fetched).isSameAs(triv1);
+		assertThat(fetched).isSameInstanceAs(triv1);
 
 		ofy().clear();
 		final Trivial fetched2 = ofy().load().key(Key.create(Trivial.class, 123L)).now();
-		assertThat(fetched2).isNotSameAs(triv1);
+		assertThat(fetched2).isNotSameInstanceAs(triv1);
 		assertThat(fetched2).isEqualTo(triv1);
 	}
 
