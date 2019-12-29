@@ -21,7 +21,6 @@ public interface Query<T> extends SimpleQuery<T>
 	 * <li>{@code filter("age =", age)}</li>
 	 * <li>{@code filter("age", age)} (if no operator, = is assumed)</li>
 	 * <li>{@code filter("age !=", age)}</li>
-	 * <li>{@code filter("age in", ageList)}</li>
 	 * </ul>
 	 * 
 	 * <p><strong>The space between the property name and the operator is required.</strong>
