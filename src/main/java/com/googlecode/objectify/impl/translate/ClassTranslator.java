@@ -6,6 +6,8 @@ import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.ListValue;
 import com.google.cloud.datastore.StringValue;
 import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
+import com.google.common.base.Preconditions;
 import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.impl.Forge;
 import com.googlecode.objectify.impl.KeyMetadata;
@@ -85,6 +87,8 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 	/* */
 	@Override
 	public P loadSafe(final Value<FullEntity<?>> container, final LoadContext ctx, final Path path) throws SkipException {
+		Preconditions.checkArgument(container.get() instanceof FullEntity, "Expected type %s at path '%' but instead found %s", ValueType.ENTITY, path, container.getType());
+
 		// check if we need to redirect to a different translator
 		final String containerDiscriminator = container.get().contains(DISCRIMINATOR_PROPERTY) ? container.get().getString(DISCRIMINATOR_PROPERTY) : null;	// wow no Optional or nullable get
 		if (!Objects.equals(discriminator, containerDiscriminator)) {
