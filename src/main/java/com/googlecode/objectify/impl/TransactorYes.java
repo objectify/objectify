@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 
@@ -19,10 +20,10 @@ class TransactorYes extends Transactor
 
 	/**
 	 */
-	TransactorYes(final ObjectifyImpl current, final TransactorNo parentTransactor) {
-		super(current);
+	TransactorYes(final ObjectifyFactory factory, final boolean cache, final TransactorNo parentTransactor) {
+		super(factory);
 
-		this.transaction = factory.asyncDatastore(current.getOptions().isCache()).newTransaction(this::committed);
+		this.transaction = factory.asyncDatastore(cache).newTransaction(this::committed);
 		this.parentTransactor = parentTransactor;
 	}
 
@@ -40,7 +41,7 @@ class TransactorYes extends Transactor
 	 */
 	@Override
 	public ObjectifyImpl transactionless(final ObjectifyImpl parent) {
-		return parent.makeNew(next -> new TransactorNo(next, parentTransactor.getSession()));
+		return parent.transactor(new TransactorNo(parent.factory(), parentTransactor.getSession()));
 	}
 
 	/* (non-Javadoc)
@@ -70,7 +71,7 @@ class TransactorYes extends Transactor
 
 	@Override
 	public <R> R transactionless(final ObjectifyImpl parent, final Work<R> work) {
-		final ObjectifyImpl ofy = factory.open(parent.getOptions(), next -> new TransactorNo(next, parentTransactor.getSession()));
+		final ObjectifyImpl ofy = parent.factory().open(parent.getOptions(), new TransactorNo(parent.factory(), parentTransactor.getSession()));
 		try {
 			return work.run();
 		} finally {
@@ -104,7 +105,7 @@ class TransactorYes extends Transactor
 	}
 
 	@Override
-	public AsyncDatastoreReaderWriter asyncDatastore() {
+	public AsyncDatastoreReaderWriter asyncDatastore(final ObjectifyImpl ofy) {
 		return this.transaction;
 	}
 }

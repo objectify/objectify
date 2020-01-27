@@ -17,7 +17,7 @@ import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.ObjectifyOptions;
 import com.googlecode.objectify.impl.Registrar;
-import com.googlecode.objectify.impl.TransactorSupplier;
+import com.googlecode.objectify.impl.Transactor;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
 import net.spy.memcached.MemcachedClient;
@@ -425,8 +425,8 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/** This is only public because it is used from the impl package; don't use this as a public API */
-	public ObjectifyImpl open(final ObjectifyOptions opts, final TransactorSupplier transactorSupplier) {
-		final ObjectifyImpl objectify = new ObjectifyImpl(this, opts, transactorSupplier);
+	public ObjectifyImpl open(final ObjectifyOptions opts, final Transactor transactor) {
+		final ObjectifyImpl objectify = new ObjectifyImpl(this, opts, transactor);
 		stacks.get().add(objectify);
 		return objectify;
 	}

@@ -173,13 +173,6 @@ public interface Objectify
 	AsyncTransaction getTransaction();
 
 	/**
-	 * @deprecated This method has very poorly defined behavior and will be removed SOON. Instead you should
-	 * use the {@link #transactionless(Work)} method.
-	 */
-	@Deprecated
-	Objectify transactionless();
-
-	/**
 	 * <p>Executes work outside of a transaction. This is a way to "escape" from a transaction and perform
 	 * datastore operations that would otherwise not be allowed (or perhaps to load data without hitting entity group
 	 * limits). If there is not already a transaction running, the work is executed normally.

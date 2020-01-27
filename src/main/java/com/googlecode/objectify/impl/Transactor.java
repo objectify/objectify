@@ -12,16 +12,10 @@ import lombok.Getter;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract class Transactor
+public abstract class Transactor
 {
 	// Limit default number of retries to something high but non-infinite
 	public static final int DEFAULT_TRY_LIMIT = 200;
-
-	/** */
-	protected final ObjectifyFactory factory;
-
-	/** */
-	protected final ObjectifyImpl ofy;
 
 	/** The session associated with this transaction state */
 	@Getter
@@ -34,18 +28,16 @@ abstract class Transactor
 	/**
 	 * Construct a transactor with a fresh session
 	 */
-	Transactor(final ObjectifyImpl ofy) {
-		this(ofy, new Session());
+	Transactor(final ObjectifyFactory factory) {
+		this(factory, new Session());
 	}
 
 	/**
 	 * Construct a transactor with an explicit session
 	 */
-	Transactor(final ObjectifyImpl ofy, final Session session) {
-		this.ofy = ofy;
-		this.factory = ofy.factory();
+	Transactor(final ObjectifyFactory factory, final Session session) {
 		this.session = session;
-		this.deferrer = new Deferrer(ofy, session);
+		this.deferrer = new Deferrer(factory, session);
 	}
 
 	/**
@@ -81,6 +73,7 @@ abstract class Transactor
 	 */
 	abstract public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work);
 
-	/** */
-	abstract public AsyncDatastoreReaderWriter asyncDatastore();
+	/**
+	 * @param ofy */
+	abstract public AsyncDatastoreReaderWriter asyncDatastore(final ObjectifyImpl ofy);
 }

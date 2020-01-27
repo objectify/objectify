@@ -3,6 +3,7 @@ package com.googlecode.objectify.impl;
 import com.google.cloud.datastore.DatastoreException;
 import com.google.common.base.Preconditions;
 import com.google.rpc.Code;
+import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import lombok.extern.slf4j.Slf4j;
@@ -17,14 +18,14 @@ class TransactorNo extends Transactor
 {
 	/**
 	 */
-	TransactorNo(final ObjectifyImpl ofy) {
-		super(ofy);
+	TransactorNo(final ObjectifyFactory factory) {
+		super(factory);
 	}
 
 	/**
 	 */
-	TransactorNo(final ObjectifyImpl ofy, final Session session) {
-		super(ofy, session);
+	TransactorNo(final ObjectifyFactory factory, final Session session) {
+		super(factory, session);
 	}
 
 	/* (non-Javadoc)
@@ -123,15 +124,15 @@ class TransactorNo extends Transactor
 	}
 
 	@Override
-	public AsyncDatastoreReaderWriter asyncDatastore() {
-		return factory.asyncDatastore(ofy.getOptions().isCache());
+	public AsyncDatastoreReaderWriter asyncDatastore(final ObjectifyImpl ofy) {
+		return ofy.factory().asyncDatastore(ofy.getOptions().isCache());
 	}
 
 	/**
 	 * One attempt at executing a transaction
 	 */
 	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work) {
-		final ObjectifyImpl txnOfy = factory.open(parent.getOptions(), next -> new TransactorYes(next, this));
+		final ObjectifyImpl txnOfy = parent.factory().open(parent.getOptions(), new TransactorYes(parent.factory(), parent.getOptions().isCache(), this));
 
 		boolean committedSuccessfully = false;
 		try {
