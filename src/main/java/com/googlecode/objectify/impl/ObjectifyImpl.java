@@ -301,7 +301,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 		} else {
 			// Special case entity pojos that become keys
 			if (value.getClass().isAnnotationPresent(Entity.class)) {
-				return KeyValue.of(factory().keys().rawKeyOf(value));
+				return KeyValue.of(factory().keys().rawKeyOf(value, getOptions().getNamespace()));
 			} else {
 				// Run it through a translator
 				final Translator<Object, Value<?>> translator = factory().getTranslators().get(new TypeKey<>(value.getClass()), new CreateContext(factory()), Path.root());

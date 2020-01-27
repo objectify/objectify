@@ -350,4 +350,19 @@ class NamespaceTests extends TestBase {
 			}
 		});
 	}
+
+	/** */
+	@Test
+	void saveRespectsNamespaceUsingQueryOptions() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv = new Trivial("foo", 5);
+
+		final Key<Trivial> key = ofy().namespace("somens").save().entity(triv).now();
+		assertThat(key.getNamespace()).isEqualTo("somens");
+
+		final Trivial fetched = ofy().namespace("somens").load().type(Trivial.class).first().now();
+		assertThat(fetched).isNotNull();
+	}
+
 }

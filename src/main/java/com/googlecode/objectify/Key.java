@@ -75,7 +75,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 
 	/** Create a key from a registered POJO entity. */
 	public static <T> Key<T> create(final T pojo) {
-		return ObjectifyService.factory().keys().keyOf(pojo);
+		return ObjectifyService.factory().keys().keyOf(pojo, null);
 	}
 
 	/** */

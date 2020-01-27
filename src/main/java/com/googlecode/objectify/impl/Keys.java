@@ -38,18 +38,18 @@ public class Keys
 	/**
 	 * @return the Key<?> for a registered pojo entity.
 	 */
-	public <T> Key<T> keyOf(final T pojo) {
-		return Key.create(rawKeyOf(pojo));
+	public <T> Key<T> keyOf(final T pojo, final String namespaceHint) {
+		return Key.create(rawKeyOf(pojo, namespaceHint));
 	}
 
 	/**
 	 * @return the native datastore key for a registered pojo entity (or FullEntity).
 	 */
-	public com.google.cloud.datastore.Key rawKeyOf(final Object pojo) {
+	public com.google.cloud.datastore.Key rawKeyOf(final Object pojo, final String namespaceHint) {
 		if (pojo instanceof FullEntity<?>) {
 			return (com.google.cloud.datastore.Key)((FullEntity)pojo).getKey();
 		} else {
-			return getMetadataSafe(pojo).getCompleteKey(pojo);
+			return getMetadataSafe(pojo).getCompleteKey(pojo, namespaceHint);
 		}
 	}
 
@@ -87,7 +87,7 @@ public class Keys
 	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
 	 */
 	@SuppressWarnings("unchecked")
-	public <T> Key<T> anythingToKey(final Object keyOrEntity) {
+	public <T> Key<T> anythingToKey(final Object keyOrEntity, final String namespaceHint) {
 
 		if (keyOrEntity instanceof Key<?>)
 			return (Key<T>)keyOrEntity;
@@ -98,7 +98,7 @@ public class Keys
 		else if (keyOrEntity instanceof FullEntity<?>)
 			return Key.create(getKey((FullEntity<?>)keyOrEntity));
 		else
-			return keyOf((T)keyOrEntity);
+			return keyOf((T)keyOrEntity, namespaceHint);
 	}
 
 	/**
@@ -108,7 +108,7 @@ public class Keys
 	 * @throws NullPointerException if keyOrEntity is null
 	 * @throws IllegalArgumentException if keyOrEntity is not a Key, Key<T>, or registered entity
 	 */
-	public com.google.cloud.datastore.Key anythingToRawKey(final Object keyOrEntity) {
+	public com.google.cloud.datastore.Key anythingToRawKey(final Object keyOrEntity, final String namespaceHint) {
 
 		if (keyOrEntity instanceof com.google.cloud.datastore.Key)
 			return (com.google.cloud.datastore.Key)keyOrEntity;
@@ -119,7 +119,7 @@ public class Keys
 		else if (keyOrEntity instanceof FullEntity<?>)
 			return getKey((FullEntity<?>)keyOrEntity);
 		else
-			return rawKeyOf(keyOrEntity);
+			return rawKeyOf(keyOrEntity, namespaceHint);
 	}
 
 	/** @return the Key, or throw an exception if entity's key is missing or incomplete */

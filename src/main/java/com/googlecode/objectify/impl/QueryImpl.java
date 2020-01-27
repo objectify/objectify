@@ -202,7 +202,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/** Modifies the instance */
 	void setAncestor(final Object keyOrEntity) {
-		final com.google.cloud.datastore.Key key = loader.ofy.factory().keys().anythingToRawKey(keyOrEntity);
+		final com.google.cloud.datastore.Key key = loader.ofy.factory().keys().anythingToRawKey(keyOrEntity, loader.ofy.getOptions().getNamespace());
 		this.actual = this.actual.andFilter(PropertyFilter.hasAncestor(key));
 	}
 

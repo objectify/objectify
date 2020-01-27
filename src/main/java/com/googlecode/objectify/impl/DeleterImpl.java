@@ -76,7 +76,7 @@ public class DeleterImpl implements Deleter
 	public Result<Void> entities(final Iterable<?> entities) {
 		final List<com.google.cloud.datastore.Key> keys = new ArrayList<>();
 		for (final Object obj: entities)
-			keys.add(ofy.factory().keys().anythingToRawKey(obj));
+			keys.add(ofy.factory().keys().anythingToRawKey(obj, ofy.getOptions().getNamespace()));
 
 		return ofy.createWriteEngine().delete(keys);
 	}

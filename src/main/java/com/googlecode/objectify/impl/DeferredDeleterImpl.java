@@ -44,7 +44,7 @@ class DeferredDeleterImpl implements DeferredDeleter
 
 	@Override
 	public void entity(final Object entity) {
-		key(ofy.factory().keys().anythingToKey(entity));
+		key(ofy.factory().keys().anythingToKey(entity, ofy.getOptions().getNamespace()));
 	}
 
 	@Override

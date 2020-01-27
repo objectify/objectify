@@ -136,7 +136,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	 */
 	@Override
 	public <E> LoadResult<E> entity(final E entity) {
-		return key(ofy.factory().keys().keyOf(entity));
+		return key(ofy.factory().keys().keyOf(entity, ofy.getOptions().getNamespace()));
 	}
 
 	/* (non-Javadoc)
@@ -145,7 +145,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> LoadResult<E> value(final Object key) {
-		return (LoadResult<E>)key(ofy.factory().keys().anythingToKey(key));
+		return (LoadResult<E>)key(ofy.factory().keys().anythingToKey(key, ofy.getOptions().getNamespace()));
 	}
 
 	/* (non-Javadoc)
@@ -199,7 +199,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		// Do this in a separate pass so any errors converting keys will show up before we try loading something
 		final List<Key<E>> keys = new ArrayList<>();
 		for (final Object keyish: values)
-			keys.add(ofy.factory().keys().anythingToKey(keyish));
+			keys.add(ofy.factory().keys().anythingToKey(keyish, ofy.getOptions().getNamespace()));
 
 		final LoadEngine engine = createLoadEngine();
 

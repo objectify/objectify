@@ -360,7 +360,7 @@ public class ObjectifyFactory implements Forge
 	 * @param num must be >= 1 and <= 1 billion
 	 */
 	public <T> KeyRange<T> allocateIds(final Object parentKeyOrEntity, final Class<T> clazz, final int num) {
-		final Key<?> parent = keys().anythingToKey(parentKeyOrEntity);
+		final Key<?> parent = keys().anythingToKey(parentKeyOrEntity, null);
 		final String kind = Key.getKind(clazz);
 
 		final IncompleteKey incompleteKey = com.google.cloud.datastore.Key.newBuilder(parent.getRaw(), kind).build();

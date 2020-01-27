@@ -174,7 +174,7 @@ public class KeyMetadata<P>
 	 */
 	@SuppressWarnings("unchecked")
 	public <K extends IncompleteKey> void setKey(final FullEntity.Builder<K> container, final P pojo) {
-		final IncompleteKey rawKey = getIncompleteKey(pojo);
+		final IncompleteKey rawKey = getIncompleteKey(pojo, null);
 
 		if (!(rawKey instanceof com.google.cloud.datastore.Key)) {
 			// it's incomplete, make sure we can save it
@@ -193,9 +193,10 @@ public class KeyMetadata<P>
 	 * Gets a key composed of the relevant id and parent fields in the object.
 	 *
 	 * @param pojo must be of the entityClass type for this metadata.
+	 * @param namespaceHint is a namespace that will be used if one is not specified in the pojo
 	 * @return either a Key or IncompleteKey depending on whether the id is null or not
 	 */
-	public IncompleteKey getIncompleteKey(final P pojo) {
+	public IncompleteKey getIncompleteKey(final P pojo, final String namespaceHint) {
 		log.trace("Getting key from {}", pojo);
 
 		if (!clazz.isAssignableFrom(pojo.getClass()))
@@ -203,7 +204,8 @@ public class KeyMetadata<P>
 
 		final Object id = getId(pojo);
 		final com.google.cloud.datastore.Key parent = getParentRaw(pojo);
-		final String namespace = getNamespace(pojo);
+		final String pojoNamespace = getNamespace(pojo);
+		final String namespace = pojoNamespace != null ? pojoNamespace : namespaceHint;
 
 		if (id == null)
 			return factory.keys().createRawIncomplete(namespace, parent, kind);
@@ -217,8 +219,8 @@ public class KeyMetadata<P>
 	 * @param pojo must be of the entityClass type for this metadata.
 	 * @throws IllegalArgumentException if pojo has an incomplete key
 	 */
-	public com.google.cloud.datastore.Key getCompleteKey(final P pojo) {
-		final com.google.cloud.datastore.IncompleteKey key = getIncompleteKey(pojo);
+	public com.google.cloud.datastore.Key getCompleteKey(final P pojo, final String namespaceHint) {
+		final com.google.cloud.datastore.IncompleteKey key = getIncompleteKey(pojo, namespaceHint);
 
 		if (key instanceof com.google.cloud.datastore.Key)
 			return (com.google.cloud.datastore.Key)key;

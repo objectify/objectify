@@ -48,7 +48,7 @@ class DeleteTypeImpl implements DeleteType
 	 */
 	@Override
 	public DeleteIds parent(final Object keyOrEntity) {
-		final Key<?> parentKey = factory().keys().anythingToKey(keyOrEntity);
+		final Key<?> parentKey = factory().keys().anythingToKey(keyOrEntity, deleter.ofy.getOptions().getNamespace());
 		return new DeleteTypeImpl(deleter, type, parentKey);
 	}
 
