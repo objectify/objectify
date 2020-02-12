@@ -107,6 +107,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 						// Do increasing backoffs with randomness
 						Thread.sleep(Math.min(10000, (long) (0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2)));
 					} catch (InterruptedException ignored) {
+						throw ex;
 					}
 				} else {
 					throw ex;
