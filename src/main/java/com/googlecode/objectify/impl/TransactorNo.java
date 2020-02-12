@@ -82,7 +82,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 */
 	@Override
 	public <R> R transact(ObjectifyImpl<O> parent, Work<R> work) {
-		return this.transactNew(parent, Integer.MAX_VALUE, work);
+		return this.transactNew(parent, DEFAULT_TRY_LIMIT, work);
 	}
 
 	/* (non-Javadoc)

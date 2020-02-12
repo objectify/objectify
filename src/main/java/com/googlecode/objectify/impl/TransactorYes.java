@@ -86,7 +86,7 @@ public class TransactorYes<O extends Objectify> extends Transactor<O>
 				throw new IllegalStateException("MANDATORY transaction but no transaction present");
 
 			case REQUIRES_NEW:
-				return transactNew(parent, Integer.MAX_VALUE, work);
+				return transactNew(parent, DEFAULT_TRY_LIMIT, work);
 
 			default:
 				throw new IllegalStateException("Impossible, some unknown txn type");

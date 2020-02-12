@@ -12,6 +12,9 @@ import com.googlecode.objectify.Work;
  */
 abstract public class Transactor<O extends Objectify>
 {
+	// Limit default number of retries to something high but non-infinite
+	public static final int DEFAULT_TRY_LIMIT = 200;
+	
 	/** Our session */
 	protected Session session;
 
