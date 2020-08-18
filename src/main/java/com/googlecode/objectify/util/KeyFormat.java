@@ -118,36 +118,42 @@ public enum KeyFormat {
         if (app.startsWith("s~")) {
             app = app.substring(2);
         }
-        // TODO(frew): Does Google Cloud Datastore have the concept of namespace?
-        // String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
+        String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
         DynamicMessage path = (DynamicMessage) userKeyMessage.getField(referenceDescriptor.findFieldByName("path"));
         Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
         Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         Descriptors.FieldDescriptor elementFieldDescriptor = pathDescriptor.findFieldByName("Element");
         int elementCount = path.getRepeatedFieldCount(elementFieldDescriptor);
-        Key key = null;
+        Key.Builder keyBuilder = null;
         for (int i = 0; i < elementCount; i++) {
             DynamicMessage element = (DynamicMessage) path.getRepeatedField(elementFieldDescriptor, i);
             String type = (String) element.getField(elementDescriptor.findFieldByName("type"));
             Long id = (Long) element.getField(elementDescriptor.findFieldByName("id"));
             String name = (String) element.getField(elementDescriptor.findFieldByName("name"));
-            if (key == null) {
+            if (keyBuilder == null) {
                 if (name != null && !"".equals(name)) {
-                    key = Key.newBuilder(app, type, name).build();
+                    keyBuilder = Key.newBuilder(app, type, name);
                 } else {
-                    key = Key.newBuilder(app, type, id).build();
+                    keyBuilder = Key.newBuilder(app, type, id);
                 }
             } else {
                 if (name != null && !"".equals(name)) {
-                    key = Key.newBuilder(key, type, name).build();
+                    keyBuilder = Key.newBuilder(keyBuilder.build(), type, name);
                 } else {
-                    key = Key.newBuilder(key, type, id).build();
+                    keyBuilder = Key.newBuilder(keyBuilder.build(), type, id);
                 }
             }
         }
 
-        return key;
+        if (keyBuilder != null) {
+            if (namespace != null) {
+                keyBuilder.setNamespace(namespace);
+            }
+            return keyBuilder.build();
+        } else {
+            return null;
+        }
     }
 
     public String formatOldStyleAppEngineKey(Key key) {
@@ -158,6 +164,7 @@ public enum KeyFormat {
             fullProjectId = "s~" + fullProjectId;
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), fullProjectId);
+        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("name_space"), key.getNamespace());
         Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         List<DynamicMessage> elementMessages = new ArrayList<>();
