@@ -41,4 +41,20 @@ class KeyTests extends TestBase {
 
 		assertThat(urlSafe).isNotEqualTo(legacyUrlSafe);
 	}
+
+	/** */
+	@Test
+	void canRoundtripBothKindsOfUrlSafeStringsWithNamespace() throws Exception {
+		final Key<Trivial> key = Key.create("namespace", Trivial.class, 123L);
+
+		final String urlSafe = key.toUrlSafe();
+		final Key<Trivial> urlSafeKey = Key.create(urlSafe);
+		assertThat(urlSafeKey).isEqualTo(key);
+
+		final String legacyUrlSafe = key.toLegacyUrlSafe();
+		final Key<Trivial> legacyUrlSafeKey = Key.create(legacyUrlSafe);
+		assertThat(legacyUrlSafeKey).isEqualTo(key);
+
+		assertThat(urlSafe).isNotEqualTo(legacyUrlSafe);
+	}
 }
