@@ -165,9 +165,9 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * @return the id associated with this key, or 0 if this key has a name.
+	 * @return the id associated with this key, or null if this key has a name.
 	 */
-	public long getId() {
+	public Long getId() {
 		return this.raw.getId();
 	}
 
