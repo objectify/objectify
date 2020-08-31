@@ -87,7 +87,7 @@ public class ClassTranslator<P> extends NullSafeTranslator<P, FullEntity<?>>
 	/* */
 	@Override
 	public P loadSafe(final Value<FullEntity<?>> container, final LoadContext ctx, final Path path) throws SkipException {
-		Preconditions.checkArgument(container.get() instanceof FullEntity, "Expected type %s at path '%' but instead found %s", ValueType.ENTITY, path, container.getType());
+		Preconditions.checkArgument(container.get() instanceof FullEntity, "Expected type %s at path '%s' but instead found %s", ValueType.ENTITY, path, container.getType());
 
 		// check if we need to redirect to a different translator
 		final String containerDiscriminator = container.get().contains(DISCRIMINATOR_PROPERTY) ? container.get().getString(DISCRIMINATOR_PROPERTY) : null;	// wow no Optional or nullable get
