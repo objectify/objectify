@@ -9,19 +9,18 @@ import com.google.appengine.api.memcache.MemcacheService;
 import com.google.appengine.api.memcache.MemcacheService.CasValues;
 import com.google.appengine.api.memcache.MemcacheService.IdentifiableValue;
 import com.google.appengine.spi.ServiceFactoryFactory;
+import com.google.common.base.Objects;
+
 import lombok.EqualsAndHashCode;
 import lombok.extern.java.Log;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * <p>This is the facade used by Objectify to cache entities in the MemcacheService.</p>
@@ -289,31 +288,50 @@ public class EntityMemcache
 			return;
 
 		// Figure out which ones were bad
-		List<Key> bad = new ArrayList<>();
+		Map<Key, Object> bad = new HashMap<>();
 
 		for (Bucket bucket: updates)
 			if (!good.contains(bucket.getKey()))
-				bad.add(bucket.getKey());
+				bad.put(bucket.getKey(), bucket.getNextToStore());
 
 		if (!bad.isEmpty())
 		{
-			// So we had some collisions.  We need to reset these back to null, but do it in a safe way - if we
+			// So we had some collisions.
+			// (1) We need to reset these back to null, but do it in a safe way - if we
 			// blindly set null something already null, it will break any putIfUntouched() which saw the first null.
 			// This could result in write contention starving out a real write.  The solution is to only reset things
 			// that are not already null.
+			// (2) If the value that has been put to the memcache since we saw that it's empty actually matches
+			// what we wanted to set, then we don't need to empty the value. It was most probably set by
+			// a concurrent read to the same entity, but whatever put it there, it's a value that we also find correct.
 
-			Map<Key, Object> cached = this.cacheGetAll(bad);
+			Map<Key, Object> cached = this.cacheGetAll(bad.keySet());
 
 			// Remove the stuff we don't care about
-			Iterator<Object> it = cached.values().iterator();
-			while (it.hasNext())
-			{
-				Object value = it.next();
-				if (value == null)
-					it.remove();
-			}
+			Set<Key> toEmpty = cached.entrySet().stream()
+				.filter(entry -> entry.getValue() != null) // (1)
+				.filter(entry -> {
+					Object current = bad.get(entry.getKey());
+					Object newlyRead = entry.getValue();
+					if (!Objects.equal(current, newlyRead)) {
+						// if they are not equal, there's a collision for sure
+						return true;
+					}
+					if ((newlyRead instanceof Entity) && (current instanceof Entity) && ((Entity)current).getProperties().equals(((Entity) newlyRead).getProperties())) {
+						// (2) if both are entities an their properties (including embeddedentity properties) are the same, we don't need to empty the cache
+						return false;
+					}
+					if (NEGATIVE.equals(newlyRead) && NEGATIVE.equals(current)) {
+						// (2) or if both values indicate that the entity is missing, we don't need to empty the cache
+						return false;
+					}
+					// otherwise the values are colliding, we empty the caceh
+					return true;
+				})
+				.map(entry -> entry.getKey())
+				.collect(Collectors.toSet());
 
-			this.empty(cached.keySet());
+			this.empty(toEmpty);
 		}
 	}
 
