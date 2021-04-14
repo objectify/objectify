@@ -275,8 +275,14 @@ public class CachingAsyncDatastoreService implements AsyncDatastoreService
 							if (value != null)
 								buck.setNext(value);
 						}
-						
-						memcache.putAll(uncached);
+						try{
+							memcache.putAll(uncached);
+						} catch(Exception ex){
+							// It is possible that memcache is unreachable. Continue if
+							// this happens as data was retrieved from datastore and
+							// will result in a cache miss on next access where we
+							// can try to cache again.
+						}
 					}
 				};
 			}
