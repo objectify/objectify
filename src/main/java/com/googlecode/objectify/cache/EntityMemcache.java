@@ -247,10 +247,11 @@ public class EntityMemcache
 
 		if (!cold.isEmpty())
 		{
-			// The cache is cold for those values, so start them out with nulls that we can make an IV for
-			this.memcache.putAll(cold);
-
 			try {
+			   // The cache is cold for those values, so start them out with nulls that we can make an IV for
+			   // It is possible that memcache is unreachable, catch that failure.
+			   this.memcache.putAll(cold);
+
 				Map<Key, IdentifiableValue> ivs2 = this.memcache.getIdentifiables(cold.keySet());
 				ivs.putAll(ivs2);
 			} catch (Exception ex) {
