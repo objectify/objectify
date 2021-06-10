@@ -113,7 +113,7 @@ class TransactorNo extends Transactor
 					log.trace("Details of transaction failure", ex);
 					try {
 						// Do increasing backoffs with randomness
-						Thread.sleep(Math.min(10000, (long) (0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2)));
+						Thread.sleep(Math.min(10000, (long) ((0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2)));
 					} catch (InterruptedException ignored) {
 					}
 				} else {
