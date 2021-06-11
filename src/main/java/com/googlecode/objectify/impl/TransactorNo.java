@@ -82,7 +82,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	 */
 	@Override
 	public <R> R transact(ObjectifyImpl<O> parent, Work<R> work) {
-		return this.transactNew(parent, Integer.MAX_VALUE, work);
+		return this.transactNew(parent, DEFAULT_TRY_LIMIT, work);
 	}
 
 	/* (non-Javadoc)
@@ -91,6 +91,7 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 	@Override
 	public <R> R transactNew(ObjectifyImpl<O> parent, int limitTries, Work<R> work) {
 		Preconditions.checkArgument(limitTries >= 1);
+		final int ORIGINAL_TRIES = limitTries;
 
 		while (true) {
 			try {
@@ -102,6 +103,12 @@ public class TransactorNo<O extends Objectify> extends Transactor<O>
 
 					if (log.isLoggable(Level.FINEST))
 						log.log(Level.FINEST, "Details of optimistic concurrency failure", ex);
+					try {
+						// Do increasing backoffs with randomness
+						Thread.sleep(Math.min(10000, (long) (0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2)));
+					} catch (InterruptedException ignored) {
+						throw ex;
+					}
 				} else {
 					throw ex;
 				}
