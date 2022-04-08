@@ -83,11 +83,27 @@ public class ObjectifyImpl implements Objectify, Closeable
 	}
 
 	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#put()
+	 * @see com.googlecode.objectify.Objectify#add()
+	 */
+	@Override
+	public Saver add() {
+		return new AddSaverImpl(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#update()
+	 */
+	@Override
+	public Saver update() {
+		return new UpdateSaverImpl(this);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.googlecode.objectify.Objectify#save()
 	 */
 	@Override
 	public Saver save() {
-		return new SaverImpl(this);
+		return new PutSaverImpl(this);
 	}
 
 	/* (non-Javadoc)

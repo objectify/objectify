@@ -13,14 +13,14 @@ import java.util.Map;
 
 
 /**
- * Implementation of the Put interface.
+ * Implementation of the Saver interface.
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SaverImpl implements Saver
+public abstract class SaverImpl implements Saver
 {
 	/** */
-	private final ObjectifyImpl ofy;
+	protected final ObjectifyImpl ofy;
 
 	/** */
 	public SaverImpl(final ObjectifyImpl ofy) {
@@ -56,9 +56,7 @@ public class SaverImpl implements Saver
 	 * @see com.googlecode.objectify.cmd.Saver#entities(java.lang.Iterable)
 	 */
 	@Override
-	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
-		return ofy.createWriteEngine().save(entities);
-	}
+	abstract public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities);
 
 	/* (non-Javadoc)
 	 * @see com.googlecode.objectify.cmd.Saver#toEntity(java.lang.Object)

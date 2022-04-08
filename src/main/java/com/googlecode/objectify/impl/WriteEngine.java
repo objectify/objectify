@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 import com.google.common.collect.Lists;
 import com.googlecode.objectify.Key;
@@ -9,14 +10,14 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.Closeable;
 import com.googlecode.objectify.util.ResultWrapper;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.function.Function;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This is the master logic for saving and deleting entities from the datastore.  It provides the
@@ -50,12 +51,23 @@ public class WriteEngine
 	}
 
 	/**
-	 * The fundamental put() operation.
+	 * The fundamental add() operation.
 	 */
-	public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
-		log.trace("Saving {}", entities);
+	public <E> Result<Map<Key<E>, E>> create(Iterable<? extends E> entities) {
+    log.trace("Creating {}", entities);
+    return processCreateOrSave(entities, datastore::add, "create", "Created");
+  }
 
-		// A hacky way of doing this but otherwise we have to adjust the save() contracts to take a namespace
+  /**
+   * The fundamental put() operation.
+   */
+  public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
+    log.trace("Saving {}", entities);
+    return processCreateOrSave(entities, datastore::put, "save", "Saved");
+  }
+
+  private <E> Result<Map<Key<E>, E>> processCreateOrSave(Iterable<? extends E> entities, Function<List<FullEntity<?>>, Future<List<com.google.cloud.datastore.Key>>> operation, String operationVerb, String operationVerbPastTense) {
+		// A hacky way of doing this but otherwise we have to adjust the save()/create() contracts to take a namespace
 		final Closeable unsetNamespace = ofy.getOptions().getNamespace() == null ? null : NamespaceManager.set(ofy.getOptions().getNamespace());
 		try {
 			final SaveContext ctx = new SaveContext();
@@ -63,7 +75,7 @@ public class WriteEngine
 			final List<FullEntity<?>> entityList = new ArrayList<>();
 			for (final E obj : entities) {
 				if (obj == null)
-					throw new NullPointerException("Attempted to save a null entity");
+					throw new NullPointerException("Attempted to "+ operationVerb + " a null entity");
 
 				deferrer.undefer(ofy.getOptions(), obj);
 
@@ -80,7 +92,7 @@ public class WriteEngine
 			final List<? extends E> original = Lists.newArrayList(entities);
 
 			// The CachingDatastoreService needs its own raw transaction
-			final Future<List<com.google.cloud.datastore.Key>> raw = datastore.put(entityList);
+			final Future<List<com.google.cloud.datastore.Key>> raw = operation.apply(entityList);
 			final Result<List<com.google.cloud.datastore.Key>> adapted = new ResultAdapter<>(raw);
 
 			final Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.cloud.datastore.Key>, Map<Key<E>, E>>(adapted) {
@@ -108,7 +120,7 @@ public class WriteEngine
 						session.addValue(key, obj);
 					}
 
-					log.trace("Saved {}", base);
+					log.trace("{} {}", operationVerbPastTense, base);
 
 					return result;
 				}
@@ -124,7 +136,75 @@ public class WriteEngine
 		}
 	}
 
-	private ObjectifyFactory factory() {
+  /**
+   * The fundamental update() operation.
+   */
+  public <E> Result<Map<Key<E>, E>> update(Iterable<? extends E> entities) {
+    // A hacky way of doing this but otherwise we have to adjust the update() contracts to take a namespace
+    final String namespace = ofy.getOptions().getNamespace();
+    try (Closeable ignored = namespace == null ? null : NamespaceManager.set(namespace)) {
+      final SaveContext ctx = new SaveContext();
+
+      final List<Entity> entityList = new ArrayList<>();
+      final Map<Key<E>, E> entityMap = new LinkedHashMap<>();
+
+      for (final E obj : entities) {
+        if (obj == null)
+          throw new NullPointerException("Attempted to update a null entity");
+
+        final Entity entity;
+        final com.google.cloud.datastore.Key key;
+        if (obj instanceof Entity) {
+          entity = (Entity) obj;
+          key = entity.getKey();
+        } else {
+
+          final com.google.cloud.datastore.IncompleteKey incompleteKey =
+              factory().keys().getMetadataSafe(obj).getIncompleteKey(obj, namespace);
+
+          if (incompleteKey instanceof com.google.cloud.datastore.Key) {
+            key = (com.google.cloud.datastore.Key) incompleteKey;
+          } else {
+            throw new IllegalStateException(
+                "You cannot update an object with a null @Id. Object was " + obj);
+          }
+
+          deferrer.undefer(ofy.getOptions(), obj);
+
+          if (obj instanceof FullEntity) {
+            entity = Entity.newBuilder(key, (FullEntity<?>) obj).build();
+          } else {
+            final FullEntity<?> translated = factory().getMetadataForEntity(obj).save(obj, ctx);
+            entity = Entity.newBuilder(key, translated).build();
+          }
+        }
+
+        entityList.add(entity);
+        entityMap.put(Key.create(key), obj);
+      }
+
+      final Future<Void> fut = datastore.update(entityList);
+      final Result<Void> adapted = new ResultAdapter<>(fut);
+      final Result<Map<Key<E>, E>> result = new ResultWrapper<Void, Map<Key<E>, E>>(adapted) {
+        @Override
+        protected Map<Key<E>, E> wrap(final Void orig) {
+          for (Map.Entry<Key<E>, E> entry : entityMap.entrySet())
+            session.addValue(entry.getKey(), entry.getValue());
+
+          log.trace("Updated {}", entityMap.keySet());
+
+          return entityMap;
+        }
+      };
+
+      if (ofy.getTransaction() != null)
+        ((PrivateAsyncTransaction) ofy.getTransaction()).enlist(result);
+
+      return result;
+    }
+  }
+
+  private ObjectifyFactory factory() {
 		return ofy.factory();
 	}
 

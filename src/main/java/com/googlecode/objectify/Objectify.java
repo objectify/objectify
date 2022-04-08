@@ -36,8 +36,40 @@ public interface Objectify
 	 */
 	Loader load();
 
+  /**
+   * <p>Start an add command chain.  Allows you to add entity objects (datastore.add).  Note that all command
+   * chain objects are immutable.</p>
+   *
+   * <p>Saves do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
+   *
+   * <p>A quick example:
+   * {@code ofy().add().entities(e1, e2, e3).now();}</p>
+   *
+   * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+   * current command object.</b></p>
+   *
+   * @return the next step in the immutable command chain.
+   */
+  Saver add();
+
+  /**
+   * <p>Start an update command chain.  Allows you to update (re-save) entity objects (datastore.update).  Note that all command
+   * chain objects are immutable.</p>
+   *
+   * <p>Saves do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
+   *
+   * <p>A quick example:
+   * {@code ofy().update().entities(e1, e2, e3).now();}</p>
+   *
+   * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+   * current command object.</b></p>
+   *
+   * @return the next step in the immutable command chain.
+   */
+  Saver update();
+
 	/**
-	 * <p>Start a save command chain.  Allows you to save (or re-save) entity objects.  Note that all command
+	 * <p>Start a save command chain.  Allows you to save (or re-save) entity objects (datastore.put).  Note that all command
 	 * chain objects are immutable.</p>
 	 *
 	 * <p>Saves do NOT cascade; if you wish to save an object graph, you must save each individual entity.</p>
