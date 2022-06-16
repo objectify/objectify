@@ -175,8 +175,7 @@ public interface Objectify
 	/**
 	 * <p>Executes work outside of a transaction. This is a way to "escape" from a transaction and perform
 	 * datastore operations that would otherwise not be allowed (or perhaps to load data without hitting entity group
-	 * limits). If there is not already a transaction running, the work is executed normally.
-	 * If there is not already a transaction context, a new transaction will be started.</p>
+	 * limits). If there is not already a transaction running, the work is executed normally in the current session.</p>
 	 *
 	 * <p>For example, to return an entity fetched outside of a transaction:
 	 * {@code Thing th = ofy().transactionless(() -> ofy().load().key(thingKey).now())}</p>
