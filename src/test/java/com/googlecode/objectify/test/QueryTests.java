@@ -204,19 +204,6 @@ class QueryTests extends TestBase {
 		assertThat(list).containsExactly(triv, child).inOrder();
 	}
 
-	@Test
-	void testNotEquals() throws Exception {
-		{
-			final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString !=", "foo1").list();
-			assertThat(result).containsExactly(triv2);
-		}
-
-		{
-			final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString <>", "foo1").list();
-			assertThat(result).containsExactly(triv2);
-		}
-	}
-
 	/** */
 	@Test
 	void countWorks() throws Exception {
