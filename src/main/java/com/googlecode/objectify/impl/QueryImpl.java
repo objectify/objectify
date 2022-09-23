@@ -153,7 +153,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 * Forgiving about the syntax; != and <> are NOT_EQUAL, = and == are EQUAL.
 	 */
 	protected FilterOperator translate(String operator) {
-		operator = operator.trim();
+		operator = operator.trim().toLowerCase();
 
 		if (operator.equals("=") || operator.equals("=="))
 			return FilterOperator.EQUAL;
@@ -167,9 +167,8 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			return FilterOperator.LESS_THAN_OR_EQUAL;
 		else if (operator.equals("!=") || operator.equals("<>"))
 			return FilterOperator.NOT_EQUAL;
-		else if (operator.toLowerCase().equals("in"))
-			//return FilterOperator.IN;
-			throw new UnsupportedOperationException("The Cloud Datastore SDK does not currently support 'IN' filters");
+		else if (operator.equalsIgnoreCase("in"))
+			return FilterOperator.IN;
 		else
 			throw new IllegalArgumentException("Unknown operator '" + operator + "'");
 	}

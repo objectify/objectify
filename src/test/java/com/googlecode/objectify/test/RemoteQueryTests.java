@@ -4,6 +4,7 @@
 package com.googlecode.objectify.test;
 
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.test.entity.Employee;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.LocalMemcacheExtension;
 import com.googlecode.objectify.test.util.MockitoExtension;
@@ -14,8 +15,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
@@ -61,4 +65,43 @@ class RemoteQueryTests extends TestBase {
 			assertThat(result).containsExactly(triv1);
 		}
 	}
+
+	@Test
+	void testIN() throws Exception {
+		final Trivial triv3 = new Trivial("foo3", 3);
+		final Trivial triv4 = new Trivial("foo4", 3);
+		ofy().save().entity(triv3).now();
+		ofy().save().entity(triv4).now();
+
+		final List<String> conditions = Arrays.asList("foo3", "foo4", "baz");
+
+		final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString in", conditions).list();
+		assertThat(result).containsExactly(triv3, triv4);
+	}
+
+	@Test
+	void specialKeyFilteringByIN() throws Exception {
+		final Trivial triv3 = new Trivial("foo3", 3);
+		final Key<Trivial> key3 = ofy().save().entity(triv3).now();
+		final Set<Key<Trivial>> singleton = Collections.singleton(key3);
+
+		final List<Trivial> result = ofy().load().type(Trivial.class).filter("__key__ in", singleton).list();
+		assertThat(result).containsExactly(triv3);
+	}
+
+	@Test
+	void testINfilteringWithKeyField() throws Exception {
+		factory().register(Employee.class);
+
+		final Key<Employee> bobKey = Key.create(Employee.class, "bob");
+		final Employee fred = new Employee("fred", bobKey);
+
+		ofy().save().entity(fred).now();
+
+		final Set<Key<Employee>> singleton = Collections.singleton(bobKey);
+
+		final List<Employee> result = ofy().load().type(Employee.class).filter("manager in", singleton).list();
+		assertThat(result).containsExactly(fred);
+	}
+
 }

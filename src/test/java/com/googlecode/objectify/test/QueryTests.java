@@ -217,47 +217,6 @@ class QueryTests extends TestBase {
 		}
 	}
 
-	/** No longer supported by the SDK */
-	//@Test
-	void testIN() throws Exception {
-		final Trivial triv1 = new Trivial("foo", 3);
-		final Trivial triv2 = new Trivial("bar", 3);
-		ofy().save().entity(triv1).now();
-		ofy().save().entity(triv2).now();
-
-		final List<String> conditions = Arrays.asList("foo", "bar", "baz");
-
-		final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString in", conditions).list();
-		assertThat(result).containsExactly(triv1, triv2);
-	}
-
-	/** IN no longer supported by SDK */
-	//@Test
-	void specialKeyFilteringByIN() throws Exception {
-		final Trivial triv1 = new Trivial("foo", 3);
-		final Key<Trivial> key1 = ofy().save().entity(triv1).now();
-		final Set<Key<Trivial>> singleton = Collections.singleton(key1);
-
-		final List<Trivial> result = ofy().load().type(Trivial.class).filter("__key__ in", singleton).list();
-		assertThat(result).containsExactly(triv1);
-	}
-
-	/** IN no longer supported by SDK */
-	//@Test
-	void testINfilteringWithKeyField() throws Exception {
-		factory().register(Employee.class);
-
-		final Key<Employee> bobKey = Key.create(Employee.class, "bob");
-		final Employee fred = new Employee("fred", bobKey);
-
-		ofy().save().entity(fred).now();
-
-		final Set<Key<Employee>> singleton = Collections.singleton(bobKey);
-
-		final List<Employee> result = ofy().load().type(Employee.class).filter("manager in", singleton).list();
-		assertThat(result).containsExactly(fred);
-	}
-
 	/** */
 	@Test
 	void countWorks() throws Exception {
