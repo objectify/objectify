@@ -90,4 +90,25 @@ class EmbeddedCollectionTests extends TestBase {
 
 		assertThat(fetched.deeps).isEqualTo(has.deeps);
 	}
+
+	@Entity
+	@Data
+	private static class HasList {
+		@Id private Long id;
+		private List<HashableThing> someList = new ArrayList<>();
+	}
+
+	@Test
+	void listsOfEntitiesPreserveOrder() throws Exception {
+		factory().register(HasList.class);
+
+		final HasList has = new HasList();
+		for (int i = 0; i < 100; i++) {
+			has.someList.add(new HashableThing(i));
+		}
+
+		final HasList fetched = saveClearLoad(has);
+
+		assertThat(fetched.someList).isEqualTo(has.someList);
+	}
 }
