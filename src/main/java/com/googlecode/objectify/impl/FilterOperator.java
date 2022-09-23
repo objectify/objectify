@@ -17,6 +17,7 @@ enum FilterOperator {
 	EQUAL(PropertyFilter::eq),
 	NOT_EQUAL(PropertyFilter::neq),
 	IN(requireList(PropertyFilter::in)),
+	NOT_IN(requireList(PropertyFilter::not_in)),
 	;
 
 	private final BiFunction<String, Value<?>, PropertyFilter> creator;

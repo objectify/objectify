@@ -169,6 +169,8 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 			return FilterOperator.NOT_EQUAL;
 		else if (operator.equalsIgnoreCase("in"))
 			return FilterOperator.IN;
+		else if (operator.equalsIgnoreCase("!in"))
+			return FilterOperator.NOT_IN;
 		else
 			throw new IllegalArgumentException("Unknown operator '" + operator + "'");
 	}

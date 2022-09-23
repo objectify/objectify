@@ -104,4 +104,16 @@ class RemoteQueryTests extends TestBase {
 		assertThat(result).containsExactly(fred);
 	}
 
+	@Test
+	void testNotIN() throws Exception {
+		final Trivial triv3 = new Trivial("foo3", 3);
+		final Trivial triv4 = new Trivial("foo4", 3);
+		ofy().save().entity(triv3).now();
+		ofy().save().entity(triv4).now();
+
+		final List<String> conditions = Arrays.asList("foo3", "foo4", "baz");
+
+		final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString !in", conditions).list();
+		assertThat(result).containsExactly(triv1, triv2);
+	}
 }
