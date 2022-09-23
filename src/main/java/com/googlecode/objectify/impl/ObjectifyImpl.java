@@ -279,7 +279,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 		//
 		// The answer:  Check for collections explicitly.  Create a separate translator for every item in the collection;
 		// after all, it could be a heterogeneous list.  This is not especially efficient but GAE only allows a handful of
-		// items in a IN operation and at any rate processing will still be negligible compared to the cost of a query.
+		// items in an IN operation and at any rate processing will still be negligible compared to the cost of a query.
 
 		// If this is an array, make life easier by turning it into a list first.  Because of primitive
 		// mismatching we can't trust Arrays.asList().
