@@ -26,7 +26,11 @@ public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCal
 		if (getHelper(context) == null) {
 			log.info("Creating new LocalDatastoreHelper");
 
-			final LocalDatastoreHelper helper = LocalDatastoreHelper.create(consistency);
+			final LocalDatastoreHelper helper = LocalDatastoreHelper.newBuilder()
+					.setConsistency(consistency)
+					.setStoreOnDisk(false)
+					.build();
+
 			context.getRoot().getStore(Namespace.GLOBAL).put(LocalDatastoreHelper.class, helper);
 			helper.start();
 		}
