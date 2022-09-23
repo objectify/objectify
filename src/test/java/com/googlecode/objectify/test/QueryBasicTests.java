@@ -104,4 +104,17 @@ class QueryBasicTests extends TestBase {
 		final List<Trivial> fetched = ofy().load().<Trivial>kind(Key.getKind(Trivial.class)).filter("someString", "foo1").list();
 		assertThat(fetched).containsExactly(triv1);
 	}
+
+	/** */
+	@Test
+	void simpleGreaterThanOnStringsWorks() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv1 = new Trivial(123L, "foo1", 12);
+		ofy().save().entities(triv1).now();
+		ofy().clear();
+
+		final List<Trivial> fetched = ofy().load().type(Trivial.class).filter("someString >", "foo0").list();
+		assertThat(fetched).containsExactly(triv1);
+	}
 }

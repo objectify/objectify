@@ -9,7 +9,7 @@ import java.util.function.BiFunction;
 
 /** The cloud sdk filtering API is somewhat hostile to programmatic query generation, so we need this adaptor */
 @RequiredArgsConstructor
-enum FilterOperator {
+public enum FilterOperator {
 	LESS_THAN(PropertyFilter::lt),
 	LESS_THAN_OR_EQUAL(PropertyFilter::le),
 	GREATER_THAN(PropertyFilter::gt),

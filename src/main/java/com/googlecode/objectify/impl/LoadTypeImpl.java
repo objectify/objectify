@@ -1,9 +1,10 @@
 package com.googlecode.objectify.impl;
 
-import com.google.cloud.datastore.StructuredQuery.Filter;
+import com.google.cloud.datastore.StructuredQuery;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.cmd.Filter;
 import com.googlecode.objectify.cmd.LoadIds;
 import com.googlecode.objectify.cmd.LoadType;
 import com.googlecode.objectify.cmd.Query;
@@ -64,6 +65,13 @@ class LoadTypeImpl<T> extends Queryable<T> implements LoadType<T>
 	}
 
 	/* */
+	@Override
+	public Query<T> filter(final StructuredQuery.Filter filter) {
+		final QueryImpl<T> q = createQuery();
+		q.addFilter(filter);
+		return q;
+	}
+
 	@Override
 	public Query<T> filter(final Filter filter) {
 		final QueryImpl<T> q = createQuery();

@@ -4,7 +4,7 @@ import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.KeyQuery;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StringValue;
-import com.google.cloud.datastore.StructuredQuery.Filter;
+import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
@@ -13,6 +13,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.annotation.Subclass;
+import com.googlecode.objectify.cmd.Filter;
 import com.googlecode.objectify.cmd.Query;
 import com.googlecode.objectify.cmd.QueryResultIterable;
 import com.googlecode.objectify.impl.translate.ClassTranslator;
@@ -95,6 +96,13 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	/* */
 	@Override
+	public QueryImpl<T> filter(final StructuredQuery.Filter filter) {
+		final QueryImpl<T> q = createQuery();
+		q.addFilter(filter);
+		return q;
+	}
+
+	@Override
 	public QueryImpl<T> filter(final Filter filter) {
 		final QueryImpl<T> q = createQuery();
 		q.addFilter(filter);
@@ -144,8 +152,16 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	/**
 	 * Add the filter as an AND to whatever is currently set as the actual filter.
 	 */
-	void addFilter(final Filter filter) {
+	void addFilter(final StructuredQuery.Filter filter) {
 		actual = actual.andFilter(filter);
+	}
+
+	/**
+	 * Add the filter as an AND to whatever is currently set as the actual filter.
+	 */
+	void addFilter(final Filter filter) {
+		final StructuredQuery.Filter munged = filter.convert(this.loader.getObjectifyImpl());
+		actual = actual.andFilter(munged);
 	}
 
 	/**

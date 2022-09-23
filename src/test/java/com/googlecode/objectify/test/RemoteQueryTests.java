@@ -24,6 +24,14 @@ import java.util.Set;
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
+import static com.googlecode.objectify.cmd.Filter.equalTo;
+import static com.googlecode.objectify.cmd.Filter.greaterThan;
+import static com.googlecode.objectify.cmd.Filter.greaterThanOrEqualTo;
+import static com.googlecode.objectify.cmd.Filter.in;
+import static com.googlecode.objectify.cmd.Filter.lessThan;
+import static com.googlecode.objectify.cmd.Filter.lessThanOrEqualTo;
+import static com.googlecode.objectify.cmd.Filter.notEqualTo;
+import static com.googlecode.objectify.cmd.Filter.notIn;
 
 /**
  * The datastore emulator does not yet support certain operations. These run against a production database.
@@ -116,4 +124,24 @@ class RemoteQueryTests extends TestBase {
 		final List<Trivial> result = ofy().load().type(Trivial.class).filter("someString !in", conditions).list();
 		assertThat(result).containsExactly(triv1, triv2);
 	}
+
+	/** */
+	@Test
+	void testFilters() throws Exception {
+		{
+			final List<Trivial> list = ofy().load().type(Trivial.class).filter(notEqualTo("someString", "foo2")).list();
+			assertThat(list).containsExactly(triv1);
+		}
+
+		{
+			final List<Trivial> list = ofy().load().type(Trivial.class).filter(in("someString", Arrays.asList("foo2", "foo3"))).list();
+			assertThat(list).containsExactly(triv2);
+		}
+
+		{
+			final List<Trivial> list = ofy().load().type(Trivial.class).filter(notIn("someString", Arrays.asList("foo2", "foo3"))).list();
+			assertThat(list).containsExactly(triv1);
+		}
+	}
+
 }
