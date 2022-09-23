@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 /**
  * @author Jeff Schnitzer <jeff@infohazard.org>
@@ -75,6 +75,6 @@ class CachingUncacheableTests extends TestBase {
 		final Uncacheable fetched = ofy().load().key(key).now();
 
 		assertThat(fetched).isNotNull();
-		verifyZeroInteractions(memcachedClient);
+		verifyNoInteractions(memcachedClient);
 	}
 }
