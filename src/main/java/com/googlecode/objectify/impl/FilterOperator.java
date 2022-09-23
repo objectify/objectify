@@ -13,9 +13,10 @@ enum FilterOperator {
 	LESS_THAN_OR_EQUAL(PropertyFilter::le),
 	GREATER_THAN(PropertyFilter::gt),
 	GREATER_THAN_OR_EQUAL(PropertyFilter::ge),
-	EQUAL(PropertyFilter::eq);
-	//NOT_EQUAL,
-	//IN;
+	EQUAL(PropertyFilter::eq),
+	NOT_EQUAL(PropertyFilter::neq),
+	//IN,
+	;
 
 	private final BiFunction<String, Value<?>, PropertyFilter> creator;
 

@@ -166,8 +166,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		else if (operator.equals("<="))
 			return FilterOperator.LESS_THAN_OR_EQUAL;
 		else if (operator.equals("!=") || operator.equals("<>"))
-			//return FilterOperator.NOT_EQUAL;
-			throw new UnsupportedOperationException("The Cloud Datastore SDK does not currently support 'NOT EQUAL' filters");
+			return FilterOperator.NOT_EQUAL;
 		else if (operator.toLowerCase().equals("in"))
 			//return FilterOperator.IN;
 			throw new UnsupportedOperationException("The Cloud Datastore SDK does not currently support 'IN' filters");
