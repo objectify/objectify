@@ -9,17 +9,11 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 /**
- * Sets up and tears down the Local Datastore emulator, defaults to strong consistency
+ * Sets up and tears down the Local Datastore emulator
  */
 @RequiredArgsConstructor
 @Slf4j
 public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCallback {
-
-	private final double consistency;
-
-	public LocalDatastoreExtension() {
-		this(1.0);
-	}
 
 	@Override
 	public void beforeAll(final ExtensionContext context) throws Exception {
@@ -27,7 +21,7 @@ public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCal
 			log.info("Creating new LocalDatastoreHelper");
 
 			final LocalDatastoreHelper helper = LocalDatastoreHelper.newBuilder()
-					.setConsistency(consistency)
+					.setConsistency(1.0)	// we always have strong consistency now
 					.setStoreOnDisk(false)
 					.build();
 

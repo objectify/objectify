@@ -18,7 +18,7 @@ import java.util.Map.Entry;
 /**
  * Converts keys-only query results into hybrid query results. This involves chunking the keys into batches and loading
  * each from the datastore. Care is taken to preserve cursor behavior and filter null results (possible due to both
- * the time delay between the query and the load and also eventual consistency in general).
+ * the time delay between the query and the load).
  */
 public class HybridQueryResults<T> implements QueryResults<T> {
 

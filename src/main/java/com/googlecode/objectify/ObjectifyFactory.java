@@ -211,7 +211,6 @@ public class ObjectifyFactory implements Forge
 	 * <ul>
 	 * <li>Do NOT begin a transaction.</li>
 	 * <li>DO use a global cache.</li>
-	 * <li>Use STRONG consistency.</li>
 	 * <li>Apply no deadline to calls.</li>
 	 * </ul>
 	 *

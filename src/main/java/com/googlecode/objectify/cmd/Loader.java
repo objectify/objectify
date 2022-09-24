@@ -42,8 +42,7 @@ public interface Loader extends SimpleQuery<Object>
 	Loader group(Class<?>... groups);
 
 	/**
-	 * Enable the specified read option for this load. For example, {@code ReadOption.eventualConsistency()}
-	 * Note that requests for eventual consistency will be ignored inside a transaction.
+	 * Enable the specified read option for this load.
 	 *
 	 * @param option is defined by the Google Cloud SDK.
 	 * @return a continuation of the immutable command pattern, with the specified option enabled
