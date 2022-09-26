@@ -3,6 +3,8 @@ package com.googlecode.objectify.cmd;
 import com.googlecode.objectify.LoadResult;
 
 import java.util.List;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 
 /**
@@ -31,6 +33,13 @@ public interface QueryExecute<T> extends QueryResultIterable<T>
 	 * easily exceed the practical memory limits of Appengine by querying for a very large dataset.</p>
 	 */
 	List<T> list();
+
+	/**
+	 * <p>Execute the query and get the results as a Stream.</p>
+	 */
+	default Stream<T> stream() {
+		return StreamSupport.stream(iterable().spliterator(), false);
+	}
 
 	/**
 	 * Gets the first entity in the result set.  Obeys the offset value.
