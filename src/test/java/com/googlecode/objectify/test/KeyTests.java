@@ -9,6 +9,8 @@ import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.Test;
 
 import static com.google.common.truth.Truth.assertThat;
+import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * Tests of Key behavior
@@ -56,5 +58,20 @@ class KeyTests extends TestBase {
 		assertThat(legacyUrlSafeKey).isEqualTo(key);
 
 		assertThat(urlSafe).isNotEqualTo(legacyUrlSafe);
+	}
+
+	@Test
+	void urlsafeWorksForSavingAndLoading() throws Exception {
+		factory().register(Trivial.class);
+
+		final Trivial triv = new Trivial(123L, "foo", 5);
+		final Key<Trivial> savedKey = ofy().save().entity(triv).now();
+
+		final String urlSafe = savedKey.toUrlSafe();
+		final Key<Trivial> reconstituted = Key.create(urlSafe);
+
+		ofy().clear();
+		final Trivial loaded = ofy().load().key(reconstituted).now();
+		assertThat(loaded).isEqualTo(triv);
 	}
 }
