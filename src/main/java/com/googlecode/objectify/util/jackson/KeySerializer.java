@@ -16,6 +16,6 @@ public class KeySerializer extends JsonSerializer<Key> {
 
 	@Override
 	public void serialize(Key value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-		jgen.writeString(value.getString());
+		jgen.writeString(value.toUrlSafe());
 	}
 }

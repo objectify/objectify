@@ -23,7 +23,7 @@ public class RefSerializer extends JsonSerializer<Ref> {
 			// Tatu says that this is better:
 			provider.defaultSerializeValue(value.getValue(), jgen);
 		} else {
-			jgen.writeString(value.key().getString());
+			jgen.writeString(value.key().toUrlSafe());
 		}
 	}
 }

@@ -16,6 +16,6 @@ public class RefKeySerializer extends JsonSerializer<Ref> {
 
 	@Override
 	public void serialize(Ref value, JsonGenerator jgen, SerializerProvider provider) throws IOException, JsonProcessingException {
-		jgen.writeFieldName(value.key().getString());
+		jgen.writeFieldName(value.key().toUrlSafe());
 	}
 }

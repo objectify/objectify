@@ -155,7 +155,7 @@ class BasicTests extends TestBase {
 	void keyToStringAndBack() throws Exception {
 		final Key<Trivial> trivKey = Key.create(Trivial.class, 123);
 
-		final String stringified = trivKey.toWebSafeString();
+		final String stringified = trivKey.toUrlSafe();
 
 		final Key<Trivial> andBack = Key.create(stringified);
 

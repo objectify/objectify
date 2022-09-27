@@ -12,7 +12,7 @@ public class KeyStringifier implements Stringifier<Key<?>>
 {
 	@Override
 	public String toString(Key<?> obj) {
-		return obj.getString();
+		return obj.toUrlSafe();
 	}
 
 	@Override
