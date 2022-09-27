@@ -92,15 +92,16 @@ public class SerializeTranslatorFactory implements TranslatorFactory<Object, Blo
 			}
 
 			/** Try reading an object from the stream */
-			private Object readObject(ByteArrayInputStream bais, boolean unzip) throws IOException, ClassNotFoundException {
+			private Object readObject(final ByteArrayInputStream bais, final boolean unzip) throws IOException, ClassNotFoundException {
 				bais.reset();
 				InputStream in = bais;
 
 				if (unzip)
 					in = new InflaterInputStream(in);
 
-				final ObjectInputStream ois = new ObjectInputStream(in);
-				return ois.readObject();
+				try (final ObjectInputStream ois = new ObjectInputStream(in)) {
+					return ois.readObject();
+				}
 			}
 		};
 	}
