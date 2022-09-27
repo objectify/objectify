@@ -12,6 +12,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Among the issues this impl needs to be concerned with is that memcached doesn't store nulls. We have to replace it
@@ -54,7 +55,13 @@ public class SpyMemcacheService implements MemcacheService {
 		if (casValue != null) {
 			return new SpyIdentifiableValue(casValue);
 		} else {
-			client.set(key, 0, NULL_VALUE);	// use the fake null so that no other fetches get confused
+			try {
+				// use the fake null so that no other fetches get confused
+				client.add(key, 0, NULL_VALUE).get();
+			} catch (final InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+
 			final CASValue<Object> try2 = client.gets(key);
 			return try2 == null ? null : new SpyIdentifiableValue(try2);
 		}
