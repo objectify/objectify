@@ -7,7 +7,6 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ import static com.googlecode.objectify.cmd.Filter.greaterThan;
 import static com.googlecode.objectify.cmd.Filter.greaterThanOrEqualTo;
 import static com.googlecode.objectify.cmd.Filter.lessThan;
 import static com.googlecode.objectify.cmd.Filter.lessThanOrEqualTo;
-import static com.googlecode.objectify.cmd.Filter.or;
 
 /**
  * Exercise the Filter class.
@@ -82,29 +80,25 @@ class QueryComplexFilterTests extends TestBase {
 	/** */
 	@Test
 	void compositeAndConditions() throws Exception {
-		{
-			final List<Trivial> list = ofy().load().type(Trivial.class).filter(
-						and(
-								greaterThan("someString", "foo1"),
-								lessThan("someString", "foo3")
-						)
-					).list();
-			assertThat(list).containsExactly(triv2);
-		}
+		final List<Trivial> list = ofy().load().type(Trivial.class).filter(
+					and(
+							greaterThan("someString", "foo1"),
+							lessThan("someString", "foo3")
+					)
+				).list();
+		assertThat(list).containsExactly(triv2);
 	}
 
-	/** This doesn't work yet, need support in the low level API */
-	@Test
-	@Disabled
-	void compositeOrConditions() throws Exception {
-		{
-			final List<Trivial> list = ofy().load().type(Trivial.class).filter(
-					or(
-							greaterThan("someString", "foo2"),
-							lessThan("someString", "foo2")
-					)
-			).list();
-			assertThat(list).containsExactly(triv1, triv3);
-		}
-	}
+//	/** This doesn't work yet, need support in the low level API */
+//	@Test
+//	@Disabled
+//	void compositeOrConditions() throws Exception {
+//		final List<Trivial> list = ofy().load().type(Trivial.class).filter(
+//				or(
+//						greaterThan("someString", "foo2"),
+//						lessThan("someString", "foo2")
+//				)
+//		).list();
+//		assertThat(list).containsExactly(triv1, triv3);
+//	}
 }
