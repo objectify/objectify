@@ -230,4 +230,41 @@ class LoadFieldRefTests extends TestBase {
 		assertThat(fetched.multi.get(1).get()).isEqualTo(t2);
 		assertThat(fetched.single.get()).isSameInstanceAs(fetched.multi.get(0).get());
 	}
+
+	/** */
+	@Entity
+	private static class HasMultipleLoadGroupsGroups {
+		static class GroupA {}
+		static class GroupB {}
+
+		@Id Long id;
+		@Load({GroupA.class, GroupB.class}) Ref<Trivial> single;
+	}
+
+	/**
+	 * Test which covers https://github.com/objectify/objectify/issues/185
+	 */
+	@Test
+	void loadGroupsWorkEvenWhenMultipleGroupsAreAnOption() throws Exception {
+		factory().register(HasMultipleLoadGroupsGroups.class);
+
+		final HasMultipleLoadGroupsGroups he = new HasMultipleLoadGroupsGroups();
+		he.single = Ref.create(k1);
+		HasMultipleLoadGroupsGroups fetched = saveClearLoad(he);
+
+		final Key<HasMultipleLoadGroupsGroups> hekey = Key.create(he);
+
+		assertThat(fetched.single.isLoaded()).isFalse();
+		assertThat(fetched.single.equivalent(k1)).isTrue();
+
+		ofy().clear();
+		fetched = ofy().load().group(HasMultipleLoadGroupsGroups.GroupA.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.single.get()).isEqualTo(t1);
+
+		ofy().clear();
+		fetched = ofy().load().group(HasMultipleLoadGroupsGroups.GroupB.class).key(hekey).now();
+		assertThat(fetched.single.isLoaded()).isTrue();
+		assertThat(fetched.single.get()).isEqualTo(t1);
+	}
 }
