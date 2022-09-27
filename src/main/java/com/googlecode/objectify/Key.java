@@ -324,25 +324,6 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/**
-	 * @deprecated Use toUrlSafe() instead.
-	 */
-	@Deprecated
-	public String getString() {
-		return toUrlSafe();
-	}
-
-	/**
-	 * This is an alias for toLegacyUrlSafe() and exists solely for backwards compatibility.
-	 *
-	 * @deprecated Use toLegacyUrlSafe(), or if you aren't trying to generate old-style keys, use
-	 * toUrlSafe().
-	 */
-	@Deprecated
-	public String toWebSafeString() {
-		return this.raw.toUrlSafe();
-	}
-
-	/**
 	 * Call toUrlSafe() on the underlying Key.  You can reconstitute a {@code Key<?>} using the
 	 * constructor that takes a string. Note that toString() is only useful for debugging;
 	 * it cannot be used to create a key with Key.create(String).
