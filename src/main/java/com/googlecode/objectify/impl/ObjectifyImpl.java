@@ -266,7 +266,7 @@ public class ObjectifyImpl implements Objectify, Closeable
 	 *
 	 * @return whatever can be put into a filter clause.
 	 */
-	protected Value<?> makeFilterable(Object value) {
+	public Value<?> makeFilterable(Object value) {
 		if (value == null)
 			return NullValue.of();
 

@@ -1,7 +1,7 @@
 package com.googlecode.objectify.cmd;
 
 import com.google.cloud.datastore.Cursor;
-import com.google.cloud.datastore.StructuredQuery.Filter;
+import com.google.cloud.datastore.StructuredQuery;
 
 
 /**
@@ -54,6 +54,18 @@ public interface Query<T> extends SimpleQuery<T>
 	 *
 	 * <p>You can <strong>not</strong> filter on @Id or @Parent properties.  Use
 	 * {@code filterKey()} or {@code ancestor()} instead.</p>
+	 */
+	public Query<T> filter(StructuredQuery.Filter filter);
+
+	/**
+	 * <p>Create an arbitrarily complex filter. This method is preferred to the low-level Filter method
+	 * because it has better ergonomics and automatically handles objects like Objectify {@code Key<?>}
+	 * and {@code Ref<?>}.</p>
+	 *
+	 * <p>Construct Filter objects using static methods on the Filter class.</p>
+	 *
+	 * <p>Note that like the other filter methods, you can <strong>not</strong> filter on @Id or @Parent properties.
+	 * You can filter by {@code __key__} however.</p>
 	 */
 	public Query<T> filter(Filter filter);
 
