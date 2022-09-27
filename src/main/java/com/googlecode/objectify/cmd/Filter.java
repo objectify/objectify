@@ -75,12 +75,13 @@ abstract public class Filter {
 		return new NotInFilter(property, value);
 	}
 
-	/**
-	 * Combine an arbitrary list of filter conditions. They can be nested.
-	 */
-	public static Filter or(final Filter... filters) {
-		return new OrFilter(filters);
-	}
+	// TODO: enable this when the low level API supports OR
+//	/**
+//	 * Combine an arbitrary list of filter conditions. They can be nested.
+//	 */
+//	public static Filter or(final Filter... filters) {
+//		return new OrFilter(filters);
+//	}
 
 	/**
 	 * Combine an arbitrary list of filter conditions. They can be nested.
