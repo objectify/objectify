@@ -1,7 +1,7 @@
 package com.googlecode.objectify.util;
 
-import com.google.api.client.util.Base64;
 import com.google.cloud.datastore.Key;
+import com.google.common.io.BaseEncoding;
 import com.google.protobuf.DescriptorProtos;
 import com.google.protobuf.Descriptors;
 import com.google.protobuf.DynamicMessage;
@@ -27,7 +27,7 @@ public enum KeyFormat {
     // we don't have to worry about the format changing from under us.
     //
     // Format was copied from https://github.com/golang/appengine/blob/master/internal/datastore/datastore_v3.proto
-    private Descriptors.FileDescriptor keyDescriptor;
+    private final Descriptors.FileDescriptor keyDescriptor;
 
     @SneakyThrows
     KeyFormat() {
@@ -35,7 +35,7 @@ public enum KeyFormat {
     }
 
     private Descriptors.FileDescriptor initializeFileDescriptor() throws Descriptors.DescriptorValidationException {
-        DescriptorProtos.DescriptorProto elementDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+        final DescriptorProtos.DescriptorProto elementDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
                 .setName("Element")
                 .addField(
                         DescriptorProtos.FieldDescriptorProto.newBuilder()
@@ -62,7 +62,7 @@ public enum KeyFormat {
                                 .build()
                 ).build();
 
-        DescriptorProtos.DescriptorProto pathDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+        final DescriptorProtos.DescriptorProto pathDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
                 .setName("Path")
                 .addField(
                         DescriptorProtos.FieldDescriptorProto.newBuilder()
@@ -74,7 +74,7 @@ public enum KeyFormat {
                                 .build()
                 ).build();
 
-        DescriptorProtos.DescriptorProto referenceDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+        final DescriptorProtos.DescriptorProto referenceDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
                 .setName("Reference")
                 .addField(
                         DescriptorProtos.FieldDescriptorProto
@@ -111,26 +111,27 @@ public enum KeyFormat {
     }
 
     public Key parseOldStyleAppEngineKey(final String urlsafeKey) throws InvalidProtocolBufferException {
-        Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
-        byte[] userKey = Base64.decodeBase64(urlsafeKey);
-        DynamicMessage userKeyMessage = DynamicMessage.newBuilder(referenceDescriptor).mergeFrom(userKey).build();
+        final Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
+        byte[] userKey = BaseEncoding.base64().decode(urlsafeKey);
+        final DynamicMessage userKeyMessage = DynamicMessage.newBuilder(referenceDescriptor).mergeFrom(userKey).build();
         String app = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("app"));
         if (app.startsWith("s~")) {
             app = app.substring(2);
         }
-        String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
-        DynamicMessage path = (DynamicMessage) userKeyMessage.getField(referenceDescriptor.findFieldByName("path"));
-        Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
-        Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
+        final String namespace = (String) userKeyMessage.getField(referenceDescriptor.findFieldByName("name_space"));
+        final DynamicMessage path = (DynamicMessage) userKeyMessage.getField(referenceDescriptor.findFieldByName("path"));
+        final Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
+        final Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
-        Descriptors.FieldDescriptor elementFieldDescriptor = pathDescriptor.findFieldByName("Element");
-        int elementCount = path.getRepeatedFieldCount(elementFieldDescriptor);
+        final Descriptors.FieldDescriptor elementFieldDescriptor = pathDescriptor.findFieldByName("Element");
+        final int elementCount = path.getRepeatedFieldCount(elementFieldDescriptor);
+
         Key.Builder keyBuilder = null;
         for (int i = 0; i < elementCount; i++) {
-            DynamicMessage element = (DynamicMessage) path.getRepeatedField(elementFieldDescriptor, i);
-            String type = (String) element.getField(elementDescriptor.findFieldByName("type"));
-            Long id = (Long) element.getField(elementDescriptor.findFieldByName("id"));
-            String name = (String) element.getField(elementDescriptor.findFieldByName("name"));
+            final DynamicMessage element = (DynamicMessage) path.getRepeatedField(elementFieldDescriptor, i);
+            final String type = (String) element.getField(elementDescriptor.findFieldByName("type"));
+            final Long id = (Long) element.getField(elementDescriptor.findFieldByName("id"));
+            final String name = (String) element.getField(elementDescriptor.findFieldByName("name"));
             if (keyBuilder == null) {
                 if (name != null && !"".equals(name)) {
                     keyBuilder = Key.newBuilder(app, type, name);
@@ -157,19 +158,19 @@ public enum KeyFormat {
     }
 
     public String formatOldStyleAppEngineKey(Key key) {
-        Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
-        DynamicMessage.Builder keyMessageBuilder = DynamicMessage.newBuilder(referenceDescriptor);
+        final Descriptors.Descriptor referenceDescriptor = keyDescriptor.findMessageTypeByName("Reference");
+        final DynamicMessage.Builder keyMessageBuilder = DynamicMessage.newBuilder(referenceDescriptor);
         String fullProjectId = key.getProjectId();
         if (!fullProjectId.startsWith("s~")) {
             fullProjectId = "s~" + fullProjectId;
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), fullProjectId);
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("name_space"), key.getNamespace());
-        Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
+        final Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
-        List<DynamicMessage> elementMessages = new ArrayList<>();
+        final List<DynamicMessage> elementMessages = new ArrayList<>();
         do {
-            DynamicMessage.Builder elementMessageBuilder = DynamicMessage.newBuilder(elementDescriptor);
+            final DynamicMessage.Builder elementMessageBuilder = DynamicMessage.newBuilder(elementDescriptor);
             elementMessageBuilder.setField(elementDescriptor.findFieldByName("type"), key.getKind());
             if (key.getName() != null) {
                 elementMessageBuilder.setField(elementDescriptor.findFieldByName("name"), key.getName());
@@ -179,12 +180,12 @@ public enum KeyFormat {
             elementMessages.add(0, elementMessageBuilder.build());
         } while ((key = key.getParent()) != null);
 
-        Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
-        DynamicMessage.Builder pathBuilder = DynamicMessage.newBuilder(pathDescriptor);
-        for (DynamicMessage elementMessage: elementMessages) {
+        final Descriptors.Descriptor pathDescriptor = keyDescriptor.findMessageTypeByName("Path");
+        final DynamicMessage.Builder pathBuilder = DynamicMessage.newBuilder(pathDescriptor);
+        for (final DynamicMessage elementMessage: elementMessages) {
             pathBuilder.addRepeatedField(pathDescriptor.findFieldByName("Element"), elementMessage);
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("path"), pathBuilder.build());
-        return Base64.encodeBase64URLSafeString(keyMessageBuilder.build().toByteArray());
+        return BaseEncoding.base64Url().omitPadding().encode(keyMessageBuilder.build().toByteArray());
     }
 }
