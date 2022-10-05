@@ -164,7 +164,9 @@ public enum KeyFormat {
             fullProjectId = "s~" + fullProjectId;
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), fullProjectId);
-        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("name_space"), key.getNamespace());
+        if (key.getNamespace() != null) {
+            keyMessageBuilder.setField(referenceDescriptor.findFieldByName("name_space"), key.getNamespace());
+        }
         Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         List<DynamicMessage> elementMessages = new ArrayList<>();
