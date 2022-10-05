@@ -1,9 +1,16 @@
 package com.googlecode.objectify.util;
 
 import com.google.cloud.datastore.Key;
+import com.google.common.base.Preconditions;
 import com.google.common.io.BaseEncoding;
 import com.google.protobuf.DescriptorProtos;
+import com.google.protobuf.DescriptorProtos.DescriptorProto;
+import com.google.protobuf.DescriptorProtos.DescriptorProto.Builder;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Label;
+import com.google.protobuf.DescriptorProtos.FieldDescriptorProto.Type;
 import com.google.protobuf.Descriptors;
+import com.google.protobuf.Descriptors.FieldDescriptor;
 import com.google.protobuf.DynamicMessage;
 import com.google.protobuf.InvalidProtocolBufferException;
 import lombok.SneakyThrows;
@@ -18,7 +25,28 @@ import java.util.List;
  * @author Fred Wulff
  */
 public enum KeyFormat {
-    INSTANCE;
+    /** Normal one to use */
+    INSTANCE {
+        @Override
+        protected Builder makeReferenceBuilder() {
+            return super.makeReferenceBuilder()
+                    .addField(
+                            FieldDescriptorProto
+                                    .newBuilder()
+                                    .setLabel(Label.LABEL_OPTIONAL)
+                                    .setType(Type.TYPE_STRING)
+                                    .setName("name_space")
+                                    .setNumber(20)
+                                    .build()
+                    );
+        }
+    },
+
+    /**
+     * Special version that does not include name_space in the descriptor, and therefore preserves the exact-to-the-byte
+     * format of Objectify v6.0.7 and before.
+     */
+    NAMESPACELESS;
 
     // We build the descriptor for the App Engine Onestore Reference type in code
     // to avoid depending on the App Engine libraries.
@@ -31,11 +59,15 @@ public enum KeyFormat {
 
     @SneakyThrows
     KeyFormat() {
-        keyDescriptor = initializeFileDescriptor();
+        this.keyDescriptor = Descriptors.FileDescriptor.buildFrom(DescriptorProtos.FileDescriptorProto.newBuilder()
+                .addMessageType(makeElementBuilder().build())
+                .addMessageType(makePathBuilder().build())
+                .addMessageType(makeReferenceBuilder().build())
+                .build(), new Descriptors.FileDescriptor[]{});
     }
 
-    private Descriptors.FileDescriptor initializeFileDescriptor() throws Descriptors.DescriptorValidationException {
-        final DescriptorProtos.DescriptorProto elementDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+    private Builder makeElementBuilder() {
+        return DescriptorProtos.DescriptorProto.newBuilder()
                 .setName("Element")
                 .addField(
                         DescriptorProtos.FieldDescriptorProto.newBuilder()
@@ -60,9 +92,11 @@ public enum KeyFormat {
                                 .setName("name")
                                 .setNumber(4)
                                 .build()
-                ).build();
+                );
+    }
 
-        final DescriptorProtos.DescriptorProto pathDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+    private Builder makePathBuilder() {
+        return DescriptorProtos.DescriptorProto.newBuilder()
                 .setName("Path")
                 .addField(
                         DescriptorProtos.FieldDescriptorProto.newBuilder()
@@ -72,42 +106,29 @@ public enum KeyFormat {
                                 .setTypeName("Element")
                                 .setNumber(1)
                                 .build()
-                ).build();
+                );
+    }
 
-        final DescriptorProtos.DescriptorProto referenceDescriptor = DescriptorProtos.DescriptorProto.newBuilder()
+    protected Builder makeReferenceBuilder() {
+        return DescriptorProto.newBuilder()
                 .setName("Reference")
                 .addField(
-                        DescriptorProtos.FieldDescriptorProto
-                                .newBuilder()
-                                .setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_REQUIRED)
-                                .setType(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING)
+                        FieldDescriptorProto.newBuilder()
+                                .setLabel(Label.LABEL_REQUIRED)
+                                .setType(Type.TYPE_STRING)
                                 .setName("app")
                                 .setNumber(13)
-                                .build())
+                                .build()
+                )
                 .addField(
-                        DescriptorProtos.FieldDescriptorProto
-                                .newBuilder()
-                                .setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_OPTIONAL)
-                                .setType(DescriptorProtos.FieldDescriptorProto.Type.TYPE_STRING)
-                                .setName("name_space")
-                                .setNumber(20)
-                                .build())
-                .addField(
-                        DescriptorProtos.FieldDescriptorProto
-                                .newBuilder()
-                                .setLabel(DescriptorProtos.FieldDescriptorProto.Label.LABEL_REQUIRED)
-                                .setType(DescriptorProtos.FieldDescriptorProto.Type.TYPE_MESSAGE)
+                        FieldDescriptorProto.newBuilder()
+                                .setLabel(Label.LABEL_REQUIRED)
+                                .setType(Type.TYPE_MESSAGE)
                                 .setTypeName("Path")
                                 .setName("path")
                                 .setNumber(14)
-                                .build())
-                .build();
-
-        return Descriptors.FileDescriptor.buildFrom(DescriptorProtos.FileDescriptorProto.newBuilder()
-                .addMessageType(elementDescriptor)
-                .addMessageType(pathDescriptor)
-                .addMessageType(referenceDescriptor)
-                .build(), new Descriptors.FileDescriptor[]{});
+                                .build()
+                );
     }
 
     public Key parseOldStyleAppEngineKey(final String urlsafeKey) throws InvalidProtocolBufferException {
@@ -165,7 +186,13 @@ public enum KeyFormat {
             fullProjectId = "s~" + fullProjectId;
         }
         keyMessageBuilder.setField(referenceDescriptor.findFieldByName("app"), fullProjectId);
-        keyMessageBuilder.setField(referenceDescriptor.findFieldByName("name_space"), key.getNamespace());
+
+        if (key.getNamespace() != null) {
+            final FieldDescriptor namespaceDescriptor = referenceDescriptor.findFieldByName("name_space");
+            Preconditions.checkArgument(namespaceDescriptor != null, "This key formatter does not know how to handle namespaces");
+            keyMessageBuilder.setField(namespaceDescriptor, key.getNamespace());
+        }
+
         final Descriptors.Descriptor elementDescriptor = keyDescriptor.findMessageTypeByName("Element");
 
         final List<DynamicMessage> elementMessages = new ArrayList<>();

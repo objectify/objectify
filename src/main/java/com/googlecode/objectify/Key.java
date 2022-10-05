@@ -338,7 +338,12 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 * for {@code Key<?>} understands both formats.
 	 */
 	public String toLegacyUrlSafe() {
-		return KeyFormat.INSTANCE.formatOldStyleAppEngineKey(this.raw);
+		// Preserve the exact string format of 6.0.7 and before, if we can
+		if (getNamespace() == null) {
+			return KeyFormat.NAMESPACELESS.formatOldStyleAppEngineKey(this.raw);
+		} else {
+			return KeyFormat.INSTANCE.formatOldStyleAppEngineKey(this.raw);
+		}
 	}
 
 	/**
