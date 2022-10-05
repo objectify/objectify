@@ -14,7 +14,7 @@
 
 	<groupId>com.googlecode.objectify</groupId>
 	<artifactId>objectify</artifactId>
-	<version>6.0.9-SNAPSHOT</version>
+	<version>6.0.9</version>
 
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
@@ -23,7 +23,7 @@
 	<scm>
 		<url>scm:git:https://github.com/objectify/objectify</url>
 		<developerConnection>scm:git:git@github.com:objectify/objectify</developerConnection>
-		<tag>HEAD</tag>
+		<tag>6.0.9</tag>
 	</scm>
 	<licenses>
 		<license>
