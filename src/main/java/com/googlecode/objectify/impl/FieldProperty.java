@@ -85,8 +85,9 @@ public class FieldProperty extends AbstractProperty
 	@Override
 	public Object get(Object pojo) {
 		try {
-			//return this.field.get(pojo);
-			return getter.invoke(pojo);
+			return this.field.get(pojo);
+			// With GraalVM native, the code below will box null into 0 and introduce wrong behavior
+			// return getter.invoke(pojo);
 		}
 		catch (RuntimeException ex) { throw ex; }
 		catch (Throwable ex) { throw new RuntimeException(ex); }
