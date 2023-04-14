@@ -20,7 +20,7 @@ import java.util.concurrent.Future;
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional
  * and nontransactional sessions.</p>
- *
+ * 
  * <ul>
  * <li>Caches negative results as well as positive results.</li>
  * <li>Queries do not affect the cache in any way.</li>
@@ -28,14 +28,14 @@ import java.util.concurrent.Future;
  * <li>This cache has near-transactional integrity.  As long as DeadlineExceededException is not hit, cache should
  * not go out of sync even under heavy contention.</li>
  * </ul>
- *
+ * 
  * <p>Note:  Until Google adds a hook that lets us wrap native Future<?> implementations,
  * you muse install the {@code AsyncCacheFilter} to use this cache asynchronously.  This
  * is not necessary for synchronous use of {@code CachingDatastoreService}, but asynchronous
  * operation requires an extra hook for the end of a request when fired-and-forgotten put()s
  * and delete()s get processed.  <strong>If you use this cache asynchronously, and you do not
  * use the {@code AsyncCacheFilter}, your cache will go out of sync.</strong></p>
- *
+ * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Slf4j
@@ -43,7 +43,7 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 {
 	/** */
 	private final AsyncDatastore raw;
-
+	
 	/** */
 	private final EntityMemcache memcache;
 
