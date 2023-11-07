@@ -7,22 +7,39 @@ import com.google.common.base.Preconditions;
 import com.googlecode.objectify.util.Closeable;
 
 /**
- * Holder of the master ObjectifyFactory and provider of the current thread-local Objectify instance.
- * Call {@code ofy()} at any point to get the current Objectify with the correct transaction context.
+ * <p>Most applications connect to a single datastore. To make your life easy, we offer this
+ * holder for a singleton ObjectifyFactory instance. It's optional; you are free to manage
+ * one or more ObjectifyFactories yourself.</p>
+ *
+ * <p>After you have started a context with {@code begin()} or {@code run()}, you can call
+ * {@code ofy()} to execute queries.</p>
+ *
+ * <p>If you have multiple datastore connections (and thus multiple ObjectifyFactory instances),
+ * you likely will not use this class.</p>
+ *
+ * <p>Note - in the history of Objectify, this class (and the singleton ObjectifyFactory) were
+ * required parts of infrastructure. There are deprecated legacy methods (like {@code Key.create()})
+ * which refer to ObjectifyService. When those methods are removed, ObjectifyService will be
+ * just like any other holder of an ObjectifyFactory.</p>
  * 
  * @author Jeff Schnitzer
  */
-public class ObjectifyService
-{
-	/** */
+public class ObjectifyService {
+	/**
+	 *
+	 */
 	private static ObjectifyFactory factory;
 
-	/** This is a shortcut for {@code ObjectifyService.init(new ObjectifyFactory())}*/
+	/**
+	 * This is a shortcut for {@code ObjectifyService.init(new ObjectifyFactory())}
+	 */
 	public static void init() {
 		init(new ObjectifyFactory());
 	}
 
-	/** */
+	/**
+	 *
+	 */
 	public static void init(final ObjectifyFactory fact) {
 		factory = fact;
 	}
@@ -36,16 +53,19 @@ public class ObjectifyService
 	}
 
 	/**
-	 * A shortcut for {@code factory().register()}
-	 *  
-	 * @see ObjectifyFactory#register(Class) 
+	 * @deprecated use {@code factory().register()} instead.
 	 */
+	@Deprecated
 	public static void register(Class<?> clazz) {
-		factory().register(clazz); 
+		factory().register(clazz);
 	}
 
 	/**
-	 * The method to call at any time to get the current Objectify, which may change depending on txn context
+	 * <p>A shortcut for {@code factory().ofy()}, this is your main start point for executing Objectify operations.
+	 * It returns the current Objectify instance for the singleton factory held by ObjectifyService.</p>
+	 *
+	 * <p>Note that the current instance is not thread-safe and may change as you enter and exit transactions. We do not
+	 * recommend that you keep this value in a local variable.</p>
 	 */
 	public static Objectify ofy() {
 		return factory().ofy();
@@ -78,5 +98,41 @@ public class ObjectifyService
 	 */
 	public static Closeable begin() {
 		return factory().open();
+	}
+
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final Class<? extends T> kindClass, final long id) {
+		return factory().key(kindClass, id);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final Class<? extends T> kindClass, final String name) {
+		return factory().key(kindClass, name);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
+		return factory().key(parent, kindClass, id);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
+		return factory().key(parent, kindClass, name);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final String namespace, final Class<? extends T> kindClass, final long id) {
+		return factory().key(namespace, kindClass, id);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final String namespace, final Class<? extends T> kindClass, final String name) {
+		return factory().key(namespace, kindClass, name);
+	}
+
+	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
+	public static <T> Key<T> key(final T pojo) {
+		return factory().key(pojo);
 	}
 }

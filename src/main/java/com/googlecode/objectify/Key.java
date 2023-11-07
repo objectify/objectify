@@ -1,6 +1,5 @@
 package com.googlecode.objectify;
 
-import com.google.cloud.datastore.KeyFactory;
 import com.google.cloud.datastore.PathElement;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.impl.Keys;
@@ -22,7 +21,12 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 {
 	private static final long serialVersionUID = -262390393952444121L;
 
-	/** Create an Objectify key from the native datastore key */
+	/**
+	 * <p>Create an Objectify key from the native datastore key.</p>
+	 *
+	 * <p>This does not require a specific datastore connection
+	 * so it can be a static method.</p>
+	 */
 	public static <T> Key<T> create(final com.google.cloud.datastore.Key raw) {
 		if (raw == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null datastore Key");
@@ -30,42 +34,18 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return new Key<>(raw);
 	}
 
-	/** Create an Objectify key from a type and numeric id */
-	public static <T> Key<T> create(final Class<? extends T> kindClass, final long id) {
-		return new Key<>(kindClass, id);
-	}
-
-	/** Create an Objectify key from a type and string id */
-	public static <T> Key<T> create(final Class<? extends T> kindClass, final String name) {
-		return new Key<>(kindClass, name);
-	}
-
-	/** Create an Objectify key from a parent, type, and numeric id */
-	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
-		return new Key<>(parent, kindClass, id);
-	}
-
-	/** Create an Objectify key from a parent, type, and string id */
-	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
-		return new Key<>(parent, kindClass, name);
-	}
-
-	/** Create an Objectify key from a namespace, type, and numeric id */
-	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final long id) {
-		return new Key<>(namespace, kindClass, id);
-	}
-
-	/** Create an Objectify key from a namespace, type, and string id */
-	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final String name) {
-		return new Key<>(namespace, kindClass, name);
-	}
-
-	/** Create an Objectify key from a web safe string. Understands both 'modern' and 'legacy' GAE formats. */
+	/**
+	 * <p>Create an Objectify key from a web safe string. Understands both 'modern' (Cloud SDK) and 'legacy' GAE formats
+	 * (which always start with 'a'). These can be generated with toUrlSafeString() and toLegacyUrlSafeString(), respectively.</p>
+	 *
+	 * <p>This does not require a specific datastore connection
+	 * so it can be a static method.</p>
+	 */
 	public static <T> Key<T> create(final String urlSafeString) {
 		if (urlSafeString == null)
 			throw new NullPointerException("Cannot create a Key<?> from a null String");
 
-		return new Key<>(urlSafeString);
+		return new Key<>(Keys.fromUrlSafe(urlSafeString));
 	}
 
 	/** This is an alias for Key.create(String). Helps with JAX-RS compliance. */
@@ -73,88 +53,89 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		return Key.create(webSafeString);
 	}
 
-	/** Create a key from a registered POJO entity. */
+	/**
+	 * A shortcut for {@code ObjectifyService.key(kindClass, id)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final Class<? extends T> kindClass, final long id) {
+		return ObjectifyService.key(kindClass, id);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(kindClass, id)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final Class<? extends T> kindClass, final String name) {
+		return ObjectifyService.key(kindClass, name);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(parent, kindClass, id)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
+		return ObjectifyService.key(parent, kindClass, id);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(parent, kindClass, name)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
+		return ObjectifyService.key(parent, kindClass, name);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(namespace, kindClass, id)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final long id) {
+		return ObjectifyService.key(namespace, kindClass, id);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(namespace, kindClass, name)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Key<T> create(final String namespace, final Class<? extends T> kindClass, final String name) {
+		return ObjectifyService.key(namespace, kindClass, name);
+	}
+
+	/**
+	 * A shortcut for {@code ObjectifyService.key(pojo)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
 	public static <T> Key<T> create(final T pojo) {
-		return ObjectifyService.factory().keys().keyOf(pojo, null);
+		return ObjectifyService.key(pojo);
 	}
 
 	/** */
 	protected final com.google.cloud.datastore.Key raw;
 
-	/** Cache the instance of the parent wrapper to avoid unnecessary garbage */
-	transient protected Key<?> parent;
-
 	/** Wrap a raw Key */
-	private Key(final com.google.cloud.datastore.Key raw) {
+	Key(final com.google.cloud.datastore.Key raw) {
 		this.raw = raw;
-		this.parent = null;
-	}
-
-	/** Create a key with a long id */
-	private Key(final Class<? extends T> kindClass, final long id) {
-		this((String)null, kindClass, id);
-	}
-
-	/** Create a key with a String name */
-	private Key(final Class<? extends T> kindClass, final String name) {
-		this((String)null, kindClass, name);
-	}
-
-	/** Create a key with a parent and a long id */
-	private Key(final Key<?> parent, final Class<? extends T> kindClass, final long id) {
-		final String kind = getKind(kindClass);
-
-		if (parent == null) {
-			final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), null);
-			this.raw = kf.newKey(id);
-		} else {
-			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, id).build();
-		}
-
-		this.parent = parent;
-	}
-
-	/** Create a key with a parent and a String name */
-	private Key(final Key<?> parent, final Class<? extends T> kindClass, final String name) {
-		final String kind = getKind(kindClass);
-
-		if (parent == null) {
-			final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), null);
-			this.raw = kf.newKey(name);
-		} else {
-			this.raw = com.google.cloud.datastore.Key.newBuilder(key(parent), kind, name).build();
-		}
-
-		this.parent = parent;
-	}
-
-	/** Create a key with a namespace and a long id */
-	private Key(final String namespace, final Class<? extends T> kindClass, final long id) {
-		final String kind = getKind(kindClass);
-
-		final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), namespace);
-		this.raw = kf.newKey(id);
-	}
-
-	/** Create a key with a namespace and a String name */
-	private Key(final String namespace, final Class<? extends T> kindClass, final String name) {
-		final String kind = getKind(kindClass);
-
-		final KeyFactory kf = Keys.adjustNamespace(newKeyFactory().setKind(kind), namespace);
-		this.raw = kf.newKey(name);
-	}
-
-	/**
-	 * Reconstitute a Key from a web safe string. Understands the current (Cloud SDK) format and the legacy
-	 * format (always starts with 'a'). These can be generated with toUrlSafeString() and toLegacyUrlSafeString().
-	 */
-	private Key(final String urlSafe) {
-		this(Keys.fromUrlSafe(urlSafe));
-	}
-
-	/** Obtain it from the global ObjectifyFactory */
-	private KeyFactory newKeyFactory() {
-		return ObjectifyService.factory().datastore().newKeyFactory();
 	}
 
 	/**
@@ -198,10 +179,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 */
 	@SuppressWarnings("unchecked")
 	public <V> Key<V> getParent() {
-		if (this.parent == null && this.raw.getParent() != null)
-			this.parent = new Key<V>(this.raw.getParent());
-
-		return (Key<V>)this.parent;
+		return new Key<>(this.raw.getParent());
 	}
 
 	/**
@@ -398,7 +376,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 		// @Entity is inherited so we have to be explicit about the declared annotations
 		final Entity ourAnn = TypeUtils.getDeclaredAnnotation(clazz, Entity.class);
 		if (ourAnn != null)
-			if (ourAnn.name().length() != 0)
+			if (!ourAnn.name().isEmpty())
 				return ourAnn.name();
 			else
 				return clazz.getSimpleName();
