@@ -131,7 +131,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	}
 
 	/** */
-	protected final com.google.cloud.datastore.Key raw;
+	private final com.google.cloud.datastore.Key raw;
 
 	/** Wrap a raw Key */
 	Key(final com.google.cloud.datastore.Key raw) {
@@ -179,7 +179,7 @@ public class Key<T> implements Serializable, Comparable<Key<?>>
 	 */
 	@SuppressWarnings("unchecked")
 	public <V> Key<V> getParent() {
-		return new Key<>(this.raw.getParent());
+		return this.raw.getParent() == null ? null : new Key<>(this.raw.getParent());
 	}
 
 	/**

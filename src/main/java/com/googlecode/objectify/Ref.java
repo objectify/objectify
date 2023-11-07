@@ -1,9 +1,5 @@
 package com.googlecode.objectify;
 
-import com.googlecode.objectify.impl.ref.LiveRef;
-
-import java.io.Serializable;
-
 
 /**
  * <p>Ref<?> is a Key<?> which allows the entity value to be fetched directly.</p>
@@ -14,38 +10,48 @@ import java.io.Serializable;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
+public class Ref<T> implements Comparable<Ref<T>>
 {
-	private static final long serialVersionUID = 1L;
-
-	/** Key.create(Blah.class, id) is easier to type than new Key<Blah>(Blah.class, id) */
-	public static <T> Ref<T> create(Key<T> key) {
-		if (key == null)
-			throw new NullPointerException("Cannot create a Ref from a null key");
-
-		return new LiveRef<>(key);
+	/**
+	 * A shortcut for {@code ObjectifyService.ref(key)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Ref<T> create(final Key<T> key) {
+		return ObjectifyService.ref(key);
 	}
 
-	/** Creates a Ref from a registered pojo entity */
-	public static <T> Ref<T> create(T value) {
-		Key<T> key = Key.create(value);
-		return create(key);
+	/**
+	 * A shortcut for {@code ObjectifyService.ref(value)}.
+	 *
+	 * @deprecated use the ObjectifyService method, or the relevant method on the appropriate ObjectifyFactory.
+	 * This method will be removed in a future version of Objectify.
+	 */
+	@Deprecated
+	public static <T> Ref<T> create(final T value) {
+		return ObjectifyService.ref(value);
 	}
 
 	/** The key associated with this ref */
-	protected Key<T> key;
+	private final Key<T> key;
 
-	/** For GWT serialization */
-	protected Ref() {}
+	/** The factory associated with this ref */
+	private final ObjectifyFactory factory;
 
 	/**
-	 * Create a Ref based on the key, with the specified session
+	 * Create a Ref based on the key, with the specified factory
 	 */
-	protected Ref(Key<T> key) {
+	Ref(final Key<T> key, final ObjectifyFactory factory) {
 		if (key == null)
 			throw new NullPointerException("Cannot create a Ref for a null key");
 
+		if (factory == null)
+			throw new NullPointerException("Cannot create a Ref with a null factory");
+
 		this.key = key;
+		this.factory = factory;
 	}
 
 	/**
@@ -61,7 +67,9 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 *
 	 * @return the entity referenced, or null if the entity was not found
 	 */
-	abstract public T get();
+	public T get() {
+		return factory.ofy().load().now(key());
+	}
 
 	/**
 	 * If an entity has been loaded into the session or is otherwise available, this will return true.
@@ -71,7 +79,9 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 	 * @return true if the value is in the session or otherwise immediately available; false if get() will
 	 * require a trip to the datastore or memcache.
 	 */
-	abstract public boolean isLoaded();
+	public boolean isLoaded() {
+		return factory.ofy().isLoaded(key());
+	}
 
 	/**
 	 * This method exists to facilitate serialization via javabeans conventions. Unlike get(),
@@ -107,23 +117,23 @@ abstract public class Ref<T> implements Serializable, Comparable<Ref<T>>
 
 	/** Comparison is based on key */
 	@Override
-	public int compareTo(Ref<T> o) {
+	public int compareTo(final Ref<T> o) {
 		return this.key().compareTo(o.key());
 	}
 
 	/** Equality comparison is based on key equivalence */
 	@Override
-	public boolean equals(Object obj) {
-		return obj != null && obj instanceof Ref && key().equals(((Ref<?>)obj).key());
+	public boolean equals(final Object obj) {
+		return obj instanceof Ref && key().equals(((Ref<?>) obj).key());
 	}
 
 	/** Type-safe comparison for key equivalence */
-	public boolean equivalent(Ref<T> other) {
+	public boolean equivalent(final Ref<T> other) {
 		return equals(other);
 	}
 
 	/** Type safe comparison for key equivalence */
-	public boolean equivalent(Key<T> other) {
+	public boolean equivalent(final Key<T> other) {
 		return key().equivalent(other);
 	}
 

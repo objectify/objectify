@@ -21,6 +21,7 @@ import com.googlecode.objectify.impl.Registrar;
 import com.googlecode.objectify.impl.Transactor;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
+import com.googlecode.objectify.util.Closeable;
 import net.spy.memcached.MemcachedClient;
 
 import java.lang.reflect.Constructor;
@@ -317,6 +318,31 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
+	 * <p>Runs one unit of work, making the root Objectify context available and performing all necessary
+	 * housekeeping. Either this method or {@code begin()} must be called before {@code ofy()} can be called.</p>
+	 *
+	 * <p>Does not start a transaction. If you want a transaction, call {@code ofy().transact()}.</p>
+	 *
+	 * @return the result of the work.
+	 */
+	public <R> R run(final Work<R> work) {
+		try (Closeable closeable = begin()) {
+			return work.run();
+		}
+	}
+
+	/**
+	 * <p>An alternative to run() which is somewhat easier to use with testing (ie, @Before and @After) frameworks.
+	 * You must close the return value at the end of the request in a finally block.</p>
+	 *
+	 * <p>This method is not typically necessary - in a normal request, the ObjectifyFilter takes care of this housekeeping
+	 * for you. However, in unit tests or remote API calls it can be useful.</p>
+	 */
+	public Closeable begin() {
+		return this.open();
+	}
+
+	/**
 	 * The method to call at any time to get the current Objectify, which may change depending on txn context. This
 	 * is the start point for queries and data manipulation.
 	 */
@@ -324,31 +350,29 @@ public class ObjectifyFactory implements Forge
 		final Deque<Objectify> stack = stacks.get();
 
 		if (stack.isEmpty())
-			throw new IllegalStateException("You have not started an Objectify context. You are probably missing the " +
-					"ObjectifyFilter. If you are not running in the context of an http request, see the " +
-					"ObjectifyService.run() method.");
+			throw new IllegalStateException("You have not started an Objectify context. You are missing " +
+					"a call to run() or you do not have the ObjectifyFilter installed.");
 
 		return stack.getLast();
 	}
 
 	/**
-	 * <p>Start a scope of work. This is the outermost scope of work, typically created by the ObjectifyFilter
-	 * or by one of the methods on ObjectifyService. You need one of these to do anything at all.</p>
+	 * <p>This will be removed from the public API in the future.</p>
 	 */
-	public ObjectifyImpl open() {
+	private ObjectifyImpl open() {
 		final ObjectifyImpl objectify = new ObjectifyImpl(this);
 		stacks.get().add(objectify);
 		return objectify;
 	}
 
-	/** This is only public because it is used from the impl package; don't use this as a public API */
+	/** This is for internal housekeeping and is not part of the public API */
 	public ObjectifyImpl open(final ObjectifyOptions opts, final Transactor transactor) {
 		final ObjectifyImpl objectify = new ObjectifyImpl(this, opts, transactor);
 		stacks.get().add(objectify);
 		return objectify;
 	}
 
-	/** Pops context off of stack after a transaction completes. For internal housekeeping only. */
+	/** This is for internal housekeeping and is not part of the public API */
 	public void close(final Objectify ofy) {
 		final Deque<Objectify> stack = stacks.get();
 		if (stack.isEmpty())
@@ -481,5 +505,15 @@ public class ObjectifyFactory implements Forge
 	/** Create a key from a registered POJO entity. */
 	public <T> Key<T> key(final T pojo) {
 		return keys().keyOf(pojo, null);
+	}
+
+	/** Create a Ref from an existing key */
+	public <T> Ref<T> ref(final Key<T> key) {
+		return new Ref<>(key, this);
+	}
+
+	/** Creates a Ref from a registered pojo entity */
+	public <T> Ref<T> ref(final T value) {
+		return ref(key(value));
 	}
 }

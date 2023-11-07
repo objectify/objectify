@@ -97,7 +97,7 @@ public class ObjectifyService {
 	 * for you. However, in unit tests or remote API calls it can be useful.</p>
 	 */
 	public static Closeable begin() {
-		return factory().open();
+		return factory().begin();
 	}
 
 
@@ -134,5 +134,15 @@ public class ObjectifyService {
 	/** Shortcut for the equivalent {@code factory().key()} method, convenient as a static import. */
 	public static <T> Key<T> key(final T pojo) {
 		return factory().key(pojo);
+	}
+
+	/** Shortcut for the equivalent {@code factory().ref()} method, convenient as a static import. */
+	public static <T> Ref<T> ref(final Key<T> key) {
+		return factory().ref(key);
+	}
+
+	/** Shortcut for the equivalent {@code factory().ref()} method, convenient as a static import. */
+	public static <T> Ref<T> ref(final T value) {
+		return factory().ref(value);
 	}
 }

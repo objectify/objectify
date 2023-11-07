@@ -7,7 +7,6 @@ import com.google.common.collect.ImmutableSet;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.Result;
-import com.googlecode.objectify.impl.ref.LiveRef;
 import com.googlecode.objectify.impl.translate.LoadContext;
 import com.googlecode.objectify.util.ResultCache;
 import lombok.Getter;
@@ -109,7 +108,7 @@ public class LoadEngine
 	 * @param rootEntity is the entity key which holds this property (possibly through some level of embedded objects)
 	 */
 	public <T> Ref<T> makeRef(final Key<?> rootEntity, final LoadConditions loadConditions, final Key<T> key) {
-		final Ref<T> ref = new LiveRef<>(key, ofy);
+		final Ref<T> ref = this.ofy.factory.ref(key);
 
 		if (shouldLoad(loadConditions)) {
 			load(key);

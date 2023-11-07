@@ -7,6 +7,7 @@ import com.googlecode.objectify.Result;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,10 +29,10 @@ public class Deferrer {
 		private final ObjectifyOptions options;
 	}
 
-	@Data
+	@Value
 	@EqualsAndHashCode(callSuper = true, doNotUseGetters = true)
 	private static class DeleteOperation extends Operation {
-		private final Key<?> key;
+		Key<?> key;
 
 		public DeleteOperation(final ObjectifyOptions options, final Key<?> key) {
 			super(options);
@@ -39,10 +40,10 @@ public class Deferrer {
 		}
 	}
 
-	@Data
+	@Value
 	@EqualsAndHashCode(callSuper = true, doNotUseGetters = true)
 	private static class SaveOperation extends Operation {
-		private final Object entity;
+		Object entity;
 
 		public SaveOperation(final ObjectifyOptions options, final Object entity) {
 			super(options);

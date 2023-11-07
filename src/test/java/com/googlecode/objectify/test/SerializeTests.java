@@ -7,6 +7,7 @@ import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.test.util.TestBase;
+import com.googlecode.objectify.util.Closeable;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 
@@ -101,12 +102,10 @@ class SerializeTests extends TestBase {
 		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore(), memcache());
 		fact2.register(HasSerialize.class);
 
-		final ObjectifyImpl ofy2 = fact2.open();
-
-		final HasSerialize fetched = ofy2.load().type(HasSerialize.class).id(hs.id).now();
-		assertThat(fetched.numbers).isEqualTo(hs.numbers);
-
-		ofy2.close();
+		try (final Closeable session = fact2.begin()) {
+			final HasSerialize fetched = fact2.ofy().load().type(HasSerialize.class).id(hs.id).now();
+			assertThat(fetched.numbers).isEqualTo(hs.numbers);
+		}
 	}
 
 	@Test
@@ -123,10 +122,9 @@ class SerializeTests extends TestBase {
 		final ObjectifyFactory fact2 = new ObjectifyFactory(datastore(), memcache());
 		fact2.register(HasSerializeZip.class);
 
-		final ObjectifyImpl ofy2 = fact2.open();
-		final HasSerializeZip fetched = ofy2.load().type(HasSerializeZip.class).id(hs.id).now();
-		assertThat(fetched.numbers).isEqualTo(hs.numbers);
-
-		ofy2.close();
+		try (final Closeable session = fact2.begin()) {
+			final HasSerializeZip fetched = fact2.ofy().load().type(HasSerializeZip.class).id(hs.id).now();
+			assertThat(fetched.numbers).isEqualTo(hs.numbers);
+		}
 	}
 }
