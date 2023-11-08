@@ -2,10 +2,14 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.DatastoreException;
 import com.google.common.base.Preconditions;
+import com.google.protobuf.ByteString;
 import com.google.rpc.Code;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+
+import java.util.concurrent.atomic.AtomicReference;
+
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -90,9 +94,10 @@ class TransactorNo extends Transactor
 		Preconditions.checkArgument(limitTries >= 1);
 		final int ORIGINAL_TRIES = limitTries;
 
+		AtomicReference<ByteString> prevTxnHandle = new AtomicReference<>();
 		while (true) {
 			try {
-				return transactOnce(parent, work);
+				return transactOnce(parent, work, prevTxnHandle);
 			} catch (DatastoreException ex) {
 
 				// This doesn't work because the SDK considers all transactions to be non-retryable. Objectify has always
@@ -131,8 +136,10 @@ class TransactorNo extends Transactor
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work) {
-		final ObjectifyImpl txnOfy = parent.factory().open(parent.getOptions(), new TransactorYes(parent.factory(), parent.getOptions().isCache(), this));
+	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work, final AtomicReference<ByteString> prevTxnHandle) {
+		final ObjectifyImpl txnOfy = parent.factory().open(parent.getOptions(), new TransactorYes(parent.factory(), parent.getOptions().isCache(), this,
+			prevTxnHandle.get()));
+		prevTxnHandle.set(txnOfy.getTransaction().getTransactionHandle());
 
 		boolean committedSuccessfully = false;
 		boolean finishedInExceptionBlock = false;
