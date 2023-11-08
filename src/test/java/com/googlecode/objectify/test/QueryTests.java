@@ -211,9 +211,29 @@ class QueryTests extends TestBase {
 	 */
 	@Test
 	@Disabled
-	void countWorks() throws Exception {
-		final int count = ofy().load().type(Trivial.class).count();
+	void aggregateCount() throws Exception {
+		final long count = ofy().load().type(Trivial.class).count();
 		assertThat(count).isEqualTo(2);
+	}
+
+	/**
+	 * TODO: re-enable when EMULATOR supports aggregation queries
+	 */
+	@Test
+	@Disabled
+	void aggregateSum() throws Exception {
+		final double value = ofy().load().type(Trivial.class).sum("someNumber");
+		assertThat((int)value).isEqualTo(3);
+	}
+
+	/**
+	 * TODO: re-enable when EMULATOR supports aggregation queries
+	 */
+	@Test
+	@Disabled
+	void aggregateAvg() throws Exception {
+		final double value = ofy().load().type(Trivial.class).avg("someNumber");
+		assertThat(value).isEqualTo(1.5);
 	}
 
 	/** */

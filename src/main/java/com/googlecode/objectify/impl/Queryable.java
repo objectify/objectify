@@ -1,6 +1,9 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.AggregationResult;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.aggregation.Aggregation;
+import com.google.cloud.datastore.aggregation.AggregationBuilder;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.QueryResultIterable;
 
@@ -40,9 +43,15 @@ abstract class Queryable<T> extends SimpleQueryImpl<T>
 	}
 
 	@Override
-	public int count() {
+	public AggregationResult aggregate(final Aggregation... aggregations) {
 		final QueryImpl<T> q = createQuery();
-		return q.count();
+		return q.aggregate(aggregations);
+	}
+
+	@Override
+	public AggregationResult aggregate(final AggregationBuilder<?>... aggregations) {
+		final QueryImpl<T> q = createQuery();
+		return q.aggregate(aggregations);
 	}
 
 	@Override

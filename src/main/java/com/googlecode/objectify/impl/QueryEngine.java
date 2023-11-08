@@ -10,6 +10,8 @@ import com.google.cloud.datastore.ProjectionEntityQuery;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery;
+import com.google.cloud.datastore.aggregation.Aggregation;
+import com.google.cloud.datastore.aggregation.AggregationBuilder;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import lombok.RequiredArgsConstructor;
@@ -84,20 +86,34 @@ public class QueryEngine
 	}
 
 	/**
-	 * Run a count() aggregation query.
+	 * Run an arbitrary aggregation query.
 	 */
 	@SneakyThrows
-	public int queryCount(final StructuredQuery<?> query) {
-		log.trace("Starting count query");
+	public AggregationResult queryAggregations(final StructuredQuery<?> query, final Aggregation... aggregations) {
+		log.trace("Starting aggregation query");
 
 		final AggregationQuery aggQuery = Query.newAggregationQueryBuilder()
 				.over(query)
-				.addAggregation(count().as("count"))
+				.addAggregations(aggregations)
 				.build();
 
 		final AggregationResults results = ds.runAggregation(aggQuery).get();
-		final AggregationResult result = Iterables.getOnlyElement(results);
-		final Long value = result.getLong("count");
-		return value.intValue();
+		return Iterables.getOnlyElement(results);
+	}
+
+	/**
+	 * Run an arbitrary aggregation query.
+	 */
+	@SneakyThrows
+	public AggregationResult queryAggregations(final StructuredQuery<?> query, final AggregationBuilder<?>... aggregations) {
+		log.trace("Starting aggregation query");
+
+		final AggregationQuery aggQuery = Query.newAggregationQueryBuilder()
+				.over(query)
+				.addAggregations(aggregations)
+				.build();
+
+		final AggregationResults results = ds.runAggregation(aggQuery).get();
+		return Iterables.getOnlyElement(results);
 	}
 }

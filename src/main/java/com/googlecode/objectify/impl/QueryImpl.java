@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.AggregationResult;
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.KeyQuery;
 import com.google.cloud.datastore.QueryResults;
@@ -8,6 +9,8 @@ import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
 import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.aggregation.Aggregation;
+import com.google.cloud.datastore.aggregation.AggregationBuilder;
 import com.google.common.base.MoreObjects;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
@@ -295,12 +298,14 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return new LoadResult<>(null, new IteratorFirstResult<>(it));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Query#count()
-	 */
 	@Override
-	public int count() {
-		return loader.createQueryEngine().queryCount(this.actual.newKeyQuery());
+	public AggregationResult aggregate(final Aggregation... aggregations) {
+		return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
+	}
+
+	@Override
+	public AggregationResult aggregate(final AggregationBuilder<?>... aggregations) {
+		return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
 	}
 
 	/* (non-Javadoc)
