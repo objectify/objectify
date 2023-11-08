@@ -135,27 +135,41 @@ class TransactorNo extends Transactor
 		final ObjectifyImpl txnOfy = parent.factory().open(parent.getOptions(), new TransactorYes(parent.factory(), parent.getOptions().isCache(), this));
 
 		boolean committedSuccessfully = false;
+		boolean finishedInExceptionBlock = false;
 		try {
 			final R result = work.run();
 			txnOfy.flush();
 			txnOfy.getTransaction().commit();
 			committedSuccessfully = true;
 			return result;
+		} catch (Throwable ex) {
+			try {
+				finishTransaction(txnOfy, committedSuccessfully);
+			} catch (DatastoreException dsEx) {
+				ex.addSuppressed(dsEx);
+			}
+			finishedInExceptionBlock = true;
+			throw ex;
+		} finally {
+			if (!finishedInExceptionBlock) {
+				finishTransaction(txnOfy, committedSuccessfully);
+			}
 		}
-		finally {
-			if (txnOfy.getTransaction().isActive()) {
-				try {
-					txnOfy.getTransaction().rollback();
-				} catch (RuntimeException ex) {
-					log.error("Rollback failed, suppressing error", ex);
-				}
-			}
+	}
 
-			txnOfy.close();
-
-			if (committedSuccessfully) {
-				((PrivateAsyncTransaction)txnOfy.getTransaction()).runCommitListeners();
+	private static void finishTransaction(ObjectifyImpl txnOfy, boolean committedSuccessfully) {
+		if (txnOfy.getTransaction().isActive()) {
+			try {
+				txnOfy.getTransaction().rollback();
+			} catch (RuntimeException ex) {
+				log.error("Rollback failed, suppressing error", ex);
 			}
+		}
+
+		txnOfy.close();
+
+		if (committedSuccessfully) {
+			((PrivateAsyncTransaction) txnOfy.getTransaction()).runCommitListeners();
 		}
 	}
 }
