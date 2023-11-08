@@ -7,6 +7,7 @@ import com.googlecode.objectify.Key;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ import static com.googlecode.objectify.cmd.Filter.greaterThan;
 import static com.googlecode.objectify.cmd.Filter.greaterThanOrEqualTo;
 import static com.googlecode.objectify.cmd.Filter.lessThan;
 import static com.googlecode.objectify.cmd.Filter.lessThanOrEqualTo;
+import static com.googlecode.objectify.cmd.Filter.or;
 
 /**
  * Exercise the Filter class.
@@ -89,16 +91,20 @@ class QueryComplexFilterTests extends TestBase {
 		assertThat(list).containsExactly(triv2);
 	}
 
-//	/** This doesn't work yet, need support in the low level API */
-//	@Test
-//	@Disabled
-//	void compositeOrConditions() throws Exception {
-//		final List<Trivial> list = ofy().load().type(Trivial.class).filter(
-//				or(
-//						greaterThan("someString", "foo2"),
-//						lessThan("someString", "foo2")
-//				)
-//		).list();
-//		assertThat(list).containsExactly(triv1, triv3);
-//	}
+	/**
+	 * The datastore emulator gives us "unsupported composite property operator", so the test is disabled.
+	 * But this is part of the google library's API; it should work in production.
+	 * Last checked with google-cloud-datastore:2.17.5
+	 */
+	@Test
+	@Disabled
+	void compositeOrConditions() throws Exception {
+		final List<Trivial> list = ofy().load().type(Trivial.class).filter(
+				or(
+						greaterThan("someString", "foo2"),
+						lessThan("someString", "foo2")
+				)
+		).list();
+		assertThat(list).containsExactly(triv1, triv3);
+	}
 }

@@ -75,13 +75,12 @@ abstract public class Filter {
 		return new NotInFilter(property, value);
 	}
 
-	// TODO: enable this when the low level API supports OR
-//	/**
-//	 * Combine an arbitrary list of filter conditions. They can be nested.
-//	 */
-//	public static Filter or(final Filter... filters) {
-//		return new OrFilter(filters);
-//	}
+	/**
+	 * Combine an arbitrary list of filter conditions. They can be nested.
+	 */
+	public static Filter or(final Filter... filters) {
+		return new OrFilter(filters);
+	}
 
 	/**
 	 * Combine an arbitrary list of filter conditions. They can be nested.
@@ -261,8 +260,7 @@ abstract public class Filter {
 				rest[i - 1] = getFilters()[i].convert(ofyImpl);
 			}
 
-			//return StructuredQuery.CompositeFilter.or(first, rest);
-			throw new UnsupportedOperationException("OR is not yet available in the low-level API. Coming soon.");
+			return StructuredQuery.CompositeFilter.or(first, rest);
 		}
 	}
 }
