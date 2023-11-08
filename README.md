@@ -32,12 +32,13 @@ Objectify is a Java data access API specifically designed for the Google Cloud D
 
 Full documentation is available in the [Objectify Wiki](https://github.com/objectify/objectify/wiki).
 
-## Downloads
-
-Objectify is released to the [Maven Central Repository](https://github.com/objectify/objectify/wiki/MavenRepository)
-and can be downloaded directly from there.
 
 ## Help
 
 Help is provided in the
 [Objectify App Engine User Group](https://groups.google.com/forum/?fromgroups#!forum/objectify-appengine)
+
+## Running tests
+
+You need memcached for most of the tests, running `docker-compose up` in the `./memcached-docker` folder before running
+tests (like you do with postges for the monolith) will work. 
