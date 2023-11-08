@@ -1,14 +1,22 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.AggregationQuery;
+import com.google.cloud.datastore.AggregationResult;
+import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.EntityQuery;
 import com.google.cloud.datastore.KeyQuery;
 import com.google.cloud.datastore.ProjectionEntityQuery;
+import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
-import com.google.common.collect.Iterators;
+import com.google.cloud.datastore.StructuredQuery;
+import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import static com.google.cloud.datastore.aggregation.Aggregation.count;
 
 /**
  * Logic for dealing with queries.
@@ -76,13 +84,20 @@ public class QueryEngine
 	}
 
 	/**
-	 * The fundamental query count operation. This doesn't appear to be implemented in the new SDK, so we simulate
-	 * with a keys-only query.
+	 * Run a count() aggregation query.
 	 */
-	public int queryCount(final KeyQuery query) {
+	@SneakyThrows
+	public int queryCount(final StructuredQuery<?> query) {
 		log.trace("Starting count query");
 
-		final QueryResults<com.google.cloud.datastore.Key> results = ds.run(query);
-		return Iterators.size(results);
+		final AggregationQuery aggQuery = Query.newAggregationQueryBuilder()
+				.over(query)
+				.addAggregation(count().as("count"))
+				.build();
+
+		final AggregationResults results = ds.runAggregation(aggQuery).get();
+		final AggregationResult result = Iterables.getOnlyElement(results);
+		final Long value = result.getLong("count");
+		return value.intValue();
 	}
 }

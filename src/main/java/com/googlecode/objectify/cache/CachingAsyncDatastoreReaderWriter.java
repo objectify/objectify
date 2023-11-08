@@ -1,5 +1,7 @@
 package com.googlecode.objectify.cache;
 
+import com.google.cloud.datastore.AggregationQuery;
+import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
@@ -113,6 +115,11 @@ abstract public class CachingAsyncDatastoreReaderWriter implements AsyncDatastor
 		};
 
 		return future;
+	}
+
+	@Override
+	public Future<AggregationResults> runAggregation(final AggregationQuery query) {
+		return this.raw.runAggregation(query);
 	}
 }
 

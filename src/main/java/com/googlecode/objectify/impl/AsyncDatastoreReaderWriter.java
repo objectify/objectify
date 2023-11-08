@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.AggregationQuery;
+import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
@@ -35,4 +37,5 @@ public interface AsyncDatastoreReaderWriter {
 		return put(Arrays.asList(entities));
 	}
 
+	Future<AggregationResults> runAggregation(final AggregationQuery query);
 }

@@ -1,5 +1,7 @@
 package com.googlecode.objectify.impl;
 
+import com.google.cloud.datastore.AggregationQuery;
+import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.Datastore;
 import com.google.cloud.datastore.DatastoreReaderWriter;
 import com.google.cloud.datastore.Entity;
@@ -83,5 +85,11 @@ public class AsyncDatastoreReaderWriterImpl implements AsyncDatastoreReaderWrite
 		}
 
 		return new FutureNow<>(result);
+	}
+
+	@Override
+	public Future<AggregationResults> runAggregation(final AggregationQuery query) {
+		final AggregationResults results = datastoreReaderWriter.runAggregation(query);
+		return new FutureNow<>(results);
 	}
 }

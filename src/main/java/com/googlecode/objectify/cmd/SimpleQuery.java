@@ -209,14 +209,8 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	QueryKeys<T> keys();
 
 	/**
-	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.
-	 * This is somewhat faster than fetching, but the time still grows with the number of results.
-	 * The datastore actually walks through the result set and counts for you.</p>
-	 *
-	 * <p>Immediately executes the query; there is no async version of this method.</p>
-	 *
-	 * <p>WARNING:  Each counted entity is billed as a "datastore minor operation".  Even though these
-	 * are free, they may take significant time because they require an index walk.</p>
+	 * <p>Count the total number of values in the result.  <em>limit</em> and <em>offset</em> are obeyed.</p>
+	 * <p>Runs a server-side aggregation query.</p>
 	 */
 	int count();
 

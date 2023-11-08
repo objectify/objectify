@@ -95,6 +95,7 @@ class QueryComplexFilterTests extends TestBase {
 	 * The datastore emulator gives us "unsupported composite property operator", so the test is disabled.
 	 * But this is part of the google library's API; it should work in production.
 	 * Last checked with google-cloud-datastore:2.17.5
+	 * TODO: re-enable when EMULATOR supports 'or'
 	 */
 	@Test
 	@Disabled
