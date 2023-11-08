@@ -14,7 +14,7 @@
 
 	<groupId>nct.forks.objectify</groupId>
 	<artifactId>objectify</artifactId>
-	<version>6.0.10-SNAPSHOT</version>
+	<version>6.0.10</version>
 
 	<name>Objectify App Engine</name>
 	<description>The simplest convenient interface to the Google App Engine datastore</description>
@@ -23,7 +23,7 @@
 	<scm>
 		<url>scm:git:https://github.com/UpsideRealty/objectify</url>
 		<developerConnection>scm:git:git@github.com:UpsideRealty/objectify.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>objectify-6.0.10</tag>
 	</scm>
 	<licenses>
 		<license>
