@@ -21,8 +21,8 @@
 	<packaging>jar</packaging>
 	<url>https://github.com/objectify/objectify</url>
 	<scm>
-		<url>scm:git:https://github.com/objectify/objectify</url>
-		<developerConnection>scm:git:git@github.com:objectify/objectify</developerConnection>
+		<url>scm:git:https://github.com/UpsideRealty/objectify</url>
+		<developerConnection>scm:git:git@github.com:UpsideRealty/objectify.git</developerConnection>
 		<tag>HEAD</tag>
 	</scm>
 	<licenses>
