@@ -1,5 +1,6 @@
 package com.googlecode.objectify.cmd;
 
+import com.google.cloud.Timestamp;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.ReadOption;
 import com.googlecode.objectify.Key;
@@ -7,8 +8,11 @@ import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.Ref;
 
+import java.time.Instant;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -48,6 +52,22 @@ public interface Loader extends SimpleQuery<Object>
 	 * @return a continuation of the immutable command pattern, with the specified option enabled
 	 */
 	Loader option(ReadOption... option);
+
+
+	/**
+	 * <p>Reads entities as they were at the given time.</p>
+	 *
+	 * <p>This is shorthand for {@code option(ReadOption.readTime(timestamp))}, converting the Java
+	 * instant to the cloud datastore's Timestamp.</p>
+	 *
+	 * <p>From Google's documentation for {@code readTime()}: This must be a microsecond precision timestamp
+	 * within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute
+	 * timestamp within the past 7 days.</p>
+	 */
+	default Loader readTime(final Instant timestamp) {
+		final Timestamp ts = Timestamp.of(Date.from(timestamp));
+		return option(ReadOption.readTime(ts));
+	}
 
 	/**
 	 * <p>Restricts the find operation to entities of a particular type.  The type may be the

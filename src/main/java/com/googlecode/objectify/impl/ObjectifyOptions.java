@@ -1,19 +1,19 @@
 package com.googlecode.objectify.impl;
 
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 /**
  * <p>Encapsulates the various options that can be twiddled in an objectify session. Immutable/functional.</p>
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Data
+@Value
 @RequiredArgsConstructor
 public class ObjectifyOptions {
 
-	private final boolean cache;
-	private final boolean mandatoryTransactions;
-	private final String namespace;
+	boolean cache;
+	boolean mandatoryTransactions;
+	String namespace;
 
 	ObjectifyOptions() {
 		this(true, false, null);
