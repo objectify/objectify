@@ -209,8 +209,7 @@ public interface Objectify
 	<R> R transact(Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
-	 * so you don't have to return something from the lambda.</p>
+	 * <p>Exactly the same behavior as the Work version, but doesn't force you to return something from your lambda.</p>
 	 */
 	void transact(Runnable work);
 

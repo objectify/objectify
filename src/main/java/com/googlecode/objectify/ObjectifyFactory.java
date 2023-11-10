@@ -332,6 +332,17 @@ public class ObjectifyFactory implements Forge
 	}
 
 	/**
+	 * <p>Exactly the same behavior as the method that takes a {@code Work<R>}, but doesn't force you to return
+	 * something from your lambda.</p>
+	 */
+	public void run(final Runnable work) {
+		run(() -> {
+			work.run();
+			return null;
+		});
+	}
+
+	/**
 	 * <p>An alternative to run() which is somewhat easier to use with testing (ie, @Before and @After) frameworks.
 	 * You must close the return value at the end of the request in a finally block.</p>
 	 *
