@@ -45,14 +45,15 @@ public class ObjectifyService {
 	}
 
 	/**
-	 *
+	 * Initialize the singleton factory.
 	 */
 	public static void init(final ObjectifyFactory fact) {
+		Preconditions.checkState(factory == null, "You are attempting to initialize the singleton ObjectifyFactory more than once");
 		factory = fact;
 	}
 
 	/**
-	 * @return the current factory
+	 * @return the current singleton factory
 	 */
 	public static ObjectifyFactory factory() {
 		Preconditions.checkState(factory != null, "You must call ObjectifyService.init() before using Objectify");
@@ -60,9 +61,8 @@ public class ObjectifyService {
 	}
 
 	/**
-	 * @deprecated use {@code factory().register()} instead.
+	 * <p>A shortcut for {@code factory().register()}</p>
 	 */
-	@Deprecated
 	public static void register(Class<?> clazz) {
 		factory().register(clazz);
 	}
