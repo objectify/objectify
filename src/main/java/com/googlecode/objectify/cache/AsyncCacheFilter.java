@@ -1,7 +1,8 @@
 package com.googlecode.objectify.cache;
 
-import com.googlecode.objectify.util.AbstractFilter;
+import javax.servlet.Filter;
 import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -33,7 +34,7 @@ import java.io.IOException;
  *      filter("/*").through(AsyncCacheFilter.class);
  *</pre>
  *
- * <p>Note that you do not need to configure this filter if you use the {@code ObjectifyFilter}.</p>
+ * <p>Note that you do not need to configure this filter if you are using Objectify.</p>
  * 
  * <p>If you use the CachingAsyncDatastoreService outside of the context of a request (say, using the remote
  * API or from a unit test), then you should call {@code AsyncCacheFilter.complete()} after every operation
@@ -41,7 +42,7 @@ import java.io.IOException;
  * 
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class AsyncCacheFilter extends AbstractFilter
+public class AsyncCacheFilter implements Filter
 {
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -58,4 +59,9 @@ public class AsyncCacheFilter extends AbstractFilter
 	public static void complete() {
 		PendingFutures.completeAllPendingFutures();
 	}
+
+	@Override
+	public void init(final FilterConfig filterConfig) throws ServletException {}
+	@Override
+	public void destroy() {}
 }

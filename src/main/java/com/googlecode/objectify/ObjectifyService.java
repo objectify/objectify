@@ -5,6 +5,13 @@ package com.googlecode.objectify;
 
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.util.Closeable;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+
+import java.io.IOException;
 
 /**
  * <p>Most applications connect to a single datastore. To make your life easy, we offer this
@@ -155,5 +162,91 @@ public class ObjectifyService {
 	/** Shortcut for the equivalent {@code factory().ref()} method, convenient as a static import. */
 	public static <T> Ref<T> ref(final T value) {
 		return factory().ref(value);
+	}
+
+	/**
+	 * <p>This version is for the newer jakarta.servlet.* API. If you are using the older javax.servlet.*, use {@code FilterJavax}.</p>
+	 *
+	 * <p>Configure this filter to use Objectify in your application.  It works in concert with {@code ObjectifyService}
+	 * to provide the correct {@code Objectify} instance when {@code ObjectifyService.ofy()} is called.</p>
+	 *
+	 * <p>In your web.xml:</p>
+	 *<pre>
+	 *       &lt;filter&gt;
+	 *              &lt;filter-name&gt;ObjectifyFilter&lt;/filter-name&gt;
+	 *              &lt;filter-class&gt;com.googlecode.objectify.ObjectifyService$Filter&lt;/filter-class&gt;
+	 *      &lt;/filter&gt;
+	 *      &lt;filter-mapping&gt;
+	 *              &lt;filter-name&gt;ObjectifyFilter&lt;/filter-name&gt;
+	 *              &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	 *      &lt;/filter-mapping&gt;
+	 *</pre>
+	 *
+	 * <p>Or, if you use Guice:</p>
+	 *
+	 *<pre>
+	 *      filter("/*").through(ObjectifyService.Filter.class);
+	 *</pre>
+	 *
+	 * <p>If you use the Objectify outside of the context of a request (say, using the remote
+	 * API or from a unit test), then you should use the ObjectifyService.run() method.</p>
+	 *
+	 * @author Jeff Schnitzer
+	 */
+	public static class Filter implements jakarta.servlet.Filter {
+		@Override
+		public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain) throws IOException, ServletException {
+			try (Closeable closeable = ObjectifyService.begin()) {
+				chain.doFilter(request, response);
+			}
+		}
+
+		@Override
+		public void init(final FilterConfig filterConfig) throws ServletException {}
+		@Override
+		public void destroy() {}
+	}
+
+	/**
+	 * <p>This version is for the older javax.servlet.* API. If you are using the newer jakarta.servlet.*, use {@code ObjectifyFilter}.</p>
+	 *
+	 * <p>Configure this filter to use Objectify in your application.  It works in concert with {@code ObjectifyService}
+	 * to provide the correct {@code Objectify} instance when {@code ObjectifyService.ofy()} is called.</p>
+	 *
+	 * <p>In your web.xml:</p>
+	 *<pre>
+	 *       &lt;filter&gt;
+	 *              &lt;filter-name&gt;ObjectifyFilter&lt;/filter-name&gt;
+	 *              &lt;filter-class&gt;com.googlecode.objectify.ObjectifyService$FilterJavax&lt;/filter-class&gt;
+	 *      &lt;/filter&gt;
+	 *      &lt;filter-mapping&gt;
+	 *              &lt;filter-name&gt;ObjectifyFilter&lt;/filter-name&gt;
+	 *              &lt;url-pattern&gt;/*&lt;/url-pattern&gt;
+	 *      &lt;/filter-mapping&gt;
+	 *</pre>
+	 *
+	 * <p>Or, if you use Guice:</p>
+	 *
+	 *<pre>
+	 *      filter("/*").through(ObjectifyService.FilterJavax.class);
+	 *</pre>
+	 *
+	 * <p>If you use the Objectify outside of the context of a request (say, using the remote
+	 * API or from a unit test), then you should use the ObjectifyService.run() method.</p>
+	 *
+	 * @author Jeff Schnitzer
+	 */
+	public static class FilterJavax implements javax.servlet.Filter {
+		@Override
+		public void doFilter(javax.servlet.ServletRequest request, javax.servlet.ServletResponse response, javax.servlet.FilterChain chain) throws IOException, javax.servlet.ServletException {
+			try (Closeable closeable = ObjectifyService.begin()) {
+				chain.doFilter(request, response);
+			}
+		}
+
+		@Override
+		public void init(final javax.servlet.FilterConfig filterConfig) throws javax.servlet.ServletException {}
+		@Override
+		public void destroy() {}
 	}
 }
