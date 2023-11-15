@@ -10,7 +10,6 @@ import com.googlecode.objectify.annotation.Subclass;
 import com.googlecode.objectify.mapper.Mapper;
 import com.googlecode.objectify.test.entity.Trivial;
 import com.googlecode.objectify.test.util.TestBase;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;

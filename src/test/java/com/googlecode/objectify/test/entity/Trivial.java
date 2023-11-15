@@ -10,6 +10,7 @@ import com.googlecode.objectify.annotation.Index;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import java.io.Serializable;
 
 /**

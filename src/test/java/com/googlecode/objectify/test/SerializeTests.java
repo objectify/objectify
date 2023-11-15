@@ -5,7 +5,6 @@ import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Serialize;
-import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.Closeable;
 import lombok.Data;

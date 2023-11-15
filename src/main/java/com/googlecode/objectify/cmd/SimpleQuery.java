@@ -1,15 +1,9 @@
 package com.googlecode.objectify.cmd;
 
-import com.google.cloud.datastore.AggregationQuery;
 import com.google.cloud.datastore.AggregationResult;
-import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.Cursor;
-import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.aggregation.Aggregation;
 import com.google.cloud.datastore.aggregation.AggregationBuilder;
-import com.google.common.collect.Iterables;
-
-import static com.google.cloud.datastore.aggregation.Aggregation.count;
 
 
 /**

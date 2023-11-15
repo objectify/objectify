@@ -1,8 +1,5 @@
 package com.googlecode.objectify.cmd;
 
-import com.googlecode.objectify.Result;
-
-
 /**
  * <p>Terminator methods for a delete-by-key command chain which constructs the key implicitly from
  * type, id, and (optionally) parent.</p>

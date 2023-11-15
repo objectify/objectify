@@ -1,7 +1,6 @@
 package com.googlecode.objectify.test.util;
 
 import com.google.cloud.datastore.Datastore;
-import com.google.cloud.datastore.testing.LocalDatastoreHelper;
 import com.google.cloud.datastore.testing.RemoteDatastoreHelper;
 import com.google.common.base.Preconditions;
 import com.googlecode.objectify.ObjectifyFactory;

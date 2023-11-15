@@ -13,8 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144

@@ -12,22 +12,17 @@ import com.googlecode.objectify.cache.MemcacheService;
 import com.googlecode.objectify.cache.spymemcached.SpyMemcacheService;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.test.entity.Trivial;
-import com.googlecode.objectify.test.util.LocalDatastoreExtension;
-import com.googlecode.objectify.test.util.TestBase;
 import com.googlecode.objectify.util.Closeable;
 import net.spy.memcached.MemcachedClient;
-import org.junit.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
-import static com.googlecode.objectify.ObjectifyService.init;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**

@@ -24,12 +24,7 @@ import java.util.Set;
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
-import static com.googlecode.objectify.cmd.Filter.equalTo;
-import static com.googlecode.objectify.cmd.Filter.greaterThan;
-import static com.googlecode.objectify.cmd.Filter.greaterThanOrEqualTo;
 import static com.googlecode.objectify.cmd.Filter.in;
-import static com.googlecode.objectify.cmd.Filter.lessThan;
-import static com.googlecode.objectify.cmd.Filter.lessThanOrEqualTo;
 import static com.googlecode.objectify.cmd.Filter.notEqualTo;
 import static com.googlecode.objectify.cmd.Filter.notIn;
 

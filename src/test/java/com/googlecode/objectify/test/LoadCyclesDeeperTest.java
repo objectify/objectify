@@ -1,18 +1,17 @@
 package com.googlecode.objectify.test;
 
-import lombok.Data;
-import org.junit.jupiter.api.Test;
-
 import com.googlecode.objectify.Ref;
 import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Load;
 import com.googlecode.objectify.annotation.Parent;
 import com.googlecode.objectify.test.util.TestBase;
+import lombok.Data;
+import org.junit.jupiter.api.Test;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.googlecode.objectify.ObjectifyService.ofy;
 import static com.googlecode.objectify.ObjectifyService.factory;
+import static com.googlecode.objectify.ObjectifyService.ofy;
 
 /**
  * This test was contributed: https://code.google.com/p/objectify-appengine/issues/detail?id=144

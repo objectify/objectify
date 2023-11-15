@@ -1,7 +1,6 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.Timestamp;
-import com.google.cloud.datastore.BooleanValue;
 import com.google.cloud.datastore.TimestampValue;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.ValueType;

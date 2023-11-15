@@ -18,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
-import static com.google.cloud.datastore.aggregation.Aggregation.count;
-
 /**
  * Logic for dealing with queries.
  *
