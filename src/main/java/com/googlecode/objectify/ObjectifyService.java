@@ -91,9 +91,7 @@ public class ObjectifyService {
 	 * @return the result of the work.
 	 */
 	public static <R> R run(final Work<R> work) {
-		try (Closeable closeable = begin()) {
-			return work.run();
-		}
+		return factory().run(work);
 	}
 
 	/**
@@ -101,10 +99,7 @@ public class ObjectifyService {
 	 * something from your lambda.</p>
 	 */
 	public static void run(final Runnable work) {
-		run(() -> {
-			work.run();
-			return null;
-		});
+		factory().run(work);
 	}
 
 	/**
