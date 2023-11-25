@@ -241,9 +241,9 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	}
 
 	/**
-	 * <p>Sum the values of the specified property over the specified query.</p>
+	 * <p>Sum the values of the specified property over the specified query. Always produces a floating-point value.</p>
 	 *
-	 * <p>Shorthand for {@code aggregate(Aggregation.sum().as("value")).getDouble("value")}.</p>
+	 * <p>Shorthand for {@code aggregate(Aggregation.sum(property).as("value")).getDouble("value")}.</p>
 	 *
 	 * @see <a href="https://cloud.google.com/datastore/docs/aggregation-queries#behavior_and_limitations">Aggregation Query Behavior and Limitations</a>
 	 */
@@ -253,9 +253,22 @@ public interface SimpleQuery<T> extends QueryExecute<T>
 	}
 
 	/**
+	 * <p>Sum the values of the specified property over the specified query. Always produces an integer value. If
+	 * the property values are floating point, the result will be cast to long.</p>
+	 *
+	 * <p>Shorthand for {@code aggregate(Aggregation.sum(property).as("value")).getLong("value")}.</p>
+	 *
+	 * @see <a href="https://cloud.google.com/datastore/docs/aggregation-queries#behavior_and_limitations">Aggregation Query Behavior and Limitations</a>
+	 */
+	default long sumLong(final String property) {
+		final AggregationResult result = aggregate(Aggregation.sum(property).as("sum"));
+		return result.getLong("sum");
+	}
+
+	/**
 	 * <p>Average the values of the specified property over the specified query.</p>
 	 *
-	 * <p>Shorthand for {@code aggregate(Aggregation.avg().as("value")).getDouble("value")}.</p>
+	 * <p>Shorthand for {@code aggregate(Aggregation.avg(property).as("value")).getDouble("value")}.</p>
 	 *
 	 * @see <a href="https://cloud.google.com/datastore/docs/aggregation-queries#behavior_and_limitations">Aggregation Query Behavior and Limitations</a>
 	 */
