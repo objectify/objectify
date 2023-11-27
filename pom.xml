@@ -146,6 +146,7 @@
 				<configuration>
 					<autoVersionSubmodules>true</autoVersionSubmodules>
 					<releaseProfiles>release-sign-artifacts</releaseProfiles>
+					<arguments>-DskipTests</arguments>
 				</configuration>
 			</plugin>
 
