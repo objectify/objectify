@@ -21,6 +21,14 @@ class KeyFormatTest {
 	}
 
 	@Test
+	void parsesAndFormatsOldStyleGAEKeyAustralianEdition() throws Exception {
+		final String includesNamespace = "ahVmfnJheXdoaXRlLXByb2R1Y3Rpb25yKwsSC19haF9TRVNTSU9OIhpfYWhzLS01Tnh0OGlGQ3UxZDFGaklscm1CUQw";
+
+		final Key key2 = KeyFormat.INSTANCE.parseOldStyleAppEngineKey(includesNamespace);
+		assertThat(key2.getProjectId()).isEqualTo("raywhite-production");
+	}
+
+	@Test
 	void parsesAndFormatsOldStyleGAEKeyWithANamespace() throws Exception {
 		// This should stay as-is
 		final String hasNamespace = "agxzfm1haWxmb29nYWVyMQsSDE9yZ2FuaXphdGlvbiIKc3RyZWFrLmNvbQwLEghXb3JrZmxvdxiAgJaV__usCgw";
