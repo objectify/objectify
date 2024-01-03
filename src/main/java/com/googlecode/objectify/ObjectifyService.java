@@ -48,7 +48,6 @@ public class ObjectifyService {
 	 * Initialize the singleton factory.
 	 */
 	public static void init(final ObjectifyFactory fact) {
-		Preconditions.checkState(factory == null, "You are attempting to initialize the singleton ObjectifyFactory more than once");
 		factory = fact;
 	}
 
