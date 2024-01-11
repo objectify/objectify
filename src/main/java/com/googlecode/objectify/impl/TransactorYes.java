@@ -1,5 +1,6 @@
 package com.googlecode.objectify.impl;
 
+import com.google.protobuf.ByteString;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
@@ -20,10 +21,11 @@ class TransactorYes extends Transactor
 
 	/**
 	 */
-	TransactorYes(final ObjectifyFactory factory, final boolean cache, final TransactorNo parentTransactor) {
+	TransactorYes(final ObjectifyFactory factory, final boolean cache, final TransactorNo parentTransactor,
+	    ByteString prevTxnHandle) {
 		super(factory);
 
-		this.transaction = factory.asyncDatastore(cache).newTransaction(this::committed);
+		this.transaction = factory.asyncDatastore(cache).newTransaction(this::committed, prevTxnHandle);
 		this.parentTransactor = parentTransactor;
 	}
 

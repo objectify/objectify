@@ -1,6 +1,8 @@
 package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Datastore;
+import com.google.datastore.v1.TransactionOptions;
+import com.google.protobuf.ByteString;
 
 /** */
 public class AsyncDatastoreImpl extends AsyncDatastoreReaderWriterImpl implements AsyncDatastore {
@@ -15,6 +17,15 @@ public class AsyncDatastoreImpl extends AsyncDatastoreReaderWriterImpl implement
 
 	@Override
 	public AsyncTransaction newTransaction(final Runnable afterCommit) {
-		return new AsyncTransactionImpl(datastore.newTransaction(), afterCommit);
+		return newTransaction(afterCommit, null);
+	}
+
+	@Override
+	public AsyncTransaction newTransaction(final Runnable afterCommit, final ByteString prevTxnHandle) {
+		TransactionOptions.Builder txnOptions = TransactionOptions.newBuilder();
+		if (prevTxnHandle != null) {
+			txnOptions.getReadWriteBuilder().setPreviousTransaction(prevTxnHandle);
+		}
+		return new AsyncTransactionImpl(datastore.newTransaction(txnOptions.build()), afterCommit);
 	}
 }

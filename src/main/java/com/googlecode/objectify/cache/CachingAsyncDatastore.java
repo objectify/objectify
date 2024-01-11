@@ -3,6 +3,7 @@ package com.googlecode.objectify.cache;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.ReadOption;
+import com.google.protobuf.ByteString;
 import com.googlecode.objectify.cache.EntityMemcache.Bucket;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.impl.AsyncTransaction;
@@ -60,6 +61,11 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 	@Override
 	public AsyncTransaction newTransaction(final Runnable afterCommit) {
 		return new CachingAsyncTransaction(raw.newTransaction(afterCommit), memcache);
+	}
+
+	@Override
+	public AsyncTransaction newTransaction(final Runnable afterCommit, ByteString prevTxnHandle) {
+		return new CachingAsyncTransaction(raw.newTransaction(afterCommit, prevTxnHandle), memcache);
 	}
 
 	@Override
