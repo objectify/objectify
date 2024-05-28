@@ -68,6 +68,8 @@ public class WriteEngine
 				final EntityMetadata<E> metadata = factory().getMetadataForEntity(obj);
 				final FullEntity<?> translated = metadata.save(obj, ctx);
 				entityList.add(translated);
+				System.out.println("Input POJO = " + obj);
+				System.out.println("Translated Entity = " + translated);
 			}
 		}
 
