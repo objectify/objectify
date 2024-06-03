@@ -42,7 +42,8 @@ public class EmbeddedNullContainerTests extends TestBase {
       + "unexpected value: null\n"
       + "---\n"
       + "expected        : {}\n"
-      + "but was         : {k1=null}\n")
+      + "but was         : {k1=null}\n"
+      + "Possible root-cause: encoding the document on `save` is probably broken")
   @Test
   void testLoadingNullListValue() {
     factory().register(Sample.class);
