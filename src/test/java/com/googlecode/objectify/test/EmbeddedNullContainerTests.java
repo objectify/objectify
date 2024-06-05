@@ -37,12 +37,11 @@ public class EmbeddedNullContainerTests extends TestBase {
 
 
   @Ignore ("This test fails as follows:"
-      + "unexpected keys\n"
+      + "missing keys\n"
       + "for key         : k1\n"
-      + "unexpected value: null\n"
       + "---\n"
-      + "expected        : {}\n"
-      + "but was         : {k1=null}\n"
+      + "expected      : {k1=null}\n"
+      + "but was       : {}\n"
       + "Possible root-cause: encoding the document on `save` is probably broken")
   @Test
   void testLoadingNullListValue() {
@@ -54,7 +53,7 @@ public class EmbeddedNullContainerTests extends TestBase {
     final Sample sample = new Sample("testKey", values);
     final Sample retrieved  = saveClearLoad(sample);
 
-    assertThat(sample.values).isEqualTo(retrieved.values);
+    assertThat(retrieved.values).isEqualTo(sample.values);
   }
 
 
