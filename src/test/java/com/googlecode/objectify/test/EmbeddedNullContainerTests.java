@@ -19,59 +19,61 @@ import static com.googlecode.objectify.ObjectifyService.factory;
 
 public class EmbeddedNullContainerTests extends TestBase {
 
-  @Test
-  void testLoadingEmbeddedMapNullValue() {
-    factory().register(Sample.class);
+	@Test
+	void testLoadingEmbeddedMapNullValue() {
+		factory().register(Sample.class);
 
-    List<Value> valueList = new ArrayList<>();
-    valueList.add(new Value(null, null));
+		List<Value> valueList = new ArrayList<>();
+		valueList.add(new Value(null, null));
 
-    Map<String, List<Value>> values = new HashMap<String, List<Value>>();
-    values.put("k1", valueList);
+		Map<String, List<Value>> values = new HashMap<String, List<Value>>();
+		values.put("k1", valueList);
 
-    final Sample sample = new Sample("testKey", values);
-    final Sample retrieved  = saveClearLoad(sample);
+		final Sample sample = new Sample("testKey", values);
+		final Sample retrieved = saveClearLoad(sample);
 
-    assertThat(sample.values).isEqualTo(retrieved.values);
-  }
-
-
-  @Ignore ("This test fails as follows:"
-      + "missing keys\n"
-      + "for key         : k1\n"
-      + "---\n"
-      + "expected      : {k1=null}\n"
-      + "but was       : {}\n"
-      + "Possible root-cause: encoding the document on `save` is probably broken")
-  @Test
-  void testLoadingNullListValue() {
-    factory().register(Sample.class);
-
-    Map<String, List<Value>> values = new HashMap<String, List<Value>>();
-    values.put("k1", null);
-
-    final Sample sample = new Sample("testKey", values);
-    final Sample retrieved  = saveClearLoad(sample);
-
-    assertThat(retrieved.values).isEqualTo(sample.values);
-  }
+		assertThat(sample.values).isEqualTo(retrieved.values);
+	}
 
 
-  @Entity(name = "Sample")
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class Sample {
-    @Id
-    String name;
-    Map<String, List<Value>> values;
-  }
+	@Ignore("This test fails as follows:"
+		+ "missing keys\n"
+		+ "for key         : k1\n"
+		+ "---\n"
+		+ "expected      : {k1=null}\n"
+		+ "but was       : {}\n"
+		+ "Possible root-cause: encoding the document on `save` is probably broken")
+	@Test
+	void testLoadingNullListValue() {
+		factory().register(Sample.class);
 
-  @Data
-  @NoArgsConstructor
-  @AllArgsConstructor
-  public static class Value {
-    String primitiveField;
-    Map<String, String> structuredField;
-  }
+		Map<String, List<Value>> values = new HashMap<String, List<Value>>();
+		values.put("k1", null);
+
+		final Sample sample = new Sample("testKey", values);
+		final Sample retrieved = saveClearLoad(sample);
+
+		assertThat(retrieved.values).isEqualTo(sample.values);
+	}
+
+
+	@Entity(name = "Sample")
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Sample {
+
+		@Id
+		String name;
+		Map<String, List<Value>> values;
+	}
+
+	@Data
+	@NoArgsConstructor
+	@AllArgsConstructor
+	public static class Value {
+
+		String primitiveField;
+		Map<String, String> structuredField;
+	}
 }
