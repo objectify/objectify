@@ -70,10 +70,6 @@ public class EmbeddedMapTranslatorFactory implements TranslatorFactory<Map<Objec
 
 			@Override
 			public Map<Object, Object> loadInto(final Value<FullEntity<?>> node, final LoadContext ctx, final Path path, Map<Object, Object> into) {
-				// Make this work more like collections than atomic values
-				if (node == null)
-					throw new SkipException();
-
 				if (into == null)
 					//noinspection unchecked
 					into = (Map<Object, Object>)fact.constructMap(mapType);
