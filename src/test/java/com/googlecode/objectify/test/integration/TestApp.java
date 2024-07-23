@@ -257,7 +257,8 @@ public class TestApp {
 
   public static void main(String[] args) throws InterruptedException {
     TestApp test = new TestApp();
-    // test.testLoadingNullEmbeddedMapValueUsingObjectifyV6();
+    // This verifies fix for https://github.com/objectify/objectify/issues/506
+    test.testLoadingNullEmbeddedMapValue();
     // test.testLoadingEmbeddedMapNullValue();
     // test.testSavingNullListValue();
     // test.testSavingEmptyList();
