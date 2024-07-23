@@ -14,16 +14,11 @@ import com.googlecode.objectify.impl.Path;
 abstract public class TranslatorRecycles<P, D> implements Translator<P, D>, Recycles {
 	@Override
 	final public P load(final Value<D> node, final LoadContext ctx, final Path path) throws SkipException {
-		// If the underlying container (Map, EmbeddedMap or Collection) does not exist, skip it entirely.
-		// For Collections, this mirrors the OLD underlying behavior of collections in the datastore;
-		// if they are empty, they don't exist.
-		if (node == null) {
+		// If the underlying container (Map, EmbeddedMap or Collection) does not exist or is of type
+		// NullValue, skip it entirely. For Collections, this mirrors the OLD underlying behavior of
+		// collections in the datastore; if they are empty, they don't exist.
+		if (node == null || node.getType() == ValueType.NULL) {
 			throw new SkipException();
-		}
-
-		// If the container value type is `NULL`, the value the POJO is simply `null`.
-		if (node.getType() == ValueType.NULL) {
-			return null;
 		}
 
 		@SuppressWarnings("unchecked")
