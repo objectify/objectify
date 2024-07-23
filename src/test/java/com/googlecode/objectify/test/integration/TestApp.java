@@ -67,7 +67,7 @@ public class TestApp {
   }
 
   // Verifies correctly loading NullValue embedded in a Map
-  public void testLoadingNullEmbeddedMapValueUsingObjectifyV6() {
+  public void testLoadingNullEmbeddedMapValue() {
     String rawDatastoreDocId = "EmbeddedMapNullValue_rawDatastoreDoc";
     com.google.cloud.datastore.Key rawDatastoreKey = getDatastoreKey(rawDatastoreDocId);
 
