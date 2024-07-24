@@ -100,16 +100,7 @@ class TransactorNo extends Transactor
 				return transactOnce(parent, work, prevTxnHandle);
 			} catch (DatastoreException ex) {
 
-				// This doesn't work because the SDK considers all transactions to be non-retryable. Objectify has always
-				// assumed that transactions are idempotent and retries accordingly. So we have to explicitly check against
-				// code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
-//				if (!ex.isRetryable())
-//					throw ex;
-				// I hate this so much. Sometimes the transaction gets closed by the datastore during contention and
-				// then it proceeds to freak out and 503.
-				if (Code.ABORTED.getNumber() == ex.getCode() || (Code.INVALID_ARGUMENT.getNumber() == ex.getCode() && ex.getMessage().contains("transaction closed"))) {
-					// Continue to retry logic
-				} else {
+				if (!isRetryable(ex)) {
 					throw ex;
 				}
 
@@ -127,6 +118,22 @@ class TransactorNo extends Transactor
 			}
 		}
 	}
+
+    private static boolean isRetryable(DatastoreException ex) {
+        // ex.isRetryable() doesn't work because the SDK considers all transactions to be non-retryable. Objectify
+        // has always assumed that transactions are idempotent and retries accordingly. So we have to explicitly
+        // check against code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
+        // I hate this so much. Sometimes the transaction gets closed by the datastore during contention, and
+        // then it proceeds to freak out and 503.
+        return Code.ABORTED.getNumber() == ex.getCode() || ( // Behavior in the cloud
+                Code.INVALID_ARGUMENT.getNumber() == ex.getCode() && (
+                        // Behavior in Datastore emulator
+                        ex.getMessage().contains("transaction closed") ||
+                                // Behavior in Firestore emulator in Datastore mode
+                                ex.getMessage().contains("Transaction is invalid or closed")
+                )
+        );
+    }
 
 	@Override
 	public AsyncDatastoreReaderWriter asyncDatastore(final ObjectifyImpl ofy) {
