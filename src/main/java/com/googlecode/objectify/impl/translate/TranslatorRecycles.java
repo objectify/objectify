@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl.translate;
 
 import com.google.cloud.datastore.Value;
+import com.google.cloud.datastore.ValueType;
 import com.googlecode.objectify.impl.Path;
 
 /**
@@ -13,6 +14,13 @@ import com.googlecode.objectify.impl.Path;
 abstract public class TranslatorRecycles<P, D> implements Translator<P, D>, Recycles {
 	@Override
 	final public P load(final Value<D> node, final LoadContext ctx, final Path path) throws SkipException {
+		// If the underlying container (Map, EmbeddedMap or Collection) does not exist or is of type
+		// NullValue, skip it entirely. For Collections, this mirrors the OLD underlying behavior of
+		// collections in the datastore; if they are empty, they don't exist.
+		if (node == null || node.getType() == ValueType.NULL) {
+			throw new SkipException();
+		}
+
 		@SuppressWarnings("unchecked")
 		final P into = (P)ctx.useRecycled();
 
