@@ -14,6 +14,7 @@ import com.google.cloud.datastore.aggregation.Aggregation;
 import com.google.cloud.datastore.aggregation.AggregationBuilder;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.NamespaceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +92,7 @@ public class QueryEngine
 		log.trace("Starting aggregation query");
 
 		final AggregationQuery aggQuery = Query.newAggregationQueryBuilder()
+				.setNamespace(NamespaceManager.get())
 				.over(query)
 				.addAggregations(aggregations)
 				.build();
@@ -107,6 +109,7 @@ public class QueryEngine
 		log.trace("Starting aggregation query");
 
 		final AggregationQuery aggQuery = Query.newAggregationQueryBuilder()
+				.setNamespace(NamespaceManager.get())
 				.over(query)
 				.addAggregations(aggregations)
 				.build();
