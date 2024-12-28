@@ -1,6 +1,7 @@
 package com.googlecode.objectify;
 
 import com.google.cloud.datastore.Datastore;
+import com.google.cloud.datastore.DatastoreOpenTelemetryOptions;
 import com.google.cloud.datastore.DatastoreOptions;
 import com.google.cloud.datastore.IncompleteKey;
 import com.google.cloud.datastore.KeyFactory;
@@ -22,6 +23,7 @@ import com.googlecode.objectify.impl.Transactor;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
 import com.googlecode.objectify.util.Closeable;
+import io.opentelemetry.api.OpenTelemetry;
 import net.spy.memcached.MemcachedClient;
 
 import java.lang.reflect.Constructor;
@@ -91,6 +93,15 @@ public class ObjectifyFactory implements Forge
 	/** Uses default datastore, no memcache */
 	public ObjectifyFactory() {
 		this(DatastoreOptions.getDefaultInstance().getService());
+	}
+
+	/** Use default datastore but with the configured telemetry. No memcache. */
+	public ObjectifyFactory(final OpenTelemetry openTelemetry) {
+		this(
+			DatastoreOptions.newBuilder().setOpenTelemetryOptions(
+				DatastoreOpenTelemetryOptions.newBuilder().setOpenTelemetry(openTelemetry).build()
+			).build().getService()
+		);
 	}
 
 	/**
