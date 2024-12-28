@@ -213,9 +213,14 @@ public interface Objectify
 	<R> R transact(Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't force you to return something from your lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void transact(Runnable work);
+	default void transact(final Runnable work) {
+		transact((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * <p>Executes work in a new read-write transaction.  Note that this is equivalent to {@code transactNew(Integer.MAX_VALUE, work);}</p>
@@ -231,10 +236,14 @@ public interface Objectify
 	<R> R transactNew(Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
-	 * so you don't have to return something from the lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void transactNew(Runnable work);
+	default void transactNew(final Runnable work) {
+		transactNew((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * <p>Executes the work in a new read-write transaction, repeating up to limitTries times when a ConcurrentModificationException
@@ -249,10 +258,14 @@ public interface Objectify
 	<R> R transactNew(int limitTries, Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
-	 * so you don't have to return something from the lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void transactNew(int limitTries, Runnable work);
+	default void transactNew(int limitTries, Runnable work) {
+		transactNew(limitTries, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * <p>Executes work in a readonly transaction.  If there is already a transaction context, that
@@ -271,9 +284,14 @@ public interface Objectify
 	<R> R transactReadOnly(Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't force you to return something from your lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void transactReadOnly(Runnable work);
+	default void transactReadOnly(final Runnable work) {
+		transactReadOnly((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * <p>Executes the work with the transactional behavior defined by the parameter txnType.  This is very similar

@@ -154,14 +154,6 @@ public class ObjectifyImpl implements Objectify, Closeable {
 	}
 
 	@Override
-	public void transact(final Runnable work) {
-		transact((Work<Void>)() -> {
-			work.run();
-			return null;
-		});
-	}
-
-	@Override
 	public <R> R transactReadOnly(Work<R> work) {
 		return transactor.transactReadOnly(this, work);
 	}
@@ -180,24 +172,8 @@ public class ObjectifyImpl implements Objectify, Closeable {
 	}
 
 	@Override
-	public void transactNew(final Runnable work) {
-		transactNew((Work<Void>)() -> {
-			work.run();
-			return null;
-		});
-	}
-
-	@Override
 	public <R> R transactNew(int limitTries, Work<R> work) {
 		return transactor.transactNew(this, limitTries, work);
-	}
-
-	@Override
-	public void transactNew(int limitTries, final Runnable work) {
-		transactNew(limitTries, (Work<Void>)() -> {
-			work.run();
-			return null;
-		});
 	}
 
 	@Override
