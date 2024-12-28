@@ -193,7 +193,11 @@ public interface Objectify
 
 	/**
 	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.
-	 * If there is not already a transaction context, a new transaction will be started.</p>
+	 * If there is not already a transaction context, a new read-write transaction will be started.</p>
+	 *
+	 * <p>Transactions are read-only or read-write depending on how they are started. Inner transact() or
+	 * transactReadOnly() blocks will inherit the outer transaction, whether it is read-only or not.
+	 * However, attempts to write to the datastore inside read-only transactions will fail with an exception.</p>
 	 *
 	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
 	 * {@code ObjectifyService.ofy()}</p>
@@ -214,7 +218,7 @@ public interface Objectify
 	void transact(Runnable work);
 
 	/**
-	 * <p>Executes work in a new transaction.  Note that this is equivalent to {@code transactNew(Integer.MAX_VALUE, work);}</p>
+	 * <p>Executes work in a new read-write transaction.  Note that this is equivalent to {@code transactNew(Integer.MAX_VALUE, work);}</p>
 	 *
 	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
 	 * finish the job. Work <b>MUST</b> idempotent.</p>
@@ -233,7 +237,7 @@ public interface Objectify
 	void transactNew(Runnable work);
 
 	/**
-	 * <p>Executes the work in a new transaction, repeating up to limitTries times when a ConcurrentModificationException
+	 * <p>Executes the work in a new read-write transaction, repeating up to limitTries times when a ConcurrentModificationException
 	 * is thrown.  This requires your Work to be idempotent; otherwise limit tries to 1.
 	 *
 	 * <p>Within {@code Work.run()}, obtain the new transactional {@code Objectify} instance by calling {@code ObjectifyService.ofy()}</p>
@@ -251,8 +255,30 @@ public interface Objectify
 	void transactNew(int limitTries, Runnable work);
 
 	/**
+	 * <p>Executes work in a readonly transaction.  If there is already a transaction context, that
+	 * context will be inherited. If there is not already a transaction context, a new read-only transaction
+	 * will be started.</p>
+	 *
+	 * <p>Transactions are read-only or read-write depending on how they are started. Inner transact() or
+	 * transactReadOnly() blocks will inherit the outer transaction, whether it is read-only or not.
+	 * However, attempts to write to the datastore inside read-only transactions will fail with an exception.</p>
+	 *
+	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
+	 * {@code ObjectifyService.ofy()}</p>
+	 *
+	 * <p>Readonly transactions do not retry.</p>
+	 */
+	<R> R transactReadOnly(Work<R> work);
+
+	/**
+	 * <p>Exactly the same behavior as the Work version, but doesn't force you to return something from your lambda.</p>
+	 */
+	void transactReadOnly(Runnable work);
+
+	/**
 	 * <p>Executes the work with the transactional behavior defined by the parameter txnType.  This is very similar
-	 * to EJB semantics.  The work can inherit a transaction, create a new transaction, prevent transactions, etc.</p>
+	 * to EJB semantics.  The work can inherit a transaction, create a new transaction, prevent transactions, etc.
+	 * Created transactions are always read-write, though inherited transactions can be either.</p>
 	 *
 	 * <p>This method principally exists to facilitate implementation of AOP interceptors that provide EJB-like behavior.
 	 * Usually you will call {@code transact()} or {@code transactNew()} when writing code.</p>

@@ -2,7 +2,10 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Datastore;
 import com.google.datastore.v1.TransactionOptions;
+import com.google.datastore.v1.TransactionOptions.ReadOnly;
 import com.google.protobuf.ByteString;
+
+import java.util.Optional;
 
 /** */
 public class AsyncDatastoreImpl extends AsyncDatastoreReaderWriterImpl implements AsyncDatastore {
@@ -16,16 +19,24 @@ public class AsyncDatastoreImpl extends AsyncDatastoreReaderWriterImpl implement
 	}
 
 	@Override
-	public AsyncTransaction newTransaction(final Runnable afterCommit) {
-		return newTransaction(afterCommit, null);
-	}
+	public AsyncTransaction newTransaction(final boolean readOnly, final Runnable afterCommit, final Optional<ByteString> prevTxnHandle) {
+		final TransactionOptions.Builder txnOptions = TransactionOptions.newBuilder();
 
-	@Override
-	public AsyncTransaction newTransaction(final Runnable afterCommit, final ByteString prevTxnHandle) {
-		TransactionOptions.Builder txnOptions = TransactionOptions.newBuilder();
-		if (prevTxnHandle != null) {
-			txnOptions.getReadWriteBuilder().setPreviousTransaction(prevTxnHandle);
+		if (readOnly) {
+			txnOptions.setReadOnly(ReadOnly.newBuilder().build());
 		}
+
+		prevTxnHandle.ifPresent(handle -> {
+			if (readOnly) {
+				// setPreviousTransaction() doesn't exist on the readonly version, presumably because
+				// readonly transactions don't retry.
+				//txnOptions.getReadOnlyBuilder().setPreviousTransaction(handle);
+				throw new IllegalStateException("This should be impossible; readonly transactions don't retry");
+			} else {
+				txnOptions.getReadWriteBuilder().setPreviousTransaction(handle);
+			}
+		});
+
 		return new AsyncTransactionImpl(datastore.newTransaction(txnOptions.build()), afterCommit);
 	}
 }

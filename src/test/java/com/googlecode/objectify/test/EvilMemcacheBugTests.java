@@ -18,6 +18,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.junit.jupiter.api.Test;
 
+import java.util.Optional;
+
 import static com.google.common.truth.Truth.assertThat;
 import static com.googlecode.objectify.ObjectifyService.factory;
 
@@ -84,7 +86,7 @@ class EvilMemcacheBugTests extends TestBase {
 		//MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
 		//cs.clearAll();
 
-		final AsyncTransaction txn = cacheds.newTransaction(() -> {});
+		final AsyncTransaction txn = cacheds.newTransaction(false, () -> {}, Optional.empty());
 		try {
 			final Entity ent2 = txn.get(childKey).get().values().iterator().next();
 			//ent2 = new Entity(childKey);	// solves the problem

@@ -36,20 +36,16 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyImpl implements Objectify, Closeable
-{
+public class ObjectifyImpl implements Objectify, Closeable {
+
 	/** The factory that produced us */
 	protected final ObjectifyFactory factory;
 
-	/** */
 	@Getter
 	protected final ObjectifyOptions options;
 
-	/** */
 	protected final Transactor transactor;
 
-	/**
-	 */
 	public ObjectifyImpl(final ObjectifyFactory fact) {
 		this.factory = fact;
 		this.options = new ObjectifyOptions();
@@ -62,9 +58,6 @@ public class ObjectifyImpl implements Objectify, Closeable
 		this.transactor = transactor;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getFactory()
-	 */
 	public ObjectifyFactory factory() {
 		return this.factory;
 	}
@@ -74,58 +67,37 @@ public class ObjectifyImpl implements Objectify, Closeable
 		return options(options.namespace(namespace));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#find()
-	 */
 	@Override
 	public Loader load() {
 		return new LoaderImpl(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#put()
-	 */
 	@Override
 	public Saver save() {
 		return new SaverImpl(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#delete()
-	 */
 	@Override
 	public Deleter delete() {
 		return new DeleterImpl(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#defer()
-	 */
 	@Override
 	public Deferred defer() {
 		return new DeferredImpl(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#deadline(java.lang.Double)
-	 */
 	@Override
 	public Objectify deadline(final Double value) {
 		// A no-op
 		return this;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#cache(boolean)
-	 */
 	@Override
 	public Objectify cache(boolean value) {
 		return options(options.cache(value));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#mandatoryTransactions(boolean)
-	 */
 	@Override
 	public Objectify mandatoryTransactions(boolean value) {
 		return options(options.mandatoryTransactions(value));
@@ -146,16 +118,10 @@ public class ObjectifyImpl implements Objectify, Closeable
 		return new ObjectifyImpl(factory, opts, transactor);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getTxn()
-	 */
 	public AsyncTransaction getTransaction() {
 		return transactor.getTransaction();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R execute(final TxnType txnType, final Work<R> work) {
 		return transactor.execute(this, txnType, work);
@@ -182,9 +148,6 @@ public class ObjectifyImpl implements Objectify, Closeable
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R transact(Work<R> work) {
 		return transactor.transact(this, work);
@@ -198,9 +161,19 @@ public class ObjectifyImpl implements Objectify, Closeable
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transact(com.googlecode.objectify.Work)
-	 */
+	@Override
+	public <R> R transactReadOnly(Work<R> work) {
+		return transactor.transactReadOnly(this, work);
+	}
+
+	@Override
+	public void transactReadOnly(final Runnable work) {
+		transactReadOnly((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
+
 	@Override
 	public <R> R transactNew(Work<R> work) {
 		return this.transactNew(Transactor.DEFAULT_TRY_LIMIT, work);
@@ -214,9 +187,6 @@ public class ObjectifyImpl implements Objectify, Closeable
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#transactNew(com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R transactNew(int limitTries, Work<R> work) {
 		return transactor.transactNew(this, limitTries, work);
@@ -230,9 +200,6 @@ public class ObjectifyImpl implements Objectify, Closeable
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#clear()
-	 */
 	@Override
 	public void clear() {
 		transactor.getSession().clear();
@@ -317,9 +284,6 @@ public class ObjectifyImpl implements Objectify, Closeable
 		return this.transactor.getSession();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#isLoaded(com.googlecode.objectify.Key)
-	 */
 	@Override
 	public boolean isLoaded(final Key<?> key) {
 		return transactor.getSession().contains(key);

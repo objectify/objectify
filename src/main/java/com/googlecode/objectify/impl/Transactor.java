@@ -69,6 +69,11 @@ public abstract class Transactor
 	abstract public <R> R transact(ObjectifyImpl parent, Work<R> work);
 
 	/**
+	 * @see Objectify#transactReadOnly(Work)
+	 */
+	abstract public <R> R transactReadOnly(ObjectifyImpl parent, Work<R> work);
+
+	/**
 	 * @see Objectify#transactNew(int, Work)
 	 */
 	abstract public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work);

@@ -15,6 +15,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Future;
 
 /**
@@ -59,13 +60,8 @@ public class CachingAsyncDatastore extends CachingAsyncDatastoreReaderWriter imp
 	}
 
 	@Override
-	public AsyncTransaction newTransaction(final Runnable afterCommit) {
-		return new CachingAsyncTransaction(raw.newTransaction(afterCommit), memcache);
-	}
-
-	@Override
-	public AsyncTransaction newTransaction(final Runnable afterCommit, ByteString prevTxnHandle) {
-		return new CachingAsyncTransaction(raw.newTransaction(afterCommit, prevTxnHandle), memcache);
+	public AsyncTransaction newTransaction(final boolean readOnly, final Runnable afterCommit, Optional<ByteString> prevTxnHandle) {
+		return new CachingAsyncTransaction(raw.newTransaction(readOnly, afterCommit, prevTxnHandle), memcache);
 	}
 
 	@Override

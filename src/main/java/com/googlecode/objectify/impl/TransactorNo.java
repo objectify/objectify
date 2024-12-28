@@ -8,6 +8,7 @@ import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 import lombok.extern.slf4j.Slf4j;
@@ -18,40 +19,27 @@ import lombok.extern.slf4j.Slf4j;
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
 @Slf4j
-class TransactorNo extends Transactor
-{
-	/**
-	 */
+class TransactorNo extends Transactor {
+
 	TransactorNo(final ObjectifyFactory factory) {
 		super(factory);
 	}
 
-	/**
-	 */
 	TransactorNo(final ObjectifyFactory factory, final Session session) {
 		super(factory, session);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#getTransaction()
-	 */
 	@Override
 	public AsyncTransactionImpl getTransaction() {
 		// This version doesn't have a transaction, always null.
 		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#transactionless()
-	 */
 	@Override
 	public ObjectifyImpl transactionless(ObjectifyImpl parent) {
 		return parent;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
 		switch (txnType) {
@@ -78,26 +66,27 @@ class TransactorNo extends Transactor
 		return work.run();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
 		return this.transactNew(parent, DEFAULT_TRY_LIMIT, work);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Transactor#transactNew(com.googlecode.objectify.impl.ObjectifyImpl, int, com.googlecode.objectify.Work)
-	 */
+	@Override
+	public <R> R transactReadOnly(final ObjectifyImpl parent, final Work<R> work) {
+		// It shouldn't matter if we call transactNew since it's not supposed to retry, but short-circuiting
+		// out the retry logic seems wise.
+		return transactOnce(parent, work, true, new AtomicReference<>());
+	}
+
 	@Override
 	public <R> R transactNew(final ObjectifyImpl parent, int limitTries, final Work<R> work) {
 		Preconditions.checkArgument(limitTries >= 1);
 		final int ORIGINAL_TRIES = limitTries;
 
-		AtomicReference<ByteString> prevTxnHandle = new AtomicReference<>();
+		final AtomicReference<ByteString> prevTxnHandle = new AtomicReference<>();
 		while (true) {
 			try {
-				return transactOnce(parent, work, prevTxnHandle);
+				return transactOnce(parent, work, false, prevTxnHandle);
 			} catch (DatastoreException ex) {
 
 				if (!isRetryable(ex)) {
@@ -143,9 +132,11 @@ class TransactorNo extends Transactor
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work, final AtomicReference<ByteString> prevTxnHandle) {
-		final ObjectifyImpl txnOfy = parent.factory().open(parent.getOptions(), new TransactorYes(parent.factory(), parent.getOptions().isCache(), this,
-			prevTxnHandle.get()));
+	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work, final boolean readOnly, final AtomicReference<ByteString> prevTxnHandle) {
+		final ObjectifyImpl txnOfy = parent.factory().open(
+			parent.getOptions(),
+			new TransactorYes(parent.factory(), readOnly, parent.getOptions().isCache(), this, Optional.ofNullable(prevTxnHandle.get()))
+		);
 		prevTxnHandle.set(txnOfy.getTransaction().getTransactionHandle());
 
 		boolean committedSuccessfully = false;

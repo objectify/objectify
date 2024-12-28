@@ -1,9 +1,12 @@
 package com.googlecode.objectify.impl;
 
+import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.googlecode.objectify.ObjectifyFactory;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+
+import java.util.Optional;
 
 /**
  * Implementation for when we start a transaction.  Maintains a separate session, but then copies all
@@ -11,8 +14,8 @@ import com.googlecode.objectify.Work;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class TransactorYes extends Transactor
-{
+class TransactorYes extends Transactor {
+
 	/** Our transaction. */
 	private final AsyncTransaction transaction;
 
@@ -20,18 +23,15 @@ class TransactorYes extends Transactor
 	private final TransactorNo parentTransactor;
 
 	/**
+	 * The low-level transaction object is created here.
 	 */
-	TransactorYes(final ObjectifyFactory factory, final boolean cache, final TransactorNo parentTransactor,
-	    ByteString prevTxnHandle) {
+	TransactorYes(final ObjectifyFactory factory, final boolean readOnly, final boolean cache, final TransactorNo parentTransactor, final Optional<ByteString> prevTxnHandle) {
 		super(factory);
 
-		this.transaction = factory.asyncDatastore(cache).newTransaction(this::committed, prevTxnHandle);
+		this.transaction = factory.asyncDatastore(cache).newTransaction(readOnly, this::committed, prevTxnHandle);
 		this.parentTransactor = parentTransactor;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#getTransaction()
-	 */
 	@Override
 	public AsyncTransaction getTransaction() {
 		return this.transaction;
@@ -46,9 +46,6 @@ class TransactorYes extends Transactor
 		return parent.transactor(new TransactorNo(parent.factory(), parentTransactor.getSession()));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.Transactor#execute(com.googlecode.objectify.TxnType, com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
 		switch (txnType) {
@@ -81,11 +78,13 @@ class TransactorYes extends Transactor
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.Transactor#transact(com.googlecode.objectify.impl.ObjectifyImpl, com.googlecode.objectify.Work)
-	 */
 	@Override
 	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
+		return work.run();
+	}
+
+	@Override
+	public <R> R transactReadOnly(final ObjectifyImpl parent, final Work<R> work) {
 		return work.run();
 	}
 
