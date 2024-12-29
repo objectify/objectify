@@ -117,4 +117,9 @@ public class QueryEngine
 		final AggregationResults results = ds.runAggregation(aggQuery).get();
 		return Iterables.getOnlyElement(results);
 	}
+
+// TODO: uncomment when this API lands in the google-cloud-sdk
+//	public ExplainResults<Entity> explain(final Query<?> query, final ExplainOptions options) {
+//		return ds.run(query, options);
+//	}
 }

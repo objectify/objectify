@@ -16,10 +16,8 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-abstract class Queryable<T> extends SimpleQueryImpl<T>
-{
-	/**
-	 */
+abstract class Queryable<T> extends SimpleQueryImpl<T> {
+
 	Queryable(final LoaderImpl loader) {
 		super(loader);
 	}
@@ -60,4 +58,10 @@ abstract class Queryable<T> extends SimpleQueryImpl<T>
 		return q.list();
 	}
 
+// TODO uncomment when this api lands in the google-cloud-datastore SDK
+//	@Override
+//	public ExplainResults<Entity> explain(final ExplainOptions options) {
+//		final QueryImpl<T> q = createQuery();
+//		return q.explain(options);
+//	}
 }

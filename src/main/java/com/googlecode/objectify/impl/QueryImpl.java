@@ -337,6 +337,12 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterator()));
 	}
 
+// TODO: uncomment when this API lands in the google-cloud-sdk
+//	@Override
+//	public ExplainResults<Entity> explain(final ExplainOptions options) {
+//		return loader.createQueryEngine().explain(this.actual, options);
+//	}
+
 	/**
 	 * Get an iterator over the keys.  Not part of the public api, but used by QueryKeysImpl.  Assumes
 	 * that setKeysOnly() has already been set.

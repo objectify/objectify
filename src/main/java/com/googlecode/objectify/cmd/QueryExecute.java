@@ -48,6 +48,20 @@ public interface QueryExecute<T> extends QueryResultIterable<T>
 	 */
 	LoadResult<T> first();
 
+// TODO: uncomment when this API lands in the google-cloud-sdk
+//	/**
+//	 * Convenience method for the default explain options, which plans but does not analyze.
+//	 * https://cloud.google.com/datastore/docs/multiple-range-optimize-indexes
+//	 */
+//	default ExplainResults<Entity> explain() {
+//		return explain(ExplainOptions.newBuilder().build());
+//	}
+//
+//	/**
+//	 * https://cloud.google.com/datastore/docs/multiple-range-optimize-indexes
+//	 */
+//	ExplainResults<Entity> explain(ExplainOptions options);
+
 	/**
 	 * <p>Generates a string that consistently and uniquely specifies this query.  There
 	 * is no way to convert this string back into a query and there is no guarantee that
