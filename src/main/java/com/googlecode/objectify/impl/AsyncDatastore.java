@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.protobuf.ByteString;
+import com.googlecode.objectify.TxnOptions;
 
 import java.util.Optional;
 
@@ -13,13 +14,13 @@ public interface AsyncDatastore extends AsyncDatastoreReaderWriter {
 
 	@Deprecated
 	default AsyncTransaction newTransaction(Runnable afterCommit) {
-		return newTransaction(false, afterCommit, Optional.empty());
+		return newTransaction(TxnOptions.deflt(), afterCommit, Optional.empty());
 	}
 
 	@Deprecated
 	default AsyncTransaction newTransaction(Runnable afterCommit, ByteString prevTxnHandle) {
-		return newTransaction(false, afterCommit, Optional.ofNullable(prevTxnHandle));
+		return newTransaction(TxnOptions.deflt(), afterCommit, Optional.ofNullable(prevTxnHandle));
 	}
 
-	AsyncTransaction newTransaction(boolean readOnly, Runnable afterCommit, Optional<ByteString> prevTxnHandle);
+	AsyncTransaction newTransaction(TxnOptions options, Runnable afterCommit, Optional<ByteString> prevTxnHandle);
 }

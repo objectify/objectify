@@ -5,13 +5,13 @@ import com.google.common.base.Preconditions;
 import com.google.protobuf.ByteString;
 import com.google.rpc.Code;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnOptions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Transactor which represents the absence of a transaction.
@@ -41,52 +41,26 @@ class TransactorNo extends Transactor {
 	}
 
 	@Override
-	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
-		switch (txnType) {
-			case MANDATORY:
-				throw new IllegalStateException("MANDATORY transaction but no transaction present");
-
-			case NOT_SUPPORTED:
-			case NEVER:
-			case SUPPORTS:
-				return work.run();
-
-			case REQUIRED:
-			case REQUIRES_NEW:
-				return transact(parent, work);
-
-			default:
-				throw new IllegalStateException("Impossible, some unknown txn type");
-		}
-
-	}
-
-	@Override
 	public <R> R transactionless(final ObjectifyImpl parent, final Work<R> work) {
 		return work.run();
 	}
 
 	@Override
-	public <R> R transact(final ObjectifyImpl parent, final Work<R> work) {
-		return this.transactNew(parent, DEFAULT_TRY_LIMIT, work);
+	public <R> R transact(final ObjectifyImpl parent, final TxnOptions options, final Work<R> work) {
+		return transactNew(parent, options, work);
 	}
 
 	@Override
-	public <R> R transactReadOnly(final ObjectifyImpl parent, final Work<R> work) {
-		// It shouldn't matter if we call transactNew since it's not supposed to retry, but short-circuiting
-		// out the retry logic seems wise.
-		return transactOnce(parent, work, true, new AtomicReference<>());
-	}
+	public <R> R transactNew(final ObjectifyImpl parent, final TxnOptions options, final Work<R> work) {
 
-	@Override
-	public <R> R transactNew(final ObjectifyImpl parent, int limitTries, final Work<R> work) {
+		int limitTries = options.limitTries();
+
 		Preconditions.checkArgument(limitTries >= 1);
-		final int ORIGINAL_TRIES = limitTries;
 
 		final AtomicReference<ByteString> prevTxnHandle = new AtomicReference<>();
 		while (true) {
 			try {
-				return transactOnce(parent, work, false, prevTxnHandle);
+				return transactOnce(parent, work, options, prevTxnHandle);
 			} catch (DatastoreException ex) {
 
 				if (!isRetryable(ex)) {
@@ -98,17 +72,17 @@ class TransactorNo extends Transactor {
 					log.trace("Details of transaction failure", ex);
 					try {
 						// Do increasing backoffs with randomness
-						Thread.sleep(Math.min(10000, (long) ((0.5 * Math.random() + 0.5) * 200 * (ORIGINAL_TRIES - limitTries + 2))));
+						Thread.sleep(Math.min(10000, (long) ((0.5 * Math.random() + 0.5) * 200 * (options.limitTries() - limitTries + 2))));
 					} catch (InterruptedException ignored) {
 					}
 				} else {
-					throw new DatastoreException(ex.getCode(), "Failed retrying datastore " + ORIGINAL_TRIES + " times ", ex.getReason(), ex);
+					throw new DatastoreException(ex.getCode(), "Failed retrying datastore " +  options.limitTries() + " times ", ex.getReason(), ex);
 				}
 			}
 		}
 	}
 
-    private static boolean isRetryable(DatastoreException ex) {
+	private static boolean isRetryable(DatastoreException ex) {
         // ex.isRetryable() doesn't work because the SDK considers all transactions to be non-retryable. Objectify
         // has always assumed that transactions are idempotent and retries accordingly. So we have to explicitly
         // check against code 10, which is ABORTED. https://cloud.google.com/datastore/docs/concepts/errors
@@ -132,10 +106,10 @@ class TransactorNo extends Transactor {
 	/**
 	 * One attempt at executing a transaction
 	 */
-	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work, final boolean readOnly, final AtomicReference<ByteString> prevTxnHandle) {
+	private <R> R transactOnce(final ObjectifyImpl parent, final Work<R> work, final TxnOptions options, final AtomicReference<ByteString> prevTxnHandle) {
 		final ObjectifyImpl txnOfy = parent.factory().open(
 			parent.getOptions(),
-			new TransactorYes(parent.factory(), readOnly, parent.getOptions().isCache(), this, Optional.ofNullable(prevTxnHandle.get()))
+			new TransactorYes(parent.factory(), options, parent.getOptions().isCache(), this, Optional.ofNullable(prevTxnHandle.get()))
 		);
 		prevTxnHandle.set(txnOfy.getTransaction().getTransactionHandle());
 
@@ -163,4 +137,26 @@ class TransactorNo extends Transactor {
 			}
 		}
 	}
+
+	@Override
+	public <R> R execute(final ObjectifyImpl parent, final TxnType txnType, final Work<R> work) {
+		switch (txnType) {
+			case MANDATORY:
+				throw new IllegalStateException("MANDATORY transaction but no transaction present");
+
+			case NOT_SUPPORTED:
+			case NEVER:
+			case SUPPORTS:
+				return work.run();
+
+			case REQUIRED:
+			case REQUIRES_NEW:
+				return transact(parent, TxnOptions.deflt(), work);
+
+			default:
+				throw new IllegalStateException("Impossible, some unknown txn type");
+		}
+
+	}
+
 }

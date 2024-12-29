@@ -186,10 +186,39 @@ public interface Objectify
 	<R> R transactionless(Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
-	 * so you don't have to return something from the lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void transactionless(Runnable work);
+	default void transactionless(Runnable work) {
+		transactionless((Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
+
+	/**
+	 * <p>Executes work in a transaction with the specified options.  If there is already a transaction context,
+	 * that context will be inherited. If there is not already a transaction context, a transaction will be started.</p>
+	 *
+	 * <p>Transaction attributes are set when the transaction is initially started. Even though you can run
+	 * inner transact() blocks, these inner blocks will inherit the outer transaction as-is. You cannot
+	 * change the behavior of a running transaction (though you can suspend it and start a new one).</p>
+	 *
+	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
+	 * {@code ObjectifyService.ofy()}</p>
+	 *
+	 * <p>The transaction might retry if there is a concurrency failure; work must be idempotent.</p>
+	 */
+	<R> R transact(TxnOptions options, Work<R> work);
+
+	/**
+	 * Convenience method that doesn't force you to return something from your lambda.
+	 */
+	default void transact(final TxnOptions options, final Runnable work) {
+		transact(options, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * <p>Executes work in a transaction.  If there is already a transaction context, that context will be inherited.
@@ -210,7 +239,9 @@ public interface Objectify
 	 * until the full transaction completes normally.
 	 * @return the result of the work
 	 */
-	<R> R transact(Work<R> work);
+	default <R> R transact(final Work<R> work) {
+		return transact(TxnOptions.deflt(), work);
+	}
 
 	/**
 	 * Convenience method that doesn't force you to return something from your lambda.
@@ -223,17 +254,24 @@ public interface Objectify
 	}
 
 	/**
-	 * <p>Executes work in a new read-write transaction.  Note that this is equivalent to {@code transactNew(Integer.MAX_VALUE, work);}</p>
+	 * <p>Executes work in a NEW transaction with the specified options. If there is already an existing transaction
+	 * running, it is suspended while the new transaction completes.</p>
 	 *
-	 * <p>ConcurrentModificationExceptions will cause the transaction to repeat as many times as necessary to
-	 * finish the job. Work <b>MUST</b> idempotent.</p>
+	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
+	 * {@code ObjectifyService.ofy()}</p>
 	 *
-	 * <p>Within {@code Work.run()}, obtain the new transactional {@code Objectify} instance by calling {@code ObjectifyService.ofy()}</p>
-	 *
-	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
-	 * @return the result of the work
+	 * <p>The transaction might retry if there is a concurrency failure; work must be idempotent.</p>
 	 */
-	<R> R transactNew(Work<R> work);
+	<R> R transactNew(TxnOptions options, Work<R> work);
+
+	/**
+	 * <p>Executes work in a NEW transaction with the default options.</p>
+	 *
+	 * @see Objectify#transactNew(TxnOptions, Work)
+	 */
+	default <R> R transactNew(final Work<R> work) {
+		return transactNew(TxnOptions.deflt(), work);
+	}
 
 	/**
 	 * Convenience method that doesn't force you to return something from your lambda.
@@ -246,8 +284,8 @@ public interface Objectify
 	}
 
 	/**
-	 * <p>Executes the work in a new read-write transaction, repeating up to limitTries times when a ConcurrentModificationException
-	 * is thrown.  This requires your Work to be idempotent; otherwise limit tries to 1.
+	 * <p>Executes the work in a new read-write transaction, trying up to limitTries times when a concurrency
+	 * failure happens.</p>
 	 *
 	 * <p>Within {@code Work.run()}, obtain the new transactional {@code Objectify} instance by calling {@code ObjectifyService.ofy()}</p>
 	 *
@@ -255,7 +293,9 @@ public interface Objectify
 	 * @param work defines the work to be done in a transaction.  After the method exits, the transaction will commit.
 	 * @return the result of the work
 	 */
-	<R> R transactNew(int limitTries, Work<R> work);
+	default <R> R transactNew(final int limitTries, final Work<R> work) {
+		return transactNew(TxnOptions.deflt().limitTries(limitTries), work);
+	}
 
 	/**
 	 * Convenience method that doesn't force you to return something from your lambda.
@@ -279,9 +319,11 @@ public interface Objectify
 	 * <p>Within {@code Work.run()}, obtain the correct transactional {@code Objectify} instance by calling
 	 * {@code ObjectifyService.ofy()}</p>
 	 *
-	 * <p>Readonly transactions do not retry.</p>
+	 * <p>Readonly transactions do not have concurrency failures and do not retry.</p>
 	 */
-	<R> R transactReadOnly(Work<R> work);
+	default <R> R transactReadOnly(final Work<R> work) {
+		return transact(TxnOptions.deflt().readOnly(true), work);
+	}
 
 	/**
 	 * Convenience method that doesn't force you to return something from your lambda.
@@ -313,10 +355,14 @@ public interface Objectify
 	<R> R execute(TxnType txnType, Work<R> work);
 
 	/**
-	 * <p>Exactly the same behavior as the Work version, but doesn't return anything. Convenient for Java8
-	 * so you don't have to return something from the lambda.</p>
+	 * Convenience method that doesn't force you to return something from your lambda.
 	 */
-	void execute(TxnType txnType, Runnable work);
+	default void execute(final TxnType txnType, final Runnable work) {
+		execute(txnType, (Work<Void>)() -> {
+			work.run();
+			return null;
+		});
+	}
 
 	/**
 	 * Synchronously flushes any deferred operations to the datastore. Objectify does this for you at the end

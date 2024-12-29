@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnOptions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import lombok.Getter;
@@ -54,29 +55,24 @@ public abstract class Transactor
 	abstract public ObjectifyImpl transactionless(ObjectifyImpl parent);
 
 	/**
-	 * @see Objectify#execute(TxnType, Work)
-	 */
-	abstract public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work);
-
-	/**
 	 * @see Objectify#transactionless(Work)
 	 */
 	abstract public <R> R transactionless(ObjectifyImpl parent, Work<R> work);
 
 	/**
-	 * @see Objectify#transact(Work)
+	 * @see Objectify#transact(TxnOptions, Work)
 	 */
-	abstract public <R> R transact(ObjectifyImpl parent, Work<R> work);
+	abstract public <R> R transact(ObjectifyImpl parent, final TxnOptions options, Work<R> work);
 
 	/**
-	 * @see Objectify#transactReadOnly(Work)
+	 * @see Objectify#transactNew(TxnOptions, Work)
 	 */
-	abstract public <R> R transactReadOnly(ObjectifyImpl parent, Work<R> work);
+	abstract public <R> R transactNew(ObjectifyImpl parent, final TxnOptions options, Work<R> work);
 
 	/**
-	 * @see Objectify#transactNew(int, Work)
+	 * @see Objectify#execute(TxnType, Work)
 	 */
-	abstract public <R> R transactNew(ObjectifyImpl parent, int limitTries, Work<R> work);
+	abstract public <R> R execute(ObjectifyImpl parent, TxnType txnType, Work<R> work);
 
 	/**
 	 * @param ofy */

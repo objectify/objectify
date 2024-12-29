@@ -5,6 +5,7 @@ package com.googlecode.objectify.test;
 
 import com.google.cloud.datastore.Entity;
 import com.googlecode.objectify.Key;
+import com.googlecode.objectify.TxnOptions;
 import com.googlecode.objectify.annotation.Cache;
 import com.googlecode.objectify.annotation.Id;
 import com.googlecode.objectify.annotation.Parent;
@@ -86,7 +87,7 @@ class EvilMemcacheBugTests extends TestBase {
 		//MemcacheService cs = MemcacheServiceFactory.getMemcacheService();
 		//cs.clearAll();
 
-		final AsyncTransaction txn = cacheds.newTransaction(false, () -> {}, Optional.empty());
+		final AsyncTransaction txn = cacheds.newTransaction(TxnOptions.deflt(), () -> {}, Optional.empty());
 		try {
 			final Entity ent2 = txn.get(childKey).get().values().iterator().next();
 			//ent2 = new Entity(childKey);	// solves the problem

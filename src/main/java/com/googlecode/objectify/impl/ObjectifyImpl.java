@@ -7,6 +7,7 @@ import com.google.cloud.datastore.Value;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.Objectify;
 import com.googlecode.objectify.ObjectifyFactory;
+import com.googlecode.objectify.TxnOptions;
 import com.googlecode.objectify.TxnType;
 import com.googlecode.objectify.Work;
 import com.googlecode.objectify.annotation.Entity;
@@ -128,52 +129,18 @@ public class ObjectifyImpl implements Objectify, Closeable {
 	}
 
 	@Override
-	public void execute(final TxnType txnType, final Runnable work) {
-		execute(txnType, (Work<Void>)() -> {
-			work.run();
-			return null;
-		});
-	}
-
-	@Override
 	public <R> R transactionless(final Work<R> work) {
 		return transactor.transactionless(this, work);
 	}
 
 	@Override
-	public void transactionless(final Runnable work) {
-		transactionless((Work<Void>)() -> {
-			work.run();
-			return null;
-		});
+	public <R> R transact(final TxnOptions options, final Work<R> work) {
+		return transactor.transact(this, options, work);
 	}
 
 	@Override
-	public <R> R transact(Work<R> work) {
-		return transactor.transact(this, work);
-	}
-
-	@Override
-	public <R> R transactReadOnly(Work<R> work) {
-		return transactor.transactReadOnly(this, work);
-	}
-
-	@Override
-	public void transactReadOnly(final Runnable work) {
-		transactReadOnly((Work<Void>)() -> {
-			work.run();
-			return null;
-		});
-	}
-
-	@Override
-	public <R> R transactNew(Work<R> work) {
-		return this.transactNew(Transactor.DEFAULT_TRY_LIMIT, work);
-	}
-
-	@Override
-	public <R> R transactNew(int limitTries, Work<R> work) {
-		return transactor.transactNew(this, limitTries, work);
+	public <R> R transactNew(final TxnOptions options, Work<R> work) {
+		return transactor.transactNew(this, options, work);
 	}
 
 	@Override
