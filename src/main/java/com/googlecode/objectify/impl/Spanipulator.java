@@ -9,11 +9,23 @@ import java.util.function.Consumer;
  * pass the NOOP version and the manipulate callbacks will not be applied.
  */
 public interface Spanipulator {
-	Spanipulator NOOP = new Spanipulator() {
-		@Override
-		public void update(final Consumer<Span> manipulate) {}
-	};
+	Spanipulator NOOP = manipulate -> {};
 
-	/** Call this to update a span */
+	/** Call this to arbitrarily update a span */
 	void update(Consumer<Span> manipulate);
+
+	/** Add the query to the span */
+	default void attach(final QueryDef queryDef) {
+		update(span -> {
+			span.setAttribute("db.query.summary", queryDef.toStringSummary());
+			span.setAttribute("db.query.text", queryDef.toStringSanitized());
+
+			if (queryDef.getNamespace() != null)
+				span.setAttribute("db.namespace", queryDef.getNamespace());
+
+			if (queryDef.getKind() != null)
+				span.setAttribute("db.collection.name", queryDef.getKind());
+		});
+	}
+
 }

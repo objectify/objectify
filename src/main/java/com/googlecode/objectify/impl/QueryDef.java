@@ -10,11 +10,13 @@ import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.StructuredQuery.CompositeFilter;
 import com.google.cloud.datastore.StructuredQuery.Filter;
 import com.google.cloud.datastore.StructuredQuery.OrderBy;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.googlecode.objectify.util.Queries;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import java.util.function.Supplier;
 
@@ -24,23 +26,22 @@ import java.util.function.Supplier;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-@Data
+@Value
 @RequiredArgsConstructor
-public class QueryDef
-{
-	private final String namespace;
-	private final String kind;
-	private final ImmutableList<String> projection;
-	private final Filter filter;
-	private final ImmutableList<String> distinctOn;
-	private final ImmutableList<OrderBy> orderBy;
-	private final Cursor startCursor;
-	private final Cursor endCursor;
-	private final int offset;
-	private final Integer limit;
+public class QueryDef {
+	String namespace;
+	String kind;
+	ImmutableList<String> projection;
+	Filter filter;
+	ImmutableList<String> distinctOn;
+	ImmutableList<OrderBy> orderBy;
+	Cursor startCursor;
+	Cursor endCursor;
+	int offset;
+	Integer limit;
 
 	/** To simulate the old distinct(boolean) behavior, this will add all projections to distinct when Query is generated */
-	private final boolean distinctOnAll;
+	boolean distinctOnAll;
 
 	private <T> ImmutableList<T> concat(final ImmutableList<T> base, final T element) {
 		return ImmutableList.<T>builder().addAll(base).add(element).build();
@@ -138,5 +139,87 @@ public class QueryDef
 		Queries.addOrderBy(builder, orderBy);
 
 		return builder;
+	}
+
+	/** Low-cardinality summary */
+	public String toStringSummary() {
+		final ToStringHelper helper = MoreObjects.toStringHelper("");
+
+		if (namespace != null) {
+			helper.add("namespace", namespace);
+		}
+
+		if (kind != null) {
+			helper.add("kind", kind);
+		}
+
+		if (!projection.isEmpty()) {
+			helper.add("projection", projection);
+		}
+
+		if (!distinctOn.isEmpty()) {
+			helper.add("distinctOn", distinctOn);
+		}
+
+		if (!orderBy.isEmpty()) {
+			helper.add("orderBy", orderBy);
+		}
+
+		if (distinctOnAll) {
+			helper.add("distinctOnAll", true);
+		}
+
+		return helper.toString();
+	}
+
+	/** Excludes anything that might be PII */
+	public String toStringSanitized() {
+		final ToStringHelper helper = MoreObjects.toStringHelper("");
+
+		if (namespace != null) {
+			helper.add("namespace", namespace);
+		}
+
+		if (kind != null) {
+			helper.add("kind", kind);
+		}
+
+		if (!projection.isEmpty()) {
+			helper.add("projection", projection);
+		}
+
+		if (filter != null) {
+			helper.add("filter", "[redacted]");
+		}
+
+		if (!distinctOn.isEmpty()) {
+			helper.add("distinctOn", distinctOn);
+		}
+
+		if (!orderBy.isEmpty()) {
+			helper.add("orderBy", orderBy);
+		}
+
+		if (startCursor != null) {
+			helper.add("startCursor", startCursor);
+		}
+
+		if (endCursor != null) {
+			helper.add("endCursor", endCursor);
+		}
+
+		if (offset > 0) {
+			helper.add("offset", offset);
+		}
+
+		if (limit != null) {
+			helper.add("limit", limit);
+		}
+
+		if (distinctOnAll) {
+			helper.add("distinctOnAll", true);
+		}
+
+		return helper.toString();
 	}
 }

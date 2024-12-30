@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.List;
+
 import static com.googlecode.objectify.ObjectifyService.factory;
 import static com.googlecode.objectify.ObjectifyService.ofy;
 
@@ -102,6 +104,9 @@ class OtelTests {
 
 		ofy().clear();
 		final Trivial fetched = ofy().load().key(k).now();
+
+		ofy().clear();
+		final List<Trivial> listed = ofy().load().type(Trivial.class).filter("someString", "foo").list();
 
 		ofy().delete().entity(fetched).now();
 	}
