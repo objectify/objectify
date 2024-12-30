@@ -7,13 +7,15 @@ import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ExtensionContext.Namespace;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
 /**
  * Sets up and tears down the Local Datastore emulator
  */
 @RequiredArgsConstructor
 @Slf4j
-public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCallback {
+public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCallback, ParameterResolver {
 
 	@Override
 	public void beforeAll(final ExtensionContext context) throws Exception {
@@ -35,6 +37,16 @@ public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCal
 	public void beforeEach(final ExtensionContext context) throws Exception {
 		final LocalDatastoreHelper helper = getHelper(context);
 		helper.reset();
+	}
+
+	@Override
+	public boolean supportsParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) {
+		return parameterContext.getParameter().getType().equals(LocalDatastoreHelper.class);
+	}
+
+	@Override
+	public Object resolveParameter(final ParameterContext parameterContext, final ExtensionContext extensionContext) {
+		return getHelper(extensionContext);
 	}
 
 	/** Get the helper created in beforeAll; it should be global so there will one per test run */

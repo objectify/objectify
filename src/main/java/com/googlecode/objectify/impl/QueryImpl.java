@@ -292,20 +292,31 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public LoadResult<T> first() {
-		// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
-		final Iterator<T> it = this.limit(1).iterator();
+		return loader.ofy.factory().span("query", () -> {
+			// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
+			final Iterator<T> it = this.limit(1).iterator();
 
-		return new LoadResult<>(null, new IteratorFirstResult<>(it));
+			final LoadResult<T> result = new LoadResult<>(null, new IteratorFirstResult<>(it));
+
+			// The low level API is not async, so let's ensure work is finished in the span.
+			result.now();
+
+			return result;
+		});
 	}
 
 	@Override
 	public AggregationResult aggregate(final Aggregation... aggregations) {
-		return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
+		return loader.ofy.factory().span("aggregate", () -> {
+			return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
+		});
 	}
 
 	@Override
 	public AggregationResult aggregate(final AggregationBuilder<?>... aggregations) {
-		return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
+		return loader.ofy.factory().span("aggregate", () -> {
+			return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
+		});
 	}
 
 	/* (non-Javadoc)
@@ -321,12 +332,16 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public QueryResults<T> iterator() {
-		if (!actual.getProjection().isEmpty())
-			return loader.createQueryEngine().queryProjection(this.actual.newProjectionQuery());
-		else if (shouldHybridize())
-			return loader.createQueryEngine().queryHybrid(this.actual.newKeyQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
-		else
-			return loader.createQueryEngine().queryNormal(this.actual.newEntityQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
+		return loader.ofy.factory().span("query", () -> {
+			// This is a bit odd from a span perspective; how should we track the iteration, which happens outside the span?
+
+			if (!actual.getProjection().isEmpty())
+				return loader.createQueryEngine().queryProjection(this.actual.newProjectionQuery());
+			else if (shouldHybridize())
+				return loader.createQueryEngine().queryHybrid(this.actual.newKeyQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
+			else
+				return loader.createQueryEngine().queryNormal(this.actual.newEntityQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
+		});
 	}
 
 	/* (non-Javadoc)

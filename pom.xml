@@ -273,6 +273,13 @@
 			<version>${slf4j.version}</version>
 			<scope>test</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-jaeger</artifactId>
+			<version>1.34.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>

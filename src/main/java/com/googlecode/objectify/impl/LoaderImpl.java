@@ -56,17 +56,11 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		this.readOptions = readOptions;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.QueryDefinition#createQuery()
-	 */
 	@Override
 	QueryImpl<Object> createQuery() {
 		return new QueryImpl<>(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#group(java.lang.Class<?>[])
-	 */
 	@Override
 	public Loader group(final Class<?>... groups) {
 		final LoadArrangement arrangement = new LoadArrangement();
@@ -85,9 +79,6 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		return new LoaderImpl(ofy, loadArrangement, newOptions);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#type(java.lang.Class)
-	 */
 	@Override
 	public <E> LoadType<E> type(final Class<E> type) {
 		return new LoadTypeImpl<>(this, Key.getKind(type), type);
@@ -98,143 +89,112 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		return new LoadTypeImpl<>(this, kind, null);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#ref(com.googlecode.objectify.Ref)
-	 */
 	@Override
 	public <E> LoadResult<E> ref(final Ref<E> ref) {
 		return key(ref.key());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#refs(com.googlecode.objectify.Ref<?>[])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> Map<Key<E>, E> refs(final Ref<? extends E>... refs) {
 		return refs(Arrays.asList((Ref<E>[])refs));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#refs(java.lang.Iterable)
-	 */
 	@Override
 	public <E> Map<Key<E>, E> refs(final Iterable<Ref<E>> refs) {
 		return values(refs);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#entity(com.googlecode.objectify.Key)
-	 */
 	@Override
 	public <E> LoadResult<E> key(final Key<E> key) {
-		return new LoadResult<>(key, createLoadEngine().load(key));
+		return ofy.factory().span("load", () -> {
+			final LoadResult<E> result = new LoadResult<>(key, createLoadEngine().load(key));
+			// The low level API is not async, so let's ensure work is finished in the span.
+			result.now();
+			return result;
+		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#entity(java.lang.Object)
-	 */
 	@Override
 	public <E> LoadResult<E> entity(final E entity) {
 		return key(ofy.factory().keys().keyOf(entity, ofy.getOptions().getNamespace()));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#value(java.lang.Object)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> LoadResult<E> value(final Object key) {
 		return (LoadResult<E>)key(ofy.factory().keys().anythingToKey(key, ofy.getOptions().getNamespace()));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#keys(com.googlecode.objectify.Key<E>[])
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <E> Map<Key<E>, E> keys(final Key<? extends E>... keys) {
 		return this.keys(Arrays.asList((Key<E>[])keys));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#keys(java.lang.Iterable)
-	 */
 	@Override
 	public <E> Map<Key<E>, E> keys(final Iterable<Key<E>> keys) {
 		return values(keys);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#entities(E[])
-	 */
 	@Override
 	public <E> Map<Key<E>, E> entities(final E... entities) {
 		return this.entities(Arrays.asList(entities));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#entities(java.lang.Iterable)
-	 */
 	@Override
 	public <E> Map<Key<E>, E> entities(final Iterable<E> values) {
 		return values(values);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Object[])
-	 */
 	@Override
 	public <E> Map<Key<E>, E> values(final Object... values) {
 		return values(Arrays.asList(values));
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#values(java.lang.Iterable)
-	 */
 	@Override
-	@SuppressWarnings("unchecked")
 	public <E> Map<Key<E>, E> values(final Iterable<?> values) {
+		return ofy.factory().span("load", () -> {
 
-		// Do this in a separate pass so any errors converting keys will show up before we try loading something
-		final List<Key<E>> keys = new ArrayList<>();
-		for (final Object keyish: values)
-			keys.add(ofy.factory().keys().anythingToKey(keyish, ofy.getOptions().getNamespace()));
+			// Do this in a separate pass so any errors converting keys will show up before we try loading something
+			final List<Key<E>> keys = new ArrayList<>();
+			for (final Object keyish : values)
+				keys.add(ofy.factory().keys().anythingToKey(keyish, ofy.getOptions().getNamespace()));
 
-		final LoadEngine engine = createLoadEngine();
+			final LoadEngine engine = createLoadEngine();
 
-		final Map<Key<E>, Result<E>> results = new LinkedHashMap<>();
-		for (final Key<E> key: keys)
-			results.put(key, engine.load(key));
+			final Map<Key<E>, Result<E>> results = new LinkedHashMap<>();
+			for (final Key<E> key : keys)
+				results.put(key, engine.load(key));
 
-		engine.execute();
+			engine.execute();
 
-		// Now asynchronously translate into a normal-looking map. We must be careful to exclude results with
-		// null (missing) values because that is the contract established by DatastoreService.get().
-		// We use the ResultProxy and create a new map because the performance of filtered views is questionable.
-		return ResultProxy.create(Map.class, new ResultCache<Map<Key<E>, E>>() {
-			@Override
-			public Map<Key<E>, E> nowUncached() {
-				return
-					Maps.newLinkedHashMap(
-						Maps.filterValues(
-							Maps.transformValues(results, ResultNowFunction.instance()),
-							Predicates.notNull()));
-			}
+			// Now asynchronously translate into a normal-looking map. We must be careful to exclude results with
+			// null (missing) values because that is the contract established by DatastoreService.get().
+			// We use the ResultProxy and create a new map because the performance of filtered views is questionable.
+			final Map<Key<E>, E> result = ResultProxy.create(Map.class, new ResultCache<>() {
+				@Override
+				public Map<Key<E>, E> nowUncached() {
+					return
+						Maps.newLinkedHashMap(
+							Maps.filterValues(
+								Maps.transformValues(results, ResultNowFunction.instance()),
+								Predicates.notNull()));
+				}
+			});
+
+			// The low level API is not async, so let's ensure work is finished in the span.
+			result.isEmpty();
+
+			return result;
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#getObjectify()
-	 */
 	@Override
 	public Objectify getObjectify() {
 		return ofy;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#getLoadGroups()
-	 */
 	@Override
 	public Set<Class<?>> getLoadGroups() {
 		return Collections.unmodifiableSet(loadArrangement);
@@ -261,17 +221,11 @@ class LoaderImpl extends Queryable<Object> implements Loader
 		return new QueryEngine(this, ofy.asyncDatastore());
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Loader#now(com.googlecode.objectify.Key)
-	 */
 	@Override
 	public <E> E now(final Key<E> key) {
 		return createLoadEngine().load(key).now();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.Objectify#toPojo(com.google.cloud.datastore.Entity)
-	 */
 	@Override
 	public <T> T fromEntity(final Entity entity) {
 		final LoadEngine engine = createLoadEngine();

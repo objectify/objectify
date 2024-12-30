@@ -24,8 +24,13 @@ import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
 import com.googlecode.objectify.util.Closeable;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import net.spy.memcached.MemcachedClient;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Constructor;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -41,6 +46,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -59,8 +65,11 @@ import java.util.stream.Collectors;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class ObjectifyFactory implements Forge
-{
+public class ObjectifyFactory implements Forge {
+
+	/** For OpenTelemetry */
+	private static final String TRACER_NAME = "Objectify";
+
 	/** Default memcache namespace */
 	public static final String MEMCACHE_NAMESPACE = "ObjectifyCache";
 
@@ -70,25 +79,29 @@ public class ObjectifyFactory implements Forge
 	private final ThreadLocal<Deque<Objectify>> stacks = ThreadLocal.withInitial(ArrayDeque::new);
 
 	/** The raw interface to the datastore from the Cloud SDK */
-	protected Datastore datastore;
+	protected final Datastore datastore;
 
 	/** The low-level interface to memcache */
-	protected MemcacheService memcache;
+	protected final MemcacheService memcache;
 
 	/** Encapsulates entity registration info */
-	protected Registrar registrar;
+	protected final Registrar registrar;
 
 	/** Some useful tools for working with keys */
-	protected Keys keys;
+	protected final Keys keys;
 
 	/** */
-	protected Translators translators;
+	protected final Translators translators;
 
 	/** */
-	protected EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
+	protected final EntityMemcacheStats memcacheStats = new EntityMemcacheStats();
 
 	/** Manages caching of entities; might be null to indicate "no cache" */
-	protected EntityMemcache entityMemcache;
+	protected final EntityMemcache entityMemcache;
+
+	/** This will be null if opentelemetry is not configured */
+	@Nullable
+	protected final Tracer tracer;
 
 	/** Uses default datastore, no memcache */
 	public ObjectifyFactory() {
@@ -143,6 +156,9 @@ public class ObjectifyFactory implements Forge
 		this.memcache = memcache;
 
 		this.entityMemcache = memcache == null ? null : new EntityMemcache(memcache, MEMCACHE_NAMESPACE, new CacheControlImpl(this), this.memcacheStats);
+
+		final OpenTelemetry openTelemetry = datastore.getOptions().getOpenTelemetryOptions().getOpenTelemetry();
+		this.tracer = openTelemetry == null ? null : openTelemetry.getTracer(TRACER_NAME);
 	}
 
 	/** */
@@ -537,5 +553,21 @@ public class ObjectifyFactory implements Forge
 	/** Creates a Ref from a registered pojo entity */
 	public <T> Ref<T> ref(final T value) {
 		return ref(key(value));
+	}
+
+	/**
+	 * For internal use, hides the optionality of otel.
+	 */
+	public <T> T span(final String name, final Supplier<T> work) {
+		if (tracer == null) {
+			return work.get();
+		} else {
+			final Span span = tracer.spanBuilder(name).setSpanKind(SpanKind.CLIENT).startSpan();
+			try (final Scope scope = span.makeCurrent()) {
+				return work.get();
+			} finally {
+				span.end();
+			}
+		}
 	}
 }
