@@ -19,6 +19,8 @@ import com.googlecode.objectify.impl.Keys;
 import com.googlecode.objectify.impl.ObjectifyImpl;
 import com.googlecode.objectify.impl.ObjectifyOptions;
 import com.googlecode.objectify.impl.Registrar;
+import com.googlecode.objectify.impl.Spanipulator;
+import com.googlecode.objectify.impl.SpanipulatorImpl;
 import com.googlecode.objectify.impl.Transactor;
 import com.googlecode.objectify.impl.TypeUtils;
 import com.googlecode.objectify.impl.translate.Translators;
@@ -46,7 +48,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -558,13 +560,13 @@ public class ObjectifyFactory implements Forge {
 	/**
 	 * For internal use, hides the optionality of otel.
 	 */
-	public <T> T span(final String name, final Supplier<T> work) {
+	public <T> T span(final String name, final Function<Spanipulator, T> work) {
 		if (tracer == null) {
-			return work.get();
+			return work.apply(Spanipulator.NOOP);
 		} else {
 			final Span span = tracer.spanBuilder(name).setSpanKind(SpanKind.CLIENT).startSpan();
 			try (final Scope scope = span.makeCurrent()) {
-				return work.get();
+				return work.apply(new SpanipulatorImpl(span));
 			} finally {
 				span.end();
 			}

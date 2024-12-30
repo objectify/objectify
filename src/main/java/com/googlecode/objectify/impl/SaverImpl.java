@@ -17,12 +17,10 @@ import java.util.Map;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class SaverImpl implements Saver
-{
-	/** */
+public class SaverImpl implements Saver {
+
 	private final ObjectifyImpl ofy;
 
-	/** */
 	public SaverImpl(final ObjectifyImpl ofy) {
 		this.ofy = ofy;
 	}
@@ -48,7 +46,7 @@ public class SaverImpl implements Saver
 
 	@Override
 	public <E> Result<Map<Key<E>, E>> entities(final Iterable<E> entities) {
-		return ofy.factory().span("save", () -> {
+		return ofy.factory().span("save", spanipulator -> {
 			final Result<Map<Key<E>, E>> result = ofy.createWriteEngine().save(entities);
 			// The low level API is not async, so let's ensure work is finished in the span.
 			result.now();

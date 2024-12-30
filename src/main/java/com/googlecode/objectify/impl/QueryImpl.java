@@ -292,7 +292,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public LoadResult<T> first() {
-		return loader.ofy.factory().span("query", () -> {
+		return loader.ofy.factory().span("query", spanipulator -> {
 			// By the way, this is the same thing that PreparedQuery.asSingleEntity() does internally
 			final Iterator<T> it = this.limit(1).iterator();
 
@@ -307,14 +307,14 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	@Override
 	public AggregationResult aggregate(final Aggregation... aggregations) {
-		return loader.ofy.factory().span("aggregate", () -> {
+		return loader.ofy.factory().span("aggregate", spanipulator -> {
 			return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
 		});
 	}
 
 	@Override
 	public AggregationResult aggregate(final AggregationBuilder<?>... aggregations) {
-		return loader.ofy.factory().span("aggregate", () -> {
+		return loader.ofy.factory().span("aggregate", spanipulator -> {
 			return loader.createQueryEngine().queryAggregations(this.actual.newKeyQuery(), aggregations);
 		});
 	}
@@ -332,7 +332,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 	 */
 	@Override
 	public QueryResults<T> iterator() {
-		return loader.ofy.factory().span("query", () -> {
+		return loader.ofy.factory().span("query", spanipulator -> {
 			// This is a bit odd from a span perspective; how should we track the iteration, which happens outside the span?
 
 			if (!actual.getProjection().isEmpty())

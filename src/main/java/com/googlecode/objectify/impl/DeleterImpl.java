@@ -40,7 +40,7 @@ public class DeleterImpl implements Deleter {
 
 	@Override
 	public Result<Void> keys(final Iterable<? extends Key<?>> keys) {
-		return ofy.factory().span("delete", () -> {
+		return ofy.factory().span("delete", spanipulator -> {
 			final List<com.google.cloud.datastore.Key> rawKeys = new ArrayList<>();
 			for (final Key<?> key: keys)
 				rawKeys.add(key.getRaw());
@@ -61,7 +61,7 @@ public class DeleterImpl implements Deleter {
 
 	@Override
 	public Result<Void> entities(final Iterable<?> entities) {
-		return ofy.factory().span("delete", () -> {
+		return ofy.factory().span("delete", spanipulator -> {
 			final List<com.google.cloud.datastore.Key> keys = new ArrayList<>();
 			for (final Object obj : entities)
 				keys.add(ofy.factory().keys().anythingToRawKey(obj, ofy.getOptions().getNamespace()));

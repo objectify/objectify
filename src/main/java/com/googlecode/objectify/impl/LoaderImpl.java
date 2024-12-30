@@ -107,7 +107,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 
 	@Override
 	public <E> LoadResult<E> key(final Key<E> key) {
-		return ofy.factory().span("load", () -> {
+		return ofy.factory().span("load", spanipulator -> {
 			final LoadResult<E> result = new LoadResult<>(key, createLoadEngine().load(key));
 			// The low level API is not async, so let's ensure work is finished in the span.
 			result.now();
@@ -154,7 +154,7 @@ class LoaderImpl extends Queryable<Object> implements Loader
 
 	@Override
 	public <E> Map<Key<E>, E> values(final Iterable<?> values) {
-		return ofy.factory().span("load", () -> {
+		return ofy.factory().span("load", spanipulator -> {
 
 			// Do this in a separate pass so any errors converting keys will show up before we try loading something
 			final List<Key<E>> keys = new ArrayList<>();

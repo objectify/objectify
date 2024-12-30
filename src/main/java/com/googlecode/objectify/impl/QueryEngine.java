@@ -26,9 +26,8 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class QueryEngine
-{
-	/** */
+public class QueryEngine {
+
 	private final LoaderImpl loader;
 	private final AsyncDatastoreReaderWriter ds;
 
