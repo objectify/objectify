@@ -33,8 +33,7 @@ import java.util.List;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable
-{
+public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Cloneable {
 	/**
 	 * Because we process @Load batches, we need to always work in chunks.  So we should always specify
 	 * a chunk size to the query.  This is the default if user does not specify an explicit chunk size.
@@ -79,17 +78,11 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.impl.cmd.QueryBase#createQuery()
-	 */
 	@Override
 	QueryImpl<T> createQuery() {
 		return this.clone();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#filter(java.lang.String, java.lang.Object)
-	 */
 	@Override
 	public QueryImpl<T> filter(final String condition, final Object value) {
 		final QueryImpl<T> q = createQuery();
@@ -97,7 +90,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return q;
 	}
 
-	/* */
 	@Override
 	public QueryImpl<T> filter(final StructuredQuery.Filter filter) {
 		final QueryImpl<T> q = createQuery();
@@ -112,9 +104,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return q;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#order(java.lang.String)
-	 */
 	@Override
 	public QueryImpl<T> order(final String condition) {
 		final QueryImpl<T> q = createQuery();
@@ -279,17 +268,12 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+	/** Note this is meaningful as a cache key to uniquely identify the query */
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this).add("query", actual).toString();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#first()
-	 */
 	@Override
 	public LoadResult<T> first() {
 		return loader.ofy.factory().span("query", spanipulator -> {
@@ -319,17 +303,11 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.QueryExecute#iterable()
-	 */
 	@Override
 	public QueryResultIterable<T> iterable() {
 		return this::iterator;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.google.cloud.datastore.QueryResultIterable#iterator()
-	 */
 	@Override
 	public QueryResults<T> iterator() {
 		return loader.ofy.factory().span("query", spanipulator -> {
@@ -344,9 +322,6 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see com.googlecode.objectify.cmd.Query#list()
-	 */
 	@Override
 	public List<T> list() {
 		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterator()));
@@ -382,10 +357,7 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return false;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#clone()
-	 */
-	@SuppressWarnings({"unchecked", "CloneDoesntDeclareCloneNotSupportedException"})
+	@SuppressWarnings({"unchecked"})
 	@SneakyThrows
 	public QueryImpl<T> clone() {
 		return (QueryImpl<T>)super.clone();
