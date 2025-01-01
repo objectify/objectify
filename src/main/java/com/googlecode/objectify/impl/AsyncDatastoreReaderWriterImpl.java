@@ -10,6 +10,7 @@ import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.ReadOption;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.util.FutureNow;
 import lombok.RequiredArgsConstructor;
@@ -60,6 +61,12 @@ public class AsyncDatastoreReaderWriterImpl implements AsyncDatastoreReaderWrite
 	@Override
 	public <T> QueryResults<T> run(final Query<T> query) {
 		return datastoreReaderWriter.run(query);
+	}
+
+	@Override
+	public <T> QueryResults<T> run(final Query<T> query, final ExplainOptions explainOptions, final ReadOption... options) {
+		// This is a hack. But we're going to rip out all the fake async behavior, so we'll clean it up then.
+		return ((Datastore)datastoreReaderWriter).run(query, explainOptions, options);
 	}
 
 	@Override

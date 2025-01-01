@@ -2,9 +2,12 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.models.ExplainMetrics;
 import com.google.datastore.v1.QueryResultBatch.MoreResultsType;
 import com.googlecode.objectify.Key;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Optional;
 
 /**
  * Converts from native Keys to Objectify Keys
@@ -45,5 +48,10 @@ class KeyQueryResults<T> implements QueryResults<Key<T>> {
 	@Override
 	public MoreResultsType getMoreResults() {
 		return source.getMoreResults();
+	}
+
+	@Override
+	public Optional<ExplainMetrics> getExplainMetrics() {
+		return source.getExplainMetrics();
 	}
 }

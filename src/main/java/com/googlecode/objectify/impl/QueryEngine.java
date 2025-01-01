@@ -6,18 +6,22 @@ import com.google.cloud.datastore.AggregationResults;
 import com.google.cloud.datastore.Entity;
 import com.google.cloud.datastore.EntityQuery;
 import com.google.cloud.datastore.KeyQuery;
+import com.google.cloud.datastore.ProjectionEntity;
 import com.google.cloud.datastore.ProjectionEntityQuery;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.StructuredQuery;
 import com.google.cloud.datastore.aggregation.Aggregation;
 import com.google.cloud.datastore.aggregation.AggregationBuilder;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.google.common.collect.Iterables;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.NamespaceManager;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Optional;
 
 /**
  * Logic for dealing with queries.
@@ -34,19 +38,27 @@ public class QueryEngine {
 	/**
 	 * Perform a keys-only query.
 	 */
-	public <T> QueryResults<Key<T>> queryKeysOnly(final KeyQuery query) {
+	public <T> QueryResults<Key<T>> queryKeysOnly(final KeyQuery query, final Optional<ExplainOptions> explain) {
 		log.trace("Starting keys-only query");
 
-		return new KeyQueryResults<>(ds.run(query));
+		final QueryResults<com.google.cloud.datastore.Key> results = explain.isPresent()
+			? ds.run(query, explain.get())
+			: ds.run(query);
+
+		return new KeyQueryResults<>(results);
 	}
 
 	/**
 	 * Perform a keys-only plus batch gets.
 	 */
-	public <T> QueryResults<T> queryHybrid(final KeyQuery query, final int chunkSize) {
+	public <T> QueryResults<T> queryHybrid(final KeyQuery query, final int chunkSize, final Optional<ExplainOptions> explain) {
 		log.trace("Starting hybrid query");
 
-		final QueryResults<Key<T>> results = new KeyQueryResults<>(ds.run(query));
+		final QueryResults<com.google.cloud.datastore.Key> rawResults = explain.isPresent()
+			? ds.run(query, explain.get())
+			: ds.run(query);
+
+		final QueryResults<Key<T>> results = new KeyQueryResults<>(rawResults);
 
 		return new HybridQueryResults<>(loader.createLoadEngine(), results, chunkSize);
 	}
@@ -54,7 +66,7 @@ public class QueryEngine {
 	/**
 	 * A normal, non-hybrid query
 	 */
-	public <T> QueryResults<T> queryNormal(final EntityQuery query, final int chunkSize) {
+	public <T> QueryResults<T> queryNormal(final EntityQuery query, final int chunkSize, final Optional<ExplainOptions> explain) {
 		log.trace("Starting normal query");
 
 		// Normal queries are actually more complex than hybrid queries because we need the fetched entities to
@@ -63,7 +75,9 @@ public class QueryEngine {
 
 		final LoadEngine loadEngine = loader.createLoadEngine();
 
-		final QueryResults<Entity> entityResults = ds.run(query);
+		final QueryResults<Entity> entityResults = explain.isPresent()
+			? ds.run(query, explain.get())
+			: ds.run(query);
 
 		final QueryResults<com.google.cloud.datastore.Key> stuffed = new StuffingQueryResults(loadEngine, entityResults);
 
@@ -75,12 +89,16 @@ public class QueryEngine {
 	/**
 	 * A projection query. Bypasses the session entirely.
 	 */
-	public <T> QueryResults<T> queryProjection(final ProjectionEntityQuery query) {
+	public <T> QueryResults<T> queryProjection(final ProjectionEntityQuery query, final Optional<ExplainOptions> explain) {
 		log.trace("Starting projection query");
 
 		final LoadEngine loadEngine = loader.createLoadEngine();
 
-		return new ProjectionQueryResults<>(ds.run(query), loadEngine);
+		final QueryResults<ProjectionEntity> results = explain.isPresent()
+			? ds.run(query, explain.get())
+			: ds.run(query);
+
+		return new ProjectionQueryResults<>(results, loadEngine);
 	}
 
 	/**
@@ -116,9 +134,4 @@ public class QueryEngine {
 		final AggregationResults results = ds.runAggregation(aggQuery).get();
 		return Iterables.getOnlyElement(results);
 	}
-
-// TODO: uncomment when this API lands in the google-cloud-sdk
-//	public ExplainResults<Entity> explain(final Query<?> query, final ExplainOptions options) {
-//		return ds.run(query, options);
-//	}
 }

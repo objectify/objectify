@@ -2,7 +2,10 @@ package com.googlecode.objectify.util;
 
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.models.ExplainMetrics;
 import com.google.datastore.v1.QueryResultBatch.MoreResultsType;
+
+import java.util.Optional;
 
 /**
  * QueryResultIterator wrapper that translates from one type to another
@@ -40,4 +43,8 @@ abstract public class TranslatingQueryResults<F, T> extends TranslatingIterator<
 		return ((QueryResults<F>)this.base).getMoreResults();
 	}
 
+	@Override
+	public Optional<ExplainMetrics> getExplainMetrics() {
+		return ((QueryResults<F>)this.base).getExplainMetrics();
+	}
 }

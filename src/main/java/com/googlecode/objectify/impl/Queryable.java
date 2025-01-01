@@ -4,6 +4,7 @@ import com.google.cloud.datastore.AggregationResult;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.aggregation.Aggregation;
 import com.google.cloud.datastore.aggregation.AggregationBuilder;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.cmd.QueryResultIterable;
 
@@ -38,6 +39,12 @@ abstract class Queryable<T> extends SimpleQueryImpl<T> {
 	public QueryResultIterable<T> iterable() {
 		final QueryImpl<T> q = createQuery();
 		return q.iterable();
+	}
+
+	@Override
+	public QueryResults<T> explain(final ExplainOptions options) {
+		final QueryImpl<T> q = createQuery();
+		return q.explain(options);
 	}
 
 	@Override

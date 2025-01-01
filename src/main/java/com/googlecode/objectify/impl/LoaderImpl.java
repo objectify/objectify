@@ -32,8 +32,8 @@ import java.util.Set;
  *
  * @author Jeff Schnitzer <jeff@infohazard.org>
  */
-class LoaderImpl extends Queryable<Object> implements Loader
-{
+class LoaderImpl extends Queryable<Object> implements Loader {
+
 	/** Used by some child command objects */
 	final ObjectifyImpl ofy;
 

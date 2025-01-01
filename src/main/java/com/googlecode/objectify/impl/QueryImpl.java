@@ -11,6 +11,7 @@ import com.google.cloud.datastore.StructuredQuery.PropertyFilter;
 import com.google.cloud.datastore.Value;
 import com.google.cloud.datastore.aggregation.Aggregation;
 import com.google.cloud.datastore.aggregation.AggregationBuilder;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.google.common.base.MoreObjects;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
@@ -27,6 +28,7 @@ import lombok.SneakyThrows;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of Query.
@@ -316,17 +318,21 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 
 	@Override
 	public QueryResults<T> iterator() {
+		return iterator(Optional.empty());
+	}
+
+	private QueryResults<T> iterator(final Optional<ExplainOptions> explain) {
 		return loader.ofy.factory().span("query", spanipulator -> {
 			// This is a bit odd from a span perspective; how should we track the iteration, which happens outside the span?
 
 			spanipulator.attach(actual);
 
 			if (!actual.getProjection().isEmpty())
-				return loader.createQueryEngine().queryProjection(this.actual.newProjectionQuery());
+				return loader.createQueryEngine().queryProjection(this.actual.newProjectionQuery(), explain);
 			else if (shouldHybridize())
-				return loader.createQueryEngine().queryHybrid(this.actual.newKeyQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
+				return loader.createQueryEngine().queryHybrid(this.actual.newKeyQuery(), chunk == null ? Integer.MAX_VALUE : chunk, explain);
 			else
-				return loader.createQueryEngine().queryNormal(this.actual.newEntityQuery(), chunk == null ? Integer.MAX_VALUE : chunk);
+				return loader.createQueryEngine().queryNormal(this.actual.newEntityQuery(), chunk == null ? Integer.MAX_VALUE : chunk, explain);
 		});
 	}
 
@@ -335,20 +341,19 @@ public class QueryImpl<T> extends SimpleQueryImpl<T> implements Query<T>, Clonea
 		return ResultProxy.create(List.class, new MakeListResult<>(this.chunk(Integer.MAX_VALUE).iterator()));
 	}
 
-// TODO: uncomment when this API lands in the google-cloud-sdk
-//	@Override
-//	public ExplainResults<Entity> explain(final ExplainOptions options) {
-//		return loader.createQueryEngine().explain(this.actual, options);
-//	}
+	@Override
+	public QueryResults<T> explain(final ExplainOptions options) {
+		return iterator(Optional.of(options));
+	}
 
 	/**
 	 * Get an iterator over the keys.  Not part of the public api, but used by QueryKeysImpl.  Assumes
 	 * that setKeysOnly() has already been set.
 	 */
-	QueryResults<Key<T>> keysIterator() {
+	QueryResults<Key<T>> keysIterator(final Optional<ExplainOptions> explain) {
 		final QueryEngine queryEngine = loader.createQueryEngine();
 		final KeyQuery query = this.actual.newKeyQuery();
-		return queryEngine.queryKeysOnly(query);
+		return queryEngine.queryKeysOnly(query, explain);
 	}
 
 	/**

@@ -8,6 +8,7 @@ import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.ReadOption;
+import com.google.cloud.datastore.models.ExplainOptions;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -24,6 +25,8 @@ public interface AsyncDatastoreReaderWriter {
 	Future<Map<Key, Entity>> get(final Collection<Key> keys, final ReadOption... options);
 
 	<T> QueryResults<T> run(final Query<T> query);
+
+	<T> QueryResults<T> run(final Query<T> query, final ExplainOptions explainOptions, final ReadOption... options);
 
 	Future<Void> delete(final Iterable<Key> keys);
 

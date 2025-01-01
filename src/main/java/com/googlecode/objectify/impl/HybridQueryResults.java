@@ -2,6 +2,7 @@ package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.Cursor;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.models.ExplainMetrics;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -14,6 +15,7 @@ import lombok.Getter;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 /**
  * Converts keys-only query results into hybrid query results. This involves chunking the keys into batches and loading
@@ -122,5 +124,10 @@ public class HybridQueryResults<T> implements QueryResults<T> {
 	@Override
 	public MoreResultsType getMoreResults() {
 		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public Optional<ExplainMetrics> getExplainMetrics() {
+		return source.getExplainMetrics();
 	}
 }

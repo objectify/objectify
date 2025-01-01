@@ -1,6 +1,7 @@
 package com.googlecode.objectify.impl;
 
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.googlecode.objectify.Key;
 import com.googlecode.objectify.LoadResult;
 import com.googlecode.objectify.Result;
@@ -12,6 +13,7 @@ import com.googlecode.objectify.util.ResultProxy;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Implementation of QueryKeys.
@@ -29,7 +31,7 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public LoadResult<Key<T>> first() {
-		final Iterator<Key<T>> it = impl.limit(1).keysIterator();
+		final Iterator<Key<T>> it = impl.limit(1).keysIterator(Optional.empty());
 		final Result<Key<T>> result = new IteratorFirstResult<>(it);
 
 		return new LoadResult<>(null, result);
@@ -42,11 +44,16 @@ class QueryKeysImpl<T> implements QueryKeys<T>
 
 	@Override
 	public List<Key<T>> list() {
-		return ResultProxy.create(List.class, new MakeListResult<>(impl.chunk(Integer.MAX_VALUE).keysIterator()));
+		return ResultProxy.create(List.class, new MakeListResult<>(impl.chunk(Integer.MAX_VALUE).keysIterator(Optional.empty())));
 	}
 
 	@Override
 	public QueryResults<Key<T>> iterator() {
-		return impl.keysIterator();
+		return impl.keysIterator(Optional.empty());
+	}
+
+	@Override
+	public QueryResults<Key<T>> explain(final ExplainOptions options) {
+		return impl.keysIterator(Optional.of(options));
 	}
 }

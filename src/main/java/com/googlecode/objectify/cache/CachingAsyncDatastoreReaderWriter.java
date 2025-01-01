@@ -6,6 +6,8 @@ import com.google.cloud.datastore.FullEntity;
 import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
+import com.google.cloud.datastore.ReadOption;
+import com.google.cloud.datastore.models.ExplainOptions;
 import com.googlecode.objectify.impl.AsyncDatastoreReaderWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +61,11 @@ abstract public class CachingAsyncDatastoreReaderWriter implements AsyncDatastor
 	@Override
 	public <T> QueryResults<T> run(final Query<T> query) {
 		return this.raw.run(query);
+	}
+
+	@Override
+	public <T> QueryResults<T> run(final Query<T> query, final ExplainOptions explainOptions, final ReadOption... options) {
+		return this.raw.run(query, explainOptions, options);
 	}
 
 	@Override
