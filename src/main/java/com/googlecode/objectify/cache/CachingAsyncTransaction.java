@@ -6,6 +6,7 @@ import com.google.cloud.datastore.Key;
 import com.google.cloud.datastore.Query;
 import com.google.cloud.datastore.QueryResults;
 import com.google.cloud.datastore.ReadOption;
+import com.google.cloud.datastore.Transaction;
 import com.google.cloud.datastore.Transaction.Response;
 import com.google.protobuf.ByteString;
 import com.googlecode.objectify.Result;
@@ -125,7 +126,12 @@ public class CachingAsyncTransaction extends CachingAsyncDatastoreReaderWriter i
 	public ByteString getTransactionHandle() {
 		return raw.getTransactionHandle();
 	}
-
+	
+	@Override
+	public Transaction getRawTransaction() {
+		return raw.getRawTransaction();
+	}
+	
 	@Override
 	public void runCommitListeners() {
 		((PrivateAsyncTransaction)raw).runCommitListeners();
