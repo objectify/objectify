@@ -157,10 +157,9 @@ public class KeyMetadata<P>
 
 		final com.google.cloud.datastore.Key parentKey = key.getParent();
 		if (parentKey != null) {
-			if (this.parentMeta == null)
-				throw new IllegalStateException("Loaded Entity has parent but " + clazz.getName() + " has no @Parent");
-
-			parentMeta.setValue(pojo, (Value)KeyValue.of(parentKey), ctx, containerPath);
+			if (this.parentMeta != null) {
+				parentMeta.setValue(pojo, (Value) KeyValue.of(parentKey), ctx, containerPath);
+			}
 		}
 
 		if (namespaceMeta != null) {
