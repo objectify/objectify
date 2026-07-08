@@ -164,6 +164,52 @@ class ValkeyCacheServiceTests {
 	}
 
 	@Test
+	void putAppliesDefaultTtl() throws Exception {
+		final MemcacheService ttlCache = new ValkeyCacheService(client, 100);
+		ttlCache.put("k", "v");
+		assertThat(ttlOf("k")).isGreaterThan(0L);
+	}
+
+	@Test
+	void putAllAppliesDefaultTtl() throws Exception {
+		final MemcacheService ttlCache = new ValkeyCacheService(client, 100);
+		final Map<String, Object> in = new LinkedHashMap<>();
+		in.put("a", "alpha");
+		ttlCache.putAll(in);
+		assertThat(ttlOf("a")).isGreaterThan(0L);
+	}
+
+	@Test
+	void coldCacheSentinelAppliesDefaultTtl() throws Exception {
+		final MemcacheService ttlCache = new ValkeyCacheService(client, 100);
+		ttlCache.getIdentifiables(Arrays.asList("cold"));
+		assertThat(ttlOf("cold")).isGreaterThan(0L);
+	}
+
+	@Test
+	void casFallsBackToDefaultTtlWhenUnset() throws Exception {
+		final MemcacheService ttlCache = new ValkeyCacheService(client, 100);
+		final IdentifiableValue iv = ttlCache.getIdentifiables(Arrays.asList("k")).get("k");
+		assertThat(ttlCache.putIfUntouched(Map.of("k", new CasPut(iv, "v", 0)))).containsExactly("k");
+		assertThat(ttlOf("k")).isGreaterThan(0L);
+	}
+
+	@Test
+	void rejectsNonPositiveDefaultTtl() {
+		try {
+			new ValkeyCacheService(client, 0);
+			throw new AssertionError("expected IllegalArgumentException");
+		} catch (final IllegalArgumentException expected) {
+			// expected
+		}
+	}
+
+	/** Remaining TTL (seconds) on a key, or a negative sentinel (-1 no expiry, -2 absent) per the Valkey TTL contract. */
+	private long ttlOf(final String key) throws Exception {
+		return ((Number) client.customCommand(new String[]{"TTL", key}).get()).longValue();
+	}
+
+	@Test
 	void casHonorsExpirationSeconds() throws Exception {
 		final IdentifiableValue iv = cache.getIdentifiables(Arrays.asList("k")).get("k");
 
