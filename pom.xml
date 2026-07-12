@@ -8,6 +8,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
+		<lombok.version>1.18.46</lombok.version>
 		<slf4j.version>2.0.9</slf4j.version>
 		<junit.jupiter.version>5.10.1</junit.jupiter.version>
 	</properties>
@@ -88,6 +89,13 @@
 				<configuration>
 					<source>11</source>
 					<target>11</target>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
 				</configuration>
 			</plugin>
 
@@ -171,7 +179,7 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.46</version>
+			<version>${lombok.version}</version>
 			<scope>provided</scope>
 		</dependency>
 
