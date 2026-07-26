@@ -6,6 +6,7 @@ import com.googlecode.objectify.cache.MemcacheService.CasPut;
 import com.googlecode.objectify.cache.valkey.ValkeyCacheService;
 import com.googlecode.objectify.cache.valkey.ValkeyIdentifiableValue;
 import glide.api.GlideClient;
+import glide.api.models.GlideString;
 import glide.api.models.configuration.GlideClientConfiguration;
 import glide.api.models.configuration.NodeAddress;
 import org.junit.jupiter.api.AfterAll;
@@ -15,7 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.ObjectStreamClass;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -283,6 +290,156 @@ class ValkeyCacheServiceTests {
 		assertThat(wins.get()).isEqualTo(1);
 		assertThat(cache.get(key)).isInstanceOf(String.class);
 		assertThat((String) cache.get(key)).startsWith("writer-");
+	}
+
+	@Test
+	void largeValueRoundTripsThroughCompression() throws Exception {
+		final String big = repeat('x', 200_000);
+		cache.put("big", big);
+
+		// Round-trips intact...
+		assertThat(cache.get("big")).isEqualTo(big);
+
+		// ...and was actually stored compressed: the deflate marker leads, and the stored form is far
+		// smaller than the raw serialization.
+		final byte[] stored = rawBytes("big");
+		assertThat(stored[0] & 0xFF).isEqualTo(0x01);
+		assertThat(stored.length).isLessThan(javaSerialize(big).length);
+	}
+
+	@Test
+	void smallValueIsStoredUncompressed() throws Exception {
+		cache.put("small", new Sample("hello", 42));
+
+		// Below the threshold we skip compression, so the stored bytes are a bare Java serialization
+		// (stream magic 0xAC), not a compressed payload.
+		final byte[] stored = rawBytes("small");
+		assertThat(stored[0] & 0xFF).isEqualTo(0xAC);
+	}
+
+	@Test
+	void midSizeValueAboveThresholdIsCompressed() throws Exception {
+		// ~4 KB serialized: below the old 16 KB memcache cutoff but above the current 2 KB threshold,
+		// so it must now be compressed. Guards the lowered threshold against silently regressing to 16 KB.
+		final String mid = repeat('z', 4_000);
+		assertThat(javaSerialize(mid).length).isGreaterThan(ValkeyCacheService.COMPRESSION_THRESHOLD_BYTES);
+		cache.put("mid", mid);
+
+		assertThat(cache.get("mid")).isEqualTo(mid);
+		final byte[] stored = rawBytes("mid");
+		assertThat(stored[0] & 0xFF).isEqualTo(0x01);
+	}
+
+	@Test
+	void readsLegacyUncompressedValueWrittenBeforeCompression() throws Exception {
+		// An entry written by the pre-compression code is a raw Java serialization with no marker byte.
+		final Sample value = new Sample("legacy", 7);
+		writeRaw("legacy", javaSerialize(value));
+		assertThat(cache.get("legacy")).isEqualTo(value);
+	}
+
+	@Test
+	void readsLegacyLargeUncompressedValue() throws Exception {
+		// A large entry written before compression existed is stored uncompressed; the read path must not
+		// assume "large implies compressed", so this must deserialize directly rather than try to inflate.
+		final String big = repeat('y', 200_000);
+		writeRaw("legacy-big", javaSerialize(big));
+		assertThat(cache.get("legacy-big")).isEqualTo(big);
+	}
+
+	@Test
+	void readsEmptyStoredValueAsCorruptRatherThanIndexError() throws Exception {
+		// A zero-length value can't come from our own writes, but an external writer could leave one.
+		// It must not trip an ArrayIndexOutOfBoundsException on the format-byte check; it falls through
+		// to deserialization, which wraps the failure descriptively.
+		writeRaw("empty", new byte[0]);
+		try {
+			cache.get("empty");
+			throw new AssertionError("expected a wrapped deserialization failure");
+		} catch (final RuntimeException expected) {
+			assertThat(expected).isNotInstanceOf(ArrayIndexOutOfBoundsException.class);
+		}
+	}
+
+	@Test
+	void injectedFactoryRemapsClassNamesOnRead() {
+		// Simulates the split you get when one process writes with shaded (relocated) dependencies and
+		// another reads with un-relocated ones: a value serialized under one class name is read back by a
+		// process that only has the class under a different name, which otherwise surfaces as a
+		// ClassNotFoundException. A ValkeyCacheService built with a custom ObjectInputStreamFactory that
+		// swaps the class descriptor must decode it. The swap is done in readClassDescriptor(), not
+		// resolveClass(): since JDK 17 the latter rejects a class whose name differs from the stream
+		// descriptor with InvalidClassException.
+		final String writtenName = Alpha.class.getName();
+		final MemcacheService remapping = new ValkeyCacheService(client, in -> new ObjectInputStream(in) {
+			@Override
+			protected ObjectStreamClass readClassDescriptor() throws IOException, ClassNotFoundException {
+				final ObjectStreamClass desc = super.readClassDescriptor();
+				return desc.getName().equals(writtenName) ? ObjectStreamClass.lookup(Beta.class) : desc;
+			}
+		});
+
+		remapping.put("k", new Alpha("payload"));
+		final Object read = remapping.get("k");
+
+		assertThat(read).isInstanceOf(Beta.class);
+		assertThat(((Beta) read).s).isEqualTo("payload");
+	}
+
+	@Test
+	void factoryConstructorRoundTripsAndAppliesDefaultTtl() throws Exception {
+		// The (client, ttl, factory) constructor honors both the TTL and a plain-delegating factory.
+		final MemcacheService withFactory =
+				new ValkeyCacheService(client, 100, ObjectInputStream::new);
+		withFactory.put("k", new Alpha("v"));
+		assertThat(((Alpha) withFactory.get("k")).s).isEqualTo("v");
+		assertThat(ttlOf("k")).isGreaterThan(0L);
+	}
+
+	private static byte[] rawBytes(final String key) throws Exception {
+		final GlideString value = client.get(GlideString.gs(key.getBytes(StandardCharsets.UTF_8))).get();
+		return value == null ? null : value.getBytes();
+	}
+
+	private static void writeRaw(final String key, final byte[] bytes) throws Exception {
+		client.set(GlideString.gs(key.getBytes(StandardCharsets.UTF_8)), GlideString.gs(bytes)).get();
+	}
+
+	private static byte[] javaSerialize(final Object thing) throws Exception {
+		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		try (final ObjectOutputStream oos = new ObjectOutputStream(baos)) {
+			oos.writeObject(thing);
+		}
+		return baos.toByteArray();
+	}
+
+	private static String repeat(final char c, final int n) {
+		final char[] chars = new char[n];
+		Arrays.fill(chars, c);
+		return new String(chars);
+	}
+
+	/**
+	 * {@link Alpha} and {@link Beta} share an identical serial layout and {@code serialVersionUID}, so a
+	 * stream written as {@code Alpha} deserializes into {@code Beta} once {@code resolveClass} maps the
+	 * name — the same compatibility the shaded/un-relocated Guava class pairs rely on.
+	 */
+	private static class Alpha implements Serializable {
+		private static final long serialVersionUID = 99L;
+		private final String s;
+
+		Alpha(final String s) {
+			this.s = s;
+		}
+	}
+
+	private static class Beta implements Serializable {
+		private static final long serialVersionUID = 99L;
+		private final String s;
+
+		Beta(final String s) {
+			this.s = s;
+		}
 	}
 
 	private static class Sample implements Serializable {
