@@ -66,7 +66,12 @@ public class AsyncTransactionImpl extends AsyncDatastoreReaderWriterImpl impleme
 	public ByteString getTransactionHandle() {
 		return transaction.getTransactionId();
 	}
-
+	
+	@Override
+	public Transaction getRawTransaction() {
+		return transaction;
+	}
+	
 	@Override
 	public void runCommitListeners() {
 		for (final Runnable listener : listeners) {
