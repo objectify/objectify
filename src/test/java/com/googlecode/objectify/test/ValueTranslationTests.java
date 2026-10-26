@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -360,7 +361,7 @@ class ValueTranslationTests extends TestBase {
 		factory().register(HasInstant.class);
 
 		final HasInstant hi = new HasInstant();
-		hi.instant = Instant.now();
+		hi.instant = Instant.now().truncatedTo(ChronoUnit.MICROS);
 
 		final HasInstant fetched = saveClearLoad(hi);
 		assertThat(fetched).isEqualTo(hi);

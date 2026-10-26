@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    services:
+      datastore:
+        image: guibeira/datastore-emulator:0.1.10
+        ports:
+          - 8081:8042
+      memcached:
+        image: memcached:1.6-alpine
+        ports:
+          - 11211:11211
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Wait for datastore
+        run: curl --fail --silent --show-error --retry 20 --retry-connrefused --retry-delay 1 --request POST http://localhost:8081/reset
+      - name: Build and test
+        run: >-
+          mvn --batch-mode --no-transfer-progress
+          -Dapi.version=1.44
+          -Ddatastore.emulator.port=8081
+          '-Dsurefire.excludes=**/RemoteQueryTests.java'
+          package

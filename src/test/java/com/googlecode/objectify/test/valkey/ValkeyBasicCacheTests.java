@@ -9,6 +9,7 @@ import com.googlecode.objectify.cache.MemcacheService;
 import com.googlecode.objectify.cache.valkey.ValkeyCacheService;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.LocalDatastoreExtension;
 import com.googlecode.objectify.util.Closeable;
 import glide.api.GlideClient;
 import glide.api.models.configuration.GlideClientConfiguration;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
@@ -32,6 +34,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
  * and {@link GlideClient} so it can wire a custom {@link ObjectifyFactory} subclass — the same
  * pattern the memcached version uses to assert the global-cache flag is honored.
  */
+@ExtendWith(LocalDatastoreExtension.class)
 class ValkeyBasicCacheTests {
 
 	private static class NeverAllowCacheFactory extends ObjectifyFactory {
@@ -73,11 +76,9 @@ class ValkeyBasicCacheTests {
 	}
 
 	@BeforeEach
-	void setUp() throws IOException, InterruptedException {
+	void setUp(final LocalDatastoreHelper helper) throws IOException, InterruptedException {
 		client.customCommand(new String[]{"FLUSHALL"});
 
-		final LocalDatastoreHelper helper = LocalDatastoreHelper.create(1.0);
-		helper.start();
 		final Datastore datastore = helper.getOptions().getService();
 
 		ObjectifyService.init(new NeverAllowCacheFactory(datastore, new ValkeyCacheService(client)));

@@ -22,13 +22,19 @@ public class LocalDatastoreExtension implements BeforeAllCallback, BeforeEachCal
 		if (getHelper(context) == null) {
 			log.info("Creating new LocalDatastoreHelper");
 
-			final LocalDatastoreHelper helper = LocalDatastoreHelper.newBuilder()
+			final String port = System.getProperty("datastore.emulator.port");
+			final LocalDatastoreHelper.Builder builder = LocalDatastoreHelper.newBuilder()
 					.setConsistency(1.0)	// we always have strong consistency now
-					.setStoreOnDisk(false)
-					.build();
+					.setStoreOnDisk(false);
+			if (port != null) {
+				builder.setPort(Integer.parseInt(port));
+			}
+			final LocalDatastoreHelper helper = builder.build();
 
 			context.getRoot().getStore(Namespace.GLOBAL).put(LocalDatastoreHelper.class, helper);
-			helper.start();
+			if (port == null) {
+				helper.start();
+			}
 		}
 
 	}

@@ -12,11 +12,13 @@ import com.googlecode.objectify.cache.MemcacheService;
 import com.googlecode.objectify.cache.spymemcached.SpyMemcacheService;
 import com.googlecode.objectify.impl.AsyncDatastore;
 import com.googlecode.objectify.test.entity.Trivial;
+import com.googlecode.objectify.test.util.LocalDatastoreExtension;
 import com.googlecode.objectify.util.Closeable;
 import net.spy.memcached.MemcachedClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -28,6 +30,7 @@ import static com.googlecode.objectify.ObjectifyService.ofy;
 /**
  * Doesn't extend TestBase so we have to set up the factory by hand
  */
+@ExtendWith(LocalDatastoreExtension.class)
 class BasicCacheTests {
 	private static class NeverAllowCacheFactory extends ObjectifyFactory {
 		public NeverAllowCacheFactory(final Datastore datastore, final MemcacheService memcache) {
@@ -44,9 +47,7 @@ class BasicCacheTests {
 	private Closeable rootService;
 
 	@BeforeEach
-	void setUp() throws IOException, InterruptedException {
-		final LocalDatastoreHelper helper = LocalDatastoreHelper.create(1.0);
-		helper.start();
+	void setUp(final LocalDatastoreHelper helper) throws IOException, InterruptedException {
 		final Datastore datastore = helper.getOptions().getService();
 		final MemcachedClient client = new MemcachedClient(new InetSocketAddress("localhost", 11211));
 
