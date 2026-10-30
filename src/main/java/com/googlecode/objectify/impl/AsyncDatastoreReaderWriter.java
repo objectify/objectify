@@ -32,6 +32,8 @@ public interface AsyncDatastoreReaderWriter {
 
 	Future<List<Key>> put(final Iterable<? extends FullEntity<?>> entities);
 
+	Future<List<Key>> add(final Iterable<? extends FullEntity<?>> entities);
+
 	default Future<Map<Key, Entity>> get(final Key... keys) {
 		return get(Arrays.asList(keys));
 	}

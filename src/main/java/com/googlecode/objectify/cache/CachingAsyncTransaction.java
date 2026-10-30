@@ -178,6 +178,15 @@ public class CachingAsyncTransaction extends CachingAsyncDatastoreReaderWriter i
 		
 		return future;
 	}
+
+	@Override
+	public Future<List<Key>> add(final Iterable<? extends FullEntity<?>> entities) {
+		final Future<List<Key>> future = super.add(entities);
+
+		enlist(future);
+
+		return future;
+	}
 }
 
 
