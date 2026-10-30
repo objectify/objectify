@@ -2,6 +2,7 @@ package com.googlecode.objectify;
 
 import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Inserter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.AsyncTransaction;
@@ -51,6 +52,20 @@ public interface Objectify
 	 * @return the next step in the immutable command chain.
 	 */
 	Saver save();
+
+	/**
+	 * <p>Start an insert command chain.  Like save(), but fails if an entity with the same key already exists
+	 * (save() overwrites it).</p>
+	 *
+	 * <p>A quick example:
+	 * {@code ofy().insert().entities(e1, e2, e3).now();}</p>
+	 *
+	 * <p><b>All command objects are immutable; this method returns a new object rather than modifying the
+	 * current command object.</b></p>
+	 *
+	 * @return the next step in the immutable command chain.
+	 */
+	Inserter insert();
 
 	/**
 	 * <p>Start a delete command chain.  Lets you delete entities or keys.</p>

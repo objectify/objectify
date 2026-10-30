@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.function.Function;
 
 /**
  * <p>A write-through memcache for Entity objects that works for both transactional
@@ -70,6 +71,18 @@ abstract public class CachingAsyncDatastoreReaderWriter implements AsyncDatastor
 
 	@Override
 	public Future<List<Key>> put(final Iterable<? extends FullEntity<?>> entities) {
+		return writeAndEmpty(entities, this.raw::put);
+	}
+
+	@Override
+	public Future<List<Key>> add(final Iterable<? extends FullEntity<?>> entities) {
+		return writeAndEmpty(entities, this.raw::add);
+	}
+
+	/**
+	 * Performs the write (put or add) and empties the written keys from the cache afterwards.
+	 */
+	private Future<List<Key>> writeAndEmpty(final Iterable<? extends FullEntity<?>> entities, final Function<Iterable<? extends FullEntity<?>>, Future<List<Key>>> write) {
 		// There is one weird case we have to watch out for.  When you put() entities without
 		// a key, the backend autogenerates the key for you.  But the put() might throw an
 		// exception (eg timeout) even though it succeeded in the backend.  Thus we wrote
@@ -94,7 +107,7 @@ abstract public class CachingAsyncDatastoreReaderWriter implements AsyncDatastor
 
 		// Always trigger, even on failure - the delete might have succeeded even though a timeout
 		// exception was thrown.  We will always be safe emptying the key from the cache.
-		final Future<List<Key>> future = new TriggerFuture<List<Key>>(this.raw.put(entities)) {
+		final Future<List<Key>> future = new TriggerFuture<List<Key>>(write.apply(entities)) {
 			@Override
 			protected void trigger() {
 				// This is complicated by the fact that some entities may have been put() without keys,

@@ -95,6 +95,20 @@ public class AsyncDatastoreReaderWriterImpl implements AsyncDatastoreReaderWrite
 	}
 
 	@Override
+	public Future<List<Key>> add(final Iterable<? extends FullEntity<?>> entities) {
+		final Iterable<? extends List<? extends FullEntity<?>>> partitions = Iterables.partition(entities, MAX_WRITE_SIZE);
+
+		final List<Key> result = new ArrayList<>();
+
+		for (final List<? extends FullEntity<?>> partition : partitions) {
+			final List<Entity> saved = datastoreReaderWriter.add(Iterables.toArray(partition, FullEntity.class));
+			saved.stream().map(Entity::getKey).forEach(result::add);
+		}
+
+		return new FutureNow<>(result);
+	}
+
+	@Override
 	public Future<AggregationResults> runAggregation(final AggregationQuery query) {
 		final AggregationResults results = datastoreReaderWriter.runAggregation(query);
 		return new FutureNow<>(results);

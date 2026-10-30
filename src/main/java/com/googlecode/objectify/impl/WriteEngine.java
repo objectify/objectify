@@ -53,7 +53,21 @@ public class WriteEngine
 	 * The fundamental put() operation.
 	 */
 	public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
-		log.trace("Saving {}", entities);
+		return write(entities, false);
+	}
+
+	/**
+	 * Like save(), but uses the datastore's insert operation, which fails if any key already exists.
+	 */
+	public <E> Result<Map<Key<E>, E>> insert(Iterable<? extends E> entities) {
+		return write(entities, true);
+	}
+
+	/**
+	 * @param insertOnly if true, use the datastore insert operation (fails on existing keys) instead of put (upsert)
+	 */
+	private <E> Result<Map<Key<E>, E>> write(Iterable<? extends E> entities, boolean insertOnly) {
+		log.trace(insertOnly ? "Inserting {}" : "Saving {}", entities);
 
 		// A hacky way of doing this but otherwise we have to adjust the save() contracts to take a namespace
 		final Closeable unsetNamespace = ofy.getOptions().getNamespace() == null ? null : NamespaceManager.set(ofy.getOptions().getNamespace());
@@ -80,7 +94,7 @@ public class WriteEngine
 			final List<? extends E> original = Lists.newArrayList(entities);
 
 			// The CachingDatastoreService needs its own raw transaction
-			final Future<List<com.google.cloud.datastore.Key>> raw = datastore.put(entityList);
+			final Future<List<com.google.cloud.datastore.Key>> raw = insertOnly ? datastore.add(entityList) : datastore.put(entityList);
 			final Result<List<com.google.cloud.datastore.Key>> adapted = new ResultAdapter<>(raw);
 
 			final Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.cloud.datastore.Key>, Map<Key<E>, E>>(adapted) {

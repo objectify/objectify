@@ -14,6 +14,7 @@ import com.googlecode.objectify.annotation.Entity;
 import com.googlecode.objectify.cache.PendingFutures;
 import com.googlecode.objectify.cmd.Deferred;
 import com.googlecode.objectify.cmd.Deleter;
+import com.googlecode.objectify.cmd.Inserter;
 import com.googlecode.objectify.cmd.Loader;
 import com.googlecode.objectify.cmd.Saver;
 import com.googlecode.objectify.impl.translate.CreateContext;
@@ -76,6 +77,11 @@ public class ObjectifyImpl implements Objectify, Closeable {
 	@Override
 	public Saver save() {
 		return new SaverImpl(this);
+	}
+
+	@Override
+	public Inserter insert() {
+		return new InserterImpl(this);
 	}
 
 	@Override
