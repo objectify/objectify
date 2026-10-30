@@ -31,16 +31,13 @@ import java.util.function.BiFunction;
 public class WriteEngine
 {
 	/**
-	 * The kinds of write operations. Each mode knows which datastore operation performs it
-	 * and how to describe itself in the log.
+	 * The kinds of write operations, each with the datastore operation that performs it.
 	 */
 	@RequiredArgsConstructor
 	private enum WriteMode {
-		SAVE("Saving", "Saved", AsyncDatastoreReaderWriter::put),
-		INSERT("Inserting", "Inserted", AsyncDatastoreReaderWriter::add);
+		SAVE(AsyncDatastoreReaderWriter::put),
+		INSERT(AsyncDatastoreReaderWriter::add);
 
-		private final String inProgress;
-		private final String completed;
 		private final BiFunction<AsyncDatastoreReaderWriter, Iterable<? extends FullEntity<?>>, Future<List<com.google.cloud.datastore.Key>>> operation;
 	}
 
@@ -83,7 +80,7 @@ public class WriteEngine
 	 * Translates the entities and writes them with the datastore operation of the given mode.
 	 */
 	private <E> Result<Map<Key<E>, E>> write(Iterable<? extends E> entities, WriteMode mode) {
-		log.trace("{} {}", mode.inProgress, entities);
+		log.trace("{} writing {}", mode, entities);
 
 		// A hacky way of doing this but otherwise we have to adjust the save() contracts to take a namespace
 		final Closeable unsetNamespace = ofy.getOptions().getNamespace() == null ? null : NamespaceManager.set(ofy.getOptions().getNamespace());
@@ -138,7 +135,7 @@ public class WriteEngine
 						session.addValue(key, obj);
 					}
 
-					log.trace("{} {}", mode.completed, base);
+					log.trace("{} wrote {}", mode, base);
 
 					return result;
 				}
