@@ -36,8 +36,8 @@ public class WriteEngine
 	 */
 	@RequiredArgsConstructor
 	private enum WriteMode {
-		SAVE("Saving", "Saved", (ds, entities) -> ds.put(entities)),
-		INSERT("Inserting", "Inserted", (ds, entities) -> ds.add(entities));
+		SAVE("Saving", "Saved", AsyncDatastoreReaderWriter::put),
+		INSERT("Inserting", "Inserted", AsyncDatastoreReaderWriter::add);
 
 		private final String inProgress;
 		private final String completed;
