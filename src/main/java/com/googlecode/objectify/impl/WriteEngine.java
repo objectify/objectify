@@ -9,6 +9,7 @@ import com.googlecode.objectify.Result;
 import com.googlecode.objectify.impl.translate.SaveContext;
 import com.googlecode.objectify.util.Closeable;
 import com.googlecode.objectify.util.ResultWrapper;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.function.BiFunction;
 
 /**
  * This is the master logic for saving and deleting entities from the datastore.  It provides the
@@ -28,6 +30,20 @@ import java.util.concurrent.Future;
 @Slf4j
 public class WriteEngine
 {
+	/**
+	 * The kinds of write operations. Each mode knows which datastore operation performs it
+	 * and how to describe itself in the log.
+	 */
+	@RequiredArgsConstructor
+	private enum WriteMode {
+		SAVE("Saving", "Saved", (ds, entities) -> ds.put(entities)),
+		INSERT("Inserting", "Inserted", (ds, entities) -> ds.add(entities));
+
+		private final String inProgress;
+		private final String completed;
+		private final BiFunction<AsyncDatastoreReaderWriter, Iterable<? extends FullEntity<?>>, Future<List<com.google.cloud.datastore.Key>>> operation;
+	}
+
 	/** */
 	protected final ObjectifyImpl ofy;
 
@@ -53,21 +69,21 @@ public class WriteEngine
 	 * The fundamental put() operation.
 	 */
 	public <E> Result<Map<Key<E>, E>> save(Iterable<? extends E> entities) {
-		return write(entities, false);
+		return write(entities, WriteMode.SAVE);
 	}
 
 	/**
 	 * Like save(), but uses the datastore's insert operation, which fails if any key already exists.
 	 */
 	public <E> Result<Map<Key<E>, E>> insert(Iterable<? extends E> entities) {
-		return write(entities, true);
+		return write(entities, WriteMode.INSERT);
 	}
 
 	/**
-	 * @param insertOnly if true, use the datastore insert operation (fails on existing keys) instead of put (upsert)
+	 * Translates the entities and writes them with the datastore operation of the given mode.
 	 */
-	private <E> Result<Map<Key<E>, E>> write(Iterable<? extends E> entities, boolean insertOnly) {
-		log.trace(insertOnly ? "Inserting {}" : "Saving {}", entities);
+	private <E> Result<Map<Key<E>, E>> write(Iterable<? extends E> entities, WriteMode mode) {
+		log.trace("{} {}", mode.inProgress, entities);
 
 		// A hacky way of doing this but otherwise we have to adjust the save() contracts to take a namespace
 		final Closeable unsetNamespace = ofy.getOptions().getNamespace() == null ? null : NamespaceManager.set(ofy.getOptions().getNamespace());
@@ -94,7 +110,7 @@ public class WriteEngine
 			final List<? extends E> original = Lists.newArrayList(entities);
 
 			// The CachingDatastoreService needs its own raw transaction
-			final Future<List<com.google.cloud.datastore.Key>> raw = insertOnly ? datastore.add(entityList) : datastore.put(entityList);
+			final Future<List<com.google.cloud.datastore.Key>> raw = mode.operation.apply(datastore, entityList);
 			final Result<List<com.google.cloud.datastore.Key>> adapted = new ResultAdapter<>(raw);
 
 			final Result<Map<Key<E>, E>> result = new ResultWrapper<List<com.google.cloud.datastore.Key>, Map<Key<E>, E>>(adapted) {
@@ -122,7 +138,7 @@ public class WriteEngine
 						session.addValue(key, obj);
 					}
 
-					log.trace("Saved {}", base);
+					log.trace("{} {}", mode.completed, base);
 
 					return result;
 				}
